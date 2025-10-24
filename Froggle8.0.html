@@ -1,0 +1,2520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="FROGGLE"/>
+<title>FROGGLE v8.0 - COMPLETE NEUTRALS</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
+.header { padding: 0.5rem; background: linear-gradient(#fff, #f7f1e3); border-bottom: 2px solid #bda; display: flex; justify-content: space-between; font-size: 0.8rem; }
+.game-area { height: calc(100vh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
+.btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; }
+.btn:active { transform: scale(0.98); opacity: 0.9; }
+.btn.safe { background: #22c55e; }
+.btn.risky { background: #f59e0b; }
+.btn.danger { background: #dc2626; }
+.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; }
+.choice:active { transform: scale(0.98); background: #f0f0f0; }
+.neutral-container { background: white; border: 3px solid #000; border-radius: 8px; padding: 1.5rem; margin: 1rem auto; max-width: 500px; }
+.neutral-title { font-size: 1.5rem; font-weight: bold; text-align: center; margin-bottom: 1rem; }
+.neutral-desc { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }
+.neutral-outcome { font-size: 0.9rem; padding: 0.75rem; background: #f0f0f0; border-radius: 6px; margin-bottom: 1rem; }
+.dice-roll { font-size: 1.2rem; font-weight: bold; text-align: center; padding: 1rem; background: #2c63c7; color: white; border-radius: 6px; margin: 1rem 0; }
+/* Combat layout */
+.combat-grid { display: flex; gap: 0.75rem; margin-bottom: 1rem; justify-content: center; }
+.column { display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+.column.heroes { flex: 0 0 auto; }
+.column.enemies { flex: 0 0 auto; }
+.card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; }
+.card.hero { background: #2c63c7; color: white; }
+.card.enemy { background: #b64141; color: white; }
+.card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
+.card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
+.card.selectable:active { transform: scale(0.98); }
+.card.targetable { cursor: pointer; }
+.card.targetable:active { transform: scale(0.98); }
+.card.targeted { box-shadow: 0 0 0 4px lime; }
+.card.acted { opacity: 0.6; }
+.card.last-stand { border-color: #dc2626; box-shadow: 0 0 0 3px #dc2626; }
+.card.hero.targetable { box-shadow: 0 0 0 3px #3b82f6; }
+.card.enemy.targetable { box-shadow: 0 0 0 3px #dc2626; }
+.card.hero.targeted { box-shadow: 0 0 0 4px #60a5fa; }
+.card.enemy.targeted { box-shadow: 0 0 0 4px #ef4444; }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px gold; } 50% { box-shadow: 0 0 0 8px gold; } }
+.sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; }
+.sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
+.sigil { border: 2px solid #000; border-radius: 10px; padding: 3px 6px; font-size: 0.7rem; display: inline-block; margin: 2px; min-height: 24px; font-weight: bold; }
+.sigil.clickable { cursor: pointer; }
+.sigil.clickable:active { transform: scale(0.95); }
+.sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
+.sigil.l0 { background: #3a3a3a; color: #999; border-color: #555; }
+.sigil.l1 { background: #fff; color: #000; }
+.sigil.l2 { background: #14b8a6; color: #fff; border-color: #0f766e; }
+.sigil.l3 { background: #a855f7; color: #fff; border-color: #7e22ce; }
+.sigil.l4 { background: #fbbf24; color: #000; border-color: #f59e0b; }
+.sigil.engraved { background: #6b7280; color: #d1d5db; font-style: italic; opacity: 0.8; }
+.sigil.asterisk-primed { box-shadow: 0 0 8px #fbbf24; animation: pulse-asterisk 1s infinite; }
+@keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #fbbf24; } 50% { box-shadow: 0 0 16px #fbbf24; } }
+@keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
+.toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.turn-locked { pointer-events: none; opacity: 0.7; }
+</style>
+</head>
+<body>
+<div class="header">
+<div>Floor <span id="floor">1</span> | Round <span id="round">1</span></div>
+<div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
+</div>
+<div class="game-area" id="gameView"></div>
+<script>
+// ===== GAME DATA =====
+const H = {
+warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
+tank: {n:'Tank', p:1, h:10, m:10, s:['Shield','D20']},
+mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
+healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']}
+};
+
+const E = {
+goblin: { n:'Goblin', p:1, h:5, m:5, g:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
+wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:3 },
+orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Attack2','Shield2'], gainRate:3 },
+giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:3, startSigils:[{s:'Shield',l:1}] },
+dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:2, permSigils:[{s:'Expand',l:4}] }
+};
+
+function generateFibonacci(n) {
+const fib = [1, 1];
+for(let i = 2; i < n; i++) fib.push(fib[i-1] + fib[i-2]);
+return fib;
+}
+const FIB = generateFibonacci(50);
+
+// ===== GAME STATE =====
+let S = {
+floor: 1,
+round: 1,
+turn: 'player',
+gold: 0,
+xp: 0,
+levelUpCount: 0,
+heroes: [],
+enemies: [],
+sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+// Turn management
+activeIdx: -1,
+acted: [],
+locked: false,
+// Action state
+pending: null,
+targets: [],
+currentInstanceTargets: [],
+instancesRemaining: 0,
+// Asterisk state
+asteriskPrimed: false,
+asteriskMultiplier: 1,
+asteriskUsedThisCombat: false,
+lastActions: {},
+// Neutral encounter state
+neutralDeck: [],
+lastNeutral: null,
+// Persistent neutral state (survives death)
+ancientStatueDeactivated: false,
+ghostBoysConverted: false,
+shopkeeperBoughtBoth: false,
+silverKeyHeld: false,
+oracleHero: null,
+oracleRoll: null,
+oracleStat: null,
+wizardSigil: null,
+princeGender: 'Prince',
+// Temporary neutral state (resets on death)
+treasureSecretCompartment: false
+};
+
+let sel = [];
+
+// ===== HELPERS =====
+function upd() {
+document.getElementById('floor').textContent = S.floor;
+document.getElementById('round').textContent = S.round || '-';
+document.getElementById('gold').textContent = S.gold;
+document.getElementById('xp').textContent = S.xp;
+}
+
+function toast(msg, dur=2000) {
+const t = document.createElement('div');
+t.className = 'toast';
+t.textContent = msg;
+document.body.appendChild(t);
+setTimeout(() => t.classList.add('show'), 10);
+setTimeout(() => {
+t.classList.remove('show');
+setTimeout(() => t.remove(), 300);
+}, dur);
+}
+
+function saveGame() {
+localStorage.setItem('froggle8', JSON.stringify({
+f:S.floor, g:S.gold, x:S.xp, luc:S.levelUpCount,
+h:S.heroes, s:S.sig,
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
+ancientStatueDeactivated:S.ancientStatueDeactivated,
+ghostBoysConverted:S.ghostBoysConverted
+}));
+}
+
+function loadGame() {
+const d = localStorage.getItem('froggle8');
+if(!d) return;
+const j = JSON.parse(d);
+S.floor=j.f; S.gold=j.g; S.xp=j.x; S.levelUpCount=j.luc || 0;
+S.heroes=j.h; S.sig=j.s;
+S.neutralDeck=j.neutralDeck || [];
+S.lastNeutral=j.lastNeutral || null;
+S.ancientStatueDeactivated=j.ancientStatueDeactivated || false;
+S.ghostBoysConverted=j.ghostBoysConverted || false;
+S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
+upd();
+startFloor(S.floor);
+toast('Loaded!');
+}
+
+// ===== NEUTRAL DECK SYSTEM =====
+function initNeutralDeck() {
+S.neutralDeck = [
+'shopkeeper1', 'wishingwell1', 'treasurechest1',
+'wizard1', 'oracle1', 'encampment1',
+'statue1', 'ghost1', 'prince1'
+];
+S.lastNeutral = null;
+}
+
+function getNeutralEncounter() {
+if(S.neutralDeck.length === 0) {
+initNeutralDeck();
+}
+
+// Level 18: Prioritize Stage 2s
+if(S.floor === 18) {
+const stage2s = S.neutralDeck.filter(n => n.includes('2'));
+if(stage2s.length > 0) {
+const pick = stage2s[Math.floor(Math.random() * stage2s.length)];
+return pick;
+}
+}
+
+// Filter out last neutral for back-to-back prevention
+let available = S.neutralDeck;
+if(S.lastNeutral) {
+const base = S.lastNeutral.replace(/[12]$/, '');
+available = available.filter(n => !n.startsWith(base));
+}
+
+if(available.length === 0) {
+available = S.neutralDeck;
+}
+
+const pick = available[Math.floor(Math.random() * available.length)];
+S.lastNeutral = pick;
+return pick;
+}
+
+function removeNeutralFromDeck(base) {
+S.neutralDeck = S.neutralDeck.filter(n => !n.startsWith(base));
+}
+
+function replaceStage1WithStage2(base) {
+S.neutralDeck = S.neutralDeck.filter(n => n !== `${base}1`);
+S.neutralDeck.push(`${base}2`);
+}
+
+// ===== D20 ROLLS FOR NEUTRALS =====
+function rollD20Neutral() {
+const d20Level = S.sig.D20 || 1;
+const rolls = [];
+for(let i = 0; i < d20Level; i++) {
+rolls.push(Math.ceil(Math.random() * 20));
+}
+const best = Math.max(...rolls);
+return {rolls, best};
+}
+
+function showD20Result(rolls, best) {
+return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+}
+
+// ===== TITLE & HERO SELECT =====
+function title() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem">v8.0 COMPLETE NEUTRALS</p>
+<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
+<div class="choice" id="h-warrior" onclick="pick('warrior')"><strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
+<div class="choice" id="h-tank" onclick="pick('tank')"><strong>Tank</strong><div style="font-size:0.85rem">1⚡ 10❤ • Shield, D20</div></div>
+<div class="choice" id="h-mage" onclick="pick('mage')"><strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div></div>
+<div class="choice" id="h-healer" onclick="pick('healer')"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
+<button class="btn" id="start" onclick="start()" disabled style="opacity:0.4">Begin Adventure</button>`;
+sel = [];
+}
+
+function pick(t) {
+const el = document.getElementById(`h-${t}`);
+const i = sel.indexOf(t);
+if(i>=0) {
+sel.splice(i,1);
+el.style.background='white';
+el.style.borderColor='#000';
+} else if(sel.length<2) {
+sel.push(t);
+el.style.background='#e0f0ff';
+el.style.borderColor='#2c63c7';
+} else {
+toast('Maximum 2 heroes!');
+}
+const b = document.getElementById('start');
+b.disabled = sel.length!==2;
+b.style.opacity = sel.length===2 ? '1' : '0.4';
+}
+
+function start() {
+if(sel.length!==2) return;
+S.floor=1; S.gold=0; S.xp=0; S.levelUpCount=0;
+S.heroes = sel.map((t,i) => ({
+id:`h${Date.now()}${i}`,
+n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
+s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
+}));
+initNeutralDeck();
+upd();
+startFloor(1);
+}
+
+// ===== FLOOR MANAGEMENT =====
+function startFloor(f) {
+S.floor=f;
+upd();
+if(f >= 20) { win(); return; }
+if(f%2===1) combat(f);
+else neutral(f);
+}
+
+function getEnemyComp(f) {
+const heroCount = S.heroes.length;
+if(f===1) return Array(heroCount).fill('goblin');
+if(f===3) return Array(heroCount).fill('wolf');
+if(f===5) return Array(heroCount * 2).fill('orc');
+if(f===7) {
+const comp = [];
+for(let i = 0; i < heroCount; i++) comp.push('giant', 'wolf', 'goblin');
+return comp;
+}
+if(f===9) return ['dragon'];
+if(f===11) return Array(heroCount * 5).fill('goblin');
+if(f===13) return Array(heroCount * 5).fill('wolf');
+if(f===15) return ['dragon', 'dragon', 'dragon'];
+if(f===17) {
+const comp = [];
+for(let i = 0; i < heroCount; i++) comp.push('giant', 'giant', 'orc', 'orc', 'wolf', 'goblin');
+return comp;
+}
+if(f===19) return Array(heroCount * 4).fill('dragon');
+return ['goblin'];
+}
+
+// ===== COMBAT (v7.2 PERFECT COMBAT - UNCHANGED) =====
+function combat(f) {
+S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
+S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
+S.heroes.forEach(h => { h.sh=0; h.st=0; if(!h.ts) h.ts=[]; });
+const comp = getEnemyComp(f);
+S.enemies = comp.map((t,i) => {
+const base = E[t];
+const enemy = {
+id:`e${Date.now()}${i}`, n:base.n, p:base.p, h:base.h, m:base.m,
+g:base.g, x:base.x, s: [], pool: base.pool,
+gainRate: base.gainRate || 3, turnsSinceGain: 0,
+st:0, li: i % S.heroes.length, sh:0, alphaActed: false
+};
+if(base.permSigils) base.permSigils.forEach(ps => enemy.s.push({sig:ps.s, level:ps.l, perm:true}));
+if(base.startSigils) base.startSigils.forEach(ss => enemy.s.push({sig:ss.s, level:ss.l, perm:false}));
+return enemy;
+});
+render();
+}
+
+function getLevel(sig, heroIdx) {
+const h = S.heroes[heroIdx];
+const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
+if(!hasSigil) return 0;
+let base = S.sig[sig] || 0;
+if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return base + 1;
+return base;
+}
+
+function getTargetsPerInstance(action, heroIdx) {
+const expandLevel = getLevel('Expand', heroIdx);
+return 1 + expandLevel;
+}
+
+function needsEnemyTarget(action) { return ['Attack', 'Grapple'].includes(action); }
+function needsHeroTarget(action) { return ['Heal', 'Shield', 'Alpha'].includes(action); }
+function isMultiInstance(action) { return ['Attack', 'Shield', 'Heal'].includes(action); }
+
+function getD20DC(baseDC, heroIdx) {
+const h = S.heroes[heroIdx];
+if(!h.ls) return baseDC;
+return baseDC + h.lst;
+}
+
+function selectHero(idx) {
+if(S.locked) { toast('Wait for enemy turn!'); return; }
+if(S.pending) return;
+const h = S.heroes[idx];
+if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
+if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
+S.activeIdx = idx;
+if(h.ls) toast(`${h.n} in Last Stand - D20 only!`);
+render();
+}
+
+function act(sig, heroIdx) {
+if(S.locked) { toast('Wait for enemy turn!'); return; }
+if(S.pending) return;
+const h = S.heroes[heroIdx];
+if(S.acted.includes(heroIdx)) { toast(`${h.n} already acted!`); return; }
+if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
+if(h.ls && sig !== 'D20') { toast('Last Stand - D20 only!'); return; }
+S.activeIdx = heroIdx;
+
+if(sig === 'Asterisk') {
+const level = getLevel('Asterisk', heroIdx);
+if(level === 0) { toast('Asterisk not unlocked!'); return; }
+if(S.asteriskUsedThisCombat) { toast('Asterisk already used this combat!'); return; }
+S.asteriskPrimed = true;
+S.asteriskMultiplier = level + 1;
+toast(`Asterisk primed! Next action ×${S.asteriskMultiplier}`);
+render();
+return;
+}
+
+const repeats = S.asteriskPrimed ? S.asteriskMultiplier : 1;
+if(S.asteriskPrimed) {
+S.asteriskUsedThisCombat = true;
+S.asteriskPrimed = false;
+toast(`Asterisk: ${sig} ×${repeats}!`);
+}
+
+if(sig === 'Ghost') {
+const level = getLevel('Ghost', heroIdx);
+if(level === 0) { toast('Ghost not unlocked!'); return; }
+const totalCharges = level * repeats;
+h.g = Math.min((h.g || 0) + totalCharges, 9);
+toast(`${h.n} gained ${totalCharges} Ghost charge${totalCharges>1?'s':''}!`);
+finishAction(heroIdx);
+} else if(sig === 'D20') {
+S.pending = 'D20';
+S.asteriskD20Repeats = repeats;
+S.asteriskD20Count = 0;
+d20Menu(heroIdx);
+} else if(isMultiInstance(sig)) {
+const level = getLevel(sig, heroIdx);
+if(level === 0) { toast(`${sig} not unlocked!`); return; }
+S.pending = sig;
+S.instancesRemaining = level * repeats;
+S.targets = [];
+S.currentInstanceTargets = [];
+render();
+} else if(sig === 'Grapple') {
+const level = getLevel('Grapple', heroIdx);
+if(level === 0) { toast('Grapple not unlocked!'); return; }
+S.pending = 'Grapple';
+S.grappleRepeats = repeats;
+S.grappleLevel = level;
+S.targets = [];
+render();
+} else if(sig === 'Alpha') {
+toast('Alpha not yet implemented!');
+}
+}
+
+function d20Menu(heroIdx) {
+if(S.locked) return;
+const v = document.getElementById('gameView');
+const h = S.heroes[heroIdx];
+let html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px">';
+html += '<h3 style="margin-bottom:1rem">D20: Do Something Crazy</h3>';
+const expandLevel = getLevel('Expand', heroIdx);
+const maxTargets = 1 + expandLevel;
+if(expandLevel > 0) html += `<p style="margin-bottom:0.5rem;color:#14b8a6;font-weight:bold">Expand L${expandLevel}: Hit up to ${maxTargets} targets!</p>`;
+if(S.asteriskD20Repeats > 1) {
+html += `<p style="margin-bottom:0.5rem;color:#f59e0b">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
+html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
+}
+if(h.ls && h.lst > 0) html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${h.lst}</p>`;
+const options = [
+{dc:16, name:'CONFUSE', desc:'Deal damage = enemy POW'},
+{dc:17, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
+{dc:19, name:'SCARE', desc:'Remove from battle'},
+{dc:20, name:'RECRUIT', desc:'Enemy joins team'}
+];
+options.forEach(opt => {
+const adjustedDC = getD20DC(opt.dc, heroIdx);
+const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.5rem">
+<strong>${dcText}: ${opt.name}</strong><br>
+<span style="font-size:0.85rem">${opt.desc}</span>
+</div>`;
+});
+if(S.asteriskD20Count > 0) html += `<button class="btn" style="background:#22c55e" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
+else html += `<button class="btn" style="background:#6b7280" onclick="cancelAction()">Cancel</button>`;
+html += '</div>';
+v.innerHTML = html;
+}
+
+function selectD20Action(heroIdx, dc, actionName) {
+if(S.locked) return;
+S.d20Action = actionName;
+S.d20DC = dc;
+S.d20HeroIdx = heroIdx;
+S.pending = 'D20_TARGET';
+S.targets = [];
+render();
+}
+
+function rollD20() {
+if(S.locked) return;
+const heroIdx = S.d20HeroIdx;
+const h = S.heroes[heroIdx];
+const dc = S.d20DC;
+const actionName = S.d20Action;
+const d20Level = getLevel('D20', heroIdx);
+const rolls = [];
+for(let i = 0; i < d20Level; i++) rolls.push(Math.ceil(Math.random() * 20));
+const best = Math.max(...rolls);
+const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+
+if(best >= dc) {
+toast(`${rollText} - SUCCESS!`, 3000);
+const targetNames = S.targets.map(id => {
+const e = S.enemies.find(e => e.id === id);
+return e ? e.n : null;
+}).filter(n => n);
+S.targets.forEach(targetId => executeD20ActionOnTarget(targetId, actionName));
+if(targetNames.length > 0) {
+const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed', 'SCARE': 'scared away', 'RECRUIT': 'recruited'};
+if(actionName !== 'STEAL') toast(`${targetNames.join(', ')} ${actionDesc[actionName]}!`, 2500);
+}
+if(S.asteriskD20Repeats > 1) {
+S.asteriskD20Count++;
+if(S.asteriskD20Count < S.asteriskD20Repeats) {
+S.pending = null; S.targets = [];
+render();
+setTimeout(() => d20Menu(heroIdx), 800);
+return;
+}
+}
+finishD20Asterisk(heroIdx);
+} else {
+toast(`${rollText} - FAILED!`, 3000);
+if(S.asteriskD20Repeats > 1) {
+S.asteriskD20Count++;
+if(S.asteriskD20Count < S.asteriskD20Repeats) {
+S.pending = null; S.targets = [];
+render();
+setTimeout(() => d20Menu(heroIdx), 800);
+return;
+}
+}
+finishD20Asterisk(heroIdx);
+}
+}
+
+function executeD20ActionOnTarget(enemyId, action) {
+const enemy = S.enemies.find(e => e.id === enemyId);
+if(!enemy) return;
+if(action === 'CONFUSE') {
+const dmg = enemy.p;
+dealDamageToEnemy(enemy, dmg);
+} else if(action === 'STARTLE') {
+enemy.st = 1;
+} else if(action === 'STEAL') {
+const gold = enemy.p;
+S.gold += gold;
+upd();
+toast(`Stole ${gold} Gold from ${enemy.n}!`);
+} else if(action === 'SCARE') {
+if(enemy.n.includes('Dragon')) { toast(`${enemy.n} immune to SCARE!`); return; }
+setTimeout(() => {
+S.enemies = S.enemies.filter(e => e.id !== enemyId);
+render();
+checkCombatEnd();
+}, 300);
+} else if(action === 'RECRUIT') {
+toast('RECRUIT not yet implemented!');
+}
+}
+
+function finishD20Asterisk(heroIdx) {
+S.acted.push(heroIdx);
+S.pending = null;
+S.targets = [];
+S.asteriskD20Repeats = 1;
+S.asteriskD20Count = 0;
+checkTurnEnd();
+render();
+}
+
+function cancelAction() {
+if(S.locked) return;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+render();
+}
+
+function tgtEnemy(id) {
+if(S.locked) { toast('Wait for enemy turn!'); return; }
+if(S.pending === 'D20_TARGET') {
+const heroIdx = S.d20HeroIdx;
+const maxTargets = 1 + getLevel('Expand', heroIdx);
+if(S.targets.includes(id)) { toast('Already targeted!'); return; }
+S.targets.push(id);
+const slotsFilled = S.targets.length >= maxTargets;
+const allEnemiesSelected = S.targets.length >= S.enemies.length;
+if(slotsFilled || allEnemiesSelected) {
+if(allEnemiesSelected && S.targets.length < maxTargets) {
+const wasted = maxTargets - S.targets.length;
+toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
+}
+rollD20();
+} else render();
+return;
+}
+if(!S.pending || !needsEnemyTarget(S.pending)) return;
+const heroIdx = S.activeIdx;
+const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
+if(S.pending === 'Attack') {
+if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
+S.targets.push(id);
+S.currentInstanceTargets.push(id);
+const availableEnemies = S.enemies.length;
+const slotsFilled = S.currentInstanceTargets.length >= targetsPerInstance;
+const allEnemiesSelected = S.currentInstanceTargets.length >= availableEnemies;
+if(slotsFilled || allEnemiesSelected) {
+if(allEnemiesSelected && S.currentInstanceTargets.length < targetsPerInstance) {
+const wasted = targetsPerInstance - S.currentInstanceTargets.length;
+toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
+}
+executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
+S.instancesRemaining--;
+S.currentInstanceTargets = [];
+if(S.instancesRemaining <= 0) finishAction(heroIdx);
+else render();
+} else render();
+} else if(S.pending === 'Grapple') {
+if(S.targets.includes(id)) { toast('Already targeted!'); return; }
+S.targets.push(id);
+const slotsFilled = S.targets.length >= targetsPerInstance;
+const allEnemiesSelected = S.targets.length >= S.enemies.length;
+if(slotsFilled || allEnemiesSelected) {
+if(allEnemiesSelected && S.targets.length < targetsPerInstance) {
+const wasted = targetsPerInstance - S.targets.length;
+toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
+}
+for(let i = 0; i < S.grappleRepeats; i++) executeGrapple(heroIdx, [...S.targets], S.grappleLevel);
+finishAction(heroIdx);
+} else render();
+}
+}
+
+function tgtHero(id) {
+if(S.locked) { toast('Wait for enemy turn!'); return; }
+if(!S.pending || !needsHeroTarget(S.pending)) return;
+const heroIdx = S.activeIdx;
+const h = S.heroes[heroIdx];
+const target = S.heroes.find(x => x.id === id);
+if(!target) return;
+const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
+if(S.pending === 'Shield') {
+if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
+S.targets.push(id);
+S.currentInstanceTargets.push(id);
+const slotsFilled = S.currentInstanceTargets.length >= targetsPerInstance;
+const allHeroesSelected = S.currentInstanceTargets.length >= S.heroes.length;
+if(slotsFilled || allHeroesSelected) {
+if(allHeroesSelected && S.currentInstanceTargets.length < targetsPerInstance) {
+const wasted = targetsPerInstance - S.currentInstanceTargets.length;
+toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
+}
+executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
+S.instancesRemaining--;
+S.currentInstanceTargets = [];
+if(S.instancesRemaining <= 0) finishAction(heroIdx);
+else render();
+} else render();
+} else if(S.pending === 'Heal') {
+if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
+S.targets.push(id);
+S.currentInstanceTargets.push(id);
+const slotsFilled = S.currentInstanceTargets.length >= targetsPerInstance;
+const allHeroesSelected = S.currentInstanceTargets.length >= S.heroes.length;
+if(slotsFilled || allHeroesSelected) {
+if(allHeroesSelected && S.currentInstanceTargets.length < targetsPerInstance) {
+const wasted = targetsPerInstance - S.currentInstanceTargets.length;
+toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
+}
+executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
+S.instancesRemaining--;
+S.currentInstanceTargets = [];
+if(S.instancesRemaining <= 0) finishAction(heroIdx);
+else render();
+} else render();
+}
+}
+
+function executeInstance(action, heroIdx, targets) {
+const h = S.heroes[heroIdx];
+const pow = h.p;
+if(action === 'Attack') {
+const targetNames = [];
+targets.forEach(tgtId => {
+const e = S.enemies.find(x => x.id === tgtId);
+if(!e) return;
+targetNames.push(e.n);
+dealDamageToEnemy(e, pow);
+});
+if(targetNames.length > 0) toast(`${h.n} attacked ${targetNames.join(', ')} for ${pow} damage each!`);
+} else if(action === 'Shield') {
+const targetNames = [];
+targets.forEach(tgtId => {
+const target = S.heroes.find(x => x.id === tgtId);
+if(!target) return;
+const level = getLevel('Shield', heroIdx);
+const shieldAmt = 2 * pow * level;
+target.sh += shieldAmt;
+if(target.sh > target.m) target.sh = target.m;
+targetNames.push(target.n);
+});
+if(targetNames.length > 0) {
+const level = getLevel('Shield', heroIdx);
+const shieldAmt = 2 * pow * level;
+toast(`${targetNames.join(' and ')} gained ${shieldAmt} shield!`);
+}
+} else if(action === 'Heal') {
+const healed = [];
+const revived = [];
+targets.forEach(tgtId => {
+const target = S.heroes.find(x => x.id === tgtId);
+if(!target) return;
+const level = getLevel('Heal', heroIdx);
+const healAmt = 2 * pow * level;
+if(target.ls) {
+target.ls = false;
+target.lst = 0;
+target.h = healAmt;
+revived.push(target.n);
+} else {
+target.h += healAmt;
+if(target.h > target.m) target.h = target.m;
+healed.push(target.n);
+}
+});
+const level = getLevel('Heal', heroIdx);
+const healAmt = 2 * pow * level;
+if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
+if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} HP!`);
+}
+}
+
+function executeGrapple(heroIdx, targets, stunDuration) {
+const h = S.heroes[heroIdx];
+let totalDmg = 0;
+const targetNames = [];
+targets.forEach(tgtId => {
+const e = S.enemies.find(x => x.id === tgtId);
+if(!e) return;
+totalDmg += e.p;
+e.st += stunDuration;
+targetNames.push(e.n);
+});
+if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
+h.h -= totalDmg;
+if(h.h < 0) h.h = 0;
+if(totalDmg > 0) toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
+if(h.h === 0 && !h.ls) {
+if(h.g > 0) {
+h.g--;
+h.h = h.m;
+toast(`${h.n}'s Ghost charge consumed!`);
+} else {
+h.ls = true;
+h.lst = 0;
+toast(`${h.n} entered Last Stand!`);
+}
+}
+}
+
+function dealDamageToEnemy(enemy, dmg) {
+if(enemy.sh > 0) {
+if(enemy.sh >= dmg) { enemy.sh -= dmg; return; }
+else { dmg -= enemy.sh; enemy.sh = 0; }
+}
+enemy.h -= dmg;
+if(enemy.h <= 0) {
+if(enemy.g > 0) {
+enemy.g--;
+enemy.h = enemy.m;
+toast(`${enemy.n}'s Ghost charge consumed!`, 2000);
+return;
+}
+enemy.h = 0;
+S.gold += enemy.g;
+S.xp += enemy.x;
+upd();
+setTimeout(() => {
+S.enemies = S.enemies.filter(e => e.id !== enemy.id);
+render();
+checkCombatEnd();
+}, 300);
+}
+}
+
+function finishAction(heroIdx) {
+S.acted.push(heroIdx);
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.activeIdx = -1;
+checkTurnEnd();
+render();
+}
+
+function checkTurnEnd() {
+const allActedIncludingLS = S.heroes.filter(h => h.st === 0).every((h, i) => {
+const actualIdx = S.heroes.findIndex(hero => hero.id === h.id);
+return S.acted.includes(actualIdx);
+});
+if(allActedIncludingLS) {
+S.heroes.forEach(h => { if(h.ls) h.lst++; });
+setTimeout(() => { S.locked = true; enemyTurn(); }, 500);
+}
+}
+
+function enemyTurn() {
+S.turn = 'enemy';
+S.acted = [];
+S.activeIdx = -1;
+render();
+S.enemies.forEach(e => {
+if(e.st > 0) e.st--;
+e.turnsSinceGain++;
+if(e.turnsSinceGain >= e.gainRate) {
+e.turnsSinceGain = 0;
+drawEnemySigil(e);
+}
+e.alphaActed = false;
+});
+setTimeout(() => executeAlphaPhase(), 800);
+}
+
+function drawEnemySigil(enemy) {
+const pool = enemy.pool;
+if(!pool || pool.length === 0) return;
+const heldSigils = enemy.s.map(sigil => sigil.sig);
+if(pool === 'ANY') {
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
+const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+if(availableSigils.length === 0) return;
+const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
+const level = 1 + Math.floor(Math.random() * 3);
+enemy.s.push({sig, level, perm:false});
+toast(`${enemy.n} drew ${sig} L${level}!`);
+} else if(pool === 'ANY_ADVANCED') {
+const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
+const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+if(availableSigils.length === 0) return;
+const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
+const level = 2 + Math.floor(Math.random() * 3);
+enemy.s.push({sig, level, perm:false});
+toast(`${enemy.n} drew ${sig} L${level}!`);
+} else {
+const availablePool = pool.filter(sigName => {
+if(sigName === 'Attack2') return !heldSigils.includes('Attack');
+if(sigName === 'Shield2') return !heldSigils.includes('Shield');
+return !heldSigils.includes(sigName);
+});
+if(availablePool.length === 0) return;
+const pick = availablePool[Math.floor(Math.random() * availablePool.length)];
+if(pick === 'Attack2') {
+enemy.s.push({sig:'Attack', level:2, perm:false});
+toast(`${enemy.n} drew Attack L2!`);
+} else if(pick === 'Shield2') {
+enemy.s.push({sig:'Shield', level:2, perm:false});
+toast(`${enemy.n} drew Shield L2!`);
+} else {
+enemy.s.push({sig:pick, level:1, perm:false});
+toast(`${enemy.n} drew ${pick} L1!`);
+}
+}
+}
+
+function executeAlphaPhase() {
+const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
+if(alphaEnemies.length === 0) { setTimeout(executeNormalEnemyPhase, 300); return; }
+let delay = 0;
+alphaEnemies.forEach(alphaEnemy => {
+setTimeout(() => {
+const allies = S.enemies.filter(e => e.id !== alphaEnemy.id && e.h > 0 && !e.s.some(s => s.sig === 'Alpha' && !s.perm));
+if(allies.length === 0) { toast(`${alphaEnemy.n}'s Alpha has no valid allies!`); alphaEnemy.alphaActed = true; return; }
+allies.sort((a, b) => { if(b.p !== a.p) return b.p - a.p; return b.s.length - a.s.length; });
+const bestAlly = allies[0];
+const alphaSigil = alphaEnemy.s.find(s => s.sig === 'Alpha');
+const attacks = alphaSigil.level;
+toast(`${alphaEnemy.n} grants ${bestAlly.n} ${attacks} attack${attacks>1?'s':''}!`);
+for(let i = 0; i < attacks; i++) executeEnemyBaseAttack(bestAlly);
+alphaEnemy.alphaActed = true;
+}, delay);
+delay += 600;
+});
+setTimeout(() => executeNormalEnemyPhase(), delay + 300);
+}
+
+function executeNormalEnemyPhase() {
+const lanes = {};
+S.enemies.forEach(e => { if(!lanes[e.li]) lanes[e.li] = []; lanes[e.li].push(e); });
+let delay = 0;
+Object.keys(lanes).forEach(laneIdx => {
+lanes[laneIdx].forEach(enemy => {
+setTimeout(() => executeEnemyTurn(enemy), delay);
+delay += 600;
+});
+});
+setTimeout(() => endEnemyTurn(), delay + 500);
+}
+
+function executeEnemyTurn(enemy) {
+if(enemy.st > 0) { toast(`${enemy.n} is stunned!`); return; }
+if(enemy.alphaActed) {
+toast(`${enemy.n} used Alpha (skipping normal turn)`);
+enemy.s = enemy.s.filter(s => s.perm);
+return;
+}
+executeEnemyBaseAttack(enemy);
+const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
+drawnSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+enemy.s = enemy.s.filter(s => s.perm);
+render();
+}
+
+function executeEnemyBaseAttack(enemy) {
+const target = S.heroes[enemy.li];
+if(target && target.h > 0) dealDamageToHero(target, enemy.p, `${enemy.n}'s Base Attack`);
+}
+
+function executeEnemySigil(enemy, sigil) {
+const {sig, level} = sigil;
+if(sig === 'Attack') {
+for(let i = 0; i < level; i++) {
+const target = S.heroes[enemy.li];
+if(target && target.h > 0) dealDamageToHero(target, enemy.p, `${enemy.n}'s ${sig}`);
+}
+} else if(sig === 'Shield') {
+const shieldAmt = 2 * enemy.p * level;
+enemy.sh = (enemy.sh || 0) + shieldAmt;
+if(enemy.sh > enemy.m) enemy.sh = enemy.m;
+toast(`${enemy.n} gained ${shieldAmt} shield!`);
+} else if(sig === 'Heal') {
+const healAmt = 2 * enemy.p * level;
+const allies = S.enemies.filter(e => e.id !== enemy.id && e.h > 0);
+if(allies.length > 0) {
+allies.sort((a,b) => a.h - b.h);
+const healTarget = allies[0];
+healTarget.h += healAmt;
+if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
+toast(`${enemy.n} healed ${healTarget.n} for ${healAmt}!`);
+}
+} else if(sig === 'Grapple') {
+const target = S.heroes[enemy.li];
+if(target && target.h > 0) {
+const dmgToEnemy = target.p;
+enemy.h -= dmgToEnemy;
+toast(`${enemy.n} grappled ${target.n}!`);
+if(enemy.h <= 0) {
+enemy.h = 0;
+toast(`${enemy.n} defeated by grapple recoil!`);
+S.enemies = S.enemies.filter(e => e.id !== enemy.id);
+} else {
+target.st = level;
+toast(`${target.n} stunned for ${level} turns!`);
+}
+}
+} else if(sig === 'Ghost') {
+enemy.g = (enemy.g || 0) + level;
+if(enemy.g > 9) enemy.g = 9;
+toast(`${enemy.n} gained ${level} Ghost charge!`);
+} else if(sig === 'Expand') {
+toast(`${enemy.n} used Expand (affects their attacks)`);
+} else if(sig === 'Asterisk') {
+toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
+}
+}
+
+function dealDamageToHero(hero, dmg, source) {
+if(hero.sh > 0) {
+if(hero.sh >= dmg) { hero.sh -= dmg; toast(`${hero.n}'s shield absorbed ${dmg} damage!`); return; }
+else { dmg -= hero.sh; hero.sh = 0; }
+}
+hero.h -= dmg;
+toast(`${source} dealt ${dmg} damage to ${hero.n}!`);
+if(hero.h <= 0) {
+hero.h = 0;
+if(hero.g > 0) {
+hero.g--;
+hero.h = hero.m;
+toast(`${hero.n}'s Ghost charge consumed!`);
+} else {
+hero.ls = true;
+hero.lst = 0;
+toast(`${hero.n} entered Last Stand!`);
+}
+}
+}
+
+function endEnemyTurn() {
+S.heroes.forEach(h => {
+if(h.st > 0) {
+h.st--;
+if(h.st === 0) toast(`${h.n} is no longer stunned!`);
+}
+});
+if(checkCombatEnd()) return;
+S.round++;
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+upd();
+render();
+}
+
+function checkCombatEnd() {
+if(S.enemies.length === 0) {
+setTimeout(() => {
+const baseXP = S.xp;
+let starBonus = 0;
+S.heroes.forEach(h => {
+const starLevel = getLevel('Star', S.heroes.indexOf(h));
+starBonus += starLevel * 0.5;
+});
+const totalXP = Math.floor(baseXP * (1 + starBonus));
+S.xp = totalXP;
+if(starBonus > 0) toast(`Star Bonus! ${baseXP} × ${(1 + starBonus).toFixed(1)} = ${totalXP} XP`, 3000);
+upd();
+toast('Victory!');
+setTimeout(levelUp, 1000);
+}, 500);
+return true;
+}
+const allDead = S.heroes.every(h => h.ls);
+if(allDead) {
+setTimeout(() => {
+toast('Defeated!');
+setTimeout(() => { alert('Game Over! Reloading...'); location.reload(); }, 1000);
+}, 500);
+return true;
+}
+return false;
+}
+
+function render() {
+const v = document.getElementById('gameView');
+let html = '';
+html += '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
+if(S.turn!=='player') {
+html += 'Enemy Turn…';
+} else if(S.pending === 'D20_TARGET') {
+const heroIdx = S.d20HeroIdx;
+const maxTargets = 1 + getLevel('Expand', heroIdx);
+const selected = S.targets.length;
+html += `<div style="color:#b64141;font-size:1.1rem">${S.d20Action} (DC ${S.d20DC})</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select target enemy (${selected}/${maxTargets})</div>`;
+} else if(S.pending) {
+const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
+const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
+if(isMultiInstance(S.pending)) {
+const targetsInInstance = S.currentInstanceTargets.length;
+html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${targetsInInstance}/${targetsPerInstance})</div>`;
+html += `<div style="font-size:0.75rem;opacity:0.8;margin-top:0.25rem">${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
+} else {
+const selected = S.targets.length;
+const max = targetsPerInstance;
+html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${selected}/${max})</div>`;
+}
+} else if(S.activeIdx === -1) {
+const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
+html += `<div style="font-size:1.1rem">Choose Hero to Act</div>`;
+html += `<div style="font-size:0.8rem;opacity:0.8;margin-top:0.25rem">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+} else {
+const h = S.heroes[S.activeIdx];
+if(h) {
+if(S.asteriskPrimed) html += `${h.n}'s Turn - Asterisk ×${S.asteriskMultiplier} PRIMED!`;
+else if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
+else html += `${h.n}'s Turn`;
+}
+}
+html += '</div>';
+html += '<div class="combat-grid">';
+html += '<div class="column heroes">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
+S.heroes.forEach((h,i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+const isActive = S.activeIdx === i;
+const isTargetable = S.pending && needsHeroTarget(S.pending);
+const hasActed = S.acted.includes(i);
+let cardClasses = 'card hero';
+if(isActive) cardClasses += ' active';
+if(isTargetable) cardClasses += ' targetable';
+if(hasActed) cardClasses += ' acted';
+if(h.ls) cardClasses += ' last-stand';
+const isTargeted = S.targets.includes(h.id);
+if(isTargeted) cardClasses += ' targeted';
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}👻`);
+if(h.st > 0) extra.push(`😵${h.st}T`);
+if(hasActed) extra.push('✓');
+let onclick = '';
+if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
+else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
+html += `<div class="${cardClasses}" ${onclick}>
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
+<div style="text-align:center;font-size:0.8rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
+html += '<div class="sigil-divider"></div>';
+html += '<div class="sigil-row">';
+const activeSigils = [...h.s, ...(h.ts || [])];
+activeSigils.forEach(s => {
+const lvl = getLevel(s, i);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
+const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
+const isActiveAction = (S.pending === s && S.activeIdx === i);
+html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}>${s}${lvl>0?lvl:''}</span>`;
+});
+html += '</div></div>';
+});
+html += '</div>';
+html += '<div class="column enemies">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
+const enemyLanes = {};
+S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
+S.heroes.forEach((hero, laneIdx) => {
+const laneEnemies = enemyLanes[laneIdx] || [];
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.5rem">${hero.n}'s Lane</div>`;
+if(laneEnemies.length === 0) {
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
+} else {
+laneEnemies.forEach(e => {
+const isTargetable = (S.pending && needsEnemyTarget(S.pending)) || S.pending === 'D20_TARGET';
+const selectCount = S.targets.filter(t => t === e.id).length;
+let cardClasses = 'card enemy';
+if(isTargetable) cardClasses += ' targetable';
+if(selectCount > 0) cardClasses += ' targeted';
+const extra = [];
+if(e.sh > 0) extra.push(`${e.sh}🛡`);
+if(e.g > 0) extra.push(`${e.g}👻`);
+if(e.st > 0) extra.push(`😵${e.st}T`);
+if(selectCount > 0) extra.push(`×${selectCount}`);
+html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
+<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
+html += '<div class="sigil-divider"></div>';
+html += '<div class="sigil-row">';
+html += '<span class="sigil engraved">⚔️</span>';
+e.s.forEach(sigil => {
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const permStyle = sigil.perm ? 'engraved' : cl;
+html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+});
+html += '</div></div>';
+});
+}
+});
+html += '</div></div>';
+v.innerHTML = html;
+}
+
+// ===== LEVEL UP =====
+function levelUp() {
+const v = document.getElementById('gameView');
+const nextCost = FIB[S.levelUpCount] || 999;
+v.innerHTML = `
+<h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
+<p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
+<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
+<div class="choice" onclick="levelUpMenu()">Spend XP</div>
+<button class="btn" style="background:#22c55e" onclick="nextFloor()">Next Floor</button>`;
+}
+
+function nextFloor() {
+saveGame();
+startFloor(S.floor + 1);
+}
+
+function levelUpMenu() {
+const v = document.getElementById('gameView');
+const cost = FIB[S.levelUpCount] || 999;
+v.innerHTML = `
+<h2 style="text-align:center;margin-bottom:1rem">Spend XP</h2>
+<p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
+<div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
+<div class="choice" onclick="upgradeSigil()">Upgrade Sigil Level</div>
+<div class="choice" onclick="addSigilToHero()">Add Sigil to Hero</div>
+<button class="btn" style="background:#6b7280" onclick="levelUp()">Back</button>`;
+}
+
+function heroStats() {
+const cost = FIB[S.levelUpCount] || 999;
+const v = document.getElementById('gameView');
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Hero Stats</h2>
+<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
+if(S.xp < cost) {
+html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
+} else {
+S.heroes.forEach((h, idx) => {
+html += `<div class="choice" onclick="upPow(${idx})"><strong>${h.n} POW</strong> (${h.p} → ${h.p+1})</div>`;
+html += `<div class="choice" onclick="upHP(${idx})"><strong>${h.n} HP</strong> (${h.m} → ${h.m+5})</div>`;
+});
+}
+html += `<button class="btn" style="background:#6b7280" onclick="levelUpMenu()">Back</button>`;
+v.innerHTML = html;
+}
+
+function upPow(idx) {
+const cost = FIB[S.levelUpCount] || 999;
+if(S.xp < cost) return;
+S.xp -= cost;
+S.levelUpCount++;
+S.heroes[idx].p++;
+toast(`${S.heroes[idx].n} POW +1!`);
+upd();
+saveGame();
+levelUpMenu();
+}
+
+function upHP(idx) {
+const cost = FIB[S.levelUpCount] || 999;
+if(S.xp < cost) return;
+S.xp -= cost;
+S.levelUpCount++;
+S.heroes[idx].m += 5;
+S.heroes[idx].h += 5;
+if(S.heroes[idx].ls) {
+S.heroes[idx].ls = false;
+S.heroes[idx].lst = 0;
+S.heroes[idx].h = 5;
+toast(`${S.heroes[idx].n} revived with 5 HP!`);
+} else toast(`${S.heroes[idx].n} HP +5!`);
+upd();
+saveGame();
+levelUpMenu();
+}
+
+function upgradeSigil() {
+const cost = FIB[S.levelUpCount] || 999;
+const v = document.getElementById('gameView');
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
+<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
+if(S.xp < cost) {
+html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
+} else {
+const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
+const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
+if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">All sigils maxed!</p>`;
+else {
+available.forEach(sig => {
+const level = S.sig[sig] || 0;
+html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sig} L${level} → L${level+1}</strong></div>`;
+});
+}
+}
+html += `<button class="btn" style="background:#6b7280" onclick="levelUpMenu()">Back</button>`;
+v.innerHTML = html;
+}
+
+function addSigilToHero() {
+const cost = FIB[S.levelUpCount] || 999;
+const v = document.getElementById('gameView');
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</h2>
+<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
+if(S.xp < cost) {
+html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
+} else {
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p>`;
+S.heroes.forEach((h, idx) => {
+html += `<div class="choice" onclick="selectHeroForSigil(${idx})">
+<strong>${h.n}</strong>
+<div style="font-size:0.85rem;margin-top:0.25rem">Current: ${h.s.join(', ')}</div>
+</div>`;
+});
+}
+html += `<button class="btn" style="background:#6b7280" onclick="levelUpMenu()">Back</button>`;
+v.innerHTML = html;
+}
+
+function selectHeroForSigil(heroIdx) {
+const cost = FIB[S.levelUpCount] || 999;
+const v = document.getElementById('gameView');
+const h = S.heroes[heroIdx];
+const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Alpha', 'Asterisk', 'Star'];
+const available = allSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to ${h.n}</h2>
+<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
+if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all sigils!</p>`;
+else {
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
+available.forEach(sig => {
+const level = S.sig[sig] || 0;
+const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
+html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
+<strong>${sig}</strong> <span style="opacity:0.7">(${levelText})</span>
+</div>`;
+});
+}
+html += `<button class="btn" style="background:#6b7280" onclick="addSigilToHero()">Back</button>`;
+v.innerHTML = html;
+}
+
+function addSigilConfirm(heroIdx, sig) {
+const cost = FIB[S.levelUpCount] || 999;
+if(S.xp < cost) return;
+const h = S.heroes[heroIdx];
+if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) { toast(`${h.n} already has ${sig}!`); return; }
+S.xp -= cost;
+S.levelUpCount++;
+if(!h.ts) h.ts = [];
+h.ts.push(sig);
+toast(`${sig} added to ${h.n} at L${S.sig[sig] || 0}!`);
+upd();
+saveGame();
+levelUpMenu();
+}
+
+function upSigil(sig) {
+const cost = FIB[S.levelUpCount] || 999;
+if(S.xp < cost) return;
+S.xp -= cost;
+S.levelUpCount++;
+S.sig[sig] = (S.sig[sig] || 0) + 1;
+toast(`${sig} upgraded to L${S.sig[sig]}!`);
+upd();
+saveGame();
+levelUpMenu();
+}
+
+// ===== NEUTRAL ENCOUNTERS =====
+function neutral(f) {
+const enc = getNeutralEncounter();
+
+if(S.ghostBoysConverted && enc.startsWith('ghost')) {
+showEmptyPlayroom();
+return;
+}
+
+if(enc === 'shopkeeper1') showShopkeeper1();
+else if(enc === 'shopkeeper2') showShopkeeper2();
+else if(enc === 'wishingwell1') showWishingWell1();
+else if(enc === 'wishingwell2') showWishingWell2();
+else if(enc === 'treasurechest1') showTreasureChest1();
+else if(enc === 'treasurechest2') showTreasureChest2();
+else if(enc === 'wizard1') showWizard1();
+else if(enc === 'wizard2') showWizard2();
+else if(enc === 'oracle1') showOracle1();
+else if(enc === 'oracle2') showOracle2();
+else if(enc === 'encampment1') showEncampment1();
+else if(enc === 'encampment2') showEncampment2();
+else if(enc === 'statue1') showStatue1();
+else if(enc === 'ghost1') showGhost1();
+else if(enc === 'prince1') showPrince1();
+else if(enc === 'prince2') showPrince2();
+else {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<h2 style="text-align:center;margin:2rem 0">Floor ${f}</h2>
+<p style="text-align:center;margin-bottom:2rem">${enc}</p>
+<button class="btn" onclick="nextFloor()">Continue</button>`;
+}
+}
+
+// ===== 1. SHOPKEEPER =====
+function showShopkeeper1() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Potions for Sale</div>
+<div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."</div>
+<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>
+<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>
+<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
+</div>`;
+}
+
+let shopSmallBought = false;
+let shopLargeBought = false;
+
+function buySmallPotion() {
+if(S.gold < 3) { toast('Not enough Gold!'); return; }
+const v = document.getElementById('gameView');
+let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div>';
+S.heroes.forEach((h, idx) => {
+html += `<div class="choice" onclick="applySmallPotion(${idx})"><strong>${h.n}</strong> (${h.h}/${h.m} HP)</div>`;
+});
+html += '<button class="btn" style="background:#6b7280" onclick="showShopkeeper1()">Back</button></div>';
+v.innerHTML = html;
+}
+
+function applySmallPotion(idx) {
+S.gold -= 3;
+const h = S.heroes[idx];
+h.h = Math.min(h.h + 3, h.m);
+upd();
+toast(`${h.n} restored 3 HP!`);
+shopSmallBought = true;
+if(shopSmallBought && shopLargeBought) {
+replaceStage1WithStage2('shopkeeper');
+toast('Death will remember this...', 3000);
+}
+showShopkeeper1();
+}
+
+function buyLargePotion() {
+if(S.gold < 5) { toast('Not enough Gold!'); return; }
+const v = document.getElementById('gameView');
+let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div>';
+S.heroes.forEach((h, idx) => {
+html += `<div class="choice" onclick="applyLargePotion(${idx})"><strong>${h.n}</strong> (${h.h}/${h.m} HP)</div>`;
+});
+html += '<button class="btn" style="background:#6b7280" onclick="showShopkeeper1()">Back</button></div>';
+v.innerHTML = html;
+}
+
+function applyLargePotion(idx) {
+S.gold -= 5;
+const h = S.heroes[idx];
+h.h = Math.min(h.h + 8, h.m);
+upd();
+toast(`${h.n} restored 8 HP!`);
+shopLargeBought = true;
+if(shopSmallBought && shopLargeBought) {
+replaceStage1WithStage2('shopkeeper');
+toast('Death will remember this...', 3000);
+}
+showShopkeeper1();
+}
+
+function declineShopkeeper() {
+shopSmallBought = false;
+shopLargeBought = false;
+nextFloor();
+}
+
+function showShopkeeper2() {
+const v = document.getElementById('gameView');
+const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
+const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
+let html = `
+<div class="neutral-container">
+<div class="neutral-title">Death's Bargain</div>
+<div class="neutral-desc">The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."</div>`;
+if(available.length === 0) {
+html += `<div class="neutral-outcome">All your sigils are already at maximum power. Death nods approvingly and fades away.</div>`;
+html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
+} else {
+html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently:</div>`;
+available.forEach(sig => {
+const level = S.sig[sig] || 0;
+html += `<div class="choice" onclick="acceptDeathsBargain('${sig}')">
+<strong>${sig}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
+</div>`;
+});
+html += `<button class="btn risky" onclick="finishDeathsBargain()">Decline</button>`;
+}
+html += `</div>`;
+v.innerHTML = html;
+}
+
+function acceptDeathsBargain(sig) {
+S.sig[sig] = (S.sig[sig] || 0) + 1;
+upd();
+toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 3000);
+removeNeutralFromDeck('shopkeeper');
+setTimeout(() => {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">"Good choice. See you soon."</div>
+<div class="neutral-outcome">The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}, 1000);
+}
+
+function finishDeathsBargain() {
+removeNeutralFromDeck('shopkeeper');
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">"Shame. You don't get a chance like this every day. Oh well, it's your funeral."</div>
+<div class="neutral-outcome">The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== 2. WISHING WELL =====
+function showWishingWell1() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Old Wishing Well</div>
+<div class="neutral-desc">An ancient stone well sits in the center of the chamber. You hear the faint sound of trickling water far below. A glint of gold catches your eye at the bottom.</div>
+<button class="btn risky" onclick="climbWell()">Climb down and get coins</button>
+<button class="btn" onclick="tossWish()">Toss in a coin and make a wish</button>
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
+</div>`;
+}
+
+function climbWell() {
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+
+let outcome = '';
+let goldGain = 0;
+let hpLoss = 0;
+
+if(best === 1) {
+outcome = 'You slip on the wet stones and plummet! The landing is brutal.';
+hpLoss = 3;
+goldGain = -5;
+} else if(best >= 2 && best <= 10) {
+outcome = 'You climb carefully but scrape yourself on the rough stones. You manage to grab a single coin.';
+hpLoss = 1;
+goldGain = 1;
+} else if(best >= 11 && best <= 19) {
+outcome = 'Your climbing skills are impressive! You retrieve a small pouch of coins.';
+goldGain = 3;
+} else if(best === 20) {
+outcome = 'Your descent is flawless! At the bottom, you discover a hidden cache of coins AND the well begins to overflow with crystal-clear water!';
+goldGain = 2 * S.heroes.length;
+replaceStage1WithStage2('wishingwell');
+}
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Climbing the Well</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">${outcome}</div>
+<button class="btn" onclick="applyWellClimb(${hpLoss}, ${goldGain})">Continue</button>
+</div>`;
+}
+
+function applyWellClimb(hpLoss, goldGain) {
+if(hpLoss > 0) {
+const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
+highestHPHero.h -= hpLoss;
+if(highestHPHero.h < 0) highestHPHero.h = 0;
+if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
+highestHPHero.g--;
+highestHPHero.h = highestHPHero.m;
+toast(`${highestHPHero.n}'s Ghost charge consumed!`);
+} else if(highestHPHero.h === 0 && !highestHPHero.ls) {
+highestHPHero.ls = true;
+highestHPHero.lst = 0;
+toast(`${highestHPHero.n} entered Last Stand!`);
+}
+toast(`${highestHPHero.n} took ${hpLoss} damage!`);
+}
+S.gold += goldGain;
+if(S.gold < 0) S.gold = 0;
+upd();
+if(goldGain > 0) toast(`Gained ${goldGain} Gold!`);
+else if(goldGain < 0) toast(`Lost ${Math.abs(goldGain)} Gold!`);
+nextFloor();
+}
+
+function tossWish() {
+const cost = S.heroes.length;
+if(S.gold < cost) {
+toast(`Need ${cost} Gold to make a wish!`);
+return;
+}
+S.gold -= cost;
+upd();
+replaceStage1WithStage2('wishingwell');
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">A Wish Made</div>
+<div class="neutral-outcome">You toss ${cost} gold coin${cost>1?'s':''} into the well and make a silent wish. The water begins to glow softly, then surges upward, overflowing the well's edge!</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+function showWishingWell2() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Overflowing Crystal Waters</div>
+<div class="neutral-desc">The well now overflows with sparkling, crystal-clear water that pools around its base. The water seems to pulse with restorative energy.</div>
+<button class="btn safe" onclick="drinkCrystalWater()">Drink from the well</button>
+</div>`;
+}
+
+function drinkCrystalWater() {
+S.heroes.forEach(h => {
+if(h.ls) {
+h.ls = false;
+h.lst = 0;
+h.h = h.m;
+toast(`${h.n} revived to full HP!`);
+} else {
+h.h = h.m;
+}
+});
+toast('All heroes fully healed!', 3000);
+removeNeutralFromDeck('wishingwell');
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">The water tastes impossibly pure and refreshing. Warmth spreads through your body as all wounds close and exhaustion fades. You feel completely restored.</div>
+<div class="neutral-outcome">The well's glow fades as the water recedes to its normal level. Its magic has been spent.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== 3. TREASURE CHEST =====
+function showTreasureChest1() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">A Mysterious Chest</div>
+<div class="neutral-desc">An ornate wooden chest sits against the far wall, its brass fittings gleaming in the torchlight. No lock is visible, but you sense this may not be as simple as it appears.</div>
+<button class="btn risky" onclick="openChest()">Open the chest</button>
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
+</div>`;
+}
+
+function openChest() {
+const {rolls: trapRolls, best: trapBest} = rollD20Neutral();
+const trapText = showD20Result(trapRolls, trapBest);
+
+let trapOutcome = '';
+let trapDmg = 0;
+let secretFound = false;
+
+if(trapBest === 1) {
+trapOutcome = 'A poison dart flies out and strikes you!';
+trapDmg = 3;
+} else if(trapBest >= 2 && trapBest <= 9) {
+trapOutcome = 'A small dart grazes your arm.';
+trapDmg = 1;
+} else if(trapBest >= 10 && trapBest <= 18) {
+trapOutcome = 'You carefully open the chest without triggering any traps.';
+} else {
+trapOutcome = 'Your keen eyes spot a hidden compartment in the chest\'s lid!';
+secretFound = true;
+S.treasureSecretCompartment = true;
+}
+
+setTimeout(() => {
+if(trapDmg > 0) {
+const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
+highestHPHero.h -= trapDmg;
+if(highestHPHero.h < 0) highestHPHero.h = 0;
+if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
+highestHPHero.g--;
+highestHPHero.h = highestHPHero.m;
+toast(`${highestHPHero.n}'s Ghost charge consumed!`);
+} else if(highestHPHero.h === 0 && !highestHPHero.ls) {
+highestHPHero.ls = true;
+highestHPHero.lst = 0;
+toast(`${highestHPHero.n} entered Last Stand!`);
+}
+toast(`${highestHPHero.n} took ${trapDmg} damage!`);
+}
+
+const {rolls: contentRolls, best: contentBest} = rollD20Neutral();
+const contentText = showD20Result(contentRolls, contentBest);
+
+let contentOutcome = '';
+let goldGain = 0;
+
+if(contentBest >= 1 && contentBest <= 9) {
+contentOutcome = 'The chest is empty. Someone got here first.';
+} else if(contentBest >= 10 && contentBest <= 19) {
+goldGain = Math.ceil(Math.random() * 10);
+contentOutcome = `The chest contains ${goldGain} gold coins!`;
+} else {
+goldGain = Math.ceil(Math.random() * 10) * S.heroes.length;
+contentOutcome = `The chest is filled with ${goldGain} gold coins!`;
+}
+
+if(secretFound && contentBest >= 10) {
+S.silverKeyHeld = true;
+replaceStage1WithStage2('treasurechest');
+contentOutcome += ' Inside the secret compartment, you find a small silver key!';
+}
+
+S.gold += goldGain;
+upd();
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Opening the Chest</div>
+<div class="dice-roll">${trapText}</div>
+<div class="neutral-outcome">${trapOutcome}</div>
+<div class="dice-roll" style="margin-top:1rem">${contentText}</div>
+<div class="neutral-outcome">${contentOutcome}</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}, 500);
+}
+
+function showTreasureChest2() {
+if(!S.silverKeyHeld) {
+nextFloor();
+return;
+}
+const goldGain = 10 * S.heroes.length;
+S.gold += goldGain;
+S.silverKeyHeld = false;
+upd();
+removeNeutralFromDeck('treasurechest');
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Small Silver Chest</div>
+<div class="neutral-desc">A small silver chest sits on a stone pedestal, perfectly sized for the key you found earlier. You insert the key and it opens with a satisfying click.</div>
+<div class="neutral-outcome">Inside you find ${goldGain} gold coins, perfectly arranged!</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== 4. MUMBLING WIZARD =====
+function showWizard1() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Hieroglyphs on the Wall</div>
+<div class="neutral-desc">An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."</div>
+<button class="btn risky" onclick="approachWizard()">Approach the wizard</button>
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
+</div>`;
+}
+
+function approachWizard() {
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+
+const sigilPool = ['Grapple', 'Heal', 'Ghost', 'Alpha', 'Star', 'Asterisk'];
+const randomSigil = sigilPool[Math.floor(Math.random() * sigilPool.length)];
+S.wizardSigil = randomSigil;
+
+if(best >= 1 && best <= 10) {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Hieroglyphs</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">You stare at the glowing symbols but can't make sense of them. The wizard sighs heavily: "You don't see it. How unfortunate. Please leave."</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+} else {
+const heroesWithSigil = [];
+S.heroes.forEach((h, idx) => {
+if(h.s.includes(randomSigil) || (h.ts && h.ts.includes(randomSigil))) {
+heroesWithSigil.push(idx);
+}
+});
+
+if(heroesWithSigil.length === 0) {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Hieroglyphs</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard beams with pride.</div>
+<div class="neutral-outcome">But when he realizes none of you possess this sigil, his face falls: "Useless! All of you, useless! Get out!"</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+} else {
+const v = document.getElementById('gameView');
+let html = `
+<div class="neutral-container">
+<div class="neutral-title">The Hieroglyphs</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard exclaims: "Yes! YES! You see it! One of you has this power already!"</div>
+<div style="font-size:0.9rem;margin:1rem 0">Choose which hero receives the upgrade:</div>`;
+heroesWithSigil.forEach(idx => {
+const h = S.heroes[idx];
+const currentLevel = getLevel(randomSigil, idx);
+html += `<div class="choice" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">
+<strong>${h.n}</strong> <span style="opacity:0.7">${randomSigil} L${currentLevel} → L${currentLevel+1}</span>
+</div>`;
+});
+html += `</div>`;
+v.innerHTML = html;
+}
+}
+}
+
+function upgradeWizardSigil(heroIdx, sig) {
+const h = S.heroes[heroIdx];
+if(!h.ts) h.ts = [];
+if(!h.ts.includes(sig) && !h.s.includes(sig)) h.ts.push(sig);
+
+const oldLevel = S.sig[sig] || 0;
+S.sig[sig] = oldLevel + 1;
+
+toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 3000);
+replaceStage1WithStage2('wizard');
+setTimeout(() => {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">The wizard places his hands on ${h.n}'s head. The hieroglyph glows brighter, and power flows into them!</div>
+<div class="neutral-outcome">"Good, good! Now leave me to my studies."</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}, 500);
+}
+
+function showWizard2() {
+if(!S.wizardSigil) {
+nextFloor();
+return;
+}
+
+const sig = S.wizardSigil;
+const heroesWithSigil = [];
+S.heroes.forEach((h, idx) => {
+if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) {
+heroesWithSigil.push(idx);
+}
+});
+
+if(heroesWithSigil.length === 0) {
+nextFloor();
+return;
+}
+
+const v = document.getElementById('gameView');
+let html = `
+<div class="neutral-container">
+<div class="neutral-title">Sacrifice for Power</div>
+<div class="neutral-desc">The wizard channels arcane energy, his eyes glowing with power: "I can make this permanent... but all who carry ${sig} must sacrifice their current mastery. Do you accept?"</div>
+<div style="font-size:0.85rem;margin-bottom:1rem;color:#b64141">Cost: All heroes lose ${sig} for THIS RUN ONLY<br>Benefit: ${sig} permanently upgraded in Sigilarium</div>
+<button class="btn danger" onclick="acceptWizardSacrifice('${sig}')">Accept Sacrifice</button>
+<button class="btn" onclick="declineWizardSacrifice()">Decline</button>
+</div>`;
+v.innerHTML = html;
+}
+
+function acceptWizardSacrifice(sig) {
+S.heroes.forEach(h => {
+if(h.s.includes(sig)) h.s = h.s.filter(s => s !== sig);
+if(h.ts && h.ts.includes(sig)) h.ts = h.ts.filter(s => s !== sig);
+});
+
+S.sig[sig] = (S.sig[sig] || 0) + 1;
+toast(`${sig} PERMANENTLY upgraded to L${S.sig[sig]}!`, 3000);
+removeNeutralFromDeck('wizard');
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">The wizard's ritual completes. All knowledge of ${sig} drains from those who held it, but you feel the power crystallize into something greater.</div>
+<div class="neutral-outcome">"The sacrifice strengthens the foundation. Now go."</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+function declineWizardSacrifice() {
+removeNeutralFromDeck('wizard');
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">The wizard's glow fades. He returns to mumbling at the wall, disappointed but unsurprised.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== 5. ORACLE =====
+function showOracle1() {
+const v = document.getElementById('gameView');
+let html = `
+<div class="neutral-container">
+<div class="neutral-title">Consult the Oracle</div>
+<div class="neutral-desc">A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?"</div>
+<div style="font-size:0.9rem;margin-bottom:1rem">Choose a hero and their desired fortune:</div>`;
+S.heroes.forEach((h, idx) => {
+html += `<div class="choice" onclick="oracleChoose(${idx}, 'POW')"><strong>${h.n}</strong> - Power</div>`;
+html += `<div class="choice" onclick="oracleChoose(${idx}, 'HP')"><strong>${h.n}</strong> - Life</div>`;
+});
+html += `<button class="btn safe" onclick="nextFloor()">Do Not Engage</button></div>`;
+v.innerHTML = html;
+}
+
+function oracleChoose(heroIdx, stat) {
+S.oracleHero = heroIdx;
+S.oracleStat = stat;
+
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+S.oracleRoll = best;
+
+const h = S.heroes[heroIdx];
+let fortune = '';
+let stage2Effect = '';
+
+if(best === 1) {
+fortune = '"Terrible misfortune awaits you."';
+stage2Effect = 'CURSE';
+replaceStage1WithStage2('oracle');
+} else if(best >= 2 && best <= 9) {
+fortune = '"What you hope for shall not come to pass."';
+stage2Effect = 'NO UNLOCK';
+} else if(best >= 10 && best <= 15) {
+fortune = '"Great things in your future, but not what you want."';
+stage2Effect = 'OPPOSITE';
+replaceStage1WithStage2('oracle');
+} else if(best >= 16 && best <= 19) {
+fortune = '"Your desired future shall come to pass."';
+stage2Effect = 'DESIRED';
+replaceStage1WithStage2('oracle');
+} else {
+fortune = '"It happens before my eyes!"';
+stage2Effect = 'IMMEDIATE DOUBLE';
+replaceStage1WithStage2('oracle');
+}
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Oracle's Fortune</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">${h.n} steps forward seeking ${stat === 'POW' ? 'Power' : 'Life'}.</div>
+<div class="neutral-outcome">The Oracle gazes into the crystal sphere, then speaks: ${fortune}</div>
+<div style="font-size:0.85rem;opacity:0.7;margin-top:1rem">Stage 2: ${stage2Effect}</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+function showOracle2() {
+if(S.oracleHero === null || S.oracleRoll === null) {
+nextFloor();
+return;
+}
+
+const heroIdx = S.oracleHero;
+const stat = S.oracleStat;
+const roll = S.oracleRoll;
+const h = S.heroes[heroIdx];
+
+let outcome = '';
+
+if(roll === 1) {
+// CURSE
+if(stat === 'HP') {
+h.m = Math.max(1, h.m - 5);
+if(h.h > h.m) h.h = h.m;
+outcome = `${h.n} feels weaker. Maximum HP reduced by 5!`;
+} else {
+h.p = Math.max(0, h.p - 1);
+outcome = `${h.n} feels their strength fade. POW reduced by 1!`;
+}
+} else if(roll >= 10 && roll <= 15) {
+// OPPOSITE
+if(stat === 'HP') {
+h.p++;
+outcome = `${h.n} gains unexpected Power! POW +1!`;
+} else {
+h.m += 5;
+h.h += 5;
+outcome = `${h.n} feels vitality surge! Maximum HP +5!`;
+}
+} else if(roll >= 16 && roll <= 19) {
+// DESIRED
+if(stat === 'HP') {
+h.m += 5;
+h.h += 5;
+outcome = `${h.n} feels strengthened! Maximum HP +5!`;
+} else {
+h.p++;
+outcome = `${h.n} feels power awaken! POW +1!`;
+}
+} else if(roll === 20) {
+// IMMEDIATE DOUBLE
+if(stat === 'HP') {
+h.m += 10;
+h.h += 10;
+outcome = `${h.n} surges with life force! Maximum HP +10!`;
+} else {
+h.p += 2;
+outcome = `${h.n} blazes with power! POW +2!`;
+}
+}
+
+removeNeutralFromDeck('oracle');
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Return to the Oracle</div>
+<div class="neutral-outcome">${h.n} returns to the Oracle. The crystal sphere flares brightly!</div>
+<div class="neutral-outcome">${outcome}</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== 6. ENEMY ENCAMPMENT =====
+function showEncampment1() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Enemies Assembling Ahead</div>
+<div class="neutral-desc">Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven't noticed you yet.</div>
+<button class="btn risky" onclick="sneakByEncampment()">Sneak by?</button>
+<button class="btn risky" onclick="engageEarlyEncampment()">Engage early</button>
+</div>`;
+}
+
+function sneakByEncampment() {
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+
+let outcome = '';
+if(best >= 1 && best <= 10) {
+outcome = 'Your foot catches on loose stone! The enemies hear you and prepare an ambush!';
+replaceStage1WithStage2('encampment');
+toast('Next combat will be AMBUSHED!', 3000);
+} else if(best >= 11 && best <= 19) {
+outcome = 'You slip past quietly. The enemies remain unaware.';
+} else {
+outcome = 'You sneak past perfectly AND discover a rejected straggler who joins your group!';
+toast('Straggler will fight for you next combat!', 3000);
+}
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Sneaking Past</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">${outcome}</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+function engageEarlyEncampment() {
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+
+if(best >= 1 && best <= 15) {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Engaging Early</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">A scout spots you before you can strike! The enemies prepare an ambush!</div>
+<button class="btn" onclick="finishEncampmentFail()">Continue</button>
+</div>`;
+} else {
+const kills = best === 20 ? 2 : 1;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Engaging Early</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">You succeed at picking off ${kills} enem${kills>1?'ies':'y'}! The rest aren't far behind...</div>
+<button class="btn" onclick="startEncampmentCombat(${kills})">Fight!</button>
+</div>`;
+}
+}
+
+function finishEncampmentFail() {
+replaceStage1WithStage2('encampment');
+toast('Next combat will be AMBUSHED!', 3000);
+nextFloor();
+}
+
+function startEncampmentCombat(kills) {
+const v = document.getElementById('gameView');
+const comp = getEnemyComp(S.floor + 1);
+
+let html = '<div class="neutral-container"><div class="neutral-title">Choose Enemies to Kill</div>';
+html += `<div style="font-size:0.9rem;margin-bottom:1rem">Select ${kills} enem${kills>1?'ies':'y'} to remove:</div>`;
+
+const enemyTypes = {};
+comp.forEach(type => {
+enemyTypes[type] = (enemyTypes[type] || 0) + 1;
+});
+
+Object.keys(enemyTypes).forEach(type => {
+const count = enemyTypes[type];
+html += `<div class="choice" onclick="killEncampmentEnemy('${type}', ${kills})">
+<strong>${E[type].n}</strong> <span style="opacity:0.7">(${count} available, ${E[type].g}G + ${E[type].x}XP each)</span>
+</div>`;
+});
+
+html += '</div>';
+v.innerHTML = html;
+}
+
+window.encampmentKillCount = 0;
+window.encampmentKillTarget = 0;
+
+function killEncampmentEnemy(type, target) {
+if(!window.encampmentKillCount) window.encampmentKillCount = 0;
+if(!window.encampmentKillTarget) window.encampmentKillTarget = target;
+
+S.gold += E[type].g;
+S.xp += E[type].x;
+upd();
+toast(`Killed ${E[type].n}! +${E[type].g}G +${E[type].x}XP`);
+
+window.encampmentKillCount++;
+
+if(window.encampmentKillCount >= window.encampmentKillTarget) {
+window.encampmentKillCount = 0;
+window.encampmentKillTarget = 0;
+nextFloor();
+} else {
+startEncampmentCombat(target);
+}
+}
+
+function showEncampment2() {
+const healAmt = Math.floor(S.heroes[0].m * 0.5);
+const goldGain = 2 * S.heroes.length;
+
+S.heroes.forEach(h => {
+if(!h.ls) {
+h.h = Math.min(h.h + healAmt, h.m);
+}
+});
+
+S.gold += goldGain;
+upd();
+toast(`All heroes healed ${healAmt} HP!`, 2000);
+toast(`Gained ${goldGain} Gold!`, 2000);
+
+removeNeutralFromDeck('encampment');
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Abandoned Encampment</div>
+<div class="neutral-desc">The enemy got cocky and left their base undefended. You enter and rest safely.</div>
+<div class="neutral-outcome">All heroes restored ${healAmt} HP!</div>
+<div class="neutral-outcome">Found ${goldGain} Gold in supplies!</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== 7. ANCIENT STATUE =====
+function showStatue1() {
+const deactivated = S.ancientStatueDeactivated;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Statue</div>
+<div class="neutral-desc">A massive stone statue dominates the chamber. As you watch, it seems to ${deactivated ? 'shift smoothly and gently' : 'grow larger, its surface rippling ominously'}.</div>
+${deactivated ? '<div class="neutral-outcome" style="color:#22c55e">The statue has been deactivated. It poses no threat.</div>' : ''}
+<button class="btn safe" onclick="nextFloor()">Leave now</button>
+<button class="btn risky" onclick="showStatue2()">Remain transfixed</button>
+</div>`;
+}
+
+function showStatue2() {
+const deactivated = S.ancientStatueDeactivated;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Growing Larger</div>
+<div class="neutral-desc">The statue IS getting bigger! The room feels smaller. ${deactivated ? 'It moves smoothly and gently, non-threatening.' : 'Its stone surface creaks as it expands.'}</div>
+<button class="btn risky" onclick="statueEscape(2)">Make a break for exit</button>
+<button class="btn risky" onclick="showStatue3()">Remain transfixed</button>
+</div>`;
+}
+
+function showStatue3() {
+const deactivated = S.ancientStatueDeactivated;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Consuming the Room</div>
+<div class="neutral-desc">The statue now fills most of the room! ${deactivated ? 'Despite its size, it moves with graceful precision.' : 'There\'s still a tight squeeze to the exit...'}</div>
+<button class="btn risky" onclick="statueEscape(3)">Squeeze out to exit</button>
+<button class="btn danger" onclick="showStatue4()">Remain transfixed</button>
+</div>`;
+}
+
+function showStatue4() {
+const deactivated = S.ancientStatueDeactivated;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Smooth Metal Pressing - LAST CHANCE</div>
+<div class="neutral-desc">${deactivated ? 'The statue\'s polished surface gleams as it gently fills the space.' : 'The statue\'s smooth metal presses against the walls and you! This is your last chance to escape!'}</div>
+<button class="btn danger" onclick="statueEscape(4)">ESCAPE NOW</button>
+<button class="btn danger" onclick="showStatue5()">Remain transfixed</button>
+</div>`;
+}
+
+function statueEscape(stage) {
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+const deactivated = S.ancientStatueDeactivated;
+
+let outcome = '';
+let damage = 0;
+
+if(stage === 2) {
+if(best >= 1 && best <= 5) damage = deactivated ? 0 : 1;
+else if(best === 20) outcome = 'You can\'t shake the feeling you missed something...';
+} else if(stage === 3) {
+if(best >= 1 && best <= 9) damage = deactivated ? 0 : 2;
+else if(best >= 10 && best <= 19) outcome = 'You escape safely.';
+else outcome = 'As you squeeze out, you notice a small black arch in the statue.';
+} else if(stage === 4) {
+if(best >= 1 && best <= 15) damage = deactivated ? 0 : 3;
+else if(best >= 16 && best <= 19) outcome = 'You notice an archway as you escape!';
+else {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">The archway SWALLOWS you! You find yourself inside the statue!</div>
+<button class="btn" onclick="showStatue5()">Continue</button>
+</div>`;
+return;
+}
+}
+
+if(damage > 0 && !deactivated) {
+S.heroes.forEach(h => {
+h.h -= damage;
+if(h.h < 0) h.h = 0;
+if(h.h === 0 && !h.ls && h.g > 0) {
+h.g--;
+h.h = h.m;
+} else if(h.h === 0 && !h.ls) {
+h.ls = true;
+h.lst = 0;
+}
+});
+toast(`All heroes took ${damage} damage!`);
+}
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Escaping the Statue</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">${outcome || `You escape${damage > 0 ? ' but take ' + damage + ' damage' : ' safely'}!`}</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+function showStatue5() {
+const v = document.getElementById('gameView');
+let html = `
+<div class="neutral-container">
+<div class="neutral-title">Statue Unfurls</div>
+<div class="neutral-desc">The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled.</div>
+<div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>`;
+S.heroes.forEach((h, idx) => {
+html += `<div class="choice" onclick="scaleStatue(${idx})"><strong>${h.n}</strong></div>`;
+});
+html += `</div>`;
+v.innerHTML = html;
+}
+
+function scaleStatue(heroIdx) {
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+const deactivated = S.ancientStatueDeactivated;
+
+const h = S.heroes[heroIdx];
+let outcome = '';
+let damage = 0;
+let getStatuette = false;
+
+if(best === 1) {
+outcome = 'TRAP! You trigger a mechanism and plummet!';
+damage = deactivated ? 0 : (h.h - 1);
+} else if(best >= 2 && best <= 15) {
+damage = deactivated ? 0 : 4;
+getStatuette = true;
+outcome = `You ${damage > 0 ? 'struggle up, taking ' + damage + ' damage, but ' : ''}reach the statuette!`;
+} else if(best >= 16 && best <= 19) {
+getStatuette = true;
+outcome = 'You scale effortlessly and claim the statuette!';
+} else {
+getStatuette = true;
+outcome = 'You scale perfectly AND find the deactivation switch!';
+S.ancientStatueDeactivated = true;
+toast('Ancient Statue PERMANENTLY deactivated!', 3000);
+}
+
+if(damage > 0) {
+h.h -= damage;
+if(h.h < 1) h.h = 1;
+}
+
+if(getStatuette) {
+toast('Ancient Statuette obtained!', 2000);
+}
+
+removeNeutralFromDeck('statue');
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Scaling the Statue</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">${outcome}</div>
+${getStatuette ? '<div class="neutral-outcome" style="color:#fbbf24">The Ancient Statuette can be placed on a Pedestal to grant permanent stat upgrades!</div>' : ''}
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== 8. GHOST =====
+function showGhost1() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Two Ghostly Boys Want to Play</div>
+<div class="neutral-desc">Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.</div>
+<button class="btn danger" onclick="playWithGhostBoys()">Play with the ghost boys</button>
+<button class="btn risky" onclick="nextFloor()">Avoid?</button>
+</div>`;
+}
+
+let ghostEscapeDC = 18;
+let ghostEscapeAttempts = 0;
+
+function playWithGhostBoys() {
+ghostEscapeDC = 18;
+ghostEscapeAttempts = 0;
+attemptGhostEscape();
+}
+
+function attemptGhostEscape() {
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+
+if(best >= ghostEscapeDC) {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Escaping the Ghost Boys</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">You break free from their grip! The boys pout but let you go. "Come back and play sometime..."</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+return;
+}
+
+// Failed - damage lowest HP hero
+const sortedHeroes = [...S.heroes].filter(h => h.h > 0 || !h.ls).sort((a, b) => a.h - b.h);
+if(sortedHeroes.length === 0) {
+nextFloor();
+return;
+}
+
+const victim = sortedHeroes[0];
+const hadGhostCharge = victim.g > 0;
+
+victim.h -= 1;
+if(victim.h <= 0) {
+victim.h = 0;
+if(victim.g > 0) {
+victim.g--;
+victim.h = victim.m;
+// EASTER EGG: Ghost charge consumed during Ghost encounter
+if(hadGhostCharge) {
+replaceStage1WithStage2('ghost');
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Boys See the Truth</div>
+<div class="neutral-outcome">${victim.n} was about to fall... but their Ghost charge flared! The spectral energy protected them!</div>
+<div class="neutral-outcome">The ghost boys STOP. They stare at ${victim.n}, eyes wide with realization...</div>
+<div class="neutral-outcome">"Oops! We're... we're like them. We're ghosts too."</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+return;
+}
+} else {
+victim.ls = true;
+victim.lst = 0;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Escaping the Ghost Boys</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">${victim.n} took 1 damage and entered Last Stand! The shock breaks the ghost boys' hold!</div>
+<div class="neutral-outcome">"Oops!" they say in unison, then fade away giggling.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+return;
+}
+}
+
+toast(`${victim.n} took 1 damage!`);
+ghostEscapeAttempts++;
+ghostEscapeDC -= 2;
+
+if(ghostEscapeAttempts >= 9) {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Finally Free</div>
+<div class="neutral-outcome">After many attempts, the ghost boys grow bored and fade away.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+return;
+}
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Trapped with the Ghost Boys</div>
+<div class="dice-roll">${rollText}</div>
+<div class="neutral-outcome">You remain trapped! Time slips away... ${victim.n} took 1 damage!</div>
+<div style="font-size:0.9rem;margin:1rem 0">Attempts: ${ghostEscapeAttempts}/9 | Next DC: ${ghostEscapeDC}</div>
+<button class="btn danger" onclick="attemptGhostEscape()">Try to Escape (DC ${ghostEscapeDC})</button>
+</div>`;
+}
+
+function showGhost2() {
+S.ghostBoysConverted = true;
+toast('Ghost Boys permanently converted to Empty Playroom!', 3000);
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Boys Realize the Truth</div>
+<div class="neutral-desc">The ghost boys stare at each other, then at their translucent hands. "We're... we're dead. We're ghosts."</div>
+<div class="neutral-outcome">Tears form in their spectral eyes. "We want to go home. We want to see Mommy and Daddy."</div>
+<div class="neutral-outcome">They hold hands and walk toward a light that appears. "Thank you for showing us." They vanish peacefully.</div>
+<div class="neutral-outcome" style="color:#22c55e">This room is now an Empty Playroom - you can pass safely in future runs.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+function showEmptyPlayroom() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Empty Playroom</div>
+<div class="neutral-desc">An empty chamber, dust motes drifting in pale light. It might have been a playroom once, but whatever haunted it is long gone. The air feels peaceful.</div>
+<div class="neutral-outcome">Nothing stops you here. You pass through quietly.</div>
+<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor + 1}</button>
+</div>`;
+}
+
+// ===== 9. FLUMMOXED PRINCE(SS) =====
+function showPrince1() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Help Recover the Ring</div>
+<div class="neutral-desc">A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"</div>
+<button class="btn" onclick="acceptPrinceQuest()">Accept the quest</button>
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
+</div>`;
+}
+
+function acceptPrinceQuest() {
+toast('Stun any enemy Turn 1 of next combat!', 3000);
+// This would need combat integration - simplified for now
+replaceStage1WithStage2('prince');
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">The ${S.princeGender} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+function showPrince2() {
+const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
+const eligible = allSigils.filter(s => (S.sig[s] || 0) < 4);
+
+eligible.sort((a, b) => {
+const costA = S.sig[a] || 0;
+const costB = S.sig[b] || 0;
+return costA - costB;
+});
+
+const sigil1 = eligible[0] || 'Attack';
+const sigil2 = eligible[1] || 'Shield';
+
+removeNeutralFromDeck('prince');
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">The Wedding</div>
+<div class="neutral-desc">The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!</div>
+<div class="neutral-outcome">Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:</div>
+<div class="choice" onclick="choosePrinceSigil('${sigil1}')">
+<strong>${sigil1}</strong> <span style="opacity:0.7">L${S.sig[sigil1] || 0} → L${(S.sig[sigil1] || 0) + 1}</span>
+</div>
+<div class="choice" onclick="choosePrinceSigil('${sigil2}')">
+<strong>${sigil2}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
+</div>
+</div>`;
+}
+
+function choosePrinceSigil(sig) {
+S.sig[sig] = (S.sig[sig] || 0) + 1;
+toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 3000);
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-outcome">The royal couple thanks you profusely. The ${sig} sigil glows and merges with your power!</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+}
+
+// ===== WIN =====
+function win() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>
+<p style="text-align:center;margin-bottom:2rem">You reached the Fountain of Immortality!</p>
+<button class="btn" onclick="title()">Play Again</button>`;
+}
+
+// ===== INIT =====
+window.onload = () => {
+const s = localStorage.getItem('froggle8');
+if(s && confirm('Resume saved game?')) loadGame();
+else title();
+};
+</script>
+</body>
+</html>
