@@ -179,7 +179,8 @@ last_stand_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false
-}
+},
+tutorialsDisabled: false
 };
 
 let sel = [];
@@ -210,7 +211,7 @@ setTimeout(() => t.remove(), 300);
 }
 
 function showTutorialPop(flagName, message, onDismiss) {
-if(S.tutorialFlags[flagName]) return; // Already shown
+if(S.tutorialsDisabled || S.tutorialFlags[flagName]) return; // Disabled or already shown
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
@@ -248,7 +249,8 @@ ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 effedUnlocked: S.effedUnlocked,
 runNumber: S.runNumber,
-tutorialFlags: S.tutorialFlags
+tutorialFlags: S.tutorialFlags,
+tutorialsDisabled: S.tutorialsDisabled
 }));
 }
 
@@ -266,6 +268,7 @@ S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.effedUnlocked = j.effedUnlocked || false;
 S.runNumber = j.runNumber || 1;
+S.tutorialsDisabled = j.tutorialsDisabled || false;
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -371,13 +374,81 @@ function showD20Result(rolls, best) {
 return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`;
 }
 
+// ===== MAIN TITLE PAGE =====
+function mainTitlePage() {
+const v = document.getElementById('gameView');
+const hasSavedGame = localStorage.getItem('froggle8');
+v.innerHTML = `
+<div style="text-align:center;margin-top:4rem">
+<h1 style="font-size:3rem;margin-bottom:0.5rem">🐸 FROGGLE 🐸</h1>
+<p style="font-size:0.9rem;opacity:0.7;margin-bottom:3rem">v8.0 COMPLETE NEUTRALS</p>
+<div style="display:flex;flex-direction:column;gap:1rem;max-width:300px;margin:0 auto">
+<button class="btn" onclick="newGame()" style="font-size:1.2rem;padding:1rem">New Game</button>
+${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:1.2rem;padding:1rem">Load Game</button>` : ''}
+<button class="btn" onclick="exitGame()" style="font-size:1.2rem;padding:1rem;background:#888">Exit</button>
+</div>
+</div>`;
+}
+
+function newGame() {
+if(S.runNumber === 1 && !S.tutorialsDisabled) {
+showTutorialStory();
+} else {
+title();
+}
+}
+
+function loadGameFromTitle() {
+const s = localStorage.getItem('froggle8');
+if(s) {
+loadGame();
+} else {
+toast('No saved game found!');
+}
+}
+
+function exitGame() {
+if(confirm('Thanks for playing FROGGLE! Close the window to exit.')) {
+window.close();
+}
+}
+
+function showTutorialStory() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="max-width:600px;margin:2rem auto;padding:1rem">
+<h2 style="text-align:center;margin-bottom:2rem">Welcome to Ribbleton!</h2>
+<div style="font-size:1rem;line-height:1.6;margin-bottom:1.5rem">
+<p style="margin-bottom:1rem">Deep in the enchanted swamps of Ribbleton, a mysterious corruption has begun to spread. The once-peaceful creatures of the marsh have turned hostile, and strange magical energies pulse through the wetlands.</p>
+<p style="margin-bottom:1rem">As a brave adventurer, you've assembled a party of heroes to investigate the source of this dark magic. Armed with powerful sigils and combat skills, you must venture deeper into the treacherous floors of Ribbleton's dungeons.</p>
+<p style="margin-bottom:1rem">Along the way, you'll encounter neutral travelers who may offer aid, challenge, or strange bargains. Every choice matters, and death is not always the end...</p>
+<p style="font-weight:bold;color:#14b8a6">Can you reach the heart of Ribbleton and uncover its secrets?</p>
+</div>
+<div style="display:flex;gap:1rem;justify-content:center;margin-top:2rem">
+<button class="btn" onclick="startWithTutorial()" style="padding:0.75rem 1.5rem">Continue</button>
+<button class="btn" onclick="skipTutorial()" style="padding:0.75rem 1.5rem;background:#888">Skip Tutorial</button>
+</div>
+</div>`;
+}
+
+function startWithTutorial() {
+title();
+}
+
+function skipTutorial() {
+S.tutorialsDisabled = true;
+savePermanent();
+toast('Tutorials disabled for all games');
+title();
+}
+
 // ===== TITLE & HERO SELECT =====
 function title() {
-// TUTORIAL: Run 1 auto-selects Warrior + Healer (Ribbleton tutorial)
-if(S.runNumber === 1) {
+// TUTORIAL: Run 1 selects Warrior + Healer after hero select screen
+const isRun1 = S.runNumber === 1;
+if(isRun1 && !S.tutorialsDisabled) {
+// Auto-select for tutorial but show the screen
 sel = ['warrior', 'healer'];
-start();
-return;
 }
 
 const v = document.getElementById('gameView');
@@ -407,7 +478,20 @@ ${pedestalCount > 0 || S.hasAncientStatuette ? `<div style="text-align:center;ma
 <div class="choice" id="h-mage" onclick="pick('mage')"><strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div></div>
 <div class="choice ${isRun2?'disabled':''}" id="h-healer" onclick="${isRun2?'':'pick(\'healer\')'}"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
 <button class="btn" id="start" onclick="start()" disabled style="opacity:0.4">Begin Adventure</button>`;
-sel = [];
+
+if(!isRun1 || S.tutorialsDisabled) sel = [];
+
+// If run 1 with tutorial, visually mark pre-selected heroes
+if(isRun1 && !S.tutorialsDisabled) {
+setTimeout(() => {
+const wEl = document.getElementById('h-warrior');
+const hEl = document.getElementById('h-healer');
+if(wEl) { wEl.style.background='#e0f0ff'; wEl.style.borderColor='#2c63c7'; }
+if(hEl) { hEl.style.background='#e0f0ff'; hEl.style.borderColor='#2c63c7'; }
+const b = document.getElementById('start');
+if(b) { b.disabled = false; b.style.opacity = '1'; }
+}, 0);
+}
 }
 
 function toggleMode() {
@@ -595,7 +679,14 @@ render();
 
 function act(sig, heroIdx) {
 if(S.locked) { toast('Wait for enemy turn!'); return; }
-if(S.pending) return;
+// Allow switching actions by canceling current pending action
+if(S.pending) {
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+}
 const h = S.heroes[heroIdx];
 if(S.acted.includes(heroIdx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
@@ -2551,7 +2642,6 @@ v.innerHTML = `
 <div class="dice-roll">${rollText}</div>
 <div class="neutral-outcome">${h.n} steps forward seeking ${stat === 'POW' ? 'Power' : 'Life'}.</div>
 <div class="neutral-outcome">The Oracle gazes into the crystal sphere, then speaks: ${fortune}</div>
-<div style="font-size:0.85rem;opacity:0.7;margin-top:1rem">Stage 2: ${stage2Effect}</div>
 <button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
 }
@@ -3569,9 +3659,7 @@ v.innerHTML = html;
 // ===== INIT =====
 window.onload = () => {
 loadPermanent(); // Always load permanent data first
-const s = localStorage.getItem('froggle8');
-if(s && confirm('Resume saved game?')) loadGame();
-else title();
+mainTitlePage();
 };
 </script>
 </body>
