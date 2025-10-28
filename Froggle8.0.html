@@ -499,7 +499,8 @@ function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
-S.recruits=[]; // Clear recruits from previous combat
+// Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
+if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
 h.sh=0;
 h.st=0;
@@ -1166,6 +1167,21 @@ drawEnemySigil(e);
 }
 e.alphaActed = false;
 });
+// Process recruits - stun decrement and sigil drawing
+if(S.recruits) {
+S.recruits.forEach(r => {
+if(r.st > 0) r.st--;
+if(!r.turnsSinceGain) r.turnsSinceGain = 0;
+r.turnsSinceGain++;
+if(r.turnsSinceGain >= r.gainRate) {
+r.turnsSinceGain = 0;
+const draws = r.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
+drawEnemySigil(r);
+}
+}
+});
+}
 setTimeout(() => executeAlphaPhase(), 800);
 }
 
@@ -1482,6 +1498,7 @@ starBonus += starLevel * 0.5;
 const bonusXP = Math.floor(combatXP * (1 + starBonus));
 S.xp += bonusXP;
 S.combatXP = 0; // Reset combat XP
+// Recruits persist until killed - don't clear here
 if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000);
 upd();
 toast('Victory!');
@@ -2581,26 +2598,81 @@ v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Enemies Assembling Ahead</div>
 <div class="neutral-desc">Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven't noticed you yet.</div>
-<button class="btn risky" onclick="sneakByEncampment()">Sneak by?</button>
-<button class="btn risky" onclick="engageEarlyEncampment()">Engage early</button>
+<button class="btn risky" onclick="chooseEncampmentAction('sneak')">Sneak by?</button>
+<button class="btn risky" onclick="chooseEncampmentAction('engage')">Engage early</button>
 </div>`;
 }
 
-function sneakByEncampment() {
+function chooseEncampmentAction(action) {
+const v = document.getElementById('gameView');
+let html = '<div class="neutral-container">';
+html += `<div class="neutral-title">${action === 'sneak' ? 'Choose Scout' : 'Choose Leader'}</div>`;
+html += `<div class="neutral-desc">Which hero will ${action === 'sneak' ? 'sneak past the encampment' : 'lead the charge'}?</div>`;
+S.heroes.forEach((h, i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+html += `<div class="choice" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">
+<strong>${h.n}</strong> - ${h.p}⚡ | ${hp}
+</div>`;
+});
+html += '</div>';
+v.innerHTML = html;
+}
+
+function sneakByEncampment(heroIdx) {
+const hero = S.heroes[heroIdx];
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
 
 let outcome = '';
 if(best >= 1 && best <= 10) {
-outcome = 'Your foot catches on loose stone! The enemies hear you and prepare an ambush!';
+outcome = `${hero.n}'s foot catches on loose stone! The enemies hear you and prepare an ambush!`;
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 3000);
 } else if(best >= 11 && best <= 19) {
-outcome = 'You slip past quietly. The enemies remain unaware.';
+outcome = `${hero.n} slips past quietly. The enemies remain unaware.`;
 } else {
-outcome = 'You sneak past perfectly AND discover a rejected straggler who joins your group!';
-toast('Straggler will fight for you next combat!', 3000);
+// Roll 20 - recruit a straggler
+const comp = getEnemyComp(S.floor + 1);
+const stragglerType = comp[Math.floor(Math.random() * comp.length)];
+const base = E[stragglerType];
+const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
+const straggler = {
+id: `recruit${Date.now()}`,
+n: base.n,
+p: base.p * effedMultiplier,
+h: base.h * effedMultiplier,
+m: base.m * effedMultiplier,
+g: base.g,
+x: base.x,
+s: [],
+pool: base.pool,
+gainRate: base.gainRate || 3,
+turnsSinceGain: 0,
+drawsPerTurn: base.drawsPerTurn || 1,
+st: 0,
+li: heroIdx,
+sh: 0,
+alphaActed: false,
+recruitedBy: heroIdx,
+isRecruit: true
+};
+// Add permanent sigils
+if(base.permSigils) base.permSigils.forEach(ps => straggler.s.push({sig:ps.s, level:ps.l, perm:true}));
+// Add start sigils
+if(base.startSigils) {
+if(Array.isArray(base.startSigils)) {
+base.startSigils.forEach(ss => straggler.s.push({sig:ss.s, level:ss.l, perm:false}));
+} else {
+for(let j = 0; j < base.startSigils; j++) {
+drawEnemyStartSigil(straggler, base);
+}
+}
+}
+if(!S.recruits) S.recruits = [];
+S.recruits.push(straggler);
+outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n} who joins ${hero.n}'s ranks!`;
+toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 3000);
 }
 
 const v = document.getElementById('gameView');
@@ -2613,7 +2685,8 @@ v.innerHTML = `
 </div>`;
 }
 
-function engageEarlyEncampment() {
+function engageEarlyEncampment(heroIdx) {
+const hero = S.heroes[heroIdx];
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
 
@@ -2623,7 +2696,7 @@ v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Engaging Early</div>
 <div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">A scout spots you before you can strike! The enemies prepare an ambush!</div>
+<div class="neutral-outcome">A scout spots ${hero.n} before they can strike! The enemies prepare an ambush!</div>
 <button class="btn" onclick="finishEncampmentFail()">Continue</button>
 </div>`;
 } else {
@@ -2635,7 +2708,7 @@ v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Engaging Early</div>
 <div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">You succeed at picking off ${kills} enem${kills>1?'ies':'y'}! They're scrambling to form ranks - you'll see the battlefield and pick your targets...</div>
+<div class="neutral-outcome">${hero.n} succeeds at picking off ${kills} enem${kills>1?'ies':'y'}! They're scrambling to form ranks - you'll see the battlefield and pick your targets...</div>
 <button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
 }
@@ -3113,6 +3186,7 @@ v.innerHTML = `
 function showDeathScreen() {
 showTutorialPop('death_intro', "First time, huh? Doesn't seem like it's quite your time yet, and I think keeping you alive could be profitable for me. Cash in Gold now for PERMANENT upgrades.");
 savePermanent(); // Save gold, goingRate, sig upgrades
+// Recruits persist until killed - don't clear here
 const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 
