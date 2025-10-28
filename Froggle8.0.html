@@ -107,6 +107,10 @@ enemies: [],
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 sigUpgradeCounts: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
+pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Effed'}
+hasAncientStatuette: false,
+gameMode: 'Standard', // 'Standard' or 'Effed'
+effedUnlocked: false,
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -168,7 +172,9 @@ goingRate: S.goingRate,
 sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
-ghostBoysConverted: S.ghostBoysConverted
+ghostBoysConverted: S.ghostBoysConverted,
+pedestal: S.pedestal,
+effedUnlocked: S.effedUnlocked
 }));
 }
 
@@ -182,6 +188,8 @@ S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
+S.pedestal = j.pedestal || [];
+S.effedUnlocked = j.effedUnlocked || false;
 }
 
 function saveGame() {
@@ -314,6 +322,18 @@ id:`h${Date.now()}${i}`,
 n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
 }));
+// Apply pedestal buffs
+S.pedestal.forEach(slot => {
+if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
+const hero = S.heroes.find(h => h.n === slot.hero);
+if(!hero) return;
+if(slot.stat === 'POW') {
+hero.p += 1;
+} else if(slot.stat === 'HP') {
+hero.m += 5;
+hero.h += 5;
+}
+});
 initNeutralDeck();
 upd();
 startFloor(1);
@@ -2744,11 +2764,49 @@ location.reload();
 
 // ===== WIN =====
 function win() {
+// Award figurines for heroes who survived (HP > 0, not Last Stand)
+const survivedHeroes = S.heroes.filter(h => h.h > 0 && !h.ls);
+const earnedFigurines = [];
+survivedHeroes.forEach(h => {
+// Check if this hero already has 2 figurines for this mode
+const existingCount = S.pedestal.filter(slot => slot.hero === h.n && slot.mode === S.gameMode).length;
+if(existingCount < 2) {
+earnedFigurines.push(h.n);
+}
+});
+
+// Unlock Effed Up mode if Standard victory
+if(S.gameMode === 'Standard') {
+S.effedUnlocked = true;
+}
+
+savePermanent();
+
 const v = document.getElementById('gameView');
-v.innerHTML = `
+let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>
-<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>
-<button class="btn" onclick="title()">Play Again</button>`;
+<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>`;
+
+if(earnedFigurines.length > 0) {
+html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px">
+<h3 style="text-align:center;margin-bottom:0.5rem">🏆 Hero Figurines Earned! 🏆</h3>
+<p style="text-align:center">The following heroes can place figurines on the Pedestal:</p>
+<ul style="list-style:none;padding:0;text-align:center">`;
+earnedFigurines.forEach(name => {
+html += `<li style="margin:0.5rem 0;font-weight:bold">${name}</li>`;
+});
+html += `</ul>
+<p style="text-align:center;font-size:0.9rem;color:#999;margin-top:0.5rem">Figurines grant permanent +1 POW or +5 HP when placed on Pedestal</p>
+</div>`;
+}
+
+if(S.gameMode === 'Standard' && S.effedUnlocked) {
+html += `<p style="text-align:center;margin:1rem 0;color:#fbbf24;font-weight:bold">🔥 EFFED UP MODE UNLOCKED! 🔥</p>`;
+}
+
+html += `<button class="btn" onclick="title()">Play Again</button>`;
+
+v.innerHTML = html;
 }
 
 // ===== INIT =====
