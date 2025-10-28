@@ -679,8 +679,14 @@ render();
 
 function act(sig, heroIdx) {
 if(S.locked) { toast('Wait for enemy turn!'); return; }
-// Allow switching actions by canceling current pending action
+// Allow switching actions only if no instances have been completed yet
 if(S.pending) {
+// Check if any instances have been completed
+if(S.instancesRemaining > 0 && S.instancesRemaining < S.totalInstances) {
+toast('Must complete remaining instances!');
+return;
+}
+// Allow switching if no instances completed yet
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
