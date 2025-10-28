@@ -112,6 +112,7 @@ xp: 0,
 levelUpCount: 0,
 heroes: [],
 enemies: [],
+recruits: [], // Recruited enemies fighting for player
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
@@ -498,6 +499,7 @@ function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
+S.recruits=[]; // Clear recruits from previous combat
 S.heroes.forEach(h => {
 h.sh=0;
 h.st=0;
@@ -506,17 +508,6 @@ if(!h.ts) h.ts=[];
 if(S.ambushed) h.st = 1;
 });
 let comp = getEnemyComp(f);
-
-// Remove enemies killed in Encampment early kills
-if(S.encampmentKilledTypes && S.encampmentKilledTypes.length > 0) {
-S.encampmentKilledTypes.forEach(killedType => {
-const idx = comp.indexOf(killedType);
-if(idx >= 0) comp.splice(idx, 1);
-});
-toast(`${S.encampmentKilledTypes.length} enem${S.encampmentKilledTypes.length>1?'ies':'y'} already killed!`, 2000);
-S.encampmentKilledTypes = [];
-S.encampmentKillsRemaining = 0;
-}
 
 S.enemies = comp.map((t,i) => {
 const base = E[t];
@@ -548,6 +539,11 @@ return enemy;
 if(S.ambushed) {
 toast('AMBUSHED! All heroes stunned Turn 1!', 3000);
 S.ambushed = false; // Clear flag after use
+}
+// Check if we need to show Encampment enemy selection
+if(S.encampmentEarlyKills && S.encampmentEarlyKills > 0) {
+S.selectingEncampmentTargets = true;
+S.encampmentSelectedTargets = [];
 }
 render();
 }
@@ -776,7 +772,25 @@ render();
 checkCombatEnd();
 }, 300);
 } else if(action === 'RECRUIT') {
-toast('RECRUIT not yet implemented!');
+const heroIdx = S.d20HeroIdx;
+const hero = S.heroes[heroIdx];
+// Check if hero already has a recruit
+if(!S.recruits) S.recruits = [];
+const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
+if(existingRecruit) {
+toast(`${hero.n} already has a recruit!`);
+return;
+}
+// Remove enemy from enemies array
+S.enemies = S.enemies.filter(e => e.id !== enemyId);
+// Add to recruits array
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+S.recruits.push(recruit);
+toast(`${enemy.n} recruited by ${hero.n}!`, 2500);
+setTimeout(() => {
+render();
+checkCombatEnd();
+}, 300);
 }
 }
 
@@ -936,6 +950,42 @@ const nextHeroIdx = S.alphaGrantedActions[0];
 S.activeIdx = nextHeroIdx;
 toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
 }
+render();
+}
+
+function selectEncampmentTarget(enemyId) {
+if(!S.selectingEncampmentTargets) return;
+const kills = S.encampmentEarlyKills;
+const currentSelected = S.encampmentSelectedTargets;
+// Toggle selection
+if(currentSelected.includes(enemyId)) {
+S.encampmentSelectedTargets = currentSelected.filter(id => id !== enemyId);
+} else {
+if(currentSelected.length >= kills) {
+toast(`Already selected ${kills} enem${kills>1?'ies':'y'}!`);
+return;
+}
+S.encampmentSelectedTargets.push(enemyId);
+}
+render();
+}
+
+function confirmEncampmentKills() {
+if(!S.selectingEncampmentTargets) return;
+const kills = S.encampmentEarlyKills;
+const selected = S.encampmentSelectedTargets;
+if(selected.length !== kills) {
+toast(`Select ${kills} enem${kills>1?'ies':'y'} to remove!`);
+return;
+}
+// Remove selected enemies from S.enemies
+S.enemies = S.enemies.filter(e => !selected.includes(e.id));
+toast(`${kills} enem${kills>1?'ies':'y'} removed!`, 2000);
+// Clear flags
+S.selectingEncampmentTargets = false;
+S.encampmentEarlyKills = 0;
+S.encampmentSelectedTargets = [];
+// Start combat normally
 render();
 }
 
@@ -1198,7 +1248,7 @@ toast(`${enemy.n} drew ${pick} L1!`);
 
 function executeAlphaPhase() {
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
-if(alphaEnemies.length === 0) { setTimeout(executeNormalEnemyPhase, 300); return; }
+if(alphaEnemies.length === 0) { setTimeout(executeRecruitPhase, 300); return; }
 let delay = 0;
 alphaEnemies.forEach(alphaEnemy => {
 setTimeout(() => {
@@ -1214,7 +1264,91 @@ alphaEnemy.alphaActed = true;
 }, delay);
 delay += 600;
 });
+setTimeout(() => executeRecruitPhase(), delay + 300);
+}
+
+function executeRecruitPhase() {
+if(!S.recruits || S.recruits.length === 0) { setTimeout(executeNormalEnemyPhase, 300); return; }
+let delay = 0;
+S.recruits.forEach(recruit => {
+setTimeout(() => executeRecruitTurn(recruit), delay);
+delay += 600;
+});
 setTimeout(() => executeNormalEnemyPhase(), delay + 300);
+}
+
+function executeRecruitTurn(recruit) {
+if(recruit.st > 0) { toast(`${recruit.n} (Recruit) is stunned!`); return; }
+if(recruit.h <= 0) return; // Dead recruit
+// Recruit attacks enemies (not heroes)
+executeRecruitBaseAttack(recruit);
+const drawnSigils = recruit.s.filter(s => !s.perm && s.sig !== 'Alpha');
+drawnSigils.forEach(sigil => executeRecruitSigil(recruit, sigil));
+recruit.s = recruit.s.filter(s => s.perm);
+render();
+}
+
+function executeRecruitBaseAttack(recruit) {
+// Target lowest HP enemy
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+dealDamageToEnemy(target, recruit.p);
+toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
+}
+
+function executeRecruitSigil(recruit, sigil) {
+const {sig, level} = sigil;
+if(sig === 'Attack') {
+for(let i = 0; i < level; i++) {
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+dealDamageToEnemy(target, recruit.p);
+toast(`${recruit.n} (Recruit) ${sig} attacked ${target.n} for ${recruit.p}!`);
+}
+} else if(sig === 'Shield') {
+const shieldAmt = 2 * recruit.p * level;
+recruit.sh = (recruit.sh || 0) + shieldAmt;
+if(recruit.sh > recruit.m) recruit.sh = recruit.m;
+toast(`${recruit.n} (Recruit) gained ${shieldAmt} shield!`);
+} else if(sig === 'Heal') {
+const healAmt = 2 * recruit.p * level;
+// Heal lowest HP hero
+const targets = S.heroes.filter(h => h.h > 0 && !h.ls);
+if(targets.length > 0) {
+targets.sort((a, b) => a.h - b.h);
+const healTarget = targets[0];
+healTarget.h += healAmt;
+if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
+toast(`${recruit.n} (Recruit) healed ${healTarget.n} for ${healAmt}!`);
+}
+} else if(sig === 'Grapple') {
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+const dmgToRecruit = target.p;
+recruit.h -= dmgToRecruit;
+toast(`${recruit.n} (Recruit) grappled ${target.n}!`);
+if(recruit.h <= 0) {
+recruit.h = 0;
+toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
+S.recruits = S.recruits.filter(r => r.id !== recruit.id);
+} else {
+target.st = level;
+toast(`${target.n} stunned for ${level} turns!`);
+}
+} else if(sig === 'Ghost') {
+recruit.g = (recruit.g || 0) + level;
+if(recruit.g > 9) recruit.g = 9;
+toast(`${recruit.n} (Recruit) gained ${level} Ghost charge!`);
+}
 }
 
 function executeNormalEnemyPhase() {
@@ -1369,6 +1503,76 @@ return false;
 function render() {
 const v = document.getElementById('gameView');
 let html = '';
+// Special state: Encampment enemy selection
+if(S.selectingEncampmentTargets) {
+const kills = S.encampmentEarlyKills;
+const selected = S.encampmentSelectedTargets.length;
+html += '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
+html += `<div style="font-size:1.1rem;color:#dc2626">Encampment Early Kill</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Click ${kills} enem${kills>1?'ies':'y'} to remove before combat (${selected}/${kills} selected)</div>`;
+html += '</div>';
+html += '<div class="combat-grid">';
+html += '<div class="column heroes">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
+S.heroes.forEach((h,i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}👻`);
+html += `<div class="card hero">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
+<div style="text-align:center;font-size:0.8rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">`;
+const activeSigils = [...h.s, ...(h.ts || [])];
+activeSigils.forEach(s => {
+const lvl = getLevel(s, i);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+html += `<span class="sigil ${cl}">${s}${lvl>0?lvl:''}</span>`;
+});
+html += '</div></div>';
+});
+html += '</div>';
+html += '<div class="column enemies">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
+const enemyLanes = {};
+S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
+S.heroes.forEach((hero, laneIdx) => {
+const laneEnemies = enemyLanes[laneIdx] || [];
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.5rem">${hero.n}'s Lane</div>`;
+if(laneEnemies.length === 0) {
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
+} else {
+laneEnemies.forEach(e => {
+const isSelected = S.encampmentSelectedTargets.includes(e.id);
+let cardClasses = 'card enemy targetable';
+if(isSelected) cardClasses += ' targeted';
+const extra = [];
+if(e.sh > 0) extra.push(`${e.sh}🛡`);
+if(e.g > 0) extra.push(`${e.g}👻`);
+if(isSelected) extra.push('❌');
+html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
+<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">
+<span class="sigil engraved">⚔️</span>`;
+e.s.forEach(sigil => {
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const permStyle = sigil.perm ? 'engraved' : cl;
+html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+});
+html += '</div></div>';
+});
+}
+});
+html += '</div></div>';
+if(selected >= kills) {
+html += '<button class="btn" style="background:#dc2626;margin-top:1rem" onclick="confirmEncampmentKills()">Confirm Removals</button>';
+}
+v.innerHTML = html;
+return;
+}
 html += '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
 if(S.turn!=='player') {
 html += 'Enemy Turn…';
@@ -1449,6 +1653,29 @@ const isActiveAction = (S.pending === s && S.activeIdx === i);
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}>${s}${lvl>0?lvl:''}</span>`;
 });
 html += '</div></div>';
+// Show recruit for this hero if exists
+if(S.recruits) {
+const recruit = S.recruits.find(r => r.recruitedBy === i);
+if(recruit) {
+const extra = [];
+if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
+if(recruit.g > 0) extra.push(`${recruit.g}👻`);
+if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
+html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${recruit.n} 🤝</div>
+<div style="text-align:center;font-size:0.8rem">${recruit.p}⚡ | ${recruit.h}/${recruit.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div style="text-align:center;font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Recruited</div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">
+<span class="sigil engraved">⚔️</span>`;
+recruit.s.forEach(sigil => {
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const permStyle = sigil.perm ? 'engraved' : cl;
+html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+});
+html += '</div></div>';
+}
+}
 });
 html += '</div>';
 html += '<div class="column enemies">';
@@ -2401,13 +2628,15 @@ v.innerHTML = `
 </div>`;
 } else {
 const kills = best === 20 ? 2 : 1;
+S.encampmentEarlyKills = kills;
+replaceStage1WithStage2('encampment');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Engaging Early</div>
 <div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">You succeed at picking off ${kills} enem${kills>1?'ies':'y'}! The rest aren't far behind...</div>
-<button class="btn" onclick="startEncampmentCombat(${kills})">Fight!</button>
+<div class="neutral-outcome">You succeed at picking off ${kills} enem${kills>1?'ies':'y'}! They're scrambling to form ranks - you'll see the battlefield and pick your targets...</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
 }
 }
