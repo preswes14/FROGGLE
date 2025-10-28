@@ -28,7 +28,8 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .column { display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
 .column.heroes { flex: 0 0 auto; }
 .column.enemies { flex: 0 0 auto; }
-.card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; }
+.combat-lane { background: rgba(255,255,255,0.1); border: 2px solid rgba(0,0,0,0.2); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
+.card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
 .card.hero { background: #2c63c7; color: white; }
 .card.enemy { background: #b64141; color: white; }
 .card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
@@ -43,7 +44,15 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card.enemy.targetable { box-shadow: 0 0 0 3px #dc2626; }
 .card.hero.targeted { box-shadow: 0 0 0 4px #60a5fa; }
 .card.enemy.targeted { box-shadow: 0 0 0 4px #ef4444; }
+.card.hit-flash { animation: hit-animation 0.3s ease; }
 @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px gold; } 50% { box-shadow: 0 0 0 8px gold; } }
+@keyframes hit-animation {
+  0% { transform: translateX(0); filter: brightness(2); }
+  25% { transform: translateX(-8px); }
+  50% { transform: translateX(0); filter: brightness(1.5); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); filter: brightness(1); }
+}
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: 2px solid #000; border-radius: 10px; padding: 3px 6px; font-size: 0.7rem; display: inline-block; margin: 2px; min-height: 24px; font-weight: bold; }
@@ -75,6 +84,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <body>
 <div class="header">
 <div>Floor <span id="floor">1</span> | Round <span id="round">1</span></div>
+<div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#fbbf24;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🛠️</button></div>
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
 <div class="game-area" id="gameView"></div>
@@ -103,6 +113,15 @@ giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSig
 dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Expand',l:4}], startSigils:2 }
 };
 
+// Enemy emoji icons
+const ENEMY_EMOJI = {
+'Goblin': '👺',
+'Wolf': '🐺',
+'Orc': '👹',
+'Giant': '🗿',
+'Dragon': '🐉'
+};
+
 function generateFibonacci(n) {
 const fib = [1, 1];
 for(let i = 2; i < n; i++) fib.push(fib[i-1] + fib[i-2]);
@@ -129,6 +148,7 @@ pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Eff
 hasAncientStatuette: false,
 gameMode: 'Standard', // 'Standard' or 'Effed'
 effedUnlocked: false,
+debugMode: false, // Debug mode toggle
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -194,6 +214,18 @@ tutorialsDisabled: false
 let sel = [];
 
 // ===== HELPERS =====
+function getFloorBackground(floor) {
+// Progressive darkening from floor 1 (light brown) to floor 19 (black)
+const colors = [
+'#d9cab1', // Floor 1 - light brown (default)
+'#cfc0a9', '#c5b6a1', '#bbac99', '#b1a291', '#a79889', // Floors 2-6
+'#9d8e81', '#938479', '#897a71', '#7f7069', '#756661', // Floors 7-11
+'#6b5c59', '#615251', '#574849', '#4d3e41', '#433439', // Floors 12-16
+'#392a31', '#2f2029', '#251621', '#1b0c19' // Floors 17-20
+];
+return colors[Math.min(floor - 1, colors.length - 1)] || colors[0];
+}
+
 function upd() {
 document.getElementById('floor').textContent = S.floor;
 document.getElementById('round').textContent = S.round || '-';
@@ -204,6 +236,24 @@ document.getElementById('xp').textContent = `${S.xp} (+${S.combatXP})`;
 } else {
 document.getElementById('xp').textContent = S.xp;
 }
+// Show/hide debug button
+const debugBtn = document.getElementById('debugBtn');
+if(debugBtn) debugBtn.style.display = S.debugMode ? 'block' : 'none';
+// Update background color based on floor
+const gameArea = document.getElementById('gameView');
+if(gameArea) gameArea.style.background = getFloorBackground(S.floor);
+}
+
+function triggerHitAnimation(targetId) {
+// Find the card element by searching for the target ID in the card's onclick attribute
+const cards = document.querySelectorAll('.card');
+cards.forEach(card => {
+const onclick = card.getAttribute('onclick');
+if(onclick && onclick.includes(targetId)) {
+card.classList.add('hit-flash');
+setTimeout(() => card.classList.remove('hit-flash'), 300);
+}
+});
 }
 
 function toast(msg, dur=2000) {
@@ -387,13 +437,18 @@ function mainTitlePage() {
 const v = document.getElementById('gameView');
 const hasSavedGame = localStorage.getItem('froggle8');
 v.innerHTML = `
-<div style="text-align:center;margin-top:4rem">
-<h1 style="font-size:3rem;margin-bottom:0.5rem">🐸 FROGGLE 🐸</h1>
-<p style="font-size:0.9rem;opacity:0.7;margin-bottom:3rem">v8.0 COMPLETE NEUTRALS</p>
+<div style="text-align:center;margin-top:2rem">
+<img src="assets/title-screen.png" style="max-width:100%;height:auto;max-height:60vh;margin:0 auto;display:block;border-radius:12px;border:3px solid #000">
+<p style="font-size:0.9rem;opacity:0.7;margin:1rem 0 2rem 0">v8.0 COMPLETE NEUTRALS</p>
 <div style="display:flex;flex-direction:column;gap:1rem;max-width:300px;margin:0 auto">
 <button class="btn" onclick="newGame()" style="font-size:1.2rem;padding:1rem">New Game</button>
 ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:1.2rem;padding:1rem">Load Game</button>` : ''}
 <button class="btn" onclick="exitGame()" style="font-size:1.2rem;padding:1rem;background:#888">Exit</button>
+</div>
+<div style="position:fixed;bottom:10px;left:10px;opacity:0.5">
+<label style="font-size:0.8rem;cursor:pointer;user-select:none">
+<input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)"> Debug Mode
+</label>
 </div>
 </div>`;
 }
@@ -480,6 +535,7 @@ Switch to ${S.gameMode === 'Standard' ? 'Effed Up 🔥' : 'Standard'}
 ${pedestalCount > 0 || S.hasAncientStatuette ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showPedestal()" style="padding:0.5rem 1rem">Pedestal (${pedestalCount}/${maxSlots})</button>
 </div>` : ''}
+<img src="assets/hero-select.png" style="max-width:100%;height:auto;max-width:500px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
 <div class="choice ${isRun2?'disabled':''}" id="h-warrior" onclick="${isRun2?'':'pick(\'warrior\')'}">
 <img src="${HERO_IMAGES.warrior}" style="width:64px;height:64px;image-rendering:pixelated;margin-bottom:0.5rem">
@@ -1201,6 +1257,7 @@ showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead ye
 }
 
 function dealDamageToEnemy(enemy, dmg) {
+triggerHitAnimation(enemy.id);
 if(enemy.sh > 0) {
 if(enemy.sh >= dmg) { enemy.sh -= dmg; return; }
 else { dmg -= enemy.sh; enemy.sh = 0; }
@@ -1570,6 +1627,7 @@ toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
 }
 
 function dealDamageToHero(hero, dmg, source) {
+triggerHitAnimation(hero.id);
 if(hero.sh > 0) {
 if(hero.sh >= dmg) { hero.sh -= dmg; toast(`${hero.n}'s shield absorbed ${dmg} damage!`); return; }
 else { dmg -= hero.sh; hero.sh = 0; }
@@ -1680,6 +1738,7 @@ const enemyLanes = {};
 S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
 S.heroes.forEach((hero, laneIdx) => {
 const laneEnemies = enemyLanes[laneIdx] || [];
+html += '<div class="combat-lane">';
 html += `<div style="text-align:center;font-size:0.75rem;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.5rem">${hero.n}'s Lane</div>`;
 if(laneEnemies.length === 0) {
 html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
@@ -1692,7 +1751,9 @@ const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
 if(e.g > 0) extra.push(`${e.g}👻`);
 if(isSelected) extra.push('❌');
+const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
+<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
@@ -1706,6 +1767,7 @@ html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
 html += '</div></div>';
 });
 }
+html += '</div>'; // Close combat-lane
 });
 html += '</div></div>';
 if(selected >= kills) {
@@ -1827,6 +1889,7 @@ const enemyLanes = {};
 S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
 S.heroes.forEach((hero, laneIdx) => {
 const laneEnemies = enemyLanes[laneIdx] || [];
+html += '<div class="combat-lane">';
 html += `<div style="text-align:center;font-size:0.75rem;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.5rem">${hero.n}'s Lane</div>`;
 if(laneEnemies.length === 0) {
 html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
@@ -1842,7 +1905,9 @@ if(e.sh > 0) extra.push(`${e.sh}🛡`);
 if(e.g > 0) extra.push(`${e.g}👻`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
+const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
+<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '<div class="sigil-divider"></div>';
@@ -1856,6 +1921,7 @@ html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
 html += '</div></div>';
 });
 }
+html += '</div>'; // Close combat-lane
 });
 html += '</div></div>';
 v.innerHTML = html;
@@ -3653,7 +3719,8 @@ if(firstFU) {
 html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">🎉 First Effed Up Victory! 🎉</p>`;
 }
 } else {
-html += `<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>`;
+html += `<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
+html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem;font-weight:bold">You saved Tapo the Tadpole!</p>`;
 if(firstVictory) {
 html += `<p style="text-align:center;margin-bottom:2rem;color:#dc2626;font-style:italic">"HAHAHAHA good luck..."</p>`;
 html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">A sinister portal has appeared... 🔥</p>`;
@@ -3680,6 +3747,83 @@ html += `<p style="text-align:center;margin:1rem 0;color:#fbbf24;font-weight:bol
 html += `<button class="btn" onclick="title()">Play Again</button>`;
 
 v.innerHTML = html;
+}
+
+// ===== DEBUG MODE =====
+function toggleDebugMode(enabled) {
+S.debugMode = enabled;
+toast(enabled ? 'Debug Mode ON' : 'Debug Mode OFF', 2000);
+}
+
+function showDebugMenu() {
+const inCombat = S.enemies && S.enemies.length > 0;
+const v = document.getElementById('gameView');
+let html = `
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #fbbf24;border-radius:12px;padding:2rem;z-index:30000;max-width:400px;width:90%">
+<h2 style="text-align:center;color:#fbbf24;margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
+<button class="btn" onclick="debugAddGold()" style="margin-bottom:0.5rem;background:#22c55e">+100 Gold</button>
+<button class="btn" onclick="debugAddXP()" style="margin-bottom:0.5rem;background:#22c55e">+100 XP</button>
+<div style="margin:0.5rem 0">
+<label style="color:white;font-size:0.9rem">Jump to Floor:</label>
+<input type="number" id="debugFloorInput" min="1" max="19" value="${S.floor}" style="width:60px;padding:0.25rem;margin:0 0.5rem;font-size:1rem">
+<button class="btn" onclick="debugJumpFloor()" style="display:inline-block;width:auto;padding:0.5rem 1rem;margin:0;font-size:0.9rem;min-height:auto">Go</button>
+</div>
+${inCombat ? `<button class="btn" onclick="debugDealDamage()" style="margin-top:0.5rem;background:#dc2626">Deal 50 DMG to Enemy</button>` : ''}
+<button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
+</div>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999" onclick="closeDebugMenu()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+function closeDebugMenu() {
+// Remove debug menu elements
+const menus = document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]');
+menus.forEach(m => m.remove());
+}
+
+function debugAddGold() {
+S.gold += 100;
+upd();
+toast('Added 100 Gold!', 2000);
+closeDebugMenu();
+}
+
+function debugAddXP() {
+S.xp += 100;
+upd();
+toast('Added 100 XP!', 2000);
+closeDebugMenu();
+}
+
+function debugJumpFloor() {
+const input = document.getElementById('debugFloorInput');
+const targetFloor = parseInt(input.value);
+if(targetFloor < 1 || targetFloor > 19 || isNaN(targetFloor)) {
+toast('Invalid floor! Must be 1-19', 2000);
+return;
+}
+closeDebugMenu();
+S.floor = targetFloor;
+upd();
+startFloor(targetFloor);
+toast(`Jumped to Floor ${targetFloor}!`, 2000);
+}
+
+function debugDealDamage() {
+if(!S.enemies || S.enemies.length === 0) {
+toast('No enemies in combat!', 2000);
+return;
+}
+// Deal 50 damage to first enemy
+const enemy = S.enemies[0];
+enemy.h -= 50;
+if(enemy.h < 0) enemy.h = 0;
+upd();
+toast(`Dealt 50 damage to ${enemy.n}!`, 2000);
+closeDebugMenu();
+// Check if combat is over
+setTimeout(() => checkCombatOver(), 100);
 }
 
 // ===== INIT =====
