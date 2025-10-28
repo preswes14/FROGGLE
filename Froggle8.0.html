@@ -81,10 +81,10 @@ healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']}
 
 const E = {
 goblin: { n:'Goblin', p:1, h:5, m:5, g:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
-wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:3 },
-orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Attack2','Shield2'], gainRate:3 },
-giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:3, startSigils:[{s:'Shield',l:1}] },
-dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:2, permSigils:[{s:'Expand',l:4}] }
+wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
+orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Attack2','Shield2'], gainRate:2, startSigils:1 },
+giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
+dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Expand',l:4}], startSigils:2 }
 };
 
 function generateFibonacci(n) {
@@ -105,6 +105,8 @@ levelUpCount: 0,
 heroes: [],
 enemies: [],
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+sigUpgradeCounts: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+goingRate: 1,
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -122,6 +124,7 @@ lastActions: {},
 // Neutral encounter state
 neutralDeck: [],
 lastNeutral: null,
+ambushed: false,
 // Persistent neutral state (survives death)
 ancientStatueDeactivated: false,
 ghostBoysConverted: false,
@@ -158,26 +161,47 @@ setTimeout(() => t.remove(), 300);
 }, dur);
 }
 
-function saveGame() {
-localStorage.setItem('froggle8', JSON.stringify({
-f:S.floor, g:S.gold, x:S.xp, luc:S.levelUpCount,
-h:S.heroes, s:S.sig,
-neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-ancientStatueDeactivated:S.ancientStatueDeactivated,
-ghostBoysConverted:S.ghostBoysConverted
+function savePermanent() {
+localStorage.setItem('froggle8_permanent', JSON.stringify({
+gold: S.gold,
+goingRate: S.goingRate,
+sig: S.sig,
+sigUpgradeCounts: S.sigUpgradeCounts,
+ancientStatueDeactivated: S.ancientStatueDeactivated,
+ghostBoysConverted: S.ghostBoysConverted
 }));
 }
 
+function loadPermanent() {
+const d = localStorage.getItem('froggle8_permanent');
+if(!d) return;
+const j = JSON.parse(d);
+S.gold = j.gold || 0;
+S.goingRate = j.goingRate || 1;
+S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
+S.ghostBoysConverted = j.ghostBoysConverted || false;
+}
+
+function saveGame() {
+localStorage.setItem('froggle8', JSON.stringify({
+f:S.floor, x:S.xp, luc:S.levelUpCount,
+h:S.heroes,
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral
+}));
+savePermanent();
+}
+
 function loadGame() {
+loadPermanent(); // Load persistent data first
 const d = localStorage.getItem('froggle8');
 if(!d) return;
 const j = JSON.parse(d);
-S.floor=j.f; S.gold=j.g; S.xp=j.x; S.levelUpCount=j.luc || 0;
-S.heroes=j.h; S.sig=j.s;
+S.floor=j.f; S.xp=j.x; S.levelUpCount=j.luc || 0;
+S.heroes=j.h;
 S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
-S.ancientStatueDeactivated=j.ancientStatueDeactivated || false;
-S.ghostBoysConverted=j.ghostBoysConverted || false;
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -331,7 +355,13 @@ return ['goblin'];
 function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
-S.heroes.forEach(h => { h.sh=0; h.st=0; if(!h.ts) h.ts=[]; });
+S.heroes.forEach(h => {
+h.sh=0;
+h.st=0;
+if(!h.ts) h.ts=[];
+// If ambushed, stun all heroes turn 1
+if(S.ambushed) h.st = 1;
+});
 const comp = getEnemyComp(f);
 S.enemies = comp.map((t,i) => {
 const base = E[t];
@@ -339,12 +369,27 @@ const enemy = {
 id:`e${Date.now()}${i}`, n:base.n, p:base.p, h:base.h, m:base.m,
 g:base.g, x:base.x, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
+drawsPerTurn: base.drawsPerTurn || 1,
 st:0, li: i % S.heroes.length, sh:0, alphaActed: false
 };
 if(base.permSigils) base.permSigils.forEach(ps => enemy.s.push({sig:ps.s, level:ps.l, perm:true}));
-if(base.startSigils) base.startSigils.forEach(ss => enemy.s.push({sig:ss.s, level:ss.l, perm:false}));
+if(base.startSigils) {
+if(Array.isArray(base.startSigils)) {
+// Array format: [{s:'Shield', l:1}]
+base.startSigils.forEach(ss => enemy.s.push({sig:ss.s, level:ss.l, perm:false}));
+} else {
+// Numeric format: draw N random sigils
+for(let j = 0; j < base.startSigils; j++) {
+drawEnemyStartSigil(enemy, base);
+}
+}
+}
 return enemy;
 });
+if(S.ambushed) {
+toast('AMBUSHED! All heroes stunned Turn 1!', 3000);
+S.ambushed = false; // Clear flag after use
+}
 render();
 }
 
@@ -439,7 +484,16 @@ S.grappleLevel = level;
 S.targets = [];
 render();
 } else if(sig === 'Alpha') {
-toast('Alpha not yet implemented!');
+const level = getLevel('Alpha', heroIdx);
+if(level === 0) { toast('Alpha not unlocked!'); return; }
+const expandLevel = getLevel('Expand', heroIdx);
+const targetsNeeded = 1 + expandLevel;
+S.pending = 'Alpha';
+S.alphaLevel = level;
+S.alphaTargetsNeeded = targetsNeeded;
+S.targets = [];
+toast(`Alpha: Grant ${level} action${level>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
+render();
 }
 }
 
@@ -677,7 +731,46 @@ S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) finishAction(heroIdx);
 else render();
 } else render();
+} else if(S.pending === 'Alpha') {
+// Alpha: can't target self or already-acted heroes
+const alphaUser = S.heroes[S.activeIdx];
+if(id === alphaUser.id) { toast('Cannot Alpha yourself!'); return; }
+const targetIdx = S.heroes.findIndex(x => x.id === id);
+if(S.acted.includes(targetIdx)) { toast('That hero already acted!'); return; }
+if(S.targets.includes(id)) { toast('Already targeted!'); return; }
+S.targets.push(id);
+if(S.targets.length >= S.alphaTargetsNeeded) {
+executeAlphaAction(S.activeIdx, S.targets);
+} else render();
 }
+}
+
+function executeAlphaAction(alphaUserIdx, targetIds) {
+const alphaUser = S.heroes[alphaUserIdx];
+const actionsToGrant = S.alphaLevel;
+// Mark Alpha user as acted (forfeits ALL actions)
+S.acted.push(alphaUserIdx);
+S.pending = null;
+S.targets = [];
+toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
+// Set up multi-action state for granted heroes
+S.alphaGrantedActions = [];
+targetIds.forEach(id => {
+const targetIdx = S.heroes.findIndex(h => h.id === id);
+if(targetIdx >= 0) {
+for(let i = 0; i < actionsToGrant; i++) {
+S.alphaGrantedActions.push(targetIdx);
+}
+}
+});
+S.alphaCurrentAction = 0;
+// Start first granted action
+if(S.alphaGrantedActions.length > 0) {
+const nextHeroIdx = S.alphaGrantedActions[0];
+S.activeIdx = nextHeroIdx;
+toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+}
+render();
 }
 
 function executeInstance(action, heroIdx, targets) {
@@ -788,6 +881,27 @@ checkCombatEnd();
 }
 
 function finishAction(heroIdx) {
+// Check if this is an Alpha-granted action
+if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
+S.alphaCurrentAction++;
+if(S.alphaCurrentAction < S.alphaGrantedActions.length) {
+// More Alpha-granted actions remain
+const nextHeroIdx = S.alphaGrantedActions[S.alphaCurrentAction];
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.activeIdx = nextHeroIdx;
+toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+render();
+return;
+} else {
+// All Alpha-granted actions complete
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+}
+}
+// Normal action finish
 S.acted.push(heroIdx);
 S.pending = null;
 S.targets = [];
@@ -819,11 +933,51 @@ if(e.st > 0) e.st--;
 e.turnsSinceGain++;
 if(e.turnsSinceGain >= e.gainRate) {
 e.turnsSinceGain = 0;
+// Draw multiple sigils per turn if specified (Dragons draw 2)
+const draws = e.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
 drawEnemySigil(e);
+}
 }
 e.alphaActed = false;
 });
 setTimeout(() => executeAlphaPhase(), 800);
+}
+
+function drawEnemyStartSigil(enemy, base) {
+const pool = base.pool;
+if(!pool) return;
+const heldSigils = enemy.s.map(sigil => sigil.sig);
+if(pool === 'ANY') {
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
+const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+if(availableSigils.length === 0) return;
+const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
+const level = 1 + Math.floor(Math.random() * 3);
+enemy.s.push({sig, level, perm:false});
+} else if(pool === 'ANY_ADVANCED') {
+const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
+const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+if(availableSigils.length === 0) return;
+const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
+const level = 2 + Math.floor(Math.random() * 3);
+enemy.s.push({sig, level, perm:false});
+} else if(Array.isArray(pool)) {
+const availablePool = pool.filter(sigName => {
+if(sigName === 'Attack2') return !heldSigils.includes('Attack');
+if(sigName === 'Shield2') return !heldSigils.includes('Shield');
+return !heldSigils.includes(sigName);
+});
+if(availablePool.length === 0) return;
+const pick = availablePool[Math.floor(Math.random() * availablePool.length)];
+if(pick === 'Attack2') {
+enemy.s.push({sig:'Attack', level:2, perm:false});
+} else if(pick === 'Shield2') {
+enemy.s.push({sig:'Shield', level:2, perm:false});
+} else {
+enemy.s.push({sig:pick, level:1, perm:false});
+}
+}
 }
 
 function drawEnemySigil(enemy) {
@@ -1028,7 +1182,7 @@ const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
 setTimeout(() => {
 toast('Defeated!');
-setTimeout(() => { alert('Game Over! Reloading...'); location.reload(); }, 1000);
+setTimeout(() => showDeathScreen(), 1000);
 }, 500);
 return true;
 }
@@ -1432,18 +1586,23 @@ function showShopkeeper2() {
 const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
+const cost = S.goingRate;
 let html = `
 <div class="neutral-container">
 <div class="neutral-title">Death's Bargain</div>
-<div class="neutral-desc">The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."</div>`;
+<div class="neutral-desc">The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."</div>
+<p style="text-align:center;font-weight:bold;margin:1rem 0">Cost: ${cost} Gold</p>`;
 if(available.length === 0) {
 html += `<div class="neutral-outcome">All your sigils are already at maximum power. Death nods approvingly and fades away.</div>`;
 html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
+} else if(S.gold < cost) {
+html += `<div class="neutral-outcome" style="color:#dc2626">You don't have enough Gold! Death shakes their head and fades away.</div>`;
+html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 } else {
-html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently:</div>`;
+html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="acceptDeathsBargain('${sig}')">
+html += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})">
 <strong>${sig}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
 </div>`;
 });
@@ -1453,10 +1612,14 @@ html += `</div>`;
 v.innerHTML = html;
 }
 
-function acceptDeathsBargain(sig) {
+function acceptDeathsBargain(sig, cost) {
+if(S.gold < cost) { toast('Not enough Gold!'); return; }
+S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
+// NOTE: Going Rate does NOT increase for Death's Bargain!
 upd();
-toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 3000);
+savePermanent();
+toast(`${sig} permanently upgraded to L${S.sig[sig]}! (GR unchanged)`, 3000);
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
@@ -2012,6 +2175,7 @@ let outcome = '';
 if(best >= 1 && best <= 10) {
 outcome = 'Your foot catches on loose stone! The enemies hear you and prepare an ambush!';
 replaceStage1WithStage2('encampment');
+S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 3000);
 } else if(best >= 11 && best <= 19) {
 outcome = 'You slip past quietly. The enemies remain unaware.';
@@ -2058,6 +2222,7 @@ v.innerHTML = `
 
 function finishEncampmentFail() {
 replaceStage1WithStage2('encampment');
+S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 3000);
 nextFloor();
 }
@@ -2504,17 +2669,91 @@ v.innerHTML = `
 </div>`;
 }
 
+// ===== DEATH SCREEN =====
+function showDeathScreen() {
+savePermanent(); // Save gold, goingRate, sig upgrades
+const v = document.getElementById('gameView');
+const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
+
+let html = `
+<div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:0 auto;color:#e8dcc4">
+<h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:1.1rem">Gold: <strong>${S.gold}</strong> | Going Rate: <strong>${S.goingRate}G</strong></p>`;
+
+if(S.gold === 0) {
+html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc2626;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
+} else {
+html += `<h3 style="margin-bottom:1rem">Upgrade Sigilarium:</h3>`;
+html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.5rem">`;
+
+allSigils.forEach(sig => {
+const currentLevel = S.sig[sig] || 0;
+if(currentLevel >= 4) return; // Max level
+
+const upgradeCount = S.sigUpgradeCounts[sig] || 0;
+const baseCost = S.goingRate;
+const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
+const cost = baseCost + escalation;
+
+const canAfford = S.gold >= cost;
+const colorClass = ['#000', '#fff', '#14b8a6', '#a855f7', '#fbbf24'][currentLevel];
+const nextColorClass = ['#000', '#fff', '#14b8a6', '#a855f7', '#fbbf24'][currentLevel + 1];
+
+html += `
+<div style="background:rgba(255,255,255,0.05);padding:0.75rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+<div style="font-weight:bold;margin-bottom:0.5rem">${sig}</div>
+<div style="font-size:0.9rem;margin-bottom:0.5rem">
+<span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${currentLevel+1}</span>
+</div>
+<div style="font-size:0.85rem;margin-bottom:0.5rem;color:#999">Cost: ${cost}G</div>
+<button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.4rem 0.8rem;font-size:0.85rem">
+${canAfford ? 'Purchase' : 'Too Expensive'}
+</button>
+</div>`;
+});
+
+html += `</div>`;
+}
+
+html += `
+<div style="text-align:center;margin-top:2rem">
+<button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">I AM DONE DYING</button>
+</div>
+</div>`;
+
+v.innerHTML = html;
+}
+
+function purchaseSigilUpgrade(sig, cost) {
+if(S.gold < cost) { toast('Not enough Gold!'); return; }
+S.gold -= cost;
+S.sig[sig] = (S.sig[sig] || 0) + 1;
+S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
+S.goingRate += 5;
+toast(`${sig} upgraded to L${S.sig[sig]}!`, 2000);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function restartAfterDeath() {
+// Clear run-specific save
+localStorage.removeItem('froggle8');
+// Reload page to start fresh
+location.reload();
+}
+
 // ===== WIN =====
 function win() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>
-<p style="text-align:center;margin-bottom:2rem">You reached the Fountain of Immortality!</p>
+<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>
 <button class="btn" onclick="title()">Play Again</button>`;
 }
 
 // ===== INIT =====
 window.onload = () => {
+loadPermanent(); // Always load permanent data first
 const s = localStorage.getItem('froggle8');
 if(s && confirm('Resume saved game?')) loadGame();
 else title();
