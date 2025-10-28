@@ -752,8 +752,8 @@ if(totalDmg > 0) toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
 if(h.h === 0 && !h.ls) {
 if(h.g > 0) {
 h.g--;
-h.h = h.m;
-toast(`${h.n}'s Ghost charge consumed!`);
+h.h = 1;
+toast(`${h.n}'s Ghost charge consumed - survived with 1 HP!`);
 } else {
 h.ls = true;
 h.lst = 0;
@@ -771,8 +771,8 @@ enemy.h -= dmg;
 if(enemy.h <= 0) {
 if(enemy.g > 0) {
 enemy.g--;
-enemy.h = enemy.m;
-toast(`${enemy.n}'s Ghost charge consumed!`, 2000);
+enemy.h = 1;
+toast(`${enemy.n}'s Ghost charge consumed - survived with 1 HP!`, 2000);
 return;
 }
 enemy.h = 0;
@@ -979,8 +979,8 @@ if(hero.h <= 0) {
 hero.h = 0;
 if(hero.g > 0) {
 hero.g--;
-hero.h = hero.m;
-toast(`${hero.n}'s Ghost charge consumed!`);
+hero.h = 1;
+toast(`${hero.n}'s Ghost charge consumed - survived with 1 HP!`);
 } else {
 hero.ls = true;
 hero.lst = 0;
@@ -1535,8 +1535,8 @@ highestHPHero.h -= hpLoss;
 if(highestHPHero.h < 0) highestHPHero.h = 0;
 if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
 highestHPHero.g--;
-highestHPHero.h = highestHPHero.m;
-toast(`${highestHPHero.n}'s Ghost charge consumed!`);
+highestHPHero.h = 1;
+toast(`${highestHPHero.n}'s Ghost charge consumed - survived with 1 HP!`);
 } else if(highestHPHero.h === 0 && !highestHPHero.ls) {
 highestHPHero.ls = true;
 highestHPHero.lst = 0;
@@ -1643,8 +1643,8 @@ highestHPHero.h -= trapDmg;
 if(highestHPHero.h < 0) highestHPHero.h = 0;
 if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
 highestHPHero.g--;
-highestHPHero.h = highestHPHero.m;
-toast(`${highestHPHero.n}'s Ghost charge consumed!`);
+highestHPHero.h = 1;
+toast(`${highestHPHero.n}'s Ghost charge consumed - survived with 1 HP!`);
 } else if(highestHPHero.h === 0 && !highestHPHero.ls) {
 highestHPHero.ls = true;
 highestHPHero.lst = 0;
