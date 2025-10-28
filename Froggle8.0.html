@@ -69,6 +69,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #14b8a6; color: #fff; border: 2px solid #0f766e; border-radius: 8px; cursor: pointer; }
 .tutorial-modal button:hover { background: #0f766e; }
 .tutorial-modal button:active { transform: scale(0.98); }
+.choice.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -148,6 +149,8 @@ wizardSigil: null,
 princeGender: 'Prince',
 // Temporary neutral state (resets on death)
 treasureSecretCompartment: false,
+// Run tracking (permanent)
+runNumber: 1,
 // Tutorial flags (permanent - shown once ever)
 tutorialFlags: {
 ribbleton_intro: false,
@@ -241,6 +244,7 @@ ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 effedUnlocked: S.effedUnlocked,
+runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags
 }));
 }
@@ -257,6 +261,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.effedUnlocked = j.effedUnlocked || false;
+S.runNumber = j.runNumber || 1;
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -299,6 +304,11 @@ S.lastNeutral = null;
 function getNeutralEncounter() {
 if(S.neutralDeck.length === 0) {
 initNeutralDeck();
+}
+
+// TUTORIAL: Floor 2 always gets Oracle Stage 1
+if(S.floor === 2 && !S.tutorialFlags.neutral_intro) {
+return 'oracle1';
 }
 
 // Level 18: Prioritize Stage 2s
@@ -348,6 +358,8 @@ for(let i = 0; i < d20Level; i++) {
 rolls.push(Math.ceil(Math.random() * 20));
 }
 const best = Math.max(...rolls);
+// TUTORIAL: Explain D20 level affects neutral rolls
+showTutorialPop('neutral_d20_level', "This D20 roll uses the same Level as your D20 sigil in combat - so you can up your chances of success in neutral rooms by leveling up that Sigil!");
 return {rolls, best};
 }
 
@@ -357,9 +369,23 @@ return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`
 
 // ===== TITLE & HERO SELECT =====
 function title() {
+// TUTORIAL: Run 1 auto-selects Warrior + Healer (Ribbleton tutorial)
+if(S.runNumber === 1) {
+sel = ['warrior', 'healer'];
+start();
+return;
+}
+
 const v = document.getElementById('gameView');
 const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
+
+// TUTORIAL: Run 2 forces Tank + Mage
+const isRun2 = S.runNumber === 2;
+if(isRun2) {
+showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with extra health, and Mage starts with the ability to hit 2 targets at once!");
+}
+
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v8.0 COMPLETE NEUTRALS</p>
@@ -372,10 +398,10 @@ ${pedestalCount > 0 || S.hasAncientStatuette ? `<div style="text-align:center;ma
 <button class="btn" onclick="showPedestal()" style="padding:0.5rem 1rem">Pedestal (${pedestalCount}/${maxSlots})</button>
 </div>` : ''}
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
-<div class="choice" id="h-warrior" onclick="pick('warrior')"><strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
+<div class="choice ${isRun2?'disabled':''}" id="h-warrior" onclick="${isRun2?'':'pick(\'warrior\')'}"><strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
 <div class="choice" id="h-tank" onclick="pick('tank')"><strong>Tank</strong><div style="font-size:0.85rem">1⚡ 10❤ • Shield, D20</div></div>
 <div class="choice" id="h-mage" onclick="pick('mage')"><strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div></div>
-<div class="choice" id="h-healer" onclick="pick('healer')"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
+<div class="choice ${isRun2?'disabled':''}" id="h-healer" onclick="${isRun2?'':'pick(\'healer\')'}"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
 <button class="btn" id="start" onclick="start()" disabled style="opacity:0.4">Begin Adventure</button>`;
 sel = [];
 }
@@ -996,6 +1022,7 @@ h.h = 0;
 h.ls = true;
 h.lst = 0;
 toast(`${h.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
 }
 }
 }
@@ -1287,6 +1314,7 @@ hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
 }
 }
 }
@@ -1481,6 +1509,7 @@ startFloor(S.floor + 1);
 }
 
 function levelUpMenu() {
+showTutorialPop('levelup_intro', "Nice! You got enough XP to get your first Level-Up. Your team shares XP. Let's check out your options!");
 const v = document.getElementById('gameView');
 const cost = FIB[S.levelUpCount] || 999;
 v.innerHTML = `
@@ -1493,6 +1522,7 @@ v.innerHTML = `
 }
 
 function heroStats() {
+showTutorialPop('levelup_stat_upgrade', "This one is pretty straightforward - add +1 POW or +5 HP to a hero of your choice.");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Hero Stats</h2>
@@ -1540,6 +1570,7 @@ levelUpMenu();
 }
 
 function upgradeSigil() {
+showTutorialPop('levelup_upgrade_active', "Each active works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack get it at Level 2, letting them attack twice with 1 action!");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
@@ -1562,6 +1593,7 @@ v.innerHTML = html;
 }
 
 function addSigilToHero() {
+showTutorialPop('levelup_add_active', "Heroes only get 1 action per turn. Active sigils give you more choices - in addition to Attack/Heal/D20, you can grant a hero a new ability like Shield or Ghost!");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</h2>
@@ -1633,6 +1665,11 @@ levelUpMenu();
 
 // ===== NEUTRAL ENCOUNTERS =====
 function neutral(f) {
+// TUTORIAL: Show neutral intro on Floor 2
+if(f === 2) {
+showTutorialPop('neutral_intro', "You can usually walk straight through these floors, but most can offer a benefit if you play it right!");
+}
+
 const enc = getNeutralEncounter();
 
 if(S.ghostBoysConverted && enc.startsWith('ghost')) {
@@ -2546,6 +2583,8 @@ h.h = h.m;
 } else if(h.h === 0 && !h.ls) {
 h.ls = true;
 h.lst = 0;
+toast(`${h.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
 }
 });
 toast(`All heroes took ${damage} damage!`);
@@ -2843,6 +2882,7 @@ v.innerHTML = `
 
 // ===== DEATH SCREEN =====
 function showDeathScreen() {
+showTutorialPop('death_intro', "First time, huh? Doesn't seem like it's quite your time yet, and I think keeping you alive could be profitable for me. Cash in Gold now for PERMANENT upgrades.");
 savePermanent(); // Save gold, goingRate, sig upgrades
 const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
@@ -2908,6 +2948,25 @@ showDeathScreen(); // Refresh
 }
 
 function restartAfterDeath() {
+// Check if player has unspent gold
+if(S.gold >= S.goingRate && !S.tutorialFlags.death_exit_warning) {
+showTutorialPop('death_exit_warning', "Are you sure? This is some great value, and you'll end up giving it to me sooner or later...", () => {
+// After tutorial, ask for confirmation
+if(confirm('Leave Death Screen with unspent gold?')) {
+actuallyRestartAfterDeath();
+} else {
+showDeathScreen();
+}
+});
+return;
+}
+actuallyRestartAfterDeath();
+}
+
+function actuallyRestartAfterDeath() {
+// Increment run number
+S.runNumber++;
+savePermanent();
 // Clear run-specific save
 localStorage.removeItem('froggle8');
 // Reload page to start fresh
@@ -3030,8 +3089,17 @@ earnedFigurines.push(h.n);
 });
 
 // Unlock Effed Up mode if Standard victory
+const firstVictory = !S.tutorialFlags.first_victory_sequence;
 if(S.gameMode === 'Standard') {
 S.effedUnlocked = true;
+if(firstVictory) {
+S.tutorialFlags.first_victory_sequence = true;
+}
+}
+
+const firstFU = S.gameMode === 'Effed' && !S.tutorialFlags.first_fu_victory;
+if(firstFU) {
+S.tutorialFlags.first_fu_victory = true;
 }
 
 savePermanent();
@@ -3042,8 +3110,15 @@ let html = `
 
 if(S.gameMode === 'Effed') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">Holy cow. You played enough of this game to beat FU mode?<br>I am blown away. Thank you.<br>-Preston</p>`;
+if(firstFU) {
+html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">🎉 First Effed Up Victory! 🎉</p>`;
+}
 } else {
 html += `<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>`;
+if(firstVictory) {
+html += `<p style="text-align:center;margin-bottom:2rem;color:#dc2626;font-style:italic">"HAHAHAHA good luck..."</p>`;
+html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">A sinister portal has appeared... 🔥</p>`;
+}
 }
 
 if(earnedFigurines.length > 0) {
