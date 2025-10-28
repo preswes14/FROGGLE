@@ -116,6 +116,7 @@ recruits: [], // Recruited enemies fighting for player
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
+startingXP: 0, // Bonus XP at start of each run (from Death Boy 2 sacrifices)
 pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Effed'}
 hasAncientStatuette: false,
 gameMode: 'Standard', // 'Standard' or 'Effed'
@@ -239,6 +240,7 @@ function savePermanent() {
 localStorage.setItem('froggle8_permanent', JSON.stringify({
 gold: S.gold,
 goingRate: S.goingRate,
+startingXP: S.startingXP,
 sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
@@ -256,6 +258,7 @@ if(!d) return;
 const j = JSON.parse(d);
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
+S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
@@ -454,7 +457,13 @@ hero.h += 5;
 });
 initNeutralDeck();
 upd();
+// Check if player has starting XP from Death Boy sacrifices
+if(S.startingXP > 0) {
+S.xp = S.startingXP;
+showStartingXPScreen();
+} else {
 startFloor(1);
+}
 }
 
 // ===== FLOOR MANAGEMENT =====
@@ -1752,6 +1761,29 @@ saveGame();
 startFloor(S.floor + 1);
 }
 
+function showStartingXPScreen() {
+const v = document.getElementById('gameView');
+const nextCost = FIB[S.levelUpCount] || 999;
+v.innerHTML = `
+<h2 style="text-align:center;margin-bottom:1rem;color:#a855f7">Starting XP Bonus!</h2>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;opacity:0.8">Spend it now or bank it for later. Remaining XP: <strong>${S.xp}</strong> | Next Level Cost: <strong>${nextCost}XP</strong></p>
+<div class="choice" onclick="startingXPMenu()">Spend XP</div>
+<button class="btn" style="background:#22c55e" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
+}
+
+function startingXPMenu() {
+const v = document.getElementById('gameView');
+const cost = FIB[S.levelUpCount] || 999;
+v.innerHTML = `
+<h2 style="text-align:center;margin-bottom:1rem">Spend Starting XP</h2>
+<p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
+<div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
+<div class="choice" onclick="upgradeSigil()">Upgrade Sigil Level</div>
+<div class="choice" onclick="addSigilToHero()">Add Sigil to Hero</div>
+<button class="btn" style="background:#6b7280" onclick="showStartingXPScreen()">Back</button>`;
+}
+
 function levelUpMenu() {
 showTutorialPop('levelup_intro', "Nice! You got enough XP to get your first Level-Up. Your team shares XP. Let's check out your options!");
 const v = document.getElementById('gameView');
@@ -3018,18 +3050,12 @@ victim.h = 0;
 if(victim.g > 0) {
 victim.g--;
 victim.h = victim.m;
-// EASTER EGG: Ghost charge consumed during Ghost encounter
+// EASTER EGG: Ghost charge consumed during Ghost encounter triggers conversion
 if(hadGhostCharge) {
 replaceStage1WithStage2('ghost');
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">The Boys See the Truth</div>
-<div class="neutral-outcome">${victim.n} was about to fall... but their Ghost charge flared! The spectral energy protected them!</div>
-<div class="neutral-outcome">The ghost boys STOP. They stare at ${victim.n}, eyes wide with realization...</div>
-<div class="neutral-outcome">"Oops! We're... we're like them. We're ghosts too."</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+toast(`${victim.n} used Ghost charge! The boys realize the truth!`, 3000);
+// Trigger the full Ghost Boys conversion (showGhost2)
+showGhost2();
 return;
 }
 } else {
@@ -3230,6 +3256,62 @@ ${canAfford ? 'Purchase' : 'Too Expensive'}
 html += `</div>`;
 }
 
+// Death Boys (only if Ghost Boys converted)
+if(S.ghostBoysConverted) {
+html += `
+<div style="border-top:2px solid rgba(255,255,255,0.2);padding-top:2rem;margin-top:2rem">
+<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.5rem;color:#a855f7">The Death Boys</h2>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;font-style:italic;opacity:0.8">"We work for Death now! He's WAY cooler than being ghosts!"</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+<!-- Boy 1: Sell Back -->
+<div style="background:rgba(34,197,94,0.1);padding:1.5rem;border-radius:8px;border:2px solid rgba(34,197,94,0.3)">
+<h3 style="color:#22c55e;margin-bottom:0.5rem">Death Boy 1: "Sell Back"</h3>
+<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no +5G increase)</p>
+<div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
+
+// List all sigils that can be sold back
+allSigils.forEach(sig => {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+const canSellBack = currentLevel > baseLevel;
+html += `
+<div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
+<span>${sig} L${currentLevel}</span>
+<button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
+</button>
+</div>`;
+});
+
+html += `</div>
+
+<!-- Boy 2: Sacrifice for XP -->
+<div style="background:rgba(168,85,247,0.1);padding:1.5rem;border-radius:8px;border:2px solid rgba(168,85,247,0.3)">
+<h3 style="color:#a855f7;margin-bottom:0.5rem">Death Boy 2: "Sacrifice"</h3>
+<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Sacrifice one upgrade level to gain ${S.goingRate} Starting XP permanently. Going Rate decreases by 5G.</p>
+<div style="font-size:0.8rem;margin-bottom:0.5rem;opacity:0.7">Current Starting XP: ${S.startingXP}</div>
+<div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G → ${Math.max(1, S.goingRate - 5)}G</div>`;
+
+// List all sigils that can be sacrificed
+allSigils.forEach(sig => {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+const canSacrifice = currentLevel > baseLevel && S.goingRate > 1;
+html += `
+<div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
+<span>${sig} L${currentLevel}</span>
+<button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
+</button>
+</div>`;
+});
+
+html += `</div>
+</div>
+</div>`;
+}
+
 html += `
 <div style="text-align:center;margin-top:2rem">
 <button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">I AM DONE DYING</button>
@@ -3246,6 +3328,44 @@ S.sig[sig] = (S.sig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
 S.goingRate += 5;
 toast(`${sig} upgraded to L${S.sig[sig]}!`, 2000);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function deathBoySellBack(sig) {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+if(currentLevel <= baseLevel) {
+toast("Whoa, something's weird. I can't do that", 3000);
+return;
+}
+// Sell back: get gold, lower sigil level, no going rate change
+S.gold += S.goingRate;
+S.sig[sig]--;
+S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
+toast(`Sold ${sig} L${currentLevel}→L${S.sig[sig]} for ${S.goingRate}G!`, 3000);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function deathBoySacrifice(sig) {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+if(currentLevel <= baseLevel) {
+toast("Whoa, something's weird. I can't do that", 3000);
+return;
+}
+if(S.goingRate <= 1) {
+toast("Whoa, something's weird. I can't do that", 3000);
+return;
+}
+// Sacrifice: get starting XP, lower sigil level, decrease going rate
+const xpGained = S.goingRate;
+S.startingXP += xpGained;
+S.sig[sig]--;
+S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
+S.goingRate = Math.max(1, S.goingRate - 5);
+toast(`Sacrificed ${sig} L${currentLevel}→L${S.sig[sig]} for +${xpGained}XP permanently!`, 3000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
