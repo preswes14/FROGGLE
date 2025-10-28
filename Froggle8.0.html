@@ -62,6 +62,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .turn-locked { pointer-events: none; opacity: 0.7; }
+/* Image styles */
+.card-img { width: 100%; height: 60px; object-fit: cover; border-radius: 6px; margin-bottom: 0.5rem; }
+.hero-portrait { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid #2c63c7; margin: 0 auto 0.5rem; display: block; }
+.enemy-portrait { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 3px solid #b64141; margin: 0 auto 0.5rem; display: block; }
+.title-logo { max-width: 300px; width: 100%; margin: 1rem auto; display: block; }
+.neutral-img { max-width: 200px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px; border: 3px solid #000; }
+.bg-image { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; opacity: 0.3; }
+.victory-image { max-width: 400px; width: 100%; margin: 2rem auto; display: block; border-radius: 12px; border: 4px solid gold; }
 </style>
 </head>
 <body>
@@ -71,6 +79,45 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 </div>
 <div class="game-area" id="gameView"></div>
 <script>
+// ===== IMAGE DATA (Base64) =====
+const IMG = {
+// HEROES (paste your base64 here)
+warrior: 'data:image/jpeg;base64,YOUR_WARRIOR_BASE64_HERE',
+tank: 'data:image/jpeg;base64,YOUR_TANK_BASE64_HERE',
+mage: 'data:image/jpeg;base64,YOUR_MAGE_BASE64_HERE',
+healer: 'data:image/jpeg;base64,YOUR_HEALER_BASE64_HERE',
+
+// ENEMIES (paste your base64 here)
+goblin: 'data:image/jpeg;base64,YOUR_GOBLIN_BASE64_HERE',
+wolf: 'data:image/jpeg;base64,YOUR_WOLF_BASE64_HERE',
+orc: 'data:image/jpeg;base64,YOUR_ORC_BASE64_HERE',
+giant: 'data:image/jpeg;base64,YOUR_GIANT_BASE64_HERE',
+dragon: 'data:image/jpeg;base64,YOUR_DRAGON_BASE64_HERE',
+
+// UI ELEMENTS (optional)
+logo: 'data:image/jpeg;base64,YOUR_LOGO_BASE64_HERE',
+background: 'data:image/jpeg;base64,YOUR_BACKGROUND_BASE64_HERE',
+victoryScreen: 'data:image/jpeg;base64,YOUR_VICTORY_BASE64_HERE',
+
+// NEUTRAL ENCOUNTERS (optional)
+shopkeeper: 'data:image/jpeg;base64,YOUR_SHOPKEEPER_BASE64_HERE',
+statue: 'data:image/jpeg;base64,YOUR_STATUE_BASE64_HERE',
+// Add more as needed...
+};
+
+// Helper to get image tag
+function getImg(key, alt='', className='') {
+if(!IMG[key]) return '';
+return `<img src="${IMG[key]}" alt="${alt}" class="${className}" />`;
+}
+
+// Helper to get character image from name
+function getCharImg(name, isHero=true) {
+const key = name.toLowerCase();
+const className = isHero ? 'hero-portrait' : 'enemy-portrait';
+return getImg(key, name, className);
+}
+
 // ===== GAME DATA =====
 const H = {
 warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
@@ -267,13 +314,26 @@ return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`
 function title() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
+${getImg('logo', 'FROGGLE', 'title-logo')}
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem">v8.0 COMPLETE NEUTRALS</p>
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
-<div class="choice" id="h-warrior" onclick="pick('warrior')"><strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
-<div class="choice" id="h-tank" onclick="pick('tank')"><strong>Tank</strong><div style="font-size:0.85rem">1⚡ 10❤ • Shield, D20</div></div>
-<div class="choice" id="h-mage" onclick="pick('mage')"><strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div></div>
-<div class="choice" id="h-healer" onclick="pick('healer')"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
+<div class="choice" id="h-warrior" onclick="pick('warrior')">
+${getImg('warrior', 'Warrior', 'hero-portrait')}
+<strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div>
+</div>
+<div class="choice" id="h-tank" onclick="pick('tank')">
+${getImg('tank', 'Tank', 'hero-portrait')}
+<strong>Tank</strong><div style="font-size:0.85rem">1⚡ 10❤ • Shield, D20</div>
+</div>
+<div class="choice" id="h-mage" onclick="pick('mage')">
+${getImg('mage', 'Mage', 'hero-portrait')}
+<strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div>
+</div>
+<div class="choice" id="h-healer" onclick="pick('healer')">
+${getImg('healer', 'Healer', 'hero-portrait')}
+<strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div>
+</div>
 <button class="btn" id="start" onclick="start()" disabled style="opacity:0.4">Begin Adventure</button>`;
 sel = [];
 }
@@ -1184,6 +1244,7 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 html += `<div class="${cardClasses}" ${onclick}>
+${getCharImg(h.n, true)}
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 <div style="text-align:center;font-size:0.8rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '<div class="sigil-divider"></div>';
@@ -1222,6 +1283,7 @@ if(e.g > 0) extra.push(`${e.g}👻`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
+${getCharImg(e.n, false)}
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '<div class="sigil-divider"></div>';
@@ -2589,6 +2651,7 @@ v.innerHTML = `
 function win() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
+${getImg('victoryScreen', 'Victory!', 'victory-image')}
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>
 <p style="text-align:center;margin-bottom:2rem">You reached the Fountain of Immortality!</p>
 <button class="btn" onclick="title()">Play Again</button>`;
