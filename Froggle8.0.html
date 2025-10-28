@@ -113,6 +113,15 @@ giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSig
 dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Expand',l:4}], startSigils:2 }
 };
 
+// Enemy emoji icons
+const ENEMY_EMOJI = {
+'Goblin': '👺',
+'Wolf': '🐺',
+'Orc': '👹',
+'Giant': '🗿',
+'Dragon': '🐉'
+};
+
 function generateFibonacci(n) {
 const fib = [1, 1];
 for(let i = 2; i < n; i++) fib.push(fib[i-1] + fib[i-2]);
@@ -1742,7 +1751,9 @@ const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
 if(e.g > 0) extra.push(`${e.g}👻`);
 if(isSelected) extra.push('❌');
+const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
+<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
@@ -1894,7 +1905,9 @@ if(e.sh > 0) extra.push(`${e.sh}🛡`);
 if(e.g > 0) extra.push(`${e.g}👻`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
+const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
+<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '<div class="sigil-divider"></div>';
