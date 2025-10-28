@@ -62,6 +62,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .turn-locked { pointer-events: none; opacity: 0.7; }
+.tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
+.tutorial-modal { background: linear-gradient(#fff, #f7f1e3); border: 4px solid #fbbf24; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
+.tutorial-modal h2 { margin-top: 0; color: #6b4423; }
+.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; }
+.tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #14b8a6; color: #fff; border: 2px solid #0f766e; border-radius: 8px; cursor: pointer; }
+.tutorial-modal button:hover { background: #0f766e; }
+.tutorial-modal button:active { transform: scale(0.98); }
+.choice.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -81,10 +89,10 @@ healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']}
 
 const E = {
 goblin: { n:'Goblin', p:1, h:5, m:5, g:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
-wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:3 },
-orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Attack2','Shield2'], gainRate:3 },
-giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:3, startSigils:[{s:'Shield',l:1}] },
-dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:2, permSigils:[{s:'Expand',l:4}] }
+wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
+orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Attack2','Shield2'], gainRate:2, startSigils:1 },
+giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
+dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Expand',l:4}], startSigils:2 }
 };
 
 function generateFibonacci(n) {
@@ -104,7 +112,15 @@ xp: 0,
 levelUpCount: 0,
 heroes: [],
 enemies: [],
+recruits: [], // Recruited enemies fighting for player
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+goingRate: 1,
+startingXP: 0, // Bonus XP at start of each run (from Death Boy 2 sacrifices)
+pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Effed'}
+hasAncientStatuette: false,
+gameMode: 'Standard', // 'Standard' or 'Effed'
+effedUnlocked: false,
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -122,6 +138,7 @@ lastActions: {},
 // Neutral encounter state
 neutralDeck: [],
 lastNeutral: null,
+ambushed: false,
 // Persistent neutral state (survives death)
 ancientStatueDeactivated: false,
 ghostBoysConverted: false,
@@ -133,7 +150,36 @@ oracleStat: null,
 wizardSigil: null,
 princeGender: 'Prince',
 // Temporary neutral state (resets on death)
-treasureSecretCompartment: false
+treasureSecretCompartment: false,
+// Run tracking (permanent)
+runNumber: 1,
+// Tutorial flags (permanent - shown once ever)
+tutorialFlags: {
+ribbleton_intro: false,
+ribbleton_warrior_attack: false,
+ribbleton_targeting: false,
+ribbleton_healer_d20: false,
+ribbleton_d20_menu: false,
+ribbleton_enemy_turn: false,
+ribbleton_healer_heal: false,
+ribbleton_expand: false,
+ribbleton_finish_wolf: false,
+ribbleton_shield_sigil: false,
+ribbleton_handoff: false,
+levelup_intro: false,
+levelup_stat_upgrade: false,
+levelup_add_active: false,
+levelup_upgrade_active: false,
+levelup_upgrade_passive: false,
+death_intro: false,
+death_exit_warning: false,
+neutral_intro: false,
+neutral_d20_level: false,
+last_stand_intro: false,
+run2_hero_lock: false,
+first_victory_sequence: false,
+first_fu_victory: false
+}
 };
 
 let sel = [];
@@ -143,7 +189,12 @@ function upd() {
 document.getElementById('floor').textContent = S.floor;
 document.getElementById('round').textContent = S.round || '-';
 document.getElementById('gold').textContent = S.gold;
+// Show combat XP during combat, cumulative XP otherwise
+if(S.combatXP !== undefined && S.combatXP > 0) {
+document.getElementById('xp').textContent = `${S.xp} (+${S.combatXP})`;
+} else {
 document.getElementById('xp').textContent = S.xp;
+}
 }
 
 function toast(msg, dur=2000) {
@@ -158,26 +209,86 @@ setTimeout(() => t.remove(), 300);
 }, dur);
 }
 
-function saveGame() {
-localStorage.setItem('froggle8', JSON.stringify({
-f:S.floor, g:S.gold, x:S.xp, luc:S.levelUpCount,
-h:S.heroes, s:S.sig,
-neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-ancientStatueDeactivated:S.ancientStatueDeactivated,
-ghostBoysConverted:S.ghostBoysConverted
+function showTutorialPop(flagName, message, onDismiss) {
+if(S.tutorialFlags[flagName]) return; // Already shown
+// Create blocking modal
+const backdrop = document.createElement('div');
+backdrop.className = 'tutorial-modal-backdrop';
+backdrop.innerHTML = `
+<div class="tutorial-modal">
+<h2>Tutorial</h2>
+<p>${message}</p>
+<button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
+</div>`;
+document.body.appendChild(backdrop);
+// Store callback for later
+window.tutorialCallback = onDismiss;
+}
+
+function dismissTutorialPop(flagName) {
+S.tutorialFlags[flagName] = true;
+savePermanent();
+const backdrop = document.querySelector('.tutorial-modal-backdrop');
+if(backdrop) backdrop.remove();
+if(window.tutorialCallback) {
+window.tutorialCallback();
+window.tutorialCallback = null;
+}
+}
+
+function savePermanent() {
+localStorage.setItem('froggle8_permanent', JSON.stringify({
+gold: S.gold,
+goingRate: S.goingRate,
+startingXP: S.startingXP,
+sig: S.sig,
+sigUpgradeCounts: S.sigUpgradeCounts,
+ancientStatueDeactivated: S.ancientStatueDeactivated,
+ghostBoysConverted: S.ghostBoysConverted,
+pedestal: S.pedestal,
+effedUnlocked: S.effedUnlocked,
+runNumber: S.runNumber,
+tutorialFlags: S.tutorialFlags
 }));
 }
 
+function loadPermanent() {
+const d = localStorage.getItem('froggle8_permanent');
+if(!d) return;
+const j = JSON.parse(d);
+S.gold = j.gold || 0;
+S.goingRate = j.goingRate || 1;
+S.startingXP = j.startingXP || 0;
+S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
+S.ghostBoysConverted = j.ghostBoysConverted || false;
+S.pedestal = j.pedestal || [];
+S.effedUnlocked = j.effedUnlocked || false;
+S.runNumber = j.runNumber || 1;
+if(j.tutorialFlags) {
+Object.assign(S.tutorialFlags, j.tutorialFlags);
+}
+}
+
+function saveGame() {
+localStorage.setItem('froggle8', JSON.stringify({
+f:S.floor, x:S.xp, luc:S.levelUpCount,
+h:S.heroes,
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral
+}));
+savePermanent();
+}
+
 function loadGame() {
+loadPermanent(); // Load persistent data first
 const d = localStorage.getItem('froggle8');
 if(!d) return;
 const j = JSON.parse(d);
-S.floor=j.f; S.gold=j.g; S.xp=j.x; S.levelUpCount=j.luc || 0;
-S.heroes=j.h; S.sig=j.s;
+S.floor=j.f; S.xp=j.x; S.levelUpCount=j.luc || 0;
+S.heroes=j.h;
 S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
-S.ancientStatueDeactivated=j.ancientStatueDeactivated || false;
-S.ghostBoysConverted=j.ghostBoysConverted || false;
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -199,6 +310,11 @@ if(S.neutralDeck.length === 0) {
 initNeutralDeck();
 }
 
+// TUTORIAL: Floor 2 always gets Oracle Stage 1
+if(S.floor === 2 && !S.tutorialFlags.neutral_intro) {
+return 'oracle1';
+}
+
 // Level 18: Prioritize Stage 2s
 if(S.floor === 18) {
 const stage2s = S.neutralDeck.filter(n => n.includes('2'));
@@ -213,6 +329,11 @@ let available = S.neutralDeck;
 if(S.lastNeutral) {
 const base = S.lastNeutral.replace(/[12]$/, '');
 available = available.filter(n => !n.startsWith(base));
+}
+
+// Floor 10: NEVER allow Enemy Encampment (Floor 11 is always ambush)
+if(S.floor === 10) {
+available = available.filter(n => !n.startsWith('encampment'));
 }
 
 if(available.length === 0) {
@@ -241,6 +362,8 @@ for(let i = 0; i < d20Level; i++) {
 rolls.push(Math.ceil(Math.random() * 20));
 }
 const best = Math.max(...rolls);
+// TUTORIAL: Explain D20 level affects neutral rolls
+showTutorialPop('neutral_d20_level', "This D20 roll uses the same Level as your D20 sigil in combat - so you can up your chances of success in neutral rooms by leveling up that Sigil!");
 return {rolls, best};
 }
 
@@ -250,17 +373,47 @@ return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`
 
 // ===== TITLE & HERO SELECT =====
 function title() {
+// TUTORIAL: Run 1 auto-selects Warrior + Healer (Ribbleton tutorial)
+if(S.runNumber === 1) {
+sel = ['warrior', 'healer'];
+start();
+return;
+}
+
 const v = document.getElementById('gameView');
+const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
+const maxSlots = 8;
+
+// TUTORIAL: Run 2 forces Tank + Mage
+const isRun2 = S.runNumber === 2;
+if(isRun2) {
+showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with extra health, and Mage starts with the ability to hit 2 targets at once!");
+}
+
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem">v8.0 COMPLETE NEUTRALS</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v8.0 COMPLETE NEUTRALS</p>
+<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#14b8a6'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
+${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
+<button class="btn" onclick="toggleMode()" style="padding:0.5rem 1rem;background:${S.gameMode === 'Effed' ? '#14b8a6' : '#dc2626'}">
+Switch to ${S.gameMode === 'Standard' ? 'Effed Up 🔥' : 'Standard'}
+</button></div>` : ''}
+${pedestalCount > 0 || S.hasAncientStatuette ? `<div style="text-align:center;margin-bottom:1rem">
+<button class="btn" onclick="showPedestal()" style="padding:0.5rem 1rem">Pedestal (${pedestalCount}/${maxSlots})</button>
+</div>` : ''}
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
-<div class="choice" id="h-warrior" onclick="pick('warrior')"><strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
+<div class="choice ${isRun2?'disabled':''}" id="h-warrior" onclick="${isRun2?'':'pick(\'warrior\')'}"><strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
 <div class="choice" id="h-tank" onclick="pick('tank')"><strong>Tank</strong><div style="font-size:0.85rem">1⚡ 10❤ • Shield, D20</div></div>
 <div class="choice" id="h-mage" onclick="pick('mage')"><strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div></div>
-<div class="choice" id="h-healer" onclick="pick('healer')"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
+<div class="choice ${isRun2?'disabled':''}" id="h-healer" onclick="${isRun2?'':'pick(\'healer\')'}"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
 <button class="btn" id="start" onclick="start()" disabled style="opacity:0.4">Begin Adventure</button>`;
 sel = [];
+}
+
+function toggleMode() {
+S.gameMode = S.gameMode === 'Standard' ? 'Effed' : 'Standard';
+savePermanent();
+title();
 }
 
 function pick(t) {
@@ -290,9 +443,27 @@ id:`h${Date.now()}${i}`,
 n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
 }));
+// Apply pedestal buffs
+S.pedestal.forEach(slot => {
+if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
+const hero = S.heroes.find(h => h.n === slot.hero);
+if(!hero) return;
+if(slot.stat === 'POW') {
+hero.p += 1;
+} else if(slot.stat === 'HP') {
+hero.m += 5;
+hero.h += 5;
+}
+});
 initNeutralDeck();
 upd();
+// Check if player has starting XP from Death Boy sacrifices
+if(S.startingXP > 0) {
+S.xp = S.startingXP;
+showStartingXPScreen();
+} else {
 startFloor(1);
+}
 }
 
 // ===== FLOOR MANAGEMENT =====
@@ -300,6 +471,11 @@ function startFloor(f) {
 S.floor=f;
 upd();
 if(f >= 20) { win(); return; }
+// Floor 11 is always ambushed (Goblin Army)
+if(f === 11) {
+S.ambushed = true;
+toast('WARNING: Floor 11 - Goblin Army lies in ambush!', 3000);
+}
 if(f%2===1) combat(f);
 else neutral(f);
 }
@@ -331,20 +507,54 @@ return ['goblin'];
 function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
-S.heroes.forEach(h => { h.sh=0; h.st=0; if(!h.ts) h.ts=[]; });
-const comp = getEnemyComp(f);
+S.combatXP=0; S.combatGold=0; // Track combat rewards separately
+// Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
+if(!S.recruits) S.recruits = [];
+S.heroes.forEach(h => {
+h.sh=0;
+h.st=0;
+if(!h.ts) h.ts=[];
+// If ambushed, stun all heroes turn 1
+if(S.ambushed) h.st = 1;
+});
+let comp = getEnemyComp(f);
+
 S.enemies = comp.map((t,i) => {
 const base = E[t];
+const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
 const enemy = {
-id:`e${Date.now()}${i}`, n:base.n, p:base.p, h:base.h, m:base.m,
+id:`e${Date.now()}${i}`, n:base.n,
+p:base.p * effedMultiplier,
+h:base.h * effedMultiplier,
+m:base.m * effedMultiplier,
 g:base.g, x:base.x, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
+drawsPerTurn: base.drawsPerTurn || 1,
 st:0, li: i % S.heroes.length, sh:0, alphaActed: false
 };
 if(base.permSigils) base.permSigils.forEach(ps => enemy.s.push({sig:ps.s, level:ps.l, perm:true}));
-if(base.startSigils) base.startSigils.forEach(ss => enemy.s.push({sig:ss.s, level:ss.l, perm:false}));
+if(base.startSigils) {
+if(Array.isArray(base.startSigils)) {
+// Array format: [{s:'Shield', l:1}]
+base.startSigils.forEach(ss => enemy.s.push({sig:ss.s, level:ss.l, perm:false}));
+} else {
+// Numeric format: draw N random sigils
+for(let j = 0; j < base.startSigils; j++) {
+drawEnemyStartSigil(enemy, base);
+}
+}
+}
 return enemy;
 });
+if(S.ambushed) {
+toast('AMBUSHED! All heroes stunned Turn 1!', 3000);
+S.ambushed = false; // Clear flag after use
+}
+// Check if we need to show Encampment enemy selection
+if(S.encampmentEarlyKills && S.encampmentEarlyKills > 0) {
+S.selectingEncampmentTargets = true;
+S.encampmentSelectedTargets = [];
+}
 render();
 }
 
@@ -427,6 +637,7 @@ const level = getLevel(sig, heroIdx);
 if(level === 0) { toast(`${sig} not unlocked!`); return; }
 S.pending = sig;
 S.instancesRemaining = level * repeats;
+S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
 render();
@@ -439,7 +650,16 @@ S.grappleLevel = level;
 S.targets = [];
 render();
 } else if(sig === 'Alpha') {
-toast('Alpha not yet implemented!');
+const level = getLevel('Alpha', heroIdx);
+if(level === 0) { toast('Alpha not unlocked!'); return; }
+const expandLevel = getLevel('Expand', heroIdx);
+const targetsNeeded = 1 + expandLevel;
+S.pending = 'Alpha';
+S.alphaLevel = level;
+S.alphaTargetsNeeded = targetsNeeded;
+S.targets = [];
+toast(`Alpha: Grant ${level} action${level>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
+render();
 }
 }
 
@@ -544,6 +764,11 @@ const dmg = enemy.p;
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
+// Check prince quest completion
+if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
+S.princeQuestCompleted = true;
+toast('Prince Quest completed! Ring retrieved!', 3000);
+}
 } else if(action === 'STEAL') {
 const gold = enemy.p;
 S.gold += gold;
@@ -557,7 +782,25 @@ render();
 checkCombatEnd();
 }, 300);
 } else if(action === 'RECRUIT') {
-toast('RECRUIT not yet implemented!');
+const heroIdx = S.d20HeroIdx;
+const hero = S.heroes[heroIdx];
+// Check if hero already has a recruit
+if(!S.recruits) S.recruits = [];
+const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
+if(existingRecruit) {
+toast(`${hero.n} already has a recruit!`);
+return;
+}
+// Remove enemy from enemies array
+S.enemies = S.enemies.filter(e => e.id !== enemyId);
+// Add to recruits array
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+S.recruits.push(recruit);
+toast(`${enemy.n} recruited by ${hero.n}!`, 2500);
+setTimeout(() => {
+render();
+checkCombatEnd();
+}, 300);
 }
 }
 
@@ -577,6 +820,7 @@ S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
+S.totalInstances = 0;
 render();
 }
 
@@ -677,7 +921,82 @@ S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) finishAction(heroIdx);
 else render();
 } else render();
+} else if(S.pending === 'Alpha') {
+// Alpha: can't target self or already-acted heroes
+const alphaUser = S.heroes[S.activeIdx];
+if(id === alphaUser.id) { toast('Cannot Alpha yourself!'); return; }
+const targetIdx = S.heroes.findIndex(x => x.id === id);
+if(S.acted.includes(targetIdx)) { toast('That hero already acted!'); return; }
+if(S.targets.includes(id)) { toast('Already targeted!'); return; }
+S.targets.push(id);
+if(S.targets.length >= S.alphaTargetsNeeded) {
+executeAlphaAction(S.activeIdx, S.targets);
+} else render();
 }
+}
+
+function executeAlphaAction(alphaUserIdx, targetIds) {
+const alphaUser = S.heroes[alphaUserIdx];
+const actionsToGrant = S.alphaLevel;
+// Mark Alpha user as acted (forfeits ALL actions)
+S.acted.push(alphaUserIdx);
+S.pending = null;
+S.targets = [];
+toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
+// Set up multi-action state for granted heroes
+S.alphaGrantedActions = [];
+targetIds.forEach(id => {
+const targetIdx = S.heroes.findIndex(h => h.id === id);
+if(targetIdx >= 0) {
+for(let i = 0; i < actionsToGrant; i++) {
+S.alphaGrantedActions.push(targetIdx);
+}
+}
+});
+S.alphaCurrentAction = 0;
+// Start first granted action
+if(S.alphaGrantedActions.length > 0) {
+const nextHeroIdx = S.alphaGrantedActions[0];
+S.activeIdx = nextHeroIdx;
+toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+}
+render();
+}
+
+function selectEncampmentTarget(enemyId) {
+if(!S.selectingEncampmentTargets) return;
+const kills = S.encampmentEarlyKills;
+const currentSelected = S.encampmentSelectedTargets;
+// Toggle selection
+if(currentSelected.includes(enemyId)) {
+S.encampmentSelectedTargets = currentSelected.filter(id => id !== enemyId);
+} else {
+if(currentSelected.length >= kills) {
+toast(`Already selected ${kills} enem${kills>1?'ies':'y'}!`);
+return;
+}
+S.encampmentSelectedTargets.push(enemyId);
+}
+render();
+}
+
+function confirmEncampmentKills() {
+if(!S.selectingEncampmentTargets) return;
+const kills = S.encampmentEarlyKills;
+const selected = S.encampmentSelectedTargets;
+if(selected.length !== kills) {
+toast(`Select ${kills} enem${kills>1?'ies':'y'} to remove!`);
+return;
+}
+// Remove selected enemies from S.enemies
+S.enemies = S.enemies.filter(e => !selected.includes(e.id));
+toast(`${kills} enem${kills>1?'ies':'y'} removed!`, 2000);
+// Clear flags
+S.selectingEncampmentTargets = false;
+S.encampmentEarlyKills = 0;
+S.encampmentSelectedTargets = [];
+// Start combat normally
+render();
 }
 
 function executeInstance(action, heroIdx, targets) {
@@ -744,20 +1063,26 @@ if(!e) return;
 totalDmg += e.p;
 e.st += stunDuration;
 targetNames.push(e.n);
+// Check prince quest completion
+if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
+S.princeQuestCompleted = true;
+toast('Prince Quest completed! Ring retrieved!', 3000);
+}
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
 h.h -= totalDmg;
-if(h.h < 0) h.h = 0;
 if(totalDmg > 0) toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
-if(h.h === 0 && !h.ls) {
+if(h.h <= 0 && !h.ls) {
 if(h.g > 0) {
 h.g--;
-h.h = h.m;
-toast(`${h.n}'s Ghost charge consumed!`);
+h.h += totalDmg;
+toast(`${h.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
+h.h = 0;
 h.ls = true;
 h.lst = 0;
 toast(`${h.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
 }
 }
 }
@@ -771,13 +1096,14 @@ enemy.h -= dmg;
 if(enemy.h <= 0) {
 if(enemy.g > 0) {
 enemy.g--;
-enemy.h = enemy.m;
-toast(`${enemy.n}'s Ghost charge consumed!`, 2000);
+enemy.h += dmg;
+toast(`${enemy.n}'s Ghost charge cancelled the lethal hit!`, 2000);
 return;
 }
 enemy.h = 0;
 S.gold += enemy.g;
-S.xp += enemy.x;
+S.combatGold += enemy.g;
+S.combatXP += enemy.x;
 upd();
 setTimeout(() => {
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
@@ -788,11 +1114,34 @@ checkCombatEnd();
 }
 
 function finishAction(heroIdx) {
+// Check if this is an Alpha-granted action
+if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
+S.alphaCurrentAction++;
+if(S.alphaCurrentAction < S.alphaGrantedActions.length) {
+// More Alpha-granted actions remain
+const nextHeroIdx = S.alphaGrantedActions[S.alphaCurrentAction];
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = nextHeroIdx;
+toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+render();
+return;
+} else {
+// All Alpha-granted actions complete
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+}
+}
+// Normal action finish
 S.acted.push(heroIdx);
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
+S.totalInstances = 0;
 S.activeIdx = -1;
 checkTurnEnd();
 render();
@@ -819,11 +1168,66 @@ if(e.st > 0) e.st--;
 e.turnsSinceGain++;
 if(e.turnsSinceGain >= e.gainRate) {
 e.turnsSinceGain = 0;
+// Draw multiple sigils per turn if specified (Dragons draw 2)
+const draws = e.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
 drawEnemySigil(e);
+}
 }
 e.alphaActed = false;
 });
+// Process recruits - stun decrement and sigil drawing
+if(S.recruits) {
+S.recruits.forEach(r => {
+if(r.st > 0) r.st--;
+if(!r.turnsSinceGain) r.turnsSinceGain = 0;
+r.turnsSinceGain++;
+if(r.turnsSinceGain >= r.gainRate) {
+r.turnsSinceGain = 0;
+const draws = r.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
+drawEnemySigil(r);
+}
+}
+});
+}
 setTimeout(() => executeAlphaPhase(), 800);
+}
+
+function drawEnemyStartSigil(enemy, base) {
+const pool = base.pool;
+if(!pool) return;
+const heldSigils = enemy.s.map(sigil => sigil.sig);
+if(pool === 'ANY') {
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
+const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+if(availableSigils.length === 0) return;
+const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
+const level = 1 + Math.floor(Math.random() * 3);
+enemy.s.push({sig, level, perm:false});
+} else if(pool === 'ANY_ADVANCED') {
+const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
+const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+if(availableSigils.length === 0) return;
+const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
+const level = 2 + Math.floor(Math.random() * 3);
+enemy.s.push({sig, level, perm:false});
+} else if(Array.isArray(pool)) {
+const availablePool = pool.filter(sigName => {
+if(sigName === 'Attack2') return !heldSigils.includes('Attack');
+if(sigName === 'Shield2') return !heldSigils.includes('Shield');
+return !heldSigils.includes(sigName);
+});
+if(availablePool.length === 0) return;
+const pick = availablePool[Math.floor(Math.random() * availablePool.length)];
+if(pick === 'Attack2') {
+enemy.s.push({sig:'Attack', level:2, perm:false});
+} else if(pick === 'Shield2') {
+enemy.s.push({sig:'Shield', level:2, perm:false});
+} else {
+enemy.s.push({sig:pick, level:1, perm:false});
+}
+}
 }
 
 function drawEnemySigil(enemy) {
@@ -869,7 +1273,7 @@ toast(`${enemy.n} drew ${pick} L1!`);
 
 function executeAlphaPhase() {
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
-if(alphaEnemies.length === 0) { setTimeout(executeNormalEnemyPhase, 300); return; }
+if(alphaEnemies.length === 0) { setTimeout(executeRecruitPhase, 300); return; }
 let delay = 0;
 alphaEnemies.forEach(alphaEnemy => {
 setTimeout(() => {
@@ -885,7 +1289,91 @@ alphaEnemy.alphaActed = true;
 }, delay);
 delay += 600;
 });
+setTimeout(() => executeRecruitPhase(), delay + 300);
+}
+
+function executeRecruitPhase() {
+if(!S.recruits || S.recruits.length === 0) { setTimeout(executeNormalEnemyPhase, 300); return; }
+let delay = 0;
+S.recruits.forEach(recruit => {
+setTimeout(() => executeRecruitTurn(recruit), delay);
+delay += 600;
+});
 setTimeout(() => executeNormalEnemyPhase(), delay + 300);
+}
+
+function executeRecruitTurn(recruit) {
+if(recruit.st > 0) { toast(`${recruit.n} (Recruit) is stunned!`); return; }
+if(recruit.h <= 0) return; // Dead recruit
+// Recruit attacks enemies (not heroes)
+executeRecruitBaseAttack(recruit);
+const drawnSigils = recruit.s.filter(s => !s.perm && s.sig !== 'Alpha');
+drawnSigils.forEach(sigil => executeRecruitSigil(recruit, sigil));
+recruit.s = recruit.s.filter(s => s.perm);
+render();
+}
+
+function executeRecruitBaseAttack(recruit) {
+// Target lowest HP enemy
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+dealDamageToEnemy(target, recruit.p);
+toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
+}
+
+function executeRecruitSigil(recruit, sigil) {
+const {sig, level} = sigil;
+if(sig === 'Attack') {
+for(let i = 0; i < level; i++) {
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+dealDamageToEnemy(target, recruit.p);
+toast(`${recruit.n} (Recruit) ${sig} attacked ${target.n} for ${recruit.p}!`);
+}
+} else if(sig === 'Shield') {
+const shieldAmt = 2 * recruit.p * level;
+recruit.sh = (recruit.sh || 0) + shieldAmt;
+if(recruit.sh > recruit.m) recruit.sh = recruit.m;
+toast(`${recruit.n} (Recruit) gained ${shieldAmt} shield!`);
+} else if(sig === 'Heal') {
+const healAmt = 2 * recruit.p * level;
+// Heal lowest HP hero
+const targets = S.heroes.filter(h => h.h > 0 && !h.ls);
+if(targets.length > 0) {
+targets.sort((a, b) => a.h - b.h);
+const healTarget = targets[0];
+healTarget.h += healAmt;
+if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
+toast(`${recruit.n} (Recruit) healed ${healTarget.n} for ${healAmt}!`);
+}
+} else if(sig === 'Grapple') {
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+const dmgToRecruit = target.p;
+recruit.h -= dmgToRecruit;
+toast(`${recruit.n} (Recruit) grappled ${target.n}!`);
+if(recruit.h <= 0) {
+recruit.h = 0;
+toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
+S.recruits = S.recruits.filter(r => r.id !== recruit.id);
+} else {
+target.st = level;
+toast(`${target.n} stunned for ${level} turns!`);
+}
+} else if(sig === 'Ghost') {
+recruit.g = (recruit.g || 0) + level;
+if(recruit.g > 9) recruit.g = 9;
+toast(`${recruit.n} (Recruit) gained ${level} Ghost charge!`);
+}
 }
 
 function executeNormalEnemyPhase() {
@@ -976,15 +1464,16 @@ else { dmg -= hero.sh; hero.sh = 0; }
 hero.h -= dmg;
 toast(`${source} dealt ${dmg} damage to ${hero.n}!`);
 if(hero.h <= 0) {
-hero.h = 0;
 if(hero.g > 0) {
 hero.g--;
-hero.h = hero.m;
-toast(`${hero.n}'s Ghost charge consumed!`);
+hero.h += dmg;
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
+hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
 }
 }
 }
@@ -1009,15 +1498,17 @@ render();
 function checkCombatEnd() {
 if(S.enemies.length === 0) {
 setTimeout(() => {
-const baseXP = S.xp;
+const combatXP = S.combatXP || 0;
 let starBonus = 0;
 S.heroes.forEach(h => {
 const starLevel = getLevel('Star', S.heroes.indexOf(h));
 starBonus += starLevel * 0.5;
 });
-const totalXP = Math.floor(baseXP * (1 + starBonus));
-S.xp = totalXP;
-if(starBonus > 0) toast(`Star Bonus! ${baseXP} × ${(1 + starBonus).toFixed(1)} = ${totalXP} XP`, 3000);
+const bonusXP = Math.floor(combatXP * (1 + starBonus));
+S.xp += bonusXP;
+S.combatXP = 0; // Reset combat XP
+// Recruits persist until killed - don't clear here
+if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000);
 upd();
 toast('Victory!');
 setTimeout(levelUp, 1000);
@@ -1028,7 +1519,7 @@ const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
 setTimeout(() => {
 toast('Defeated!');
-setTimeout(() => { alert('Game Over! Reloading...'); location.reload(); }, 1000);
+setTimeout(() => showDeathScreen(), 1000);
 }, 500);
 return true;
 }
@@ -1038,6 +1529,76 @@ return false;
 function render() {
 const v = document.getElementById('gameView');
 let html = '';
+// Special state: Encampment enemy selection
+if(S.selectingEncampmentTargets) {
+const kills = S.encampmentEarlyKills;
+const selected = S.encampmentSelectedTargets.length;
+html += '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
+html += `<div style="font-size:1.1rem;color:#dc2626">Encampment Early Kill</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Click ${kills} enem${kills>1?'ies':'y'} to remove before combat (${selected}/${kills} selected)</div>`;
+html += '</div>';
+html += '<div class="combat-grid">';
+html += '<div class="column heroes">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
+S.heroes.forEach((h,i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}👻`);
+html += `<div class="card hero">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
+<div style="text-align:center;font-size:0.8rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">`;
+const activeSigils = [...h.s, ...(h.ts || [])];
+activeSigils.forEach(s => {
+const lvl = getLevel(s, i);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+html += `<span class="sigil ${cl}">${s}${lvl>0?lvl:''}</span>`;
+});
+html += '</div></div>';
+});
+html += '</div>';
+html += '<div class="column enemies">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
+const enemyLanes = {};
+S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
+S.heroes.forEach((hero, laneIdx) => {
+const laneEnemies = enemyLanes[laneIdx] || [];
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:4px;margin-bottom:0.5rem">${hero.n}'s Lane</div>`;
+if(laneEnemies.length === 0) {
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
+} else {
+laneEnemies.forEach(e => {
+const isSelected = S.encampmentSelectedTargets.includes(e.id);
+let cardClasses = 'card enemy targetable';
+if(isSelected) cardClasses += ' targeted';
+const extra = [];
+if(e.sh > 0) extra.push(`${e.sh}🛡`);
+if(e.g > 0) extra.push(`${e.g}👻`);
+if(isSelected) extra.push('❌');
+html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
+<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">
+<span class="sigil engraved">⚔️</span>`;
+e.s.forEach(sigil => {
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const permStyle = sigil.perm ? 'engraved' : cl;
+html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+});
+html += '</div></div>';
+});
+}
+});
+html += '</div></div>';
+if(selected >= kills) {
+html += '<button class="btn" style="background:#dc2626;margin-top:1rem" onclick="confirmEncampmentKills()">Confirm Removals</button>';
+}
+v.innerHTML = html;
+return;
+}
 html += '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
 if(S.turn!=='player') {
 html += 'Enemy Turn…';
@@ -1105,13 +1666,42 @@ html += '<div class="sigil-row">';
 const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
-const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+// Calculate visual level for roll-down effect
+let visualLvl = lvl;
+if(S.activeIdx === i && S.pending === s && isMultiInstance(s) && S.totalInstances) {
+const usedInstances = S.totalInstances - S.instancesRemaining;
+visualLvl = Math.max(0, lvl - usedInstances);
+}
+const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':'l4';
 const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}>${s}${lvl>0?lvl:''}</span>`;
 });
 html += '</div></div>';
+// Show recruit for this hero if exists
+if(S.recruits) {
+const recruit = S.recruits.find(r => r.recruitedBy === i);
+if(recruit) {
+const extra = [];
+if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
+if(recruit.g > 0) extra.push(`${recruit.g}👻`);
+if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
+html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${recruit.n} 🤝</div>
+<div style="text-align:center;font-size:0.8rem">${recruit.p}⚡ | ${recruit.h}/${recruit.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div style="text-align:center;font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Recruited</div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">
+<span class="sigil engraved">⚔️</span>`;
+recruit.s.forEach(sigil => {
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const permStyle = sigil.perm ? 'engraved' : cl;
+html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+});
+html += '</div></div>';
+}
+}
 });
 html += '</div>';
 html += '<div class="column enemies">';
@@ -1171,7 +1761,31 @@ saveGame();
 startFloor(S.floor + 1);
 }
 
+function showStartingXPScreen() {
+const v = document.getElementById('gameView');
+const nextCost = FIB[S.levelUpCount] || 999;
+v.innerHTML = `
+<h2 style="text-align:center;margin-bottom:1rem;color:#a855f7">Starting XP Bonus!</h2>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;opacity:0.8">Spend it now or bank it for later. Remaining XP: <strong>${S.xp}</strong> | Next Level Cost: <strong>${nextCost}XP</strong></p>
+<div class="choice" onclick="startingXPMenu()">Spend XP</div>
+<button class="btn" style="background:#22c55e" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
+}
+
+function startingXPMenu() {
+const v = document.getElementById('gameView');
+const cost = FIB[S.levelUpCount] || 999;
+v.innerHTML = `
+<h2 style="text-align:center;margin-bottom:1rem">Spend Starting XP</h2>
+<p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
+<div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
+<div class="choice" onclick="upgradeSigil()">Upgrade Sigil Level</div>
+<div class="choice" onclick="addSigilToHero()">Add Sigil to Hero</div>
+<button class="btn" style="background:#6b7280" onclick="showStartingXPScreen()">Back</button>`;
+}
+
 function levelUpMenu() {
+showTutorialPop('levelup_intro', "Nice! You got enough XP to get your first Level-Up. Your team shares XP. Let's check out your options!");
 const v = document.getElementById('gameView');
 const cost = FIB[S.levelUpCount] || 999;
 v.innerHTML = `
@@ -1184,6 +1798,7 @@ v.innerHTML = `
 }
 
 function heroStats() {
+showTutorialPop('levelup_stat_upgrade', "This one is pretty straightforward - add +1 POW or +5 HP to a hero of your choice.");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Hero Stats</h2>
@@ -1231,6 +1846,7 @@ levelUpMenu();
 }
 
 function upgradeSigil() {
+showTutorialPop('levelup_upgrade_active', "Each active works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack get it at Level 2, letting them attack twice with 1 action!");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
@@ -1253,6 +1869,7 @@ v.innerHTML = html;
 }
 
 function addSigilToHero() {
+showTutorialPop('levelup_add_active', "Heroes only get 1 action per turn. Active sigils give you more choices - in addition to Attack/Heal/D20, you can grant a hero a new ability like Shield or Ghost!");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</h2>
@@ -1324,6 +1941,11 @@ levelUpMenu();
 
 // ===== NEUTRAL ENCOUNTERS =====
 function neutral(f) {
+// TUTORIAL: Show neutral intro on Floor 2
+if(f === 2) {
+showTutorialPop('neutral_intro', "You can usually walk straight through these floors, but most can offer a benefit if you play it right!");
+}
+
 const enc = getNeutralEncounter();
 
 if(S.ghostBoysConverted && enc.startsWith('ghost')) {
@@ -1432,18 +2054,23 @@ function showShopkeeper2() {
 const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
+const cost = S.goingRate;
 let html = `
 <div class="neutral-container">
 <div class="neutral-title">Death's Bargain</div>
-<div class="neutral-desc">The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."</div>`;
+<div class="neutral-desc">The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."</div>
+<p style="text-align:center;font-weight:bold;margin:1rem 0">Cost: ${cost} Gold</p>`;
 if(available.length === 0) {
 html += `<div class="neutral-outcome">All your sigils are already at maximum power. Death nods approvingly and fades away.</div>`;
 html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
+} else if(S.gold < cost) {
+html += `<div class="neutral-outcome" style="color:#dc2626">You don't have enough Gold! Death shakes their head and fades away.</div>`;
+html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 } else {
-html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently:</div>`;
+html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="acceptDeathsBargain('${sig}')">
+html += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})">
 <strong>${sig}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
 </div>`;
 });
@@ -1453,10 +2080,14 @@ html += `</div>`;
 v.innerHTML = html;
 }
 
-function acceptDeathsBargain(sig) {
+function acceptDeathsBargain(sig, cost) {
+if(S.gold < cost) { toast('Not enough Gold!'); return; }
+S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
+// NOTE: Going Rate does NOT increase for Death's Bargain!
 upd();
-toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 3000);
+savePermanent();
+toast(`${sig} permanently upgraded to L${S.sig[sig]}! (GR unchanged)`, 3000);
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
@@ -1532,15 +2163,17 @@ function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
 const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
 highestHPHero.h -= hpLoss;
-if(highestHPHero.h < 0) highestHPHero.h = 0;
-if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
+if(highestHPHero.h <= 0 && !highestHPHero.ls) {
+if(highestHPHero.g > 0) {
 highestHPHero.g--;
-highestHPHero.h = highestHPHero.m;
-toast(`${highestHPHero.n}'s Ghost charge consumed!`);
-} else if(highestHPHero.h === 0 && !highestHPHero.ls) {
+highestHPHero.h += hpLoss;
+toast(`${highestHPHero.n}'s Ghost charge cancelled the lethal hit!`);
+} else {
+highestHPHero.h = 0;
 highestHPHero.ls = true;
 highestHPHero.lst = 0;
 toast(`${highestHPHero.n} entered Last Stand!`);
+}
 }
 toast(`${highestHPHero.n} took ${hpLoss} damage!`);
 }
@@ -1640,15 +2273,17 @@ setTimeout(() => {
 if(trapDmg > 0) {
 const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
 highestHPHero.h -= trapDmg;
-if(highestHPHero.h < 0) highestHPHero.h = 0;
-if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
+if(highestHPHero.h <= 0 && !highestHPHero.ls) {
+if(highestHPHero.g > 0) {
 highestHPHero.g--;
-highestHPHero.h = highestHPHero.m;
-toast(`${highestHPHero.n}'s Ghost charge consumed!`);
-} else if(highestHPHero.h === 0 && !highestHPHero.ls) {
+highestHPHero.h += trapDmg;
+toast(`${highestHPHero.n}'s Ghost charge cancelled the lethal hit!`);
+} else {
+highestHPHero.h = 0;
 highestHPHero.ls = true;
 highestHPHero.lst = 0;
 toast(`${highestHPHero.n} entered Last Stand!`);
+}
 }
 toast(`${highestHPHero.n} took ${trapDmg} damage!`);
 }
@@ -1995,25 +2630,81 @@ v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Enemies Assembling Ahead</div>
 <div class="neutral-desc">Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven't noticed you yet.</div>
-<button class="btn risky" onclick="sneakByEncampment()">Sneak by?</button>
-<button class="btn risky" onclick="engageEarlyEncampment()">Engage early</button>
+<button class="btn risky" onclick="chooseEncampmentAction('sneak')">Sneak by?</button>
+<button class="btn risky" onclick="chooseEncampmentAction('engage')">Engage early</button>
 </div>`;
 }
 
-function sneakByEncampment() {
+function chooseEncampmentAction(action) {
+const v = document.getElementById('gameView');
+let html = '<div class="neutral-container">';
+html += `<div class="neutral-title">${action === 'sneak' ? 'Choose Scout' : 'Choose Leader'}</div>`;
+html += `<div class="neutral-desc">Which hero will ${action === 'sneak' ? 'sneak past the encampment' : 'lead the charge'}?</div>`;
+S.heroes.forEach((h, i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+html += `<div class="choice" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">
+<strong>${h.n}</strong> - ${h.p}⚡ | ${hp}
+</div>`;
+});
+html += '</div>';
+v.innerHTML = html;
+}
+
+function sneakByEncampment(heroIdx) {
+const hero = S.heroes[heroIdx];
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
 
 let outcome = '';
 if(best >= 1 && best <= 10) {
-outcome = 'Your foot catches on loose stone! The enemies hear you and prepare an ambush!';
+outcome = `${hero.n}'s foot catches on loose stone! The enemies hear you and prepare an ambush!`;
 replaceStage1WithStage2('encampment');
+S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 3000);
 } else if(best >= 11 && best <= 19) {
-outcome = 'You slip past quietly. The enemies remain unaware.';
+outcome = `${hero.n} slips past quietly. The enemies remain unaware.`;
 } else {
-outcome = 'You sneak past perfectly AND discover a rejected straggler who joins your group!';
-toast('Straggler will fight for you next combat!', 3000);
+// Roll 20 - recruit a straggler
+const comp = getEnemyComp(S.floor + 1);
+const stragglerType = comp[Math.floor(Math.random() * comp.length)];
+const base = E[stragglerType];
+const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
+const straggler = {
+id: `recruit${Date.now()}`,
+n: base.n,
+p: base.p * effedMultiplier,
+h: base.h * effedMultiplier,
+m: base.m * effedMultiplier,
+g: base.g,
+x: base.x,
+s: [],
+pool: base.pool,
+gainRate: base.gainRate || 3,
+turnsSinceGain: 0,
+drawsPerTurn: base.drawsPerTurn || 1,
+st: 0,
+li: heroIdx,
+sh: 0,
+alphaActed: false,
+recruitedBy: heroIdx,
+isRecruit: true
+};
+// Add permanent sigils
+if(base.permSigils) base.permSigils.forEach(ps => straggler.s.push({sig:ps.s, level:ps.l, perm:true}));
+// Add start sigils
+if(base.startSigils) {
+if(Array.isArray(base.startSigils)) {
+base.startSigils.forEach(ss => straggler.s.push({sig:ss.s, level:ss.l, perm:false}));
+} else {
+for(let j = 0; j < base.startSigils; j++) {
+drawEnemyStartSigil(straggler, base);
+}
+}
+}
+if(!S.recruits) S.recruits = [];
+S.recruits.push(straggler);
+outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n} who joins ${hero.n}'s ranks!`;
+toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 3000);
 }
 
 const v = document.getElementById('gameView');
@@ -2026,7 +2717,8 @@ v.innerHTML = `
 </div>`;
 }
 
-function engageEarlyEncampment() {
+function engageEarlyEncampment(heroIdx) {
+const hero = S.heroes[heroIdx];
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
 
@@ -2036,24 +2728,27 @@ v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Engaging Early</div>
 <div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">A scout spots you before you can strike! The enemies prepare an ambush!</div>
+<div class="neutral-outcome">A scout spots ${hero.n} before they can strike! The enemies prepare an ambush!</div>
 <button class="btn" onclick="finishEncampmentFail()">Continue</button>
 </div>`;
 } else {
 const kills = best === 20 ? 2 : 1;
+S.encampmentEarlyKills = kills;
+replaceStage1WithStage2('encampment');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Engaging Early</div>
 <div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">You succeed at picking off ${kills} enem${kills>1?'ies':'y'}! The rest aren't far behind...</div>
-<button class="btn" onclick="startEncampmentCombat(${kills})">Fight!</button>
+<div class="neutral-outcome">${hero.n} succeeds at picking off ${kills} enem${kills>1?'ies':'y'}! They're scrambling to form ranks - you'll see the battlefield and pick your targets...</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
 }
 }
 
 function finishEncampmentFail() {
 replaceStage1WithStage2('encampment');
+S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 3000);
 nextFloor();
 }
@@ -2081,26 +2776,26 @@ html += '</div>';
 v.innerHTML = html;
 }
 
-window.encampmentKillCount = 0;
-window.encampmentKillTarget = 0;
-
 function killEncampmentEnemy(type, target) {
-if(!window.encampmentKillCount) window.encampmentKillCount = 0;
-if(!window.encampmentKillTarget) window.encampmentKillTarget = target;
+if(!S.encampmentKilledTypes) S.encampmentKilledTypes = [];
+if(!S.encampmentKillsRemaining) S.encampmentKillsRemaining = target;
+
+// Track which enemy type was killed
+S.encampmentKilledTypes.push(type);
 
 S.gold += E[type].g;
 S.xp += E[type].x;
 upd();
 toast(`Killed ${E[type].n}! +${E[type].g}G +${E[type].x}XP`);
 
-window.encampmentKillCount++;
+S.encampmentKillsRemaining--;
 
-if(window.encampmentKillCount >= window.encampmentKillTarget) {
-window.encampmentKillCount = 0;
-window.encampmentKillTarget = 0;
+if(S.encampmentKillsRemaining <= 0) {
+// Combat will be reduced on next floor
+replaceStage1WithStage2('encampment');
 nextFloor();
 } else {
-startEncampmentCombat(target);
+startEncampmentCombat(S.encampmentKillsRemaining);
 }
 }
 
@@ -2222,6 +2917,8 @@ h.h = h.m;
 } else if(h.h === 0 && !h.ls) {
 h.ls = true;
 h.lst = 0;
+toast(`${h.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
 }
 });
 toast(`All heroes took ${damage} damage!`);
@@ -2353,18 +3050,12 @@ victim.h = 0;
 if(victim.g > 0) {
 victim.g--;
 victim.h = victim.m;
-// EASTER EGG: Ghost charge consumed during Ghost encounter
+// EASTER EGG: Ghost charge consumed during Ghost encounter triggers conversion
 if(hadGhostCharge) {
 replaceStage1WithStage2('ghost');
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">The Boys See the Truth</div>
-<div class="neutral-outcome">${victim.n} was about to fall... but their Ghost charge flared! The spectral energy protected them!</div>
-<div class="neutral-outcome">The ghost boys STOP. They stare at ${victim.n}, eyes wide with realization...</div>
-<div class="neutral-outcome">"Oops! We're... we're like them. We're ghosts too."</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+toast(`${victim.n} used Ghost charge! The boys realize the truth!`, 3000);
+// Trigger the full Ghost Boys conversion (showGhost2)
+showGhost2();
 return;
 }
 } else {
@@ -2449,8 +3140,8 @@ v.innerHTML = `
 
 function acceptPrinceQuest() {
 toast('Stun any enemy Turn 1 of next combat!', 3000);
-// This would need combat integration - simplified for now
-replaceStage1WithStage2('prince');
+S.princeQuestActive = true;
+S.princeQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
@@ -2460,6 +3151,22 @@ v.innerHTML = `
 }
 
 function showPrince2() {
+const v = document.getElementById('gameView');
+// Check if quest was completed
+if(!S.princeQuestCompleted) {
+// Quest failed
+S.princeQuestActive = false;
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Quest Failed</div>
+<div class="neutral-desc">The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."</div>
+<div class="neutral-outcome">The ${S.princeGender} departs sadly. No reward.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+return;
+}
+
+// Quest succeeded - show wedding
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 const eligible = allSigils.filter(s => (S.sig[s] || 0) < 4);
 
@@ -2473,8 +3180,9 @@ const sigil1 = eligible[0] || 'Attack';
 const sigil2 = eligible[1] || 'Shield';
 
 removeNeutralFromDeck('prince');
+replaceStage1WithStage2('prince');
+S.princeQuestActive = false;
 
-const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">The Wedding</div>
@@ -2500,17 +3208,367 @@ v.innerHTML = `
 </div>`;
 }
 
+// ===== DEATH SCREEN =====
+function showDeathScreen() {
+showTutorialPop('death_intro', "First time, huh? Doesn't seem like it's quite your time yet, and I think keeping you alive could be profitable for me. Cash in Gold now for PERMANENT upgrades.");
+savePermanent(); // Save gold, goingRate, sig upgrades
+// Recruits persist until killed - don't clear here
+const v = document.getElementById('gameView');
+const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
+
+let html = `
+<div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:0 auto;color:#e8dcc4">
+<h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:1.1rem">Gold: <strong>${S.gold}</strong> | Going Rate: <strong>${S.goingRate}G</strong></p>`;
+
+if(S.gold === 0) {
+html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc2626;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
+} else {
+html += `<h3 style="margin-bottom:1rem">Upgrade Sigilarium:</h3>`;
+html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.5rem">`;
+
+allSigils.forEach(sig => {
+const currentLevel = S.sig[sig] || 0;
+if(currentLevel >= 4) return; // Max level
+
+const upgradeCount = S.sigUpgradeCounts[sig] || 0;
+const baseCost = S.goingRate;
+const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
+const cost = baseCost + escalation;
+
+const canAfford = S.gold >= cost;
+const colorClass = ['#000', '#fff', '#14b8a6', '#a855f7', '#fbbf24'][currentLevel];
+const nextColorClass = ['#000', '#fff', '#14b8a6', '#a855f7', '#fbbf24'][currentLevel + 1];
+
+html += `
+<div style="background:rgba(255,255,255,0.05);padding:0.75rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
+<div style="font-weight:bold;margin-bottom:0.5rem">${sig}</div>
+<div style="font-size:0.9rem;margin-bottom:0.5rem">
+<span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${currentLevel+1}</span>
+</div>
+<div style="font-size:0.85rem;margin-bottom:0.5rem;color:#999">Cost: ${cost}G</div>
+<button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.4rem 0.8rem;font-size:0.85rem">
+${canAfford ? 'Purchase' : 'Too Expensive'}
+</button>
+</div>`;
+});
+
+html += `</div>`;
+}
+
+// Death Boys (only if Ghost Boys converted)
+if(S.ghostBoysConverted) {
+html += `
+<div style="border-top:2px solid rgba(255,255,255,0.2);padding-top:2rem;margin-top:2rem">
+<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.5rem;color:#a855f7">The Death Boys</h2>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;font-style:italic;opacity:0.8">"We work for Death now! He's WAY cooler than being ghosts!"</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+<!-- Boy 1: Sell Back -->
+<div style="background:rgba(34,197,94,0.1);padding:1.5rem;border-radius:8px;border:2px solid rgba(34,197,94,0.3)">
+<h3 style="color:#22c55e;margin-bottom:0.5rem">Death Boy 1: "Sell Back"</h3>
+<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no +5G increase)</p>
+<div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
+
+// List all sigils that can be sold back
+allSigils.forEach(sig => {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+const canSellBack = currentLevel > baseLevel;
+html += `
+<div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
+<span>${sig} L${currentLevel}</span>
+<button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
+</button>
+</div>`;
+});
+
+html += `</div>
+
+<!-- Boy 2: Sacrifice for XP -->
+<div style="background:rgba(168,85,247,0.1);padding:1.5rem;border-radius:8px;border:2px solid rgba(168,85,247,0.3)">
+<h3 style="color:#a855f7;margin-bottom:0.5rem">Death Boy 2: "Sacrifice"</h3>
+<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Sacrifice one upgrade level to gain ${S.goingRate} Starting XP permanently. Going Rate decreases by 5G.</p>
+<div style="font-size:0.8rem;margin-bottom:0.5rem;opacity:0.7">Current Starting XP: ${S.startingXP}</div>
+<div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G → ${Math.max(1, S.goingRate - 5)}G</div>`;
+
+// List all sigils that can be sacrificed
+allSigils.forEach(sig => {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+const canSacrifice = currentLevel > baseLevel && S.goingRate > 1;
+html += `
+<div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
+<span>${sig} L${currentLevel}</span>
+<button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
+</button>
+</div>`;
+});
+
+html += `</div>
+</div>
+</div>`;
+}
+
+html += `
+<div style="text-align:center;margin-top:2rem">
+<button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">I AM DONE DYING</button>
+</div>
+</div>`;
+
+v.innerHTML = html;
+}
+
+function purchaseSigilUpgrade(sig, cost) {
+if(S.gold < cost) { toast('Not enough Gold!'); return; }
+S.gold -= cost;
+S.sig[sig] = (S.sig[sig] || 0) + 1;
+S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
+S.goingRate += 5;
+toast(`${sig} upgraded to L${S.sig[sig]}!`, 2000);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function deathBoySellBack(sig) {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+if(currentLevel <= baseLevel) {
+toast("Whoa, something's weird. I can't do that", 3000);
+return;
+}
+// Sell back: get gold, lower sigil level, no going rate change
+S.gold += S.goingRate;
+S.sig[sig]--;
+S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
+toast(`Sold ${sig} L${currentLevel}→L${S.sig[sig]} for ${S.goingRate}G!`, 3000);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function deathBoySacrifice(sig) {
+const currentLevel = S.sig[sig] || 0;
+const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
+if(currentLevel <= baseLevel) {
+toast("Whoa, something's weird. I can't do that", 3000);
+return;
+}
+if(S.goingRate <= 1) {
+toast("Whoa, something's weird. I can't do that", 3000);
+return;
+}
+// Sacrifice: get starting XP, lower sigil level, decrease going rate
+const xpGained = S.goingRate;
+S.startingXP += xpGained;
+S.sig[sig]--;
+S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
+S.goingRate = Math.max(1, S.goingRate - 5);
+toast(`Sacrificed ${sig} L${currentLevel}→L${S.sig[sig]} for +${xpGained}XP permanently!`, 3000);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function restartAfterDeath() {
+// Check if player has unspent gold
+if(S.gold >= S.goingRate && !S.tutorialFlags.death_exit_warning) {
+showTutorialPop('death_exit_warning', "Are you sure? This is some great value, and you'll end up giving it to me sooner or later...", () => {
+// After tutorial, ask for confirmation
+if(confirm('Leave Death Screen with unspent gold?')) {
+actuallyRestartAfterDeath();
+} else {
+showDeathScreen();
+}
+});
+return;
+}
+actuallyRestartAfterDeath();
+}
+
+function actuallyRestartAfterDeath() {
+// Increment run number
+S.runNumber++;
+savePermanent();
+// Clear run-specific save
+localStorage.removeItem('froggle8');
+// Reload page to start fresh
+location.reload();
+}
+
+// ===== PEDESTAL UI =====
+function showPedestal() {
+const v = document.getElementById('gameView');
+const heroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
+const heroIcons = {'Warrior': '⚔️', 'Tank': '🛡️', 'Mage': '📖', 'Healer': '⚕️'};
+const stats = ['POW', 'HP'];
+
+// Count available figurines (earned from victories, not yet slotted)
+const availableFigurines = {};
+heroes.forEach(hero => {
+availableFigurines[hero] = {POW: 0, HP: 0};
+});
+
+let html = `
+<div style="max-width:700px;margin:0 auto">
+<h2 style="text-align:center;margin-bottom:0.5rem">Pedestal - ${S.gameMode} Mode</h2>
+<p style="text-align:center;margin-bottom:2rem;font-size:0.9rem;color:#666">Place figurines to grant permanent stat buffs</p>
+
+<div style="background:#f5f5f5;padding:1.5rem;border-radius:8px;border:2px solid #000">
+<table style="width:100%;border-collapse:separate;border-spacing:8px">
+<thead>
+<tr>
+<th style="width:80px"></th>`;
+
+// Column headers (hero icons)
+heroes.forEach(hero => {
+html += `<th style="text-align:center;font-size:1.5rem">${heroIcons[hero]}<div style="font-size:0.75rem;font-weight:normal;margin-top:0.25rem">${hero}</div></th>`;
+});
+
+html += `</tr></thead><tbody>`;
+
+// Each row (POW, HP)
+stats.forEach(stat => {
+html += `<tr><td style="text-align:right;font-weight:bold;padding-right:1rem">${stat}</td>`;
+
+heroes.forEach(hero => {
+const slotted = S.pedestal.find(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
+const isSlotted = !!slotted;
+
+html += `<td style="text-align:center">
+<div style="width:80px;height:80px;margin:0 auto;background:${isSlotted ? '#fbbf24' : '#fff'};border:2px solid #000;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative" onclick="${isSlotted ? `removeFigurine('${hero}','${stat}')` : `slotFigurine('${hero}','${stat}')`}">`;
+
+if(isSlotted) {
+html += `<div style="font-size:2rem">${heroIcons[hero]}</div>
+<div style="position:absolute;top:2px;right:4px;font-size:0.7rem;background:#000;color:#fff;padding:2px 4px;border-radius:3px">${stat === 'POW' ? '+1' : '+5'}</div>`;
+} else {
+html += `<div style="font-size:1.5rem;color:#ccc">+</div>`;
+}
+
+html += `</div></td>`;
+});
+
+html += `</tr>`;
+});
+
+html += `</tbody></table>
+</div>
+
+${S.hasAncientStatuette ? `<div style="margin-top:1.5rem;padding:1rem;background:rgba(251,191,36,0.1);border-radius:6px;text-align:center">
+<p style="font-weight:bold;margin-bottom:0.5rem">🗿 Ancient Statuette Available!</p>
+<p style="font-size:0.9rem;color:#666">The Ancient Statuette can be placed in any slot</p>
+</div>` : ''}
+
+<div style="text-align:center;margin-top:2rem">
+<button class="btn" onclick="title()">Back to Title</button>
+</div>
+</div>`;
+
+v.innerHTML = html;
+}
+
+function slotFigurine(hero, stat) {
+// Check if slot is available
+if(S.pedestal.find(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode)) {
+toast('Slot already filled!');
+return;
+}
+
+// Check if we have 8 slots filled
+const slotsUsed = S.pedestal.filter(p => p.mode === S.gameMode).length;
+if(slotsUsed >= 8) {
+toast('All 8 slots filled! Remove a figurine first.');
+return;
+}
+
+// Add the figurine
+S.pedestal.push({hero, stat, mode: S.gameMode});
+savePermanent();
+toast(`${hero} ${stat} figurine placed!`);
+showPedestal();
+}
+
+function removeFigurine(hero, stat) {
+const idx = S.pedestal.findIndex(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
+if(idx >= 0) {
+S.pedestal.splice(idx, 1);
+savePermanent();
+toast(`${hero} ${stat} figurine removed!`);
+showPedestal();
+}
+}
+
 // ===== WIN =====
 function win() {
+// Award figurines for heroes who survived (HP > 0, not Last Stand)
+const survivedHeroes = S.heroes.filter(h => h.h > 0 && !h.ls);
+const earnedFigurines = [];
+survivedHeroes.forEach(h => {
+// Check if this hero already has 2 figurines for this mode
+const existingCount = S.pedestal.filter(slot => slot.hero === h.n && slot.mode === S.gameMode).length;
+if(existingCount < 2) {
+earnedFigurines.push(h.n);
+}
+});
+
+// Unlock Effed Up mode if Standard victory
+const firstVictory = !S.tutorialFlags.first_victory_sequence;
+if(S.gameMode === 'Standard') {
+S.effedUnlocked = true;
+if(firstVictory) {
+S.tutorialFlags.first_victory_sequence = true;
+}
+}
+
+const firstFU = S.gameMode === 'Effed' && !S.tutorialFlags.first_fu_victory;
+if(firstFU) {
+S.tutorialFlags.first_fu_victory = true;
+}
+
+savePermanent();
+
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>
-<p style="text-align:center;margin-bottom:2rem">You reached the Fountain of Immortality!</p>
-<button class="btn" onclick="title()">Play Again</button>`;
+let html = `
+<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
+
+if(S.gameMode === 'Effed') {
+html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">Holy cow. You played enough of this game to beat FU mode?<br>I am blown away. Thank you.<br>-Preston</p>`;
+if(firstFU) {
+html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">🎉 First Effed Up Victory! 🎉</p>`;
+}
+} else {
+html += `<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>`;
+if(firstVictory) {
+html += `<p style="text-align:center;margin-bottom:2rem;color:#dc2626;font-style:italic">"HAHAHAHA good luck..."</p>`;
+html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">A sinister portal has appeared... 🔥</p>`;
+}
+}
+
+if(earnedFigurines.length > 0) {
+html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px">
+<h3 style="text-align:center;margin-bottom:0.5rem">🏆 Hero Figurines Earned! 🏆</h3>
+<p style="text-align:center">The following heroes can place figurines on the Pedestal:</p>
+<ul style="list-style:none;padding:0;text-align:center">`;
+earnedFigurines.forEach(name => {
+html += `<li style="margin:0.5rem 0;font-weight:bold">${name}</li>`;
+});
+html += `</ul>
+<p style="text-align:center;font-size:0.9rem;color:#999;margin-top:0.5rem">Figurines grant permanent +1 POW or +5 HP when placed on Pedestal</p>
+</div>`;
+}
+
+if(S.gameMode === 'Standard' && S.effedUnlocked) {
+html += `<p style="text-align:center;margin:1rem 0;color:#fbbf24;font-weight:bold">🔥 EFFED UP MODE UNLOCKED! 🔥</p>`;
+}
+
+html += `<button class="btn" onclick="title()">Play Again</button>`;
+
+v.innerHTML = html;
 }
 
 // ===== INIT =====
 window.onload = () => {
+loadPermanent(); // Always load permanent data first
 const s = localStorage.getItem('froggle8');
 if(s && confirm('Resume saved game?')) loadGame();
 else title();
