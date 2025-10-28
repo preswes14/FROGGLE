@@ -80,6 +80,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="game-area" id="gameView"></div>
 <script>
 // ===== GAME DATA =====
+// Hero images (base64 encoded PNG)
+const HERO_IMAGES = {
+warrior: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+tank: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+mage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+healer: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+};
+
 const H = {
 warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Shield','D20']},
@@ -473,10 +481,18 @@ ${pedestalCount > 0 || S.hasAncientStatuette ? `<div style="text-align:center;ma
 <button class="btn" onclick="showPedestal()" style="padding:0.5rem 1rem">Pedestal (${pedestalCount}/${maxSlots})</button>
 </div>` : ''}
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
-<div class="choice ${isRun2?'disabled':''}" id="h-warrior" onclick="${isRun2?'':'pick(\'warrior\')'}"><strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
-<div class="choice" id="h-tank" onclick="pick('tank')"><strong>Tank</strong><div style="font-size:0.85rem">1⚡ 10❤ • Shield, D20</div></div>
-<div class="choice" id="h-mage" onclick="pick('mage')"><strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div></div>
-<div class="choice ${isRun2?'disabled':''}" id="h-healer" onclick="${isRun2?'':'pick(\'healer\')'}"><strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
+<div class="choice ${isRun2?'disabled':''}" id="h-warrior" onclick="${isRun2?'':'pick(\'warrior\')'}">
+<img src="${HERO_IMAGES.warrior}" style="width:64px;height:64px;image-rendering:pixelated;margin-bottom:0.5rem">
+<strong>Warrior</strong><div style="font-size:0.85rem">2⚡ 5❤ • Attack, D20</div></div>
+<div class="choice" id="h-tank" onclick="pick('tank')">
+<img src="${HERO_IMAGES.tank}" style="width:64px;height:64px;image-rendering:pixelated;margin-bottom:0.5rem">
+<strong>Tank</strong><div style="font-size:0.85rem">1⚡ 10❤ • Shield, D20</div></div>
+<div class="choice" id="h-mage" onclick="pick('mage')">
+<img src="${HERO_IMAGES.mage}" style="width:64px;height:64px;image-rendering:pixelated;margin-bottom:0.5rem">
+<strong>Mage</strong><div style="font-size:0.85rem">1⚡ 5❤ • Attack, D20, Expand+</div></div>
+<div class="choice ${isRun2?'disabled':''}" id="h-healer" onclick="${isRun2?'':'pick(\'healer\')'}">
+<img src="${HERO_IMAGES.healer}" style="width:64px;height:64px;image-rendering:pixelated;margin-bottom:0.5rem">
+<strong>Healer</strong><div style="font-size:0.85rem">1⚡ 5❤ • Heal, D20, Expand+</div></div>
 <button class="btn" id="start" onclick="start()" disabled style="opacity:0.4">Begin Adventure</button>`;
 
 if(!isRun1 || S.tutorialsDisabled) sel = [];
@@ -1642,7 +1658,9 @@ const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}👻`);
+const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
+${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 <div style="text-align:center;font-size:0.8rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
@@ -1755,7 +1773,9 @@ if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
+const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div class="${cardClasses}" ${onclick}>
+${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 <div style="text-align:center;font-size:0.8rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '<div class="sigil-divider"></div>';
