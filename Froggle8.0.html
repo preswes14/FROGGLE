@@ -540,6 +540,7 @@ const level = getLevel(sig, heroIdx);
 if(level === 0) { toast(`${sig} not unlocked!`); return; }
 S.pending = sig;
 S.instancesRemaining = level * repeats;
+S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
 render();
@@ -704,6 +705,7 @@ S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
+S.totalInstances = 0;
 render();
 }
 
@@ -970,6 +972,7 @@ S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
+S.totalInstances = 0;
 S.activeIdx = nextHeroIdx;
 toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
 render();
@@ -986,6 +989,7 @@ S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
+S.totalInstances = 0;
 S.activeIdx = -1;
 checkTurnEnd();
 render();
@@ -1339,7 +1343,13 @@ html += '<div class="sigil-row">';
 const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
-const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+// Calculate visual level for roll-down effect
+let visualLvl = lvl;
+if(S.activeIdx === i && S.pending === s && isMultiInstance(s) && S.totalInstances) {
+const usedInstances = S.totalInstances - S.instancesRemaining;
+visualLvl = Math.max(0, lvl - usedInstances);
+}
+const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':'l4';
 const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
@@ -2963,8 +2973,13 @@ savePermanent();
 
 const v = document.getElementById('gameView');
 let html = `
-<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>
-<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>`;
+<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
+
+if(S.gameMode === 'Effed') {
+html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">Holy cow. You played enough of this game to beat FU mode?<br>I am blown away. Thank you.<br>-Preston</p>`;
+} else {
+html += `<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>`;
+}
 
 if(earnedFigurines.length > 0) {
 html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px">
