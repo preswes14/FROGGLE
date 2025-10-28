@@ -387,9 +387,9 @@ function mainTitlePage() {
 const v = document.getElementById('gameView');
 const hasSavedGame = localStorage.getItem('froggle8');
 v.innerHTML = `
-<div style="text-align:center;margin-top:4rem">
-<h1 style="font-size:3rem;margin-bottom:0.5rem">🐸 FROGGLE 🐸</h1>
-<p style="font-size:0.9rem;opacity:0.7;margin-bottom:3rem">v8.0 COMPLETE NEUTRALS</p>
+<div style="text-align:center;margin-top:2rem">
+<img src="assets/title-screen.png" style="max-width:100%;height:auto;max-height:60vh;margin:0 auto;display:block;border-radius:12px;border:3px solid #000">
+<p style="font-size:0.9rem;opacity:0.7;margin:1rem 0 2rem 0">v8.0 COMPLETE NEUTRALS</p>
 <div style="display:flex;flex-direction:column;gap:1rem;max-width:300px;margin:0 auto">
 <button class="btn" onclick="newGame()" style="font-size:1.2rem;padding:1rem">New Game</button>
 ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:1.2rem;padding:1rem">Load Game</button>` : ''}
@@ -480,6 +480,7 @@ Switch to ${S.gameMode === 'Standard' ? 'Effed Up 🔥' : 'Standard'}
 ${pedestalCount > 0 || S.hasAncientStatuette ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showPedestal()" style="padding:0.5rem 1rem">Pedestal (${pedestalCount}/${maxSlots})</button>
 </div>` : ''}
+<img src="assets/hero-select.png" style="max-width:100%;height:auto;max-width:500px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
 <div class="choice ${isRun2?'disabled':''}" id="h-warrior" onclick="${isRun2?'':'pick(\'warrior\')'}">
 <img src="${HERO_IMAGES.warrior}" style="width:64px;height:64px;image-rendering:pixelated;margin-bottom:0.5rem">
@@ -3653,7 +3654,8 @@ if(firstFU) {
 html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">🎉 First Effed Up Victory! 🎉</p>`;
 }
 } else {
-html += `<p style="text-align:center;margin-bottom:2rem">You saved Tapo the Tadpole!</p>`;
+html += `<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
+html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem;font-weight:bold">You saved Tapo the Tadpole!</p>`;
 if(firstVictory) {
 html += `<p style="text-align:center;margin-bottom:2rem;color:#dc2626;font-style:italic">"HAHAHAHA good luck..."</p>`;
 html += `<p style="text-align:center;margin-bottom:2rem;color:#fbbf24;font-weight:bold">A sinister portal has appeared... 🔥</p>`;
