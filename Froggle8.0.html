@@ -132,6 +132,7 @@ oracleRoll: null,
 oracleStat: null,
 wizardSigil: null,
 princeGender: 'Prince',
+princeQuestActive: false,
 // Temporary neutral state (resets on death)
 treasureSecretCompartment: false
 };
@@ -164,7 +165,14 @@ f:S.floor, g:S.gold, x:S.xp, luc:S.levelUpCount,
 h:S.heroes, s:S.sig,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 ancientStatueDeactivated:S.ancientStatueDeactivated,
-ghostBoysConverted:S.ghostBoysConverted
+ghostBoysConverted:S.ghostBoysConverted,
+silverKeyHeld:S.silverKeyHeld,
+wizardSigil:S.wizardSigil,
+oracleHero:S.oracleHero,
+oracleRoll:S.oracleRoll,
+oracleStat:S.oracleStat,
+princeGender:S.princeGender,
+princeQuestActive:S.princeQuestActive
 }));
 }
 
@@ -178,6 +186,13 @@ S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
 S.ancientStatueDeactivated=j.ancientStatueDeactivated || false;
 S.ghostBoysConverted=j.ghostBoysConverted || false;
+S.silverKeyHeld=j.silverKeyHeld || false;
+S.wizardSigil=j.wizardSigil || null;
+S.oracleHero=j.oracleHero !== undefined ? j.oracleHero : null;
+S.oracleRoll=j.oracleRoll !== undefined ? j.oracleRoll : null;
+S.oracleStat=j.oracleStat || null;
+S.princeGender=j.princeGender || 'Prince';
+S.princeQuestActive=j.princeQuestActive || false;
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -439,7 +454,15 @@ S.grappleLevel = level;
 S.targets = [];
 render();
 } else if(sig === 'Alpha') {
-toast('Alpha not yet implemented!');
+const level = getLevel('Alpha', heroIdx);
+if(level === 0) { toast('Alpha not unlocked!'); return; }
+const allies = S.heroes.filter((h, i) => i !== heroIdx && h.h > 0 && !h.ls);
+if(allies.length === 0) { toast('No valid allies to empower!'); finishAction(heroIdx); return; }
+S.pending = 'Alpha';
+S.alphaRepeats = repeats;
+S.alphaLevel = level;
+S.targets = [];
+render();
 }
 }
 
@@ -557,7 +580,28 @@ render();
 checkCombatEnd();
 }, 300);
 } else if(action === 'RECRUIT') {
-toast('RECRUIT not yet implemented!');
+if(enemy.n.includes('Dragon')) { toast(`${enemy.n} refuses to be recruited!`); return; }
+const newHero = {
+id: `h${Date.now()}${Math.random()}`,
+n: enemy.n,
+p: enemy.p,
+h: enemy.h,
+m: enemy.m,
+s: ['Attack', 'D20'],
+sh: 0,
+g: 0,
+ls: false,
+lst: 0,
+ts: [],
+st: 0
+};
+S.heroes.push(newHero);
+setTimeout(() => {
+S.enemies = S.enemies.filter(e => e.id !== enemyId);
+render();
+toast(`${enemy.n} joined your party!`, 2500);
+checkCombatEnd();
+}, 300);
 }
 }
 
@@ -677,6 +721,15 @@ S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) finishAction(heroIdx);
 else render();
 } else render();
+} else if(S.pending === 'Alpha') {
+if(S.targets.includes(id)) { toast('Already targeted!'); return; }
+const targetHeroIdx = S.heroes.findIndex(hero => hero.id === id);
+if(targetHeroIdx === heroIdx) { toast('Cannot empower yourself!'); return; }
+const targetHero = S.heroes[targetHeroIdx];
+if(targetHero.ls) { toast('Cannot empower hero in Last Stand!'); return; }
+S.targets.push(id);
+for(let i = 0; i < S.alphaRepeats; i++) executeAlpha(heroIdx, id, S.alphaLevel);
+finishAction(heroIdx);
 }
 }
 
@@ -762,6 +815,24 @@ toast(`${h.n} entered Last Stand!`);
 }
 }
 
+function executeAlpha(fromHeroIdx, targetHeroId, attacks) {
+const fromHero = S.heroes[fromHeroIdx];
+const targetHero = S.heroes.find(h => h.id === targetHeroId);
+if(!targetHero) return;
+const targetHeroIdx = S.heroes.findIndex(h => h.id === targetHeroId);
+const laneEnemies = S.enemies.filter(e => e.li === targetHeroIdx);
+if(laneEnemies.length === 0) {
+toast(`${fromHero.n} empowered ${targetHero.n}, but no enemies in their lane!`);
+return;
+}
+laneEnemies.sort((a, b) => a.h - b.h);
+const target = laneEnemies[0];
+toast(`${fromHero.n} empowers ${targetHero.n} - ${attacks} attack${attacks>1?'s':''}!`);
+for(let i = 0; i < attacks; i++) {
+if(target.h > 0) dealDamageToEnemy(target, targetHero.p);
+}
+}
+
 function dealDamageToEnemy(enemy, dmg) {
 if(enemy.sh > 0) {
 if(enemy.sh >= dmg) { enemy.sh -= dmg; return; }
@@ -804,6 +875,17 @@ const actualIdx = S.heroes.findIndex(hero => hero.id === h.id);
 return S.acted.includes(actualIdx);
 });
 if(allActedIncludingLS) {
+if(S.princeQuestActive && S.round === 1) {
+const anyStunned = S.enemies.some(e => e.st > 0);
+if(anyStunned) {
+S.princeQuestActive = false;
+replaceStage1WithStage2('prince');
+toast('Prince quest SUCCESS! Ring retrieved!', 3000);
+} else {
+S.princeQuestActive = false;
+toast('Prince quest FAILED - no enemies stunned!', 3000);
+}
+}
 S.heroes.forEach(h => { if(h.ls) h.lst++; });
 setTimeout(() => { S.locked = true; enemyTurn(); }, 500);
 }
@@ -909,8 +991,14 @@ enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
 executeEnemyBaseAttack(enemy);
-const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
-drawnSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+const asteriskSigil = enemy.s.find(s => !s.perm && s.sig === 'Asterisk');
+let multiplier = 1;
+if(asteriskSigil) {
+multiplier = asteriskSigil.level + 1;
+toast(`${enemy.n} uses Asterisk ×${multiplier}!`);
+}
+const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Asterisk');
+drawnSigils.forEach(sigil => executeEnemySigil(enemy, sigil, multiplier));
 enemy.s = enemy.s.filter(s => s.perm);
 render();
 }
@@ -920,20 +1008,20 @@ const target = S.heroes[enemy.li];
 if(target && target.h > 0) dealDamageToHero(target, enemy.p, `${enemy.n}'s Base Attack`);
 }
 
-function executeEnemySigil(enemy, sigil) {
+function executeEnemySigil(enemy, sigil, multiplier = 1) {
 const {sig, level} = sigil;
 if(sig === 'Attack') {
-for(let i = 0; i < level; i++) {
+for(let i = 0; i < level * multiplier; i++) {
 const target = S.heroes[enemy.li];
 if(target && target.h > 0) dealDamageToHero(target, enemy.p, `${enemy.n}'s ${sig}`);
 }
 } else if(sig === 'Shield') {
-const shieldAmt = 2 * enemy.p * level;
+const shieldAmt = 2 * enemy.p * level * multiplier;
 enemy.sh = (enemy.sh || 0) + shieldAmt;
 if(enemy.sh > enemy.m) enemy.sh = enemy.m;
 toast(`${enemy.n} gained ${shieldAmt} shield!`);
 } else if(sig === 'Heal') {
-const healAmt = 2 * enemy.p * level;
+const healAmt = 2 * enemy.p * level * multiplier;
 const allies = S.enemies.filter(e => e.id !== enemy.id && e.h > 0);
 if(allies.length > 0) {
 allies.sort((a,b) => a.h - b.h);
@@ -953,18 +1041,16 @@ enemy.h = 0;
 toast(`${enemy.n} defeated by grapple recoil!`);
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 } else {
-target.st = level;
-toast(`${target.n} stunned for ${level} turns!`);
+target.st = level * multiplier;
+toast(`${target.n} stunned for ${level * multiplier} turns!`);
 }
 }
 } else if(sig === 'Ghost') {
-enemy.g = (enemy.g || 0) + level;
+enemy.g = (enemy.g || 0) + (level * multiplier);
 if(enemy.g > 9) enemy.g = 9;
-toast(`${enemy.n} gained ${level} Ghost charge!`);
+toast(`${enemy.n} gained ${level * multiplier} Ghost charge!`);
 } else if(sig === 'Expand') {
 toast(`${enemy.n} used Expand (affects their attacks)`);
-} else if(sig === 'Asterisk') {
-toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
 }
 }
 
@@ -2448,9 +2534,8 @@ v.innerHTML = `
 }
 
 function acceptPrinceQuest() {
-toast('Stun any enemy Turn 1 of next combat!', 3000);
-// This would need combat integration - simplified for now
-replaceStage1WithStage2('prince');
+S.princeQuestActive = true;
+toast('Stun any enemy on Turn 1 of next combat!', 3000);
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
