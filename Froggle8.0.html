@@ -2166,6 +2166,7 @@ function showShopkeeper1() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/shopkeeper1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Potions for Sale</div>
 <div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."</div>
 <div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>
@@ -2240,6 +2241,7 @@ const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
 const cost = S.goingRate;
 let html = `
 <div class="neutral-container">
+<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Death's Bargain</div>
 <div class="neutral-desc">The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."</div>
 <p style="text-align:center;font-weight:bold;margin:1rem 0">Cost: ${cost} Gold</p>`;
@@ -2299,6 +2301,7 @@ function showWishingWell1() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/wishingwell1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">The Old Wishing Well</div>
 <div class="neutral-desc">An ancient stone well sits in the center of the chamber. You hear the faint sound of trickling water far below. A glint of gold catches your eye at the bottom.</div>
 <button class="btn risky" onclick="climbWell()">Climb down and get coins</button>
@@ -2390,6 +2393,7 @@ function showWishingWell2() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/wishingwell2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Overflowing Crystal Waters</div>
 <div class="neutral-desc">The well now overflows with sparkling, crystal-clear water that pools around its base. The water seems to pulse with restorative energy.</div>
 <button class="btn safe" onclick="drinkCrystalWater()">Drink from the well</button>
@@ -2423,6 +2427,7 @@ function showTreasureChest1() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/treasurechest1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">A Mysterious Chest</div>
 <div class="neutral-desc">An ornate wooden chest sits against the far wall, its brass fittings gleaming in the torchlight. No lock is visible, but you sense this may not be as simple as it appears.</div>
 <button class="btn risky" onclick="openChest()">Open the chest</button>
@@ -2522,6 +2527,7 @@ removeNeutralFromDeck('treasurechest');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/treasurechest2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Small Silver Chest</div>
 <div class="neutral-desc">A small silver chest sits on a stone pedestal, perfectly sized for the key you found earlier. You insert the key and it opens with a satisfying click.</div>
 <div class="neutral-outcome">Inside you find ${goldGain} gold coins, perfectly arranged!</div>
@@ -2534,6 +2540,7 @@ function showWizard1() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/wizard1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Hieroglyphs on the Wall</div>
 <div class="neutral-desc">An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."</div>
 <button class="btn risky" onclick="approachWizard()">Approach the wizard</button>
@@ -2640,6 +2647,7 @@ return;
 const v = document.getElementById('gameView');
 let html = `
 <div class="neutral-container">
+<img src="assets/neutrals/wizard2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Sacrifice for Power</div>
 <div class="neutral-desc">The wizard channels arcane energy, his eyes glowing with power: "I can make this permanent... but all who carry ${sig} must sacrifice their current mastery. Do you accept?"</div>
 <div style="font-size:0.85rem;margin-bottom:1rem;color:#b64141">Cost: All heroes lose ${sig} for THIS RUN ONLY<br>Benefit: ${sig} permanently upgraded in Sigilarium</div>
@@ -2683,6 +2691,7 @@ function showOracle1() {
 const v = document.getElementById('gameView');
 let html = `
 <div class="neutral-container">
+<img src="assets/neutrals/oracle1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Consult the Oracle</div>
 <div class="neutral-desc">A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?"</div>
 <div style="font-size:0.9rem;margin-bottom:1rem">Choose a hero and their desired fortune:</div>`;
@@ -2798,6 +2807,7 @@ removeNeutralFromDeck('oracle');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/oracle2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Return to the Oracle</div>
 <div class="neutral-outcome">${h.n} returns to the Oracle. The crystal sphere flares brightly!</div>
 <div class="neutral-outcome">${outcome}</div>
@@ -2810,6 +2820,7 @@ function showEncampment1() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/encampment1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Enemies Assembling Ahead</div>
 <div class="neutral-desc">Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven't noticed you yet.</div>
 <button class="btn risky" onclick="chooseEncampmentAction('sneak')">Sneak by?</button>
@@ -3001,6 +3012,7 @@ removeNeutralFromDeck('encampment');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/encampment2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Abandoned Encampment</div>
 <div class="neutral-desc">The enemy got cocky and left their base undefended. You enter and rest safely.</div>
 <div class="neutral-outcome">All heroes restored ${healAmt} HP!</div>
@@ -3015,6 +3027,7 @@ const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">The Statue</div>
 <div class="neutral-desc">A massive stone statue dominates the chamber. As you watch, it seems to ${deactivated ? 'shift smoothly and gently' : 'grow larger, its surface rippling ominously'}.</div>
 ${deactivated ? '<div class="neutral-outcome" style="color:#22c55e">The statue has been deactivated. It poses no threat.</div>' : ''}
@@ -3120,6 +3133,7 @@ function showStatue5() {
 const v = document.getElementById('gameView');
 let html = `
 <div class="neutral-container">
+<img src="assets/neutrals/statue2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Statue Unfurls</div>
 <div class="neutral-desc">The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled.</div>
 <div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>`;
@@ -3184,6 +3198,7 @@ function showGhost1() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/ghost1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Two Ghostly Boys Want to Play</div>
 <div class="neutral-desc">Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.</div>
 <button class="btn danger" onclick="playWithGhostBoys()">Play with the ghost boys</button>
@@ -3288,6 +3303,7 @@ toast('Ghost Boys permanently converted to Empty Playroom!', 3000);
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/ghost2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">The Boys Realize the Truth</div>
 <div class="neutral-desc">The ghost boys stare at each other, then at their translucent hands. "We're... we're dead. We're ghosts."</div>
 <div class="neutral-outcome">Tears form in their spectral eyes. "We want to go home. We want to see Mommy and Daddy."</div>
@@ -3313,6 +3329,7 @@ function showPrince1() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/prince1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Help Recover the Ring</div>
 <div class="neutral-desc">A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"</div>
 <button class="btn" onclick="acceptPrinceQuest()">Accept the quest</button>
@@ -3367,6 +3384,7 @@ S.princeQuestActive = false;
 
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/prince2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">The Wedding</div>
 <div class="neutral-desc">The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!</div>
 <div class="neutral-outcome">Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:</div>
