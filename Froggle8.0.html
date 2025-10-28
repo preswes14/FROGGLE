@@ -747,14 +747,14 @@ targetNames.push(e.n);
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
 h.h -= totalDmg;
-if(h.h < 0) h.h = 0;
 if(totalDmg > 0) toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
-if(h.h === 0 && !h.ls) {
+if(h.h <= 0 && !h.ls) {
 if(h.g > 0) {
 h.g--;
-h.h = 1;
-toast(`${h.n}'s Ghost charge consumed - survived with 1 HP!`);
+h.h += totalDmg;
+toast(`${h.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
+h.h = 0;
 h.ls = true;
 h.lst = 0;
 toast(`${h.n} entered Last Stand!`);
@@ -771,8 +771,8 @@ enemy.h -= dmg;
 if(enemy.h <= 0) {
 if(enemy.g > 0) {
 enemy.g--;
-enemy.h = 1;
-toast(`${enemy.n}'s Ghost charge consumed - survived with 1 HP!`, 2000);
+enemy.h += dmg;
+toast(`${enemy.n}'s Ghost charge cancelled the lethal hit!`, 2000);
 return;
 }
 enemy.h = 0;
@@ -976,12 +976,12 @@ else { dmg -= hero.sh; hero.sh = 0; }
 hero.h -= dmg;
 toast(`${source} dealt ${dmg} damage to ${hero.n}!`);
 if(hero.h <= 0) {
-hero.h = 0;
 if(hero.g > 0) {
 hero.g--;
-hero.h = 1;
-toast(`${hero.n}'s Ghost charge consumed - survived with 1 HP!`);
+hero.h += dmg;
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
+hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`);
@@ -1532,15 +1532,17 @@ function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
 const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
 highestHPHero.h -= hpLoss;
-if(highestHPHero.h < 0) highestHPHero.h = 0;
-if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
+if(highestHPHero.h <= 0 && !highestHPHero.ls) {
+if(highestHPHero.g > 0) {
 highestHPHero.g--;
-highestHPHero.h = 1;
-toast(`${highestHPHero.n}'s Ghost charge consumed - survived with 1 HP!`);
-} else if(highestHPHero.h === 0 && !highestHPHero.ls) {
+highestHPHero.h += hpLoss;
+toast(`${highestHPHero.n}'s Ghost charge cancelled the lethal hit!`);
+} else {
+highestHPHero.h = 0;
 highestHPHero.ls = true;
 highestHPHero.lst = 0;
 toast(`${highestHPHero.n} entered Last Stand!`);
+}
 }
 toast(`${highestHPHero.n} took ${hpLoss} damage!`);
 }
@@ -1640,15 +1642,17 @@ setTimeout(() => {
 if(trapDmg > 0) {
 const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
 highestHPHero.h -= trapDmg;
-if(highestHPHero.h < 0) highestHPHero.h = 0;
-if(highestHPHero.h === 0 && !highestHPHero.ls && highestHPHero.g > 0) {
+if(highestHPHero.h <= 0 && !highestHPHero.ls) {
+if(highestHPHero.g > 0) {
 highestHPHero.g--;
-highestHPHero.h = 1;
-toast(`${highestHPHero.n}'s Ghost charge consumed - survived with 1 HP!`);
-} else if(highestHPHero.h === 0 && !highestHPHero.ls) {
+highestHPHero.h += trapDmg;
+toast(`${highestHPHero.n}'s Ghost charge cancelled the lethal hit!`);
+} else {
+highestHPHero.h = 0;
 highestHPHero.ls = true;
 highestHPHero.lst = 0;
 toast(`${highestHPHero.n} entered Last Stand!`);
+}
 }
 toast(`${highestHPHero.n} took ${trapDmg} damage!`);
 }
