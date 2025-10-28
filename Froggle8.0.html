@@ -150,7 +150,12 @@ function upd() {
 document.getElementById('floor').textContent = S.floor;
 document.getElementById('round').textContent = S.round || '-';
 document.getElementById('gold').textContent = S.gold;
+// Show combat XP during combat, cumulative XP otherwise
+if(S.combatXP !== undefined && S.combatXP > 0) {
+document.getElementById('xp').textContent = `${S.xp} (+${S.combatXP})`;
+} else {
 document.getElementById('xp').textContent = S.xp;
+}
 }
 
 function toast(msg, dur=2000) {
@@ -401,6 +406,7 @@ return ['goblin'];
 function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
+S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.heroes.forEach(h => {
 h.sh=0;
 h.st=0;
@@ -408,7 +414,19 @@ if(!h.ts) h.ts=[];
 // If ambushed, stun all heroes turn 1
 if(S.ambushed) h.st = 1;
 });
-const comp = getEnemyComp(f);
+let comp = getEnemyComp(f);
+
+// Remove enemies killed in Encampment early kills
+if(S.encampmentKilledTypes && S.encampmentKilledTypes.length > 0) {
+S.encampmentKilledTypes.forEach(killedType => {
+const idx = comp.indexOf(killedType);
+if(idx >= 0) comp.splice(idx, 1);
+});
+toast(`${S.encampmentKilledTypes.length} enem${S.encampmentKilledTypes.length>1?'ies':'y'} already killed!`, 2000);
+S.encampmentKilledTypes = [];
+S.encampmentKillsRemaining = 0;
+}
+
 S.enemies = comp.map((t,i) => {
 const base = E[t];
 const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
@@ -648,6 +666,11 @@ const dmg = enemy.p;
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
+// Check prince quest completion
+if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
+S.princeQuestCompleted = true;
+toast('Prince Quest completed! Ring retrieved!', 3000);
+}
 } else if(action === 'STEAL') {
 const gold = enemy.p;
 S.gold += gold;
@@ -887,6 +910,11 @@ if(!e) return;
 totalDmg += e.p;
 e.st += stunDuration;
 targetNames.push(e.n);
+// Check prince quest completion
+if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
+S.princeQuestCompleted = true;
+toast('Prince Quest completed! Ring retrieved!', 3000);
+}
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
 h.h -= totalDmg;
@@ -920,7 +948,8 @@ return;
 }
 enemy.h = 0;
 S.gold += enemy.g;
-S.xp += enemy.x;
+S.combatGold += enemy.g;
+S.combatXP += enemy.x;
 upd();
 setTimeout(() => {
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
@@ -1213,15 +1242,16 @@ render();
 function checkCombatEnd() {
 if(S.enemies.length === 0) {
 setTimeout(() => {
-const baseXP = S.xp;
+const combatXP = S.combatXP || 0;
 let starBonus = 0;
 S.heroes.forEach(h => {
 const starLevel = getLevel('Star', S.heroes.indexOf(h));
 starBonus += starLevel * 0.5;
 });
-const totalXP = Math.floor(baseXP * (1 + starBonus));
-S.xp = totalXP;
-if(starBonus > 0) toast(`Star Bonus! ${baseXP} × ${(1 + starBonus).toFixed(1)} = ${totalXP} XP`, 3000);
+const bonusXP = Math.floor(combatXP * (1 + starBonus));
+S.xp += bonusXP;
+S.combatXP = 0; // Reset combat XP
+if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000);
 upd();
 toast('Victory!');
 setTimeout(levelUp, 1000);
@@ -2300,26 +2330,26 @@ html += '</div>';
 v.innerHTML = html;
 }
 
-window.encampmentKillCount = 0;
-window.encampmentKillTarget = 0;
-
 function killEncampmentEnemy(type, target) {
-if(!window.encampmentKillCount) window.encampmentKillCount = 0;
-if(!window.encampmentKillTarget) window.encampmentKillTarget = target;
+if(!S.encampmentKilledTypes) S.encampmentKilledTypes = [];
+if(!S.encampmentKillsRemaining) S.encampmentKillsRemaining = target;
+
+// Track which enemy type was killed
+S.encampmentKilledTypes.push(type);
 
 S.gold += E[type].g;
 S.xp += E[type].x;
 upd();
 toast(`Killed ${E[type].n}! +${E[type].g}G +${E[type].x}XP`);
 
-window.encampmentKillCount++;
+S.encampmentKillsRemaining--;
 
-if(window.encampmentKillCount >= window.encampmentKillTarget) {
-window.encampmentKillCount = 0;
-window.encampmentKillTarget = 0;
+if(S.encampmentKillsRemaining <= 0) {
+// Combat will be reduced on next floor
+replaceStage1WithStage2('encampment');
 nextFloor();
 } else {
-startEncampmentCombat(target);
+startEncampmentCombat(S.encampmentKillsRemaining);
 }
 }
 
@@ -2668,8 +2698,8 @@ v.innerHTML = `
 
 function acceptPrinceQuest() {
 toast('Stun any enemy Turn 1 of next combat!', 3000);
-// This would need combat integration - simplified for now
-replaceStage1WithStage2('prince');
+S.princeQuestActive = true;
+S.princeQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
@@ -2679,6 +2709,22 @@ v.innerHTML = `
 }
 
 function showPrince2() {
+const v = document.getElementById('gameView');
+// Check if quest was completed
+if(!S.princeQuestCompleted) {
+// Quest failed
+S.princeQuestActive = false;
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Quest Failed</div>
+<div class="neutral-desc">The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."</div>
+<div class="neutral-outcome">The ${S.princeGender} departs sadly. No reward.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
+return;
+}
+
+// Quest succeeded - show wedding
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 const eligible = allSigils.filter(s => (S.sig[s] || 0) < 4);
 
@@ -2692,8 +2738,9 @@ const sigil1 = eligible[0] || 'Attack';
 const sigil2 = eligible[1] || 'Shield';
 
 removeNeutralFromDeck('prince');
+replaceStage1WithStage2('prince');
+S.princeQuestActive = false;
 
-const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">The Wedding</div>
