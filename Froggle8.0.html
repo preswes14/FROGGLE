@@ -1750,7 +1750,7 @@ S.heroes.forEach((h,i) => {
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
-if(h.g > 0) extra.push(`${h.g}👻`);
+if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
 ${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}
@@ -1784,7 +1784,7 @@ let cardClasses = 'card enemy targetable';
 if(isSelected) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-if(e.g > 0) extra.push(`${e.g}👻`);
+if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
@@ -1793,7 +1793,7 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
 <div class="sigil-row">
-<span class="sigil engraved">⚔️</span>`;
+<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
@@ -1864,7 +1864,7 @@ const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
-if(h.g > 0) extra.push(`${h.g}👻`);
+if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 if(h.st > 0) extra.push(`😵${h.st}T`);
 if(hasActed) extra.push('✓');
 let onclick = '';
@@ -1899,7 +1899,7 @@ const recruit = S.recruits.find(r => r.recruitedBy === i);
 if(recruit) {
 const extra = [];
 if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
-if(recruit.g > 0) extra.push(`${recruit.g}👻`);
+if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
 html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${recruit.n} 🤝</div>
@@ -1907,7 +1907,7 @@ html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 <div style="text-align:center;font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Recruited</div>
 <div class="sigil-divider"></div>
 <div class="sigil-row">
-<span class="sigil engraved">⚔️</span>`;
+<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
@@ -1937,7 +1937,7 @@ if(isTargetable) cardClasses += ' targetable';
 if(selectCount > 0) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-if(e.g > 0) extra.push(`${e.g}👻`);
+if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
@@ -1947,7 +1947,7 @@ html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}'
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '<div class="sigil-divider"></div>';
 html += '<div class="sigil-row">';
-html += '<span class="sigil engraved">⚔️</span>';
+html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
@@ -2184,7 +2184,9 @@ else if(enc === 'oracle2') showOracle2();
 else if(enc === 'encampment1') showEncampment1();
 else if(enc === 'encampment2') showEncampment2();
 else if(enc === 'statue1') showStatue1();
+else if(enc === 'statue2') showStatue2();
 else if(enc === 'ghost1') showGhost1();
+else if(enc === 'ghost2') showGhost2();
 else if(enc === 'prince1') showPrince1();
 else if(enc === 'prince2') showPrince2();
 else {
