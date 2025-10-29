@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FROGGLE - Choose Version</title>
+<style>
+body {
+  font-family: -apple-system, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.container {
+  max-width: 600px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+.subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+.btn {
+  display: block;
+  width: 100%;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  background: white;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: transform 0.2s;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.mobile-recommended {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 4px 15px rgba(245,87,108,0.4); }
+  50% { box-shadow: 0 4px 25px rgba(245,87,108,0.8); }
+}
+.note {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-top: 2rem;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🐸 FROGGLE</h1>
+  <div class="subtitle">A Froggy Roguelike - v9.0 BETA</div>
+  
+  <a href="Froggle9.0_Mobile.html" class="btn mobile-recommended">
+    📱 Play on Mobile<br>
+    <span style="font-size:0.9rem">(Recommended for iPhone)</span>
+  </a>
+  
+  <a href="Froggle9.0.html" class="btn">
+    💻 Play on Desktop
+  </a>
+  
+  <div class="note">
+    <strong>iOS Users:</strong> Tap "Play on Mobile" above!<br>
+    Works in Safari - Add to Home Screen for best experience.
+  </div>
+</div>
+</body>
+</html>
