@@ -124,7 +124,7 @@ const ENEMY_EMOJI = {
 
 // Sigil icons (monochrome for CSS color styling)
 const SIGIL_ICONS = {
-'Attack': '†',      // Dagger/blade
+'Attack': '⚔️',     // Crossed swords (emoji made monochrome via CSS)
 'Shield': '⛉',      // Shield
 'Heal': '✚',        // Medical cross
 'D20': '⬡',         // Hexagon (wireframe d20)
@@ -133,17 +133,28 @@ const SIGIL_ICONS = {
 'Expand': '⊕',      // Crosshair/expand
 'Grapple': '☛',     // Pointing hand
 'Star': '★',        // Solid star
-'Ghost': '∼'        // Wispy wave
+'Ghost': '👻'       // Ghost (emoji made monochrome via CSS)
 };
+
+// Track which icons need emoji filtering
+const EMOJI_ICONS = ['Attack', 'Ghost'];
 
 // Helper function to display sigil with icon
 function sigilIcon(name) {
-return `${SIGIL_ICONS[name] || ''}${name}`;
+const icon = SIGIL_ICONS[name] || '';
+if (EMOJI_ICONS.includes(name)) {
+return `<span style="filter: grayscale(1) contrast(999); display: inline-block;">${icon}</span>${name}`;
+}
+return `${icon}${name}`;
 }
 
 // Helper function to display just the icon
 function sigilIconOnly(name) {
-return SIGIL_ICONS[name] || name;
+const icon = SIGIL_ICONS[name] || name;
+if (EMOJI_ICONS.includes(name)) {
+return `<span style="filter: grayscale(1) contrast(999); display: inline-block;">${icon}</span>`;
+}
+return icon;
 }
 
 function generateFibonacci(n) {
