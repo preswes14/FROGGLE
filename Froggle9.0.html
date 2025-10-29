@@ -879,15 +879,15 @@ let cardClasses = 'card enemy';
 if(isTargetable) cardClasses += ' targetable';
 if(isTargeted) cardClasses += ' targeted';
 
-const targetPrompt = isTargetable ? `<div style="background:#fbbf24;color:#000;padding:0.25rem;border-radius:4px;margin-top:0.25rem;font-size:0.75rem;font-weight:bold;text-align:center">👆 CLICK TO TARGET</div>` : '';
+const targetPrompt = isTargetable ? `<div style="background:#fbbf24;color:#000;padding:0.25rem;border-radius:4px;margin-top:0.25rem;font-size:0.75rem;font-weight:bold;text-align:center;pointer-events:none">👆 CLICK TO TARGET</div>` : '';
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 
-html += `<div class="${cardClasses}" ${isTargetable?`onclick="targetEnemyTutorial('${e.id}')" style="box-shadow:0 0 0 4px #fbbf24;animation:pulse-glow 1s infinite"`:''}>
-<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
-<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤</div>
-<div class="sigil-divider"></div>
-<div class="sigil-row">
+html += `<div class="${cardClasses}" ${isTargetable?`onclick="targetEnemyTutorial('${e.id}')" style="box-shadow:0 0 0 4px #fbbf24;animation:pulse-glow 1s infinite;cursor:pointer"`:''}>
+<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem;pointer-events:none">${enemyEmoji}</div>
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;pointer-events:none">${e.n}</div>
+<div style="text-align:center;font-size:0.8rem;pointer-events:none">${e.p}⚡ | ${e.h}/${e.m}❤</div>
+<div class="sigil-divider" style="pointer-events:none"></div>
+<div class="sigil-row" style="pointer-events:none">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 
 // Show Shield intent for Goblin in Round 3
