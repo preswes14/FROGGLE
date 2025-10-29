@@ -1,0 +1,18 @@
+{
+  "name": "FROGGLE - Dungeon Crawler",
+  "short_name": "FROGGLE",
+  "description": "A tactical dungeon crawler where you save Tapo the Tadpole!",
+  "start_url": "./Froggle9.0.html",
+  "display": "standalone",
+  "background_color": "#d9cab1",
+  "theme_color": "#14b8a6",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/tapo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
