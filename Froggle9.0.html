@@ -596,8 +596,11 @@ return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`
 
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
+console.log('[FROGGLE] mainTitlePage START');
 const v = document.getElementById('gameView');
+console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
+console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
 <div style="position:relative;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem">
 <!-- Title image - contained, not stretched -->
@@ -625,9 +628,12 @@ ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-
 }
 
 function newGame() {
+console.log('[FROGGLE] newGame called - runNumber:', S.runNumber, 'tutorialsDisabled:', S.tutorialsDisabled);
 if(S.runNumber === 1 && !S.tutorialsDisabled) {
+console.log('[FROGGLE] Showing tutorial story');
 showTutorialStory();
 } else {
+console.log('[FROGGLE] Skipping tutorial, going to title()');
 title();
 }
 }
@@ -649,15 +655,20 @@ window.close();
 
 // ===== NARRATIVE SLIDE SYSTEM =====
 function showNarrativeSlide(slides, currentIndex = 0) {
+console.log('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
 if(currentIndex >= slides.length) {
 // All slides shown, call completion callback
+console.log('[FROGGLE] All slides complete, calling onComplete');
 if(slides.onComplete) slides.onComplete();
 return;
 }
 
 const slide = slides[currentIndex];
+console.log('[FROGGLE] Rendering slide', currentIndex);
 const v = document.getElementById('gameView');
+console.log('[FROGGLE] gameView element:', v);
 const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
+console.log('[FROGGLE] Setting innerHTML for slide', currentIndex);
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:1rem">
 ${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
@@ -669,6 +680,7 @@ ${skipButton}
 
 window.currentNarrativeSlides = slides;
 window.currentNarrativeIndex = currentIndex;
+console.log('[FROGGLE] Slide', currentIndex, 'rendered successfully');
 }
 
 function continueNarrative() {
@@ -686,6 +698,7 @@ setTimeout(() => title(), 500);
 
 // ===== RIBBLETON TUTORIAL INTRO =====
 function showTutorialStory() {
+console.log('[FROGGLE] showTutorialStory START');
 const slides = [
 {
 html: `
@@ -767,7 +780,9 @@ setTimeout(() => {
 showTutorialStoryOverlay();
 }, 100);
 };
+console.log('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
 showNarrativeSlide(slides, 0);
+console.log('[FROGGLE] showNarrativeSlide called');
 }
 
 function showTutorialStoryOverlay() {
@@ -1365,10 +1380,12 @@ title(); // Go to hero select (which will auto-select Warrior + Healer for Run 1
 let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
+console.log('[FROGGLE] title() called - Hero selection screen');
 // TUTORIAL: Run 1 selects Warrior + Healer after hero select screen
 const isRun1 = S.runNumber === 1;
 if(isRun1 && !S.tutorialsDisabled) {
 // Auto-select for tutorial but show the screen
+console.log('[FROGGLE] Auto-selecting Warrior + Healer for tutorial');
 sel = ['warrior', 'healer'];
 }
 
@@ -1433,6 +1450,7 @@ ${S.tapoUnlocked ? `
 <button class="btn" id="start" onclick="start()" disabled style="opacity:0.4;width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
 </div>`;
 
+console.log('[FROGGLE] title() innerHTML set successfully');
 if(!isRun1 || S.tutorialsDisabled) sel = [];
 
 // Update selection display
@@ -5085,9 +5103,30 @@ setTimeout(() => checkCombatOver(), 100);
 
 // ===== INIT =====
 window.onload = () => {
+console.log('[FROGGLE] window.onload fired');
 loadPermanent(); // Always load permanent data first
+console.log('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.tutorialsDisabled:', S.tutorialsDisabled);
 mainTitlePage();
+console.log('[FROGGLE] mainTitlePage called');
 };
+
+// Global error handler for image loading failures
+window.addEventListener('error', (e) => {
+if(e.target && e.target.tagName === 'IMG') {
+console.error('[FROGGLE] IMAGE LOAD FAILED:', e.target.src);
+console.error('[FROGGLE] Current location:', window.location.href);
+console.error('[FROGGLE] Image path:', e.target.getAttribute('src'));
+} else if(e.message) {
+console.error('[FROGGLE] JAVASCRIPT ERROR:', e.message);
+console.error('[FROGGLE] File:', e.filename, 'Line:', e.lineno, 'Col:', e.colno);
+console.error('[FROGGLE] Stack:', e.error ? e.error.stack : 'No stack trace');
+}
+}, true);
+
+// Catch unhandled promise rejections
+window.addEventListener('unhandledrejection', (e) => {
+console.error('[FROGGLE] UNHANDLED PROMISE REJECTION:', e.reason);
+});
 </script>
 </body>
 </html>
