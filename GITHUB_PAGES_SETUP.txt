@@ -15,7 +15,7 @@ SETUP (One-time, 2 minutes):
 3. Click "Pages" (left sidebar)
 
 4. Under "Source":
-   - Branch: Select "claude/froggle-beta-testing-011CUaXgD5CBzcESf22KryUK"
+   - Branch: Select "main"
    - Folder: Select "/ (root)"
    - Click "Save"
 

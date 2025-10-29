@@ -1,0 +1,40 @@
+================================================================================
+                    🍎 FROGGLE on iPhone - QUICK START
+================================================================================
+
+THE FASTEST WAY (2 minutes):
+-----------------------------
+
+1. Enable GitHub Pages:
+   • Go to: https://github.com/preswes14/FROGGLE/settings/pages
+   • Branch: Select "main"
+   • Folder: Select "/ (root)"
+   • Click "Save"
+   • Wait 2-3 minutes
+
+2. Play on iPhone:
+   • Open Safari on your iPhone
+   • Visit: https://preswes14.github.io/FROGGLE/
+   • Tap "📱 Play on Mobile"
+   • Done! 🎉
+
+3. (Optional) Add to Home Screen:
+   • Tap Share button → "Add to Home Screen"
+   • Now it's an app icon!
+
+================================================================================
+
+WHY THIS WORKS:
+• GitHub Pages = Free web hosting
+• Safari can load web pages perfectly
+• The mobile version (21.8 MB) has ALL images built-in
+• Works offline after first load
+• No apps needed!
+
+WHAT IF IT DOESN'T WORK?
+• Make sure you selected "main" branch (not a claude/ branch)
+• Wait 5 minutes after enabling Pages
+• Check https://github.com/preswes14/FROGGLE/settings/pages for status
+• Read IOS_SETUP_GUIDE.md for detailed troubleshooting
+
+================================================================================
