@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FROGGLE - Choose Version</title>
+<title>FROGGLE - A Froggy Roguelike</title>
 <style>
 body {
   font-family: -apple-system, sans-serif;
@@ -40,26 +40,21 @@ h1 {
   width: 100%;
   padding: 1.5rem;
   margin: 1rem 0;
-  background: white;
-  color: #667eea;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
   text-decoration: none;
   border-radius: 12px;
   font-weight: bold;
   font-size: 1.2rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  transition: transform 0.2s;
+  box-shadow: 0 4px 15px rgba(245,87,108,0.4);
+  transition: all 0.2s;
+}
+.btn:hover {
+  box-shadow: 0 4px 25px rgba(245,87,108,0.8);
+  transform: translateY(-2px);
 }
 .btn:active {
   transform: scale(0.98);
-}
-.mobile-recommended {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 4px 15px rgba(245,87,108,0.4); }
-  50% { box-shadow: 0 4px 25px rgba(245,87,108,0.8); }
 }
 .note {
   font-size: 0.9rem;
@@ -71,20 +66,15 @@ h1 {
 <body>
 <div class="container">
   <h1>🐸 FROGGLE</h1>
-  <div class="subtitle">A Froggy Roguelike - v9.0 BETA</div>
-  
-  <a href="Froggle9.0_Mobile.html" class="btn mobile-recommended">
-    📱 Play on Mobile<br>
-    <span style="font-size:0.9rem">(Recommended for iPhone)</span>
-  </a>
-  
+  <div class="subtitle">A Froggy Roguelike - v9.5 BETA</div>
+
   <a href="Froggle9.0.html" class="btn">
-    💻 Play on Desktop
+    ▶️ Play FROGGLE
   </a>
-  
+
   <div class="note">
-    <strong>iOS Users:</strong> Tap "Play on Mobile" above!<br>
-    Works in Safari - Add to Home Screen for best experience.
+    Works on desktop and mobile!<br>
+    <strong>iOS Users:</strong> Add to Home Screen for best experience.
   </div>
 </div>
 </body>
