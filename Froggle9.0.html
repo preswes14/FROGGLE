@@ -911,12 +911,14 @@ renderTutorialCombat();
 }
 
 function actTutorial(sig, heroIdx) {
+console.log('[DEBUG] actTutorial called with sig:', sig, 'heroIdx:', heroIdx);
 if(S.locked || S.acted.includes(heroIdx)) return;
 
 const h = S.heroes[heroIdx];
 S.pending = sig;
 S.targets = [];
 S.currentInstanceTargets = [];
+console.log('[DEBUG] Set S.pending to:', S.pending, 'and cleared S.targets');
 
 toast(`${sig} selected! Now target an enemy.`, 2000);
 
@@ -935,6 +937,8 @@ setTimeout(() => toast("Click on the Wolf to target it!", 3000), 2100);
 }
 
 function targetEnemyTutorial(enemyId) {
+console.log('[DEBUG] targetEnemyTutorial called with enemyId:', enemyId);
+console.log('[DEBUG] S.pending:', S.pending);
 if(!S.pending) {
 toast('ERROR: No action selected!', 2000);
 return;
@@ -942,6 +946,7 @@ return;
 
 toast(`Wolf targeted! Now click Confirm.`, 2500);
 S.targets = [enemyId];
+console.log('[DEBUG] S.targets set to:', S.targets);
 renderTutorialCombat();
 }
 
@@ -980,13 +985,18 @@ return;
 
 // Execute action based on tutorial phase
 if(tutorialState.phase === 'warrior_attack' && sig === 'Attack') {
+console.log('[DEBUG] Warrior attack phase confirmed');
 // Warrior attacks Wolf
 const wolf = S.enemies.find(e => e.n === 'Wolf');
+console.log('[DEBUG] Wolf found:', wolf);
+console.log('[DEBUG] S.targets:', S.targets);
 if(!wolf) {
 toast('Wolf not found!');
 return;
 }
+console.log('[DEBUG] Checking if S.targets includes wolf.id:', wolf.id, 'Result:', S.targets.includes(wolf.id));
 if(S.targets.includes(wolf.id)) {
+console.log('[DEBUG] Wolf targeted! Executing attack...');
 wolf.h -= 2;
 toast('Wolf takes 2 damage!');
 S.acted.push(heroIdx);
@@ -1004,6 +1014,7 @@ renderTutorialCombat();
 });
 }, 500);
 } else {
+console.log('[DEBUG] Wolf NOT in targets! This is the bug!');
 toast('Wolf not targeted!');
 }
 } else if(tutorialState.phase === 'healer_d20' && sig === 'D20') {
