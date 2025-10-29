@@ -352,7 +352,8 @@ last_stand_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
-pedestal_first_placement: false
+pedestal_first_placement: false,
+tapo_victory_message: false
 },
 tutorialsDisabled: false
 };
@@ -1678,8 +1679,8 @@ S.encampmentSelectedTargets = [];
 }
 render();
 // Tutorial: Explain tooltips on first combat
-if(f === 1 && !S.tutorialsDisabled && !S.tutorialFlags.sigil_tooltip_intro) {
-showTutorialPop('sigil_tooltip_intro', "Hover over (or long-press on mobile) any sigil to see what it does! This works on your heroes' sigils and enemies' sigils too.");
+if(f === 1 && !S.tutorialsDisabled && !S.tutorialFlags.ribbleton_tooltip_intro) {
+showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile) any sigil to see what it does! This works on your heroes' sigils and enemies' sigils too.");
 }
 }
 
