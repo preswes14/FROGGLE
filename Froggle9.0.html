@@ -1318,33 +1318,36 @@ ${pedestalCount > 0 || S.hasAncientStatuette ? `<div style="text-align:center;ma
 
 <div style="max-width:600px;margin:0 auto">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Click on a hero to see their stats!</p>
-<div style="position:relative;max-width:100%;margin:0 auto">
+<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
+<div style="position:relative;max-width:100%;margin:0 auto;min-height:400px">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
 <div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun2?'':'viewHero(\'warrior\')'}"
+onclick="${isRun2?'':'toggleHeroSelection(\'warrior\')'}"
 title="Warrior"></div>
 <div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;"
-onclick="viewHero('tank')"
+onclick="toggleHeroSelection('tank')"
 title="Tank"></div>
 <div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;"
-onclick="viewHero('mage')"
+onclick="toggleHeroSelection('mage')"
 title="Mage"></div>
 <div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun2?'':'viewHero(\'healer\')'}"
+onclick="${isRun2?'':'toggleHeroSelection(\'healer\')'}"
 title="Healer"></div>
+
+<!-- Hero card overlays -->
+<div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;"></div>
+<div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;"></div>
+<div id="mage-card" style="position:absolute;bottom:10%;left:51%;width:23%;display:none;z-index:10;"></div>
+<div id="healer-card" style="position:absolute;bottom:10%;left:76%;width:23%;display:none;z-index:10;"></div>
 </div>
 
 ${S.tapoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
-<button class="btn" onclick="viewHero('tapo')" style="background:linear-gradient(135deg,#fbbf24 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
+<button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#fbbf24 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
 🎉 View Tapo (UNLOCKED!) 🎉
 </button>
 </div>` : ''}
-
-<!-- Hero card display area -->
-<div id="hero-card-area" style="margin-top:1rem;min-height:200px"></div>
 
 <!-- Selection display -->
 <div style="text-align:center;margin:1.5rem 0;padding:1rem;background:rgba(0,0,0,0.05);border-radius:8px">
@@ -1352,7 +1355,7 @@ ${S.tapoUnlocked ? `
 <div id="selection-display" style="margin-top:0.5rem;font-size:1.1rem;color:#2563eb"></div>
 </div>
 
-<button class="btn" id="start" onclick="start()" disabled style="opacity:0.4;width:100%;padding:1rem;font-size:1.1rem">Begin Adventure</button>
+<button class="btn" id="start" onclick="start()" disabled style="opacity:0.4;width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
 </div>`;
 
 if(!isRun1 || S.tutorialsDisabled) sel = [];
@@ -1370,8 +1373,11 @@ updateSelectionDisplay();
 }
 }
 
-function viewHero(heroType) {
-selectedHeroView = heroType;
+function toggleHeroSelection(heroType) {
+const isRun2 = S.runNumber === 2;
+const isLocked = isRun2 && (heroType === 'warrior' || heroType === 'healer');
+if(isLocked) return;
+
 const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
 tank: {name: 'Tank', pow: 1, hp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
@@ -1381,51 +1387,49 @@ tapo: {name: 'Tapo', pow: 1, hp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 
 };
 
 const hero = heroData[heroType];
-const isSelected = sel.includes(heroType);
-const canSelect = sel.length < 2 || isSelected;
-const isRun2 = S.runNumber === 2;
-const isLocked = isRun2 && (heroType === 'warrior' || heroType === 'healer');
-
-const cardArea = document.getElementById('hero-card-area');
 const portrait = HERO_PORTRAITS[heroType] || '';
-cardArea.innerHTML = `
-<div style="background:white;border:3px solid ${isSelected?'#2563eb':'#000'};border-radius:8px;padding:1.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.1)">
+
+// Toggle selection
+const isSelected = sel.includes(heroType);
+if(isSelected) {
+sel = sel.filter(h => h !== heroType);
+} else {
+if(sel.length < 2) {
+sel.push(heroType);
+}
+}
+
+// Update all card displays
+['warrior', 'tank', 'mage', 'healer'].forEach(h => {
+const cardEl = document.getElementById(`${h}-card`);
+if(!cardEl) return;
+
+if(sel.includes(h)) {
+const hData = heroData[h];
+const hPortrait = HERO_PORTRAITS[h] || '';
+cardEl.innerHTML = `
+<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
 <div style="text-align:center">
-<h3 style="margin:0 0 1rem 0;font-size:1.5rem">${hero.name}</h3>
-${portrait ? `<div style="margin-bottom:1rem"><img src="${portrait}" style="max-width:200px;max-height:200px;border-radius:8px;border:2px solid #000;image-rendering:auto"></div>` : ''}
-<div style="font-size:1.1rem;margin-bottom:0.5rem">
-<span style="margin-right:1rem">${hero.pow}⚡ POW</span>
-<span>${hero.hp}❤ HP</span>
-</div>
-<div style="font-size:0.9rem;opacity:0.7;margin-bottom:1rem">${hero.desc}</div>
-
-<div style="margin:1rem 0">
-<strong>Starting Sigils:</strong>
-<div class="sigil-row" style="display:flex;justify-content:center;margin-top:0.5rem;gap:0.5rem">
-${hero.sigils.map(s => `
-<span class="sigil l1"
-onmouseenter="showTooltip('${s}', this)"
-onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)"
-ontouchend="hideTooltip()"
-style="font-size:1.2rem;padding:0.5rem 0.75rem">${sigilIconOnly(s)}</span>
-`).join('')}
-</div>
-</div>
-
-${isLocked ? `
-<button class="btn" disabled style="opacity:0.4;padding:0.75rem 1.5rem;margin-top:1rem">
-Locked for Run 2
-</button>
-` : `
-<button class="btn" onclick="pick('${heroType}')"
-style="background:${isSelected?'#dc2626':'#22c55e'};padding:0.75rem 1.5rem;margin-top:1rem">
-${isSelected ? 'Deselect' : (canSelect ? 'Select Hero' : 'Max 2 Heroes')}
-</button>
-`}
+${hPortrait ? `<img src="${hPortrait}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;image-rendering:auto">` : ''}
+<div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
+<div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
+<div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
 </div>
 </div>`;
+cardEl.style.display = 'block';
+} else {
+cardEl.style.display = 'none';
 }
+});
+
+// Handle tapo specially if it exists
+if(heroType === 'tapo' || sel.includes('tapo')) {
+// Tapo button will be updated by title() re-render
+}
+
+updateSelectionDisplay();
+}
+
 
 function updateSelectionDisplay() {
 const display = document.getElementById('selection-display');
@@ -1469,7 +1473,7 @@ updateSelectionDisplay();
 
 // Refresh the hero card to show updated selection state
 if(selectedHeroView === t) {
-viewHero(t);
+toggleHeroSelection(t);
 }
 }
 
