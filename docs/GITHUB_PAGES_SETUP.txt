@@ -1,0 +1,100 @@
+================================================================================
+              🌐 EASIEST SOLUTION: GitHub Pages (FREE!)
+================================================================================
+
+Instead of downloading files, just visit a URL in Safari! No apps needed!
+
+SETUP (One-time, 2 minutes):
+-----------------------------
+
+1. Go to your GitHub repository:
+   https://github.com/preswes14/FROGGLE
+
+2. Click "Settings" (top menu)
+
+3. Click "Pages" (left sidebar)
+
+4. Under "Source":
+   - Branch: Select "main"
+   - Folder: Select "/ (root)"
+   - Click "Save"
+
+5. Wait 1-2 minutes for GitHub to deploy
+
+6. Your game will be live at:
+   https://preswes14.github.io/FROGGLE/
+
+THAT'S IT! 🎉
+
+
+USING ON iPHONE:
+----------------
+
+1. Open Safari on your iPhone
+
+2. Visit: https://preswes14.github.io/FROGGLE/
+
+3. Tap "📱 Play on Mobile" button
+
+4. Game loads instantly!
+
+5. Add to Home Screen:
+   - Tap Share button
+   - "Add to Home Screen"
+   - Now it's an app icon!
+
+6. Works offline after first load!
+
+
+WHY THIS IS BETTER:
+-------------------
+
+✅ No downloading files
+✅ No zip extraction
+✅ No file management
+✅ Works perfectly in Safari
+✅ Free forever
+✅ Easy to update (just push to GitHub)
+✅ Share with beta testers easily (just send URL!)
+
+
+================================================================================
+          📱 ALTERNATIVE: Paid Apps (if GitHub Pages doesn't work)
+================================================================================
+
+If you need an app solution:
+
+1. Working Copy ($20 one-time)
+   - Git client for iOS
+   - Built-in HTML preview
+   - Best for developers
+   - Can clone your repo and view HTML
+
+2. Inspect Browser (Free with limits, $7/month)
+   - Made for web developers
+   - Local HTML file viewing
+   - Dev tools included
+
+3. Textastic ($10 one-time)
+   - Code editor for iOS
+   - Built-in web preview
+   - Can open HTML files
+
+
+================================================================================
+                     🎯 MY RECOMMENDATION
+================================================================================
+
+Use GitHub Pages! It's:
+- Free
+- No app needed
+- Works perfectly on iPhone
+- Easy to share with beta testers
+- No file management hassles
+
+Just enable it in your repo settings and visit the URL!
+
+
+Need help enabling GitHub Pages? Let me know!
+
+================================================================================
