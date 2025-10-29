@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo.png"/>
 <link rel="icon" type="image/png" href="assets/tapo.png"/>
-<title>FROGGLE v9.5 - BETA RELEASE</title>
+<title>FROGGLE v9.6 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -125,7 +125,8 @@ const HERO_IMAGES = {
         warrior: 'warrior-pixel.png',
         tank: 'tankpixel.png',
         mage: 'magepixel.png',
-        healer: 'healerpixel.png'
+        healer: 'healerpixel.png',
+        tapo: 'tapopixel.png'
     };
 
 // Hero portrait images for selection screen
@@ -133,7 +134,8 @@ const HERO_PORTRAITS = {
         warrior: 'warriorfull.png',
         tank: 'tankfull.png',
         mage: 'magefull.png',
-        healer: 'healerfull.png'
+        healer: 'healerfull.png',
+        tapo: 'tapofull.png'
     };
 
 const H = {
@@ -602,7 +604,7 @@ v.innerHTML = `
 
 <!-- Version label -->
 <div style="background:rgba(0,0,0,0.7);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(255,255,255,0.3);margin-bottom:1.5rem">
-<p style="font-size:0.9rem;color:white;font-weight:bold">v9.0 BETA RELEASE</p>
+<p style="font-size:0.9rem;color:white;font-weight:bold">v9.6 BETA RELEASE</p>
 </div>
 
 <!-- Button container -->
@@ -1381,7 +1383,7 @@ showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with 
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.5 BETA RELEASE</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.6 BETA RELEASE</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#14b8a6'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
 ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -1478,12 +1480,12 @@ if(!cardEl) return;
 
 if(sel.includes(h)) {
 const hData = heroData[h];
-const hPortrait = HERO_PORTRAITS[h] || '';
+const hPixelImage = HERO_IMAGES[h] || '';
 cardEl.innerHTML = `
 <div onclick="toggleHeroSelection('${h}')" style="cursor:pointer;background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
 <div style="text-align:center">
 <div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
-${hPortrait ? `<img src="${hPortrait}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;image-rendering:auto">` : ''}
+${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;image-rendering:pixelated">` : ''}
 <div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
 <div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
 </div>
