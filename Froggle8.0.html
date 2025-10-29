@@ -180,11 +180,7 @@ let tooltipTimeout = null;
 let currentTooltip = null;
 
 function showTooltip(sigilName, element) {
-// Tutorial: First time seeing a tooltip
-if(!S.tutorialsDisabled && !S.tutorialFlags.sigil_tooltip_intro) {
-S.tutorialFlags.sigil_tooltip_intro = true;
-savePermanent();
-}
+// Tooltip display (tutorial explanation happens in Ribbleton combat)
 
 const desc = SIGIL_DESCRIPTIONS[sigilName];
 if(!desc) return;
@@ -293,6 +289,18 @@ treasureSecretCompartment: false,
 runNumber: 1,
 // Tutorial flags (permanent - shown once ever)
 tutorialFlags: {
+ribbleton_intro: false,
+ribbleton_warrior_attack: false,
+ribbleton_targeting: false,
+ribbleton_healer_d20: false,
+ribbleton_d20_menu: false,
+ribbleton_enemy_turn: false,
+ribbleton_healer_heal: false,
+ribbleton_expand: false,
+ribbleton_finish_wolf: false,
+ribbleton_shield_sigil: false,
+ribbleton_handoff: false,
+ribbleton_tooltip_intro: false,
 levelup_intro: false,
 levelup_stat_upgrade: false,
 levelup_add_active: false,
@@ -304,7 +312,6 @@ neutral_intro: false,
 neutral_d20_level: false,
 last_stand_intro: false,
 run2_hero_lock: false,
-sigil_tooltip_intro: false,
 first_victory_sequence: false,
 first_fu_victory: false
 },
