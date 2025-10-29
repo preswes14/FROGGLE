@@ -1510,6 +1510,11 @@ startFloor(1);
 function startFloor(f) {
 S.floor=f;
 upd();
+// Special: Floor 20 in Effed mode shows Old Tapo encounter
+if(f === 20 && S.gameMode === 'Effed') {
+showOldTapo();
+return;
+}
 if(f >= 20) { win(); return; }
 // Floor 11 is always ambushed (Goblin Army)
 if(f === 11) {
@@ -4318,6 +4323,60 @@ v.innerHTML = `
 </div>`;
 }
 
+// ===== OLD TAPO ENCOUNTER (FLOOR 20) =====
+function showOldTapo() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
+<div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
+"Tapo, you say? Yes…. I was called Tapo once, before I mastered the mysteries of space and time. Save me? Why, I need no saving… In fact…."
+</div>
+<button class="btn" onclick="oldTapoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
+</div>`;
+}
+
+function oldTapoTransform() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div style="text-align:center;margin:2rem 0">
+<div style="font-size:3rem;animation:clap 0.5s ease-in-out 3;margin-bottom:2rem">👏</div>
+<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #fbbf24;animation:bounce 1s ease-in-out 3">
+<div style="font-size:2.5rem;font-weight:bold;color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
+✨ Tapo Unlocked! ✨
+</div>
+<div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
+Baby Tapo has been added to your hero roster!<br>
+<span style="color:#22c55e">Stats: 1 HP / 1 POW</span><br>
+<span style="color:#8b5cf6">Starts with ALL active sigils!</span>
+</div>
+</div>
+<button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #fbbf24, #f59e0b);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
+</div>
+<style>
+@keyframes clap {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.5); }
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+@keyframes glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+</style>`;
+}
+
+function completeTapoUnlock() {
+S.tapoUnlocked = true;
+savePermanent();
+win();
+}
+
 // ===== DEATH SCREEN =====
 function showDeathScreen() {
 showTutorialPop('death_intro', "First time, huh? Doesn't seem like it's quite your time yet, and I think keeping you alive could be profitable for me. Cash in Gold now for PERMANENT upgrades.");
@@ -4652,7 +4711,7 @@ S.tutorialFlags.first_victory_sequence = true;
 const firstFU = S.gameMode === 'Effed' && !S.tutorialFlags.first_fu_victory;
 if(firstFU) {
 S.tutorialFlags.first_fu_victory = true;
-S.tapoUnlocked = true; // Unlock Tapo as playable hero
+// Note: Tapo is now unlocked at Floor 20 via Old Tapo encounter
 }
 
 savePermanent();
@@ -4669,6 +4728,15 @@ return;
 // FIRST FU VICTORY: Show credits
 if(firstFU) {
 showFUVictoryCredits();
+return;
+}
+
+// TAPO IN PARTY: Show heartfelt thank you
+const tapoInParty = S.heroes.some(h => h.n === 'Tapo');
+if(tapoInParty && !S.tutorialFlags.tapo_victory_message) {
+S.tutorialFlags.tapo_victory_message = true;
+savePermanent();
+showTapoVictoryMessage();
 return;
 }
 
@@ -4740,6 +4808,44 @@ v.innerHTML = `
 <div style="text-align:center">
 <button class="btn" onclick="showStatueRoom()" style="background:#22c55e;padding:1rem 2rem;font-size:1.1rem;margin-bottom:1rem">Place Figurines</button>
 <button class="btn" onclick="title()" style="padding:1rem 2rem;font-size:1.1rem">Play Again</button>
+</div>
+</div>`;
+}
+
+function showTapoVictoryMessage() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #fbbf24;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+<h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
+
+<div style="text-align:center;margin:2rem 0">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:bounce 2s ease-in-out infinite">
+</div>
+
+<div style="background:rgba(0,0,0,0.2);padding:2rem;border-radius:12px;margin:2rem 0;border:2px solid rgba(251,191,36,0.5)">
+<p style="text-align:center;font-size:1.3rem;line-height:2;margin-bottom:1.5rem;font-weight:500">
+Holy frog. I can't believe you put this much time into my silly little game.
+</p>
+<p style="text-align:center;font-size:1.3rem;line-height:2;margin-bottom:1.5rem;font-weight:500">
+From the bottom of my heart, thank you for playing.
+</p>
+<p style="text-align:center;font-size:1.3rem;line-height:2;font-weight:500">
+I hope you had fun!
+</p>
+<p style="text-align:center;font-size:1.1rem;margin-top:2rem;font-style:italic;opacity:0.9">
+-Preston
+</p>
+</div>
+
+<div style="text-align:center;font-size:2.5rem;margin:2rem 0">
+❤️🐸❤️
+</div>
+
+<div style="text-align:center;margin-top:2rem">
+${window.earnedFigurines && window.earnedFigurines.length > 0 ?
+  '<button class="btn" onclick="showStatueRoom()" style="background:#fbbf24;color:#000;padding:1rem 2rem;font-size:1.1rem;margin-bottom:1rem;font-weight:bold">Place Figurines</button><br>' :
+  ''}
+<button class="btn" onclick="title()" style="background:#fff;color:#22c55e;padding:1rem 2rem;font-size:1.1rem;font-weight:bold">Play Again</button>
 </div>
 </div>`;
 }
