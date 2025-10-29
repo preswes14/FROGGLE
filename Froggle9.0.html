@@ -633,11 +633,41 @@ showNarrativeSlide(slides, nextIndex);
 function showTutorialStory() {
 const slides = [
 {text: "The town of Ribbleton was celebrating Tapo the Tadpole's first birthday! The whole village gathered around the little one, ribbiting with joy..."},
-{text: "Suddenly, a dark portal tore open in the town square! Strange enemies, the likes of which had never been seen in Ribbleton, spilled out!"},
-{text: "Two of our brave heroes defended the townsfolk, while the Warrior and Healer charged the closest foes!"}
+{text: "Suddenly, a dark portal tore open in the town square! Strange, dangerous enemies began to emerge..."}
 ];
-slides.onComplete = startRibbletonTutorial;
+slides.onComplete = () => {
+// Start combat FIRST so enemies are visible
+startRibbletonTutorial();
+
+// Then show narrative overlay describing what's happening
+setTimeout(() => {
+showTutorialStoryOverlay();
+}, 100);
+};
 showNarrativeSlide(slides, 0);
+}
+
+function showTutorialStoryOverlay() {
+// Show narrative on TOP of combat screen
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:500px">
+<p style="font-size:1.1rem;line-height:1.6">A Goblin and a Wolf have appeared! Your Warrior and Healer spring into action to defend the town!</p>
+<button onclick="dismissStoryOverlay()" style="margin-top:1.5rem;padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#14b8a6;color:#fff;border:2px solid #0f766e;border-radius:8px;cursor:pointer">Let's fight!</button>
+</div>`;
+document.body.appendChild(overlay);
+}
+
+function dismissStoryOverlay() {
+const overlay = document.querySelector('.tutorial-modal-backdrop');
+if(overlay) overlay.remove();
+
+// Show first combat tutorial
+showTutorialPop('ribbleton_warrior_attack', "Quick! Attack an enemy! Click on Warrior's Attack sigil.", () => {
+S.activeIdx = 0;
+renderTutorialCombat();
+});
 }
 
 function skipTutorial() {
@@ -686,13 +716,7 @@ S.targets = [];
 S.recruits = [];
 
 renderTutorialCombat();
-
-// Show first tutorial prompt
-showTutorialPop('ribbleton_warrior_attack', "Quick! Attack an enemy! Click on Warrior's Attack sigil.", () => {
-// After dismissal, highlight warrior
-S.activeIdx = 0;
-renderTutorialCombat();
-});
+// Don't show tutorial prompt here - it will be shown after story overlay is dismissed
 }
 
 function renderTutorialCombat() {
