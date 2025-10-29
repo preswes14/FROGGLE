@@ -339,6 +339,7 @@ sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
+hasAncientStatuette: S.hasAncientStatuette,
 pedestal: S.pedestal,
 effedUnlocked: S.effedUnlocked,
 runNumber: S.runNumber,
@@ -358,6 +359,7 @@ S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
+S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.pedestal = j.pedestal || [];
 S.effedUnlocked = j.effedUnlocked || false;
 S.runNumber = j.runNumber || 1;
@@ -3217,6 +3219,8 @@ if(h.h < 1) h.h = 1;
 }
 
 if(getStatuette) {
+S.hasAncientStatuette = true;
+savePermanent();
 toast('Ancient Statuette obtained!', 2000);
 }
 
@@ -3640,7 +3644,7 @@ location.reload();
 function showPedestal() {
 const v = document.getElementById('gameView');
 const heroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
-const heroIcons = {'Warrior': '⚔️', 'Tank': '🛡️', 'Mage': '📖', 'Healer': '⚕️'};
+const heroIcons = {'Warrior': '⚔', 'Tank': '🛡', 'Mage': '📖', 'Healer': '✚'};
 const stats = ['POW', 'HP'];
 
 // Count available figurines (earned from victories, not yet slotted)
@@ -3660,9 +3664,9 @@ let html = `
 <tr>
 <th style="width:80px"></th>`;
 
-// Column headers (hero icons)
+// Column headers (hero icons) - monochrome and engraved
 heroes.forEach(hero => {
-html += `<th style="text-align:center;font-size:1.5rem">${heroIcons[hero]}<div style="font-size:0.75rem;font-weight:normal;margin-top:0.25rem">${hero}</div></th>`;
+html += `<th style="text-align:center;font-size:1.5rem"><span style="filter:grayscale(1) contrast(999);opacity:0.8;display:inline-block">${heroIcons[hero]}</span><div style="font-size:0.75rem;font-weight:normal;margin-top:0.25rem">${hero}</div></th>`;
 });
 
 html += `</tr></thead><tbody>`;
@@ -3679,7 +3683,9 @@ html += `<td style="text-align:center">
 <div style="width:80px;height:80px;margin:0 auto;background:${isSlotted ? '#fbbf24' : '#fff'};border:2px solid #000;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative" onclick="${isSlotted ? `removeFigurine('${hero}','${stat}')` : `slotFigurine('${hero}','${stat}')`}">`;
 
 if(isSlotted) {
-html += `<div style="font-size:2rem">${heroIcons[hero]}</div>
+const displayIcon = slotted.source === 'statuette' ? '🗿' : heroIcons[hero];
+const iconStyle = 'font-size:2rem;' + (slotted.source === 'statuette' ? 'filter:grayscale(1) contrast(1.2);' : 'filter:grayscale(1) contrast(999);');
+html += `<div style="${iconStyle}">${displayIcon}</div>
 <div style="position:absolute;top:2px;right:4px;font-size:0.7rem;background:#000;color:#fff;padding:2px 4px;border-radius:3px">${stat === 'POW' ? '+1' : '+5'}</div>`;
 } else {
 html += `<div style="font-size:1.5rem;color:#ccc">+</div>`;
@@ -3721,10 +3727,27 @@ toast('All 8 slots filled! Remove a figurine first.');
 return;
 }
 
-// Add the figurine
-S.pedestal.push({hero, stat, mode: S.gameMode});
+// Use Ancient Statuette if available (can go in any slot)
+if(S.hasAncientStatuette) {
+S.pedestal.push({hero, stat, mode: S.gameMode, source: 'statuette'});
+S.hasAncientStatuette = false;
 savePermanent();
-toast(`${hero} ${stat} figurine placed!`);
+toast(`Ancient Statuette placed on ${hero} ${stat}!`, 3000);
+showPedestal();
+return;
+}
+
+// Otherwise, check if this hero can have a figurine (max 2 per hero per mode)
+const existingCount = S.pedestal.filter(p => p.hero === hero && p.mode === S.gameMode).length;
+if(existingCount >= 2) {
+toast(`${hero} already has 2 figurines in ${S.gameMode} mode!`, 3000);
+return;
+}
+
+// Place the hero figurine
+S.pedestal.push({hero, stat, mode: S.gameMode, source: 'hero'});
+savePermanent();
+toast(`${hero} ${stat} figurine placed!`, 3000);
 showPedestal();
 }
 
