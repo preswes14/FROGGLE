@@ -122,6 +122,30 @@ const ENEMY_EMOJI = {
 'Dragon': '🐉'
 };
 
+// Sigil icons
+const SIGIL_ICONS = {
+'Attack': '⚔️',
+'Shield': '🛡️',
+'Heal': '✚',
+'D20': '◈',
+'Asterisk': '✱',
+'Alpha': 'α',
+'Expand': '⊕',
+'Grapple': '✊',
+'Star': '⭐',
+'Ghost': '👻'
+};
+
+// Helper function to display sigil with icon
+function sigilIcon(name) {
+return `${SIGIL_ICONS[name] || ''}${name}`;
+}
+
+// Helper function to display just the icon
+function sigilIconOnly(name) {
+return SIGIL_ICONS[name] || name;
+}
+
 function generateFibonacci(n) {
 const fib = [1, 1];
 for(let i = 2; i < n; i++) fib.push(fib[i-1] + fib[i-2]);
@@ -1727,7 +1751,7 @@ const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
-html += `<span class="sigil ${cl}">${s}${lvl>0?lvl:''}</span>`;
+html += `<span class="sigil ${cl}">${sigilIconOnly(s)}${lvl>0?lvl:''}</span>`;
 });
 html += '</div></div>';
 });
@@ -1762,7 +1786,7 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
@@ -1855,7 +1879,7 @@ const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===
 const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
-html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}>${s}${lvl>0?lvl:''}</span>`;
+html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}>${sigilIconOnly(s)}${lvl>0?lvl:''}</span>`;
 });
 html += '</div></div>';
 // Show recruit for this hero if exists
@@ -1876,7 +1900,7 @@ html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 recruit.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 }
@@ -1916,7 +1940,7 @@ html += '<span class="sigil engraved">⚔️</span>';
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}">${sigil.sig}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
@@ -2043,7 +2067,7 @@ if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1r
 else {
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sig} L${level} → L${level+1}</strong></div>`;
+html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong></div>`;
 });
 }
 }
@@ -2087,7 +2111,7 @@ available.forEach(sig => {
 const level = S.sig[sig] || 0;
 const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
-<strong>${sig}</strong> <span style="opacity:0.7">(${levelText})</span>
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
 </div>`;
 });
 }
@@ -2256,7 +2280,7 @@ html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to up
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
 html += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})">
-<strong>${sig}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
 </div>`;
 });
 html += `<button class="btn risky" onclick="finishDeathsBargain()">Decline</button>`;
@@ -2595,7 +2619,7 @@ heroesWithSigil.forEach(idx => {
 const h = S.heroes[idx];
 const currentLevel = getLevel(randomSigil, idx);
 html += `<div class="choice" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">
-<strong>${h.n}</strong> <span style="opacity:0.7">${randomSigil} L${currentLevel} → L${currentLevel+1}</span>
+<strong>${h.n}</strong> <span style="opacity:0.7">${sigilIcon(randomSigil)} L${currentLevel} → L${currentLevel+1}</span>
 </div>`;
 });
 html += `</div>`;
@@ -3041,6 +3065,7 @@ const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:450px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Growing Larger</div>
 <div class="neutral-desc">The statue IS getting bigger! The room feels smaller. ${deactivated ? 'It moves smoothly and gently, non-threatening.' : 'Its stone surface creaks as it expands.'}</div>
 <button class="btn risky" onclick="statueEscape(2)">Make a break for exit</button>
@@ -3053,6 +3078,7 @@ const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:500px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Consuming the Room</div>
 <div class="neutral-desc">The statue now fills most of the room! ${deactivated ? 'Despite its size, it moves with graceful precision.' : 'There\'s still a tight squeeze to the exit...'}</div>
 <button class="btn risky" onclick="statueEscape(3)">Squeeze out to exit</button>
@@ -3065,6 +3091,7 @@ const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:550px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Smooth Metal Pressing - LAST CHANCE</div>
 <div class="neutral-desc">${deactivated ? 'The statue\'s polished surface gleams as it gently fills the space.' : 'The statue\'s smooth metal presses against the walls and you! This is your last chance to escape!'}</div>
 <button class="btn danger" onclick="statueEscape(4)">ESCAPE NOW</button>
@@ -3389,10 +3416,10 @@ v.innerHTML = `
 <div class="neutral-desc">The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!</div>
 <div class="neutral-outcome">Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:</div>
 <div class="choice" onclick="choosePrinceSigil('${sigil1}')">
-<strong>${sigil1}</strong> <span style="opacity:0.7">L${S.sig[sigil1] || 0} → L${(S.sig[sigil1] || 0) + 1}</span>
+<strong>${sigilIcon(sigil1)}</strong> <span style="opacity:0.7">L${S.sig[sigil1] || 0} → L${(S.sig[sigil1] || 0) + 1}</span>
 </div>
 <div class="choice" onclick="choosePrinceSigil('${sigil2}')">
-<strong>${sigil2}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
+<strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
 </div>
 </div>`;
 }
@@ -3442,7 +3469,7 @@ const nextColorClass = ['#000', '#fff', '#14b8a6', '#a855f7', '#fbbf24'][current
 
 html += `
 <div style="background:rgba(255,255,255,0.05);padding:0.75rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
-<div style="font-weight:bold;margin-bottom:0.5rem">${sig}</div>
+<div style="font-weight:bold;margin-bottom:0.5rem">${sigilIcon(sig)}</div>
 <div style="font-size:0.9rem;margin-bottom:0.5rem">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${currentLevel+1}</span>
 </div>
@@ -3477,7 +3504,7 @@ const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
 const canSellBack = currentLevel > baseLevel;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
-<span>${sig} L${currentLevel}</span>
+<span>${sigilIcon(sig)} L${currentLevel}</span>
 <button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
 </button>
@@ -3500,7 +3527,7 @@ const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
 const canSacrifice = currentLevel > baseLevel && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
-<span>${sig} L${currentLevel}</span>
+<span>${sigilIcon(sig)} L${currentLevel}</span>
 <button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
 </button>
