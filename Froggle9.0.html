@@ -609,13 +609,13 @@ return;
 
 const slide = slides[currentIndex];
 const v = document.getElementById('gameView');
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:1rem">
-<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">
-${slide.text}
-</div>
+${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
 <div style="text-align:center">
 <button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem">${slide.buttonText || 'Continue'}</button>
+${skipButton}
 </div>
 </div>`;
 
@@ -629,12 +629,87 @@ const nextIndex = window.currentNarrativeIndex + 1;
 showNarrativeSlide(slides, nextIndex);
 }
 
+function skipTutorialFromSlide() {
+S.tutorialsDisabled = true;
+savePermanent();
+toast('Tutorial skipped! Going to hero selection...', 2000);
+setTimeout(() => title(), 500);
+}
+
 // ===== RIBBLETON TUTORIAL INTRO =====
 function showTutorialStory() {
 const slides = [
-{text: "The town of Ribbleton was celebrating Tapo the Tadpole's first birthday! The whole village gathered around the little one, ribbiting with joy..."},
-{text: "Suddenly, a dark portal tore open in the town square! Strange, dangerous enemies began to emerge..."}
+{
+html: `
+<div style="text-align:center">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#14b8a6">The Town of Ribbleton</h2>
+<div style="margin:1.5rem 0">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+</div>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Today is <strong>Tapo the Tadpole's first birthday!</strong><br>
+The whole village gathered to celebrate! 🎉
+</p>
+<div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
+<div style="animation:partyFlip 1s ease-in-out infinite;font-size:3rem">⚔️</div>
+<div style="animation:partyFlip 1.2s ease-in-out infinite;font-size:3rem">🛡️</div>
+<div style="animation:partyFlip 0.8s ease-in-out infinite;font-size:3rem">📖</div>
+<div style="animation:partyFlip 1.4s ease-in-out infinite;font-size:3rem">✚</div>
+</div>
+<p style="font-size:0.9rem;opacity:0.7;font-style:italic">Our brave heroes were enjoying the festivities...</p>
+</div>
+<style>
+@keyframes bounce {
+0%, 100% { transform: translateY(0) scale(1); }
+50% { transform: translateY(-20px) scale(1.05); }
+}
+@keyframes partyFlip {
+0%, 100% { transform: scaleX(1) rotate(0deg); }
+50% { transform: scaleX(-1) rotate(10deg); }
+}
+</style>
+`
+},
+{
+html: `
+<div style="text-align:center">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
+<div style="margin:1.5rem 0;position:relative">
+<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:portalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
+</div>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<strong>A dark portal</strong> tore open in the town square!<br>
+Strange, dangerous enemies began to emerge...
+</p>
+<div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
+<div style="animation:enemyAppear 1s ease-out">👺</div>
+<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
+</div>
+</div>
+<style>
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-5px); }
+75% { transform: translateX(5px); }
+}
+@keyframes portalPulse {
+0%, 100% { transform: scale(1); opacity: 0.8; }
+50% { transform: scale(1.1); opacity: 1; }
+}
+@keyframes spin {
+from { transform: translate(-50%, -50%) rotate(0deg); }
+to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes enemyAppear {
+from { transform: scale(0) rotate(-180deg); opacity: 0; }
+to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+</style>
+`
+}
 ];
+slides.skippable = true; // Make tutorial skippable
 slides.onComplete = () => {
 // Start combat FIRST so enemies are visible
 startRibbletonTutorial();
@@ -654,7 +729,10 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:500px">
 <p style="font-size:1.1rem;line-height:1.6">A Goblin and a Wolf have appeared! Your Warrior and Healer spring into action to defend the town!</p>
-<button onclick="dismissStoryOverlay()" style="margin-top:1.5rem;padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#14b8a6;color:#fff;border:2px solid #0f766e;border-radius:8px;cursor:pointer">Let's fight!</button>
+<div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+<button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#14b8a6;color:#fff;border:2px solid #0f766e;border-radius:8px;cursor:pointer">Let's fight!</button>
+<button onclick="skipTutorialFromOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#888;color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
+</div>
 </div>`;
 document.body.appendChild(overlay);
 }
@@ -668,6 +746,15 @@ showTutorialPop('ribbleton_warrior_attack', "Quick! Attack an enemy! Click on Wa
 S.activeIdx = 0;
 renderTutorialCombat();
 });
+}
+
+function skipTutorialFromOverlay() {
+const overlay = document.querySelector('.tutorial-modal-backdrop');
+if(overlay) overlay.remove();
+S.tutorialsDisabled = true;
+savePermanent();
+toast('Tutorial skipped! Going to hero selection...', 2000);
+setTimeout(() => title(), 500);
 }
 
 function skipTutorial() {
