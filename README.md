@@ -10,12 +10,13 @@ Works on desktop and mobile browsers!
 
 ## About
 
-FROGGLE is a roguelike dungeon crawler featuring:
+FROGGLE is a (f)roguelike dungeon crawler featuring:
 - 4 unique hero classes
 - 20 floors of challenging encounters
 - Collectible sigils and relics
 - Progressive difficulty
 - Auto-save functionality
+- An adorable Tadpole named Tapo who you MUST SAVE!
 
 ## For Beta Testers
 
