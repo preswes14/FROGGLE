@@ -5,17 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-title" content="FROGGLE"/>
-<title>FROGGLE v9.0 - BETA RELEASE</title>
+<title>FROGGLE v9.5 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
 .header { padding: 0.5rem; background: linear-gradient(#fff, #f7f1e3); border-bottom: 2px solid #bda; display: flex; justify-content: space-between; font-size: 0.8rem; }
 .game-area { height: calc(100vh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
-.btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; }
+.btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
 .btn:active { transform: scale(0.98); opacity: 0.9; }
 .btn.safe { background: #22c55e; }
 .btn.risky { background: #f59e0b; }
 .btn.danger { background: #dc2626; }
+.btn.secondary { background: #6b7280; }
 .choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; }
 .choice:active { transform: scale(0.98); background: #f0f0f0; }
 .neutral-container { background: white; border: 3px solid #000; border-radius: 8px; padding: 1.5rem; margin: 1rem auto; max-width: 500px; }
@@ -75,16 +76,16 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 }
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: 2px solid #000; border-radius: 10px; padding: 3px 6px; font-size: 0.7rem; display: inline-block; margin: 2px; min-height: 24px; font-weight: bold; }
+.sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
-.sigil.l0 { background: #3a3a3a; color: #999; border-color: #555; }
-.sigil.l1 { background: #fff; color: #000; }
-.sigil.l2 { background: #14b8a6; color: #fff; border-color: #0f766e; }
-.sigil.l3 { background: #a855f7; color: #fff; border-color: #7e22ce; }
-.sigil.l4 { background: #fbbf24; color: #000; border-color: #f59e0b; }
-.sigil.engraved { background: #6b7280; color: #d1d5db; font-style: italic; opacity: 0.8; }
+.sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
+.sigil.l1 { color: #1e40af; border-color: #1e40af; }
+.sigil.l2 { color: #0d9488; border-color: #0d9488; }
+.sigil.l3 { color: #9333ea; border-color: #9333ea; }
+.sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
+.sigil.engraved { color: #6b7280; border-color: #9ca3af; font-style: italic; opacity: 0.7; background: rgba(107,114,128,0.1); }
 .sigil.asterisk-primed { box-shadow: 0 0 8px #fbbf24; animation: pulse-asterisk 1s infinite; }
 @keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #fbbf24; } 50% { box-shadow: 0 0 16px #fbbf24; } }
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
@@ -362,6 +363,17 @@ const colors = [
 '#392a31', '#2f2029', '#251621', '#1b0c19' // Floors 17-20
 ];
 return colors[Math.min(floor - 1, colors.length - 1)] || colors[0];
+}
+
+function renderHeroCard(hero, idx, onclickHandler, extraInfo = '') {
+const hp = hero.ls ? `Last Stand (T${hero.lst+1})` : `${hero.h}/${hero.m}❤`;
+const extra = [];
+if(hero.sh > 0) extra.push(`${hero.sh}🛡`);
+if(hero.g > 0) extra.push(`${hero.g}${sigilIconOnly('Ghost')}`);
+return `<div class="card hero" onclick="${onclickHandler}" style="cursor:pointer;margin-bottom:0.75rem;transition:transform 0.1s,box-shadow 0.1s" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${hero.n}</div>
+<div style="text-align:center;font-size:0.8rem">${hero.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
+</div>`;
 }
 
 function upd() {
@@ -1131,7 +1143,7 @@ v.innerHTML = `
 <div class="dice-roll">Rolling 1d20: [${fakeRoll}] → ${fakeRoll}</div>
 <div style="text-align:center;margin:1rem 0;font-size:1.1rem;color:#22c55e;font-weight:bold">SUCCESS! (DC 16)</div>
 <div style="text-align:center;margin-bottom:1.5rem">Wolf takes 2 damage from Confuse!</div>
-<button class="btn" onclick="finishTutorialD20()" style="background:#22c55e">Continue</button>
+<button class="btn" onclick="finishTutorialD20()" class="btn safe">Continue</button>
 </div>`;
 }
 
@@ -1776,8 +1788,8 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC},
 <span style="font-size:0.85rem">${opt.desc}</span>
 </div>`;
 });
-if(S.asteriskD20Count > 0) html += `<button class="btn" style="background:#22c55e" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
-else html += `<button class="btn" style="background:#6b7280" onclick="cancelAction()">Cancel</button>`;
+if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
+else html += `<button class="btn secondary" onclick="cancelAction()">Cancel</button>`;
 html += '</div>';
 v.innerHTML = html;
 }
@@ -2853,7 +2865,7 @@ v.innerHTML = `
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
 <div class="choice" onclick="levelUpMenu()">Spend XP</div>
-<button class="btn" style="background:#22c55e" onclick="nextFloor()">Next Floor</button>`;
+<button class="btn safe" onclick="nextFloor()">Next Floor</button>`;
 }
 
 function nextFloor() {
@@ -2869,7 +2881,7 @@ v.innerHTML = `
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;opacity:0.8">Spend it now or bank it for later. Remaining XP: <strong>${S.xp}</strong> | Next Level Cost: <strong>${nextCost}XP</strong></p>
 <div class="choice" onclick="startingXPMenu()">Spend XP</div>
-<button class="btn" style="background:#22c55e" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
+<button class="btn safe" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
 }
 
 function startingXPMenu() {
@@ -2881,7 +2893,7 @@ v.innerHTML = `
 <div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
 <div class="choice" onclick="upgradeSigil()">Upgrade Sigil Level</div>
 <div class="choice" onclick="addSigilToHero()">Add Sigil to Hero</div>
-<button class="btn" style="background:#6b7280" onclick="showStartingXPScreen()">Back</button>`;
+<button class="btn secondary" onclick="showStartingXPScreen()">Back</button>`;
 }
 
 function levelUpMenu() {
@@ -2894,7 +2906,7 @@ v.innerHTML = `
 <div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
 <div class="choice" onclick="upgradeSigil()">Upgrade Sigil Level</div>
 <div class="choice" onclick="addSigilToHero()">Add Sigil to Hero</div>
-<button class="btn" style="background:#6b7280" onclick="levelUp()">Back</button>`;
+<button class="btn secondary" onclick="levelUp()">Back</button>`;
 }
 
 function heroStats() {
@@ -2911,7 +2923,7 @@ html += `<div class="choice" onclick="upPow(${idx})"><strong>${h.n} POW</strong>
 html += `<div class="choice" onclick="upHP(${idx})"><strong>${h.n} HP</strong> (${h.m} → ${h.m+5})</div>`;
 });
 }
-html += `<button class="btn" style="background:#6b7280" onclick="levelUpMenu()">Back</button>`;
+html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -2964,7 +2976,7 @@ html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig
 });
 }
 }
-html += `<button class="btn" style="background:#6b7280" onclick="levelUpMenu()">Back</button>`;
+html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -2977,15 +2989,15 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p>`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:400px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
-html += `<div class="choice" onclick="selectHeroForSigil(${idx})">
-<strong>${h.n}</strong>
-<div style="font-size:0.85rem;margin-top:0.25rem">Current: ${h.s.join(', ')}</div>
-</div>`;
+const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
+html += renderHeroCard(h, idx, `selectHeroForSigil(${idx})`, sigilInfo);
 });
+html += '</div>';
 }
-html += `<button class="btn" style="background:#6b7280" onclick="levelUpMenu()">Back</button>`;
+}
+html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -3008,7 +3020,7 @@ html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 </div>`;
 });
 }
-html += `<button class="btn" style="background:#6b7280" onclick="addSigilToHero()">Back</button>`;
+html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -3108,11 +3120,11 @@ let shopLargeBought = false;
 function buySmallPotion() {
 if(S.gold < 3) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div>';
+let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div><div style="max-width:400px;margin:0 auto">';
 S.heroes.forEach((h, idx) => {
-html += `<div class="choice" onclick="applySmallPotion(${idx})"><strong>${h.n}</strong> (${h.h}/${h.m} HP)</div>`;
+html += renderHeroCard(h, idx, `applySmallPotion(${idx})`);
 });
-html += '<button class="btn" style="background:#6b7280" onclick="showShopkeeper1()">Back</button></div>';
+html += '</div><button class="btn secondary" onclick="showShopkeeper1()">Back</button></div>';
 v.innerHTML = html;
 }
 
@@ -3133,11 +3145,11 @@ showShopkeeper1();
 function buyLargePotion() {
 if(S.gold < 5) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div>';
+let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div><div style="max-width:400px;margin:0 auto">';
 S.heroes.forEach((h, idx) => {
-html += `<div class="choice" onclick="applyLargePotion(${idx})"><strong>${h.n}</strong> (${h.h}/${h.m} HP)</div>`;
+html += renderHeroCard(h, idx, `applyLargePotion(${idx})`);
 });
-html += '<button class="btn" style="background:#6b7280" onclick="showShopkeeper1()">Back</button></div>';
+html += '</div><button class="btn secondary" onclick="showShopkeeper1()">Back</button></div>';
 v.innerHTML = html;
 }
 
@@ -4066,11 +4078,12 @@ let html = `
 <img src="assets/neutrals/statue2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Statue Unfurls</div>
 <div class="neutral-desc">The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled.</div>
-<div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>`;
+<div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>
+<div style="max-width:400px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
-html += `<div class="choice" onclick="scaleStatue(${idx})"><strong>${h.n}</strong></div>`;
+html += renderHeroCard(h, idx, `scaleStatue(${idx})`);
 });
-html += `</div>`;
+html += `</div></div>`;
 v.innerHTML = html;
 }
 
@@ -4748,8 +4761,8 @@ showFUVictoryCredits();
 return;
 }
 
-// TAPO IN PARTY: Show heartfelt thank you
-const tapoInParty = S.heroes.some(h => h.n === 'Tapo');
+// TAPO IN PARTY: Show heartfelt thank you (only if Tapo is alive)
+const tapoInParty = S.heroes.some(h => h.n === 'Tapo' && h.h > 0 && !h.ls);
 if(tapoInParty && !S.tutorialFlags.tapo_victory_message) {
 S.tutorialFlags.tapo_victory_message = true;
 savePermanent();
