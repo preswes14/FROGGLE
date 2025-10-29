@@ -26,7 +26,11 @@ MOBILE (Android):
 WHAT TO TEST:
 - Does the title screen image display correctly?
 - Does the hero select screen show the 4 heroes banner?
+- Do the neutral encounter images show up on even floors (2, 4, 6...)?
+- Can you hover/long-press sigils to see tooltips explaining what they do?
 - Can you complete a run and see Tapo the Tadpole on the victory screen?
+- Does the Ancient Statue encounter work properly and award the statuette?
+- Can you place figurines on the Pedestal after winning?
 - Does the game work smoothly on your device?
 - Any bugs, glitches, or suggestions?
 
