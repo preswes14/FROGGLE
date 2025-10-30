@@ -163,39 +163,32 @@ const ENEMY_EMOJI = {
 'Dragon': '🐉'
 };
 
-// Sigil icons (monochrome for CSS color styling)
-const SIGIL_ICONS = {
-'Attack': '⚔️',     // Crossed swords (emoji made monochrome via CSS)
-'Shield': '⛉',      // Shield
-'Heal': '✚',        // Medical cross
-'D20': '⬡',         // Hexagon (wireframe d20)
-'Asterisk': '✱',    // Asterisk burst
-'Alpha': 'α',       // Greek alpha
-'Expand': '⊕',      // Crosshair/expand
-'Grapple': '☛',     // Pointing hand
-'Star': '★',        // Solid star
-'Ghost': '👻'       // Ghost (emoji made monochrome via CSS)
+// Sigil icons - now using extracted PNG images with transparent backgrounds
+const SIGIL_IMAGES = {
+'Attack': 'assets/sigils/attack.png',
+'Shield': 'assets/sigils/shield.png',
+'Heal': 'assets/sigils/heal.png',
+'D20': 'assets/sigils/d20.png',
+'Asterisk': 'assets/sigils/asterisk.png',
+'Alpha': 'assets/sigils/alpha.png',
+'Expand': 'assets/sigils/expand.png',
+'Grapple': 'assets/sigils/grapple.png',
+'Star': 'assets/sigils/star.png',
+'Ghost': 'assets/sigils/ghost.png'
 };
-
-// Track which icons need emoji filtering
-const EMOJI_ICONS = ['Attack', 'Ghost'];
 
 // Helper function to display sigil with icon
 function sigilIcon(name) {
-const icon = SIGIL_ICONS[name] || '';
-if (EMOJI_ICONS.includes(name)) {
-return `<span style="filter: grayscale(1) contrast(999); display: inline-block;">${icon}</span>${name}`;
-}
-return `${icon}${name}`;
+const imgPath = SIGIL_IMAGES[name];
+if (!imgPath) return name;
+return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:inline-block;margin-right:0.25em;filter:brightness(0);" alt="${name}">${name}`;
 }
 
 // Helper function to display just the icon
 function sigilIconOnly(name) {
-const icon = SIGIL_ICONS[name] || name;
-if (EMOJI_ICONS.includes(name)) {
-return `<span style="filter: grayscale(1) contrast(999); display: inline-block;">${icon}</span>`;
-}
-return icon;
+const imgPath = SIGIL_IMAGES[name];
+if (!imgPath) return name;
+return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;filter:brightness(0);" alt="${name}">`;
 }
 
 // Sigil descriptions for tooltips
