@@ -2571,32 +2571,62 @@ return expandSigil ? expandSigil.level : 0;
 }
 
 function selectEnemyTargets(enemy, count) {
-// Priority: recruited allies (highest POW) > lowest HP heroes > random
-let targets = [];
+// Priority:
+// 1. Hero directly across (lane index)
+// 2. That hero's recruited ally (if present)
+// 3. Heroes nearest to that first hero
+// 4. Any remaining heroes
+// 5. Nearest hero's recruited ally
+// 6. Any remaining allies
 
-// First, check for recruited allies
-if(S.recruits && S.recruits.length > 0) {
-const aliveRecruits = S.recruits.filter(r => r.h > 0);
-if(aliveRecruits.length > 0) {
-// Sort by POW descending
-aliveRecruits.sort((a, b) => b.p - a.p);
-for(let i = 0; i < Math.min(count, aliveRecruits.length); i++) {
-targets.push(aliveRecruits[i]);
+let targets = [];
+const added = new Set();
+
+// 1. Primary target: Hero in enemy's lane
+const primaryHero = S.heroes[enemy.li];
+if(primaryHero && primaryHero.h > 0) {
+targets.push(primaryHero);
+added.add(primaryHero.id);
 }
 if(targets.length >= count) return targets;
+
+// 2. That hero's recruited ally (if present)
+if(S.recruits && S.recruits.length > 0) {
+const primaryRecruit = S.recruits.find(r => r.li === enemy.li && r.h > 0);
+if(primaryRecruit) {
+targets.push(primaryRecruit);
+added.add(primaryRecruit.id);
 }
 }
+if(targets.length >= count) return targets;
 
-// Then, target heroes
-const aliveHeroes = S.heroes.filter(h => h.h > 0);
-if(aliveHeroes.length === 0) return targets;
+// 3-4. Expand to nearby heroes by distance from primary lane
+const aliveHeroes = S.heroes.filter(h => h.h > 0 && !added.has(h.id));
+// Sort by distance from enemy lane
+aliveHeroes.sort((a, b) => {
+const aIdx = S.heroes.indexOf(a);
+const bIdx = S.heroes.indexOf(b);
+return Math.abs(aIdx - enemy.li) - Math.abs(bIdx - enemy.li);
+});
 
-// Sort by HP ascending (lowest HP first)
-aliveHeroes.sort((a, b) => a.h - b.h);
+for(const hero of aliveHeroes) {
+if(targets.length >= count) break;
+targets.push(hero);
+added.add(hero.id);
+}
+if(targets.length >= count) return targets;
 
-const remaining = count - targets.length;
-for(let i = 0; i < Math.min(remaining, aliveHeroes.length); i++) {
-targets.push(aliveHeroes[i]);
+// 5-6. Recruited allies of nearby heroes, then any remaining
+if(S.recruits && S.recruits.length > 0) {
+const aliveRecruits = S.recruits.filter(r => r.h > 0 && !added.has(r.id));
+// Sort by lane distance from enemy
+aliveRecruits.sort((a, b) => Math.abs(a.li - enemy.li) - Math.abs(b.li - enemy.li));
+
+for(const recruit of aliveRecruits) {
+if(targets.length >= count) break;
+targets.push(recruit);
+added.add(recruit.id);
+}
 }
 
 return targets;
