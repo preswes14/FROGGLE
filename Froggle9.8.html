@@ -154,7 +154,7 @@ tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','D20','Expand','Grap
 const E = {
 goblin: { n:'Goblin', p:1, h:5, m:5, g:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
 wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
-orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Attack2','Shield2'], gainRate:2, startSigils:1 },
+orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
 giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
 dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Expand',l:4}], startSigils:2 }
 };
@@ -2159,14 +2159,14 @@ const pool = base.pool;
 if(!pool) return;
 const heldSigils = enemy.s.map(sigil => sigil.sig);
 if(pool === 'ANY') {
-const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk', 'Expand'];
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
 const level = 1 + Math.floor(Math.random() * 3);
 enemy.s.push({sig, level, perm:false});
 } else if(pool === 'ANY_ADVANCED') {
-const allSigils = ['Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk'];
+const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
@@ -2195,7 +2195,7 @@ const pool = enemy.pool;
 if(!pool || pool.length === 0) return;
 const heldSigils = enemy.s.map(sigil => sigil.sig);
 if(pool === 'ANY') {
-const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk', 'Expand'];
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
@@ -2203,7 +2203,7 @@ const level = 1 + Math.floor(Math.random() * 3);
 enemy.s.push({sig, level, perm:false});
 toast(`${enemy.n} drew ${sig} L${level}!`);
 } else if(pool === 'ANY_ADVANCED') {
-const allSigils = ['Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk'];
+const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
