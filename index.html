@@ -133,6 +133,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
+.npc-reaction { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background: rgba(255,255,255,0.98); border: 4px solid #000; border-radius: 16px; padding: 1.5rem; box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 15000; opacity: 0; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); pointer-events: none; max-width: 90%; }
+.npc-reaction.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.npc-reaction-img { width: 120px; height: 120px; object-fit: cover; border-radius: 50%; border: 3px solid #000; margin: 0 auto 1rem auto; display: block; }
+.npc-reaction-text { font-size: 1.1rem; font-weight: bold; text-align: center; line-height: 1.5; color: #1c1b19; max-width: 400px; margin: 0 auto; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
 .tutorial-modal { background: linear-gradient(#fff, #f7f1e3); border: 4px solid #fbbf24; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
@@ -532,6 +536,21 @@ setTimeout(() => t.remove(), 300);
 }, dur);
 }
 
+function showNPCReaction(imageSrc, message, dur=3000) {
+const reaction = document.createElement('div');
+reaction.className = 'npc-reaction';
+reaction.innerHTML = `
+<img src="${imageSrc}" class="npc-reaction-img" alt="NPC">
+<div class="npc-reaction-text">${message}</div>
+`;
+document.body.appendChild(reaction);
+setTimeout(() => reaction.classList.add('show'), 10);
+setTimeout(() => {
+reaction.classList.remove('show');
+setTimeout(() => reaction.remove(), 400);
+}, dur);
+}
+
 function showTutorialPop(flagName, message, onDismiss) {
 console.log('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
 if(S.tutorialsDisabled || S.tutorialFlags[flagName]) {
@@ -695,7 +714,8 @@ available = available.filter(n => !n.startsWith(base));
 }
 
 // Floor 10: NEVER allow Enemy Encampment (Floor 11 is always ambush)
-if(S.floor === 10) {
+// Floor 19: NEVER allow Enemy Encampment (Floor 20 is solo Dragon fight)
+if(S.floor === 10 || S.floor === 19) {
 available = available.filter(n => !n.startsWith('encampment'));
 }
 
@@ -1485,6 +1505,11 @@ return enemy;
 });
 if(S.ambushed) {
 toast('AMBUSHED! All heroes stunned Turn 1!', 3000);
+// Track if prince quest was active during ambush (extends deadline to Round 2)
+if(S.princeQuestActive) {
+S.princeQuestAmbushed = true;
+toast('Prince quest extended to Round 2 due to ambush!', 3000);
+}
 S.ambushed = false; // Clear flag after use
 }
 // Check if we need to show Encampment enemy selection
@@ -1826,10 +1851,14 @@ const dmg = enemy.p;
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
-// Check prince quest completion
-if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
+// Check prince quest completion (Round 1, or Round 2 if ambushed Round 1)
+const validRound = S.round === 1 || (S.round === 2 && S.princeQuestAmbushed);
+if(S.princeQuestActive && validRound && !S.princeQuestCompleted) {
 S.princeQuestCompleted = true;
 toast('Prince Quest completed! Ring retrieved!', 3000);
+setTimeout(() => {
+showNPCReaction('assets/reactions/prince-happy.png', `"You did it, thank you so much! I owe you!" The ${S.princeGender} retrieves the ring with tears of joy.`);
+}, 800);
 }
 } else if(action === 'STEAL') {
 const gold = enemy.p;
@@ -2147,10 +2176,14 @@ if(!e) return;
 totalDmg += e.p;
 e.st += stunDuration;
 targetNames.push(e.n);
-// Check prince quest completion
-if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
+// Check prince quest completion (Round 1, or Round 2 if ambushed Round 1)
+const validRound = S.round === 1 || (S.round === 2 && S.princeQuestAmbushed);
+if(S.princeQuestActive && validRound && !S.princeQuestCompleted) {
 S.princeQuestCompleted = true;
 toast('Prince Quest completed! Ring retrieved!', 3000);
+setTimeout(() => {
+showNPCReaction('assets/reactions/prince-happy.png', `"You did it, thank you so much! I owe you!" The ${S.princeGender} retrieves the ring with tears of joy.`);
+}, 800);
 }
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
@@ -2814,6 +2847,16 @@ if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 }
 });
 if(checkCombatEnd()) return;
+
+// Check prince quest failure at end of valid round
+const validRound = S.round === 1 || (S.round === 2 && S.princeQuestAmbushed);
+if(S.princeQuestActive && validRound && !S.princeQuestCompleted) {
+// Quest failed - prince couldn't get the ring
+setTimeout(() => {
+showNPCReaction('assets/reactions/prince-worried.png', `"No, my beloved's ring!! Oh well..." The ${S.princeGender} departs sadly.`);
+}, 800);
+}
+
 S.round++;
 
 // RIBBLETON TUTORIAL: Handle round transitions
@@ -3448,6 +3491,9 @@ v.innerHTML = `
 
 // ===== 1. SHOPKEEPER =====
 function showShopkeeper1() {
+// Reset flags each time shopkeeper is shown (prevents cross-visit contamination)
+shopSmallBought = false;
+shopLargeBought = false;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
@@ -4632,6 +4678,7 @@ function acceptPrinceQuest() {
 toast('Stun any enemy Turn 1 of next combat!', 3000);
 S.princeQuestActive = true;
 S.princeQuestCompleted = false;
+S.princeQuestAmbushed = false;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
