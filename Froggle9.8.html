@@ -218,9 +218,9 @@ const EMOJI_ICONS = ['Attack', 'Ghost'];
 function sigilIcon(name) {
 const icon = SIGIL_ICONS[name] || '';
 if (EMOJI_ICONS.includes(name)) {
-return `<span style="filter: grayscale(1) contrast(999); display: inline-block;">${icon}</span>${name}`;
+return `<span style="filter: grayscale(1) contrast(999); display: inline-block;">${icon}</span>${name}
 }
-return `${icon}${name}`;
+return `${icon}${name}
 }
 
 // Helper function to display just the icon
@@ -673,7 +673,7 @@ return {rolls, best};
 }
 
 function showD20Result(rolls, best) {
-return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}
 }
 
 // ===== MAIN TITLE PAGE =====
@@ -1603,7 +1603,7 @@ const options = [
 ];
 options.forEach(opt => {
 const adjustedDC = getD20DC(opt.dc, heroIdx);
-const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
+const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.5rem">
 <strong>${dcText}: ${opt.name}</strong><br>
 <span style="font-size:0.85rem">${opt.desc}</span>
@@ -1644,7 +1644,7 @@ for(let i = 0; i < d20Level; i++) rolls.push(Math.ceil(Math.random() * 20));
 }
 
 const best = Math.max(...rolls);
-const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}
 
 if(best >= dc) {
 toast(`${rollText} - SUCCESS!`, 3000);
@@ -2646,12 +2646,12 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
-<div class="sigil-row">
+<div class="sigil-row">`;
 // Show base Attack ONLY if enemy doesn't have Attack in their sigil list
-const hasAttackSigil${Math.random().toString(36).slice(2,6)} = e.s.some(s => s.sig === 'Attack');
-if(!hasAttackSigil${Math.random().toString(36).slice(2,6)}) {
+const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
+if(!hasAttackSigil) {
 html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
-}`;
+}
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
@@ -2752,7 +2752,7 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div class="${cardClasses}" ${onclick}>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}`;
+${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}
 html += '<div class="sigil-divider"></div>';
 html += '<div class="sigil-row">';
 const activeSigils = [...h.s, ...(h.ts || [])];
@@ -3008,7 +3008,7 @@ else {
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
+const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 <strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
 </div>`;
