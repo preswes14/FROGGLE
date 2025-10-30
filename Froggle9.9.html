@@ -208,7 +208,7 @@ goblin: { n:'Goblin', p:1, h:5, m:5, g:1, x:2, pool:['Asterisk','Expand','Shield
 wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
 orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
 giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
-dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:4}], startSigils:2 }
+dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
 };
 
 // Enemy emoji icons
@@ -2565,17 +2565,160 @@ enemy.s = enemy.s.filter(s => s.perm);
 render();
 }
 
+function getEnemyExpandLevel(enemy) {
+const expandSigil = enemy.s.find(s => s.sig === 'Expand');
+return expandSigil ? expandSigil.level : 0;
+}
+
+function selectEnemyTargets(enemy, count) {
+// Priority: recruited allies (highest POW) > lowest HP heroes > random
+let targets = [];
+
+// First, check for recruited allies
+if(S.recruits && S.recruits.length > 0) {
+const aliveRecruits = S.recruits.filter(r => r.h > 0);
+if(aliveRecruits.length > 0) {
+// Sort by POW descending
+aliveRecruits.sort((a, b) => b.p - a.p);
+for(let i = 0; i < Math.min(count, aliveRecruits.length); i++) {
+targets.push(aliveRecruits[i]);
+}
+if(targets.length >= count) return targets;
+}
+}
+
+// Then, target heroes
+const aliveHeroes = S.heroes.filter(h => h.h > 0);
+if(aliveHeroes.length === 0) return targets;
+
+// Sort by HP ascending (lowest HP first)
+aliveHeroes.sort((a, b) => a.h - b.h);
+
+const remaining = count - targets.length;
+for(let i = 0; i < Math.min(remaining, aliveHeroes.length); i++) {
+targets.push(aliveHeroes[i]);
+}
+
+return targets;
+}
+
 function executeEnemyBaseAttack(enemy) {
-const target = S.heroes[enemy.li];
-if(target && target.h > 0) dealDamageToHero(target, enemy.p, `${enemy.n}'s Base Attack`);
+const expandLevel = getEnemyExpandLevel(enemy);
+const targetCount = 1 + expandLevel;
+const targets = selectEnemyTargets(enemy, targetCount);
+
+if(targets.length === 0) return;
+
+const damagedIds = [];
+const targetNames = [];
+targets.forEach(target => {
+if(target.h > 0) {
+targetNames.push(target.n);
+damagedIds.push(target.id);
+// Apply damage without triggering animation yet
+if(target.sh > 0) {
+if(target.sh >= enemy.p) {
+target.sh -= enemy.p;
+} else {
+const dmg = enemy.p - target.sh;
+target.sh = 0;
+target.h -= dmg;
+// Check for ghost/last stand
+if(target.h <= 0) {
+if(target.g > 0) {
+target.g--;
+target.h += dmg;
+} else {
+target.h = 0;
+target.ls = true;
+target.lst = 0;
+}
+}
+}
+} else {
+target.h -= enemy.p;
+// Check for ghost/last stand
+if(target.h <= 0) {
+if(target.g > 0) {
+target.g--;
+target.h += enemy.p;
+} else {
+target.h = 0;
+target.ls = true;
+target.lst = 0;
+}
+}
+}
+}
+});
+
+// Trigger all animations simultaneously
+damagedIds.forEach(id => triggerHitAnimation(id));
+
+if(targetNames.length > 0) {
+toast(`${enemy.n}'s Base Attack hit ${targetNames.join(', ')} for ${enemy.p} damage each!`);
+}
 }
 
 function executeEnemySigil(enemy, sigil) {
 const {sig, level} = sigil;
 if(sig === 'Attack') {
+const expandLevel = getEnemyExpandLevel(enemy);
+const targetCount = 1 + expandLevel;
+
 for(let i = 0; i < level; i++) {
-const target = S.heroes[enemy.li];
-if(target && target.h > 0) dealDamageToHero(target, enemy.p, `${enemy.n}'s ${sig}`);
+const targets = selectEnemyTargets(enemy, targetCount);
+if(targets.length === 0) continue;
+
+const damagedIds = [];
+const targetNames = [];
+targets.forEach(target => {
+if(target.h > 0) {
+targetNames.push(target.n);
+damagedIds.push(target.id);
+// Apply damage without triggering animation yet
+if(target.sh > 0) {
+if(target.sh >= enemy.p) {
+target.sh -= enemy.p;
+} else {
+const dmg = enemy.p - target.sh;
+target.sh = 0;
+target.h -= dmg;
+// Check for ghost/last stand
+if(target.h <= 0) {
+if(target.g > 0) {
+target.g--;
+target.h += dmg;
+} else {
+target.h = 0;
+target.ls = true;
+target.lst = 0;
+}
+}
+}
+} else {
+target.h -= enemy.p;
+// Check for ghost/last stand
+if(target.h <= 0) {
+if(target.g > 0) {
+target.g--;
+target.h += enemy.p;
+} else {
+target.h = 0;
+target.ls = true;
+target.lst = 0;
+}
+}
+}
+}
+});
+
+// Trigger all animations simultaneously
+damagedIds.forEach(id => triggerHitAnimation(id));
+
+if(targetNames.length > 0) {
+toast(`${enemy.n}'s Attack ${i+1}/${level} hit ${targetNames.join(', ')} for ${enemy.p} damage each!`);
+}
 }
 } else if(sig === 'Shield') {
 const shieldAmt = 2 * enemy.p * level;
