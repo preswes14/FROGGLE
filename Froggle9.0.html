@@ -880,7 +880,7 @@ remaining.forEach(r => r.remove());
 }
 
 // NOW show the tutorial pop (after cleanup)
-showTutorialPop('ribbleton_warrior_attack', "That Wolf looks nasty, you should take it out first!", () => {
+showTutorialPop('ribbleton_warrior_attack', "That Wolf looks nasty, you should take it out first! Click on the Warrior's Attack sigil!", () => {
 S.activeIdx = 0;
 renderTutorialCombat();
 });
@@ -956,7 +956,9 @@ html += '</div>';
 
 // Combat grid
 html += '<div class="combat-grid">';
-html += '<div class="column heroes">';
+// Disable ALL clicks on hero column when targeting is active
+const heroColumnStyle = S.pending && ['Attack'].includes(S.pending) ? ' style="pointer-events:none;opacity:0.6"' : '';
+html += `<div class="column heroes"${heroColumnStyle}>`;
 html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
 
 S.heroes.forEach((h,i) => {
