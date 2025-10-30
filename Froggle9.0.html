@@ -427,7 +427,12 @@ setTimeout(() => t.remove(), 300);
 }
 
 function showTutorialPop(flagName, message, onDismiss) {
-if(S.tutorialsDisabled || S.tutorialFlags[flagName]) return; // Disabled or already shown
+console.log('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
+if(S.tutorialsDisabled || S.tutorialFlags[flagName]) {
+console.log('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
+if(onDismiss) onDismiss();
+return;
+}
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
@@ -438,21 +443,24 @@ backdrop.innerHTML = `
 <button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
 </div>`;
 document.body.appendChild(backdrop);
+console.log('[TUTORIAL] Backdrop created and appended, total backdrops now:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }
 
 function dismissTutorialPop(flagName) {
-console.log('[TUTORIAL] Dismissing tutorial pop:', flagName);
+console.log('[TUTORIAL] dismissTutorialPop called:', flagName);
+console.log('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 S.tutorialFlags[flagName] = true;
 savePermanent();
-const backdrop = document.querySelector('.tutorial-modal-backdrop');
-if(backdrop) {
-console.log('[TUTORIAL] Removing tutorial backdrop');
-backdrop.remove();
-} else {
-console.warn('[TUTORIAL] No backdrop found when dismissing', flagName);
-}
+
+// Remove ALL backdrops aggressively
+const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+console.log('[TUTORIAL] Removing', allBackdrops.length, 'backdrops');
+allBackdrops.forEach((b, i) => {
+console.log('[TUTORIAL] Removing backdrop', i);
+b.remove();
+});
 
 // Verify it's gone
 setTimeout(() => {
@@ -460,15 +468,21 @@ const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
 console.log('[TUTORIAL] Backdrops remaining after pop dismiss:', remaining.length);
 if(remaining.length > 0) {
 console.error('[TUTORIAL] ERROR: Backdrops still blocking!', remaining);
-remaining.forEach(r => r.remove());
+remaining.forEach(r => {
+console.error('[TUTORIAL] Zombie backdrop:', r);
+r.remove();
+});
 }
-}, 50);
 
+console.log('[TUTORIAL] About to call onDismiss callback');
 if(window.tutorialCallback) {
-console.log('[TUTORIAL] Calling onDismiss callback');
+console.log('[TUTORIAL] Calling onDismiss callback NOW');
 window.tutorialCallback();
 window.tutorialCallback = null;
+} else {
+console.warn('[TUTORIAL] No callback found!');
 }
+}, 50);
 }
 
 function savePermanent() {
