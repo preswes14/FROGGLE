@@ -1,6 +1,6 @@
 # FROGGLE
 
-A Froggy Roguelike - v9.5 BETA
+A Froggy Roguelike
 
 ## Play Now
 
