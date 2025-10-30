@@ -341,6 +341,7 @@ ribbleton_enemy_turn: false,
 ribbleton_healer_heal: false,
 ribbleton_expand: false,
 ribbleton_finish_wolf: false,
+enemies_get_sigils: false,
 ribbleton_shield_sigil: false,
 ribbleton_handoff: false,
 ribbleton_tooltip_intro: false,
@@ -2485,11 +2486,15 @@ S.locked = false;
 tutorialState.stage = 'shield_sigil';
 upd();
 render();
+// First show that enemies can get sigils
+showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! They draw from a pool specific to their type, and gain sigils over time.", () => {
+// Then explain this specific sigil
 showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies use their sigils AFTER they attack, then those sigils fall off. Try to finish him before he can Shield up!", () => {
 // PROMPT 10: Handoff
 showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
 render();
+});
 });
 });
 return;
