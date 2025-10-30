@@ -2153,6 +2153,36 @@ e.h -= pow;
 // Trigger all damage animations simultaneously
 damagedEnemyIds.forEach(id => triggerHitAnimation(id));
 if(targetNames.length > 0) toast(`${h.n} attacked ${targetNames.join(', ')} for ${pow} damage each!`);
+
+// Check for dead enemies and remove them
+const deadEnemies = [];
+targets.forEach(tgtId => {
+const e = S.enemies.find(x => x.id === tgtId);
+if(!e) return;
+if(e.h <= 0) {
+// Check for Ghost sigil protection
+if(e.g > 0) {
+e.g--;
+e.h = 1; // Revive to 1 HP
+toast(`${e.n}'s Ghost charge prevented death!`, 2000);
+} else {
+e.h = 0;
+S.gold += e.g || 0;
+S.combatGold += e.g || 0;
+S.combatXP += e.x;
+deadEnemies.push(e.id);
+}
+}
+});
+
+if(deadEnemies.length > 0) {
+upd();
+setTimeout(() => {
+S.enemies = S.enemies.filter(e => !deadEnemies.includes(e.id));
+render();
+checkCombatEnd();
+}, 300);
+}
 } else if(action === 'Shield') {
 const targetNames = [];
 const shieldedIds = [];
