@@ -1059,6 +1059,26 @@ html += `<div style="text-align:center;margin-top:1rem">
 }
 
 v.innerHTML = html;
+
+// DEBUG: Check for blocking elements after render
+setTimeout(() => {
+const backdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+console.log('[TUTORIAL] AFTER RENDER - Backdrops present:', backdrops.length);
+if(backdrops.length > 0) {
+console.error('[TUTORIAL] BLOCKING BACKDROPS FOUND!', backdrops);
+backdrops.forEach((b, i) => {
+console.error(`[TUTORIAL] Backdrop ${i}:`, b, 'z-index:', window.getComputedStyle(b).zIndex);
+});
+}
+
+const enemyCards = document.querySelectorAll('.card.enemy.targetable');
+console.log('[TUTORIAL] Targetable enemy cards found:', enemyCards.length);
+enemyCards.forEach((card, i) => {
+const onclick = card.getAttribute('onclick');
+const style = window.getComputedStyle(card);
+console.log(`[TUTORIAL] Enemy card ${i}:`, 'onclick:', onclick ? 'YES' : 'NO', 'z-index:', style.zIndex, 'pointer-events:', style.pointerEvents);
+});
+}, 100);
 }
 
 function selectHeroTutorial(idx) {
