@@ -90,6 +90,20 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil.l2 { color: #0d9488; border-color: #0d9488; }
 .sigil.l3 { color: #9333ea; border-color: #9333ea; }
 .sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
+.sigil.l5 {
+  background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
+  background-size: 300% 100%;
+  animation: rainbow-shift 3s linear infinite;
+  border: 2px solid;
+  border-image: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080) 1;
+  color: white;
+  text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,0,128,0.6);
+  font-weight: bold;
+}
+@keyframes rainbow-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
 .sigil.engraved { color: #6b7280; border-color: #9ca3af; font-style: italic; opacity: 0.7; background: rgba(107,114,128,0.1); }
 .sigil.asterisk-primed { box-shadow: 0 0 8px #fbbf24; animation: pulse-asterisk 1s infinite; }
 @keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #fbbf24; } 50% { box-shadow: 0 0 16px #fbbf24; } }
@@ -156,7 +170,7 @@ goblin: { n:'Goblin', p:1, h:5, m:5, g:1, x:2, pool:['Asterisk','Expand','Shield
 wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
 orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
 giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
-dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Expand',l:4}], startSigils:2 }
+dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:4}], startSigils:2 }
 };
 
 // Enemy emoji icons
@@ -2604,7 +2618,9 @@ let cardClasses = 'card enemy targetable';
 if(isSelected) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
+// Only show ghost charges if enemy actually has them (not gold drops!)
+const encampmentGhostCharges = e.ghostCharges || 0;
+if(encampmentGhostCharges > 0) extra.push(`${encampmentGhostCharges}${sigilIconOnly('Ghost')}`);
 if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
@@ -2613,9 +2629,13 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
 <div class="sigil-row">
-<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+// Show base Attack ONLY if enemy doesn't have Attack in their sigil list
+const hasAttackSigil${Math.random().toString(36).slice(2,6)} = e.s.some(s => s.sig === 'Attack');
+if(!hasAttackSigil${Math.random().toString(36).slice(2,6)}) {
+html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+}`;
 e.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
@@ -2726,7 +2746,7 @@ if(S.activeIdx === i && S.pending === s && isMultiInstance(s) && S.totalInstance
 const usedInstances = S.totalInstances - S.instancesRemaining;
 visualLvl = Math.max(0, lvl - usedInstances);
 }
-const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':'l4';
+const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
 const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
@@ -2743,7 +2763,9 @@ const recruit = S.recruits.find(r => r.recruitedBy === i);
 if(recruit) {
 const extra = [];
 if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
-if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
+// Only show ghost charges if recruit actually has them (not gold drops!)
+const recruitGhostCharges = recruit.ghostCharges || 0;
+if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
 html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${recruit.n} 🤝</div>
@@ -2753,7 +2775,7 @@ html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 <div class="sigil-row">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
@@ -2780,7 +2802,9 @@ if(isTargetable) cardClasses += ' targetable';
 if(selectCount > 0) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
+// Only show ghost charges if enemy actually has them (not gold drops!)
+const ghostCharges = e.ghostCharges || 0;
+if(ghostCharges > 0) extra.push(`${ghostCharges}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
@@ -2790,9 +2814,13 @@ html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}'
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '<div class="sigil-divider"></div>';
 html += '<div class="sigil-row">';
+// Show base Attack ONLY if enemy doesn't have Attack in their sigil list
+const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
+if(!hasAttackSigil) {
 html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+}
 e.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
+const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
