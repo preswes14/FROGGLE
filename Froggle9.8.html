@@ -1948,8 +1948,10 @@ enemy.h -= dmg;
 
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && enemy.n === 'Wolf') {
+console.log('[TUTORIAL] Wolf took damage! HP now:', enemy.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
 if(enemy.h > 0 && !tutorialState.wolfDamaged) {
 tutorialState.wolfDamaged = true;
+console.log('[TUTORIAL] Set wolfDamaged = true');
 // Show PROMPT 3 after this action finishes
 }
 }
@@ -2015,8 +2017,10 @@ S.activeIdx = -1;
 // RIBBLETON TUTORIAL: Show prompts after actions
 if(tutorialState && S.floor === 0) {
 const h = S.heroes[heroIdx];
+console.log('[TUTORIAL] finishAction - stage:', tutorialState.stage, 'wolfDamaged:', tutorialState.wolfDamaged, 'hero:', h.n, 'round:', S.round);
 // After Warrior attacks Wolf and damages it -> PROMPT 3
-if(tutorialState.stage === 'targeting_wolf' && tutorialState.wolfDamaged && h.n === 'Warrior') {
+if((tutorialState.stage === 'targeting_wolf' || tutorialState.stage === 'warrior_attack') && tutorialState.wolfDamaged && h.n === 'Warrior' && S.round === 1) {
+console.log('[TUTORIAL] Triggering PROMPT 3 - Healer D20');
 tutorialState.stage = 'healer_d20';
 showTutorialPop('ribbleton_healer_d20', "Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
 S.activeIdx = 1; // Select Healer
