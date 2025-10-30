@@ -946,6 +946,8 @@ renderTutorialCombat();
 }
 
 function renderTutorialCombat() {
+console.log('[TUTORIAL] renderTutorialCombat called, S.pending:', S.pending);
+console.trace('[TUTORIAL] Call stack for renderTutorialCombat');
 const v = document.getElementById('gameView');
 let html = '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(251,191,36,0.1);border-radius:6px;margin-bottom:0.75rem">';
 html += '<div style="font-size:1.3rem;color:#dc2626">RIBBLETON TUTORIAL</div>';
