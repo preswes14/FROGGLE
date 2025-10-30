@@ -1002,6 +1002,7 @@ html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:
 } else {
 laneEnemies.forEach(e => {
 const isTargetable = S.pending && ['Attack'].includes(S.pending);
+console.log('[TUTORIAL] Rendering enemy', e.n, 'isTargetable:', isTargetable, 'S.pending:', S.pending);
 const isTargeted = S.targets.includes(e.id);
 let cardClasses = 'card enemy';
 if(isTargetable) cardClasses += ' targetable';
@@ -1011,6 +1012,7 @@ const targetPrompt = isTargetable ? `<div style="background:#fbbf24;color:#000;p
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 
 const clickHandler = isTargetable ? `onclick="console.log('[TUTORIAL] Enemy card clicked:', '${e.id}'); targetEnemyTutorial('${e.id}')" style="box-shadow:0 0 0 4px #fbbf24;animation:pulse-glow 1s infinite;cursor:pointer;position:relative;z-index:100"` : '';
+console.log('[TUTORIAL] clickHandler for', e.n, ':', clickHandler ? 'SET' : 'NOT SET');
 html += `<div class="${cardClasses}" ${clickHandler}>
 <div style="text-align:center;font-size:2rem;margin-bottom:0.25rem;pointer-events:none"><span style="pointer-events:none;user-select:none;display:inline-block">${enemyEmoji}</span></div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;pointer-events:none">${e.n}</div>
