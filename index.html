@@ -2418,21 +2418,20 @@ render();
 S.enemies.forEach(e => {
 if(e.st > 0) e.st--;
 e.turnsSinceGain++;
-// RIBBLETON TUTORIAL: Scripted sigil gains for Goblin (Shield on Round 2, Heal on Round 3)
+// RIBBLETON TUTORIAL: Goblin follows normal schedule but gets scripted sigils (Shield, then Heal)
 const isTutorial = tutorialState && S.floor === 0;
-if(isTutorial) {
-// Goblin gets Shield on Round 2
-if(e.n === 'Goblin' && S.round === 2 && !e.s.some(s => s.sig === 'Shield')) {
+if(isTutorial && e.n === 'Goblin' && e.turnsSinceGain >= e.gainRate) {
+e.turnsSinceGain = 0;
+// Script sigils: Shield first, then Heal
+if(!e.s.some(s => s.sig === 'Shield')) {
 e.s.push({sig: 'Shield', level: 1, perm: false});
 toast(`${e.n} drew Shield L1!`);
-}
-// Goblin gets Heal on Round 3
-else if(e.n === 'Goblin' && S.round === 3 && !e.s.some(s => s.sig === 'Heal')) {
+} else if(!e.s.some(s => s.sig === 'Heal')) {
 e.s.push({sig: 'Heal', level: 1, perm: false});
 toast(`${e.n} drew Heal L1!`);
 }
 // Wolf never gets sigils in tutorial
-} else if(e.turnsSinceGain >= e.gainRate) {
+} else if(!isTutorial && e.turnsSinceGain >= e.gainRate) {
 e.turnsSinceGain = 0;
 // Draw multiple sigils per turn if specified (Dragons draw 2)
 const draws = e.drawsPerTurn || 1;
@@ -2974,8 +2973,10 @@ render();
 });
 return;
 }
-// Round 2: Goblin gains Shield (via enemyTurn), then PROMPT 9 + 10
-else if(S.round === 2 && tutorialState.stage === 'finish_wolf') {
+// When Goblin gains Shield (following its normal schedule), show PROMPT 9 + 10
+else if(tutorialState.stage === 'finish_wolf') {
+const goblin = S.enemies.find(e => e.n === 'Goblin');
+if(goblin && goblin.s.some(s => s.sig === 'Shield')) {
 // Shield was already granted in enemyTurn - just show the tutorial
 S.turn = 'player';
 S.activeIdx = -1;
@@ -2996,6 +2997,7 @@ render();
 });
 });
 return;
+}
 }
 }
 
