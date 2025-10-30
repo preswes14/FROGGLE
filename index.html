@@ -20,12 +20,12 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   overflow-y: auto;
   padding: 0.5rem;
   -webkit-overflow-scrolling: touch;
-  border: 8px solid #8b5a3c;
+  border: 11px solid #8b5a3c;
   border-radius: 4px;
   box-shadow:
-    inset 0 0 0 2px #5d3a22,
-    inset 0 0 8px rgba(0,0,0,0.3),
-    0 4px 8px rgba(0,0,0,0.2);
+    inset 0 0 0 3px #5d3a22,
+    inset 0 0 11px rgba(0,0,0,0.3),
+    0 5px 10px rgba(0,0,0,0.2);
   background: linear-gradient(135deg, #d9cab1 0%, #c9ba9b 100%);
 }
 .btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
@@ -791,17 +791,19 @@ console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;position:relative;padding:0;overflow:hidden">
-<!-- Title image as background -->
-<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0;background:#d9cab1">
+<!-- Table-bordered container -->
+<div style="position:relative;width:100%;height:100vh;border:11px solid #8b5a3c;box-shadow:inset 0 0 0 3px #5d3a22,inset 0 0 11px rgba(0,0,0,0.3),0 5px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden">
+<!-- Title image as background (not cropped) -->
+<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;z-index:0">
 
 <!-- Version label overlaid on image -->
 <div style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5);z-index:2">
 <p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.92 BETA</p>
 </div>
 
-<!-- Buttons at the bottom, underneath Tapo -->
-<div style="display:flex;gap:0.5rem;width:90%;max-width:500px;z-index:2;margin-bottom:2rem;padding:0 1rem">
+<!-- Buttons at the bottom, underneath Tapo, on the image -->
+<div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;width:90%;max-width:500px;z-index:2;padding:0 1rem">
 <!-- New Game: half width -->
 <button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.5);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
 
