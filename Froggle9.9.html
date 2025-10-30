@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="FROGGLE"/>
 <meta name="theme-color" content="#14b8a6"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="assets/tapo.png"/>
-<link rel="icon" type="image/png" href="assets/tapo.png"/>
+<link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
+<link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
 <title>FROGGLE v9.91 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -698,6 +698,10 @@ v.innerHTML = `
 <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:1rem;width:90%;max-width:350px">
 <button class="btn" onclick="newGame()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 6px 12px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">New Game</button>
 ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 6px 12px rgba(0,0,0,0.6);background:#14b8a6;border:3px solid #0d9488;font-weight:bold">Load Game</button>` : ''}
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="exportSave()" style="font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:rgba(59,130,246,0.9);border:3px solid #3b82f6;font-weight:bold;flex:1">Export Save</button>
+<button class="btn" onclick="importSave()" style="font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:rgba(168,85,247,0.9);border:3px solid #a855f7;font-weight:bold;flex:1">Import Save</button>
+</div>
 <button class="btn" onclick="exitGame()" style="font-size:1.3rem;padding:1.25rem;background:rgba(136,136,136,0.9);border:3px solid #666;box-shadow:0 6px 12px rgba(0,0,0,0.6);font-weight:bold">Exit</button>
 </div>
 </div>
@@ -735,6 +739,63 @@ function exitGame() {
 if(confirm('Thanks for playing FROGGLE! Close the window to exit.')) {
 window.close();
 }
+}
+
+function exportSave() {
+const saveData = localStorage.getItem('froggle8');
+const permanentData = localStorage.getItem('froggle8_permanent');
+if(!saveData && !permanentData) {
+toast('No save data to export!');
+return;
+}
+const exportData = {
+save: saveData ? JSON.parse(saveData) : null,
+permanent: permanentData ? JSON.parse(permanentData) : null,
+exportDate: new Date().toISOString(),
+version: GAME_VERSION
+};
+const dataStr = JSON.stringify(exportData, null, 2);
+const blob = new Blob([dataStr], {type: 'application/json'});
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `froggle-save-${new Date().toISOString().split('T')[0]}.json`;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+toast('Save exported!');
+}
+
+function importSave() {
+const input = document.createElement('input');
+input.type = 'file';
+input.accept = '.json';
+input.onchange = (e) => {
+const file = e.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = (event) => {
+try {
+const importData = JSON.parse(event.target.result);
+if(importData.save) {
+localStorage.setItem('froggle8', JSON.stringify(importData.save));
+}
+if(importData.permanent) {
+localStorage.setItem('froggle8_permanent', JSON.stringify(importData.permanent));
+}
+toast('Save imported successfully!');
+setTimeout(() => {
+mainTitlePage();
+}, 1000);
+} catch(err) {
+toast('Error: Invalid save file!');
+console.error('Import error:', err);
+}
+};
+reader.readAsText(file);
+};
+input.click();
 }
 
 // ===== NARRATIVE SLIDE SYSTEM =====
@@ -789,7 +850,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#14b8a6">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlip 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong><br>
@@ -797,9 +858,9 @@ The whole village of Ribbleton gathered to celebrate! 🎉
 </p>
 </div>
 <style>
-@keyframes bounce {
-0%, 100% { transform: translateY(0) scale(1); }
-50% { transform: translateY(-20px) scale(1.05); }
+@keyframes tapoFlip {
+0%, 49% { transform: scaleX(1); }
+50%, 100% { transform: scaleX(-1); }
 }
 </style>
 `
@@ -5005,17 +5066,58 @@ toast(enabled ? 'Debug Mode ON' : 'Debug Mode OFF', 2000);
 function showDebugMenu() {
 const inCombat = S.enemies && S.enemies.length > 0;
 const v = document.getElementById('gameView');
+const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
+
 let html = `
-<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #fbbf24;border-radius:12px;padding:2rem;z-index:30000;max-width:400px;width:90%">
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #fbbf24;border-radius:12px;padding:2rem;z-index:30000;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
 <h2 style="text-align:center;color:#fbbf24;margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
+
+<h3 style="color:#14b8a6;margin:1rem 0 0.5rem 0">Resources</h3>
 <button class="btn" onclick="debugAddGold()" style="margin-bottom:0.5rem;background:#22c55e">+100 Gold</button>
 <button class="btn" onclick="debugAddXP()" style="margin-bottom:0.5rem;background:#22c55e">+100 XP</button>
+
+<h3 style="color:#14b8a6;margin:1rem 0 0.5rem 0">Navigation</h3>
 <div style="margin:0.5rem 0">
 <label style="color:white;font-size:0.9rem">Jump to Floor:</label>
 <input type="number" id="debugFloorInput" min="1" max="19" value="${S.floor}" style="width:60px;padding:0.25rem;margin:0 0.5rem;font-size:1rem">
 <button class="btn" onclick="debugJumpFloor()" style="display:inline-block;width:auto;padding:0.5rem 1rem;margin:0;font-size:0.9rem;min-height:auto">Go</button>
 </div>
-${inCombat ? `<button class="btn" onclick="debugDealDamage()" style="margin-top:0.5rem;background:#dc2626">Deal 50 DMG to Enemy</button>` : ''}
+
+<h3 style="color:#14b8a6;margin:1rem 0 0.5rem 0">Sigil Levels</h3>
+<div style="margin:0.5rem 0">
+<select id="debugSigilSelect" style="padding:0.25rem;margin-right:0.5rem;font-size:0.9rem">
+${allSigils.map(sig => `<option value="${sig}">${sig} (L${S.sig[sig] || 0})</option>`).join('')}
+</select>
+<input type="number" id="debugSigilLevel" min="0" max="5" value="1" style="width:50px;padding:0.25rem;margin:0 0.5rem;font-size:1rem">
+<button class="btn" onclick="debugSetSigilLevel()" style="display:inline-block;width:auto;padding:0.5rem 1rem;margin:0;font-size:0.9rem;min-height:auto">Set</button>
+</div>
+
+${heroNames.length > 0 ? `
+<h3 style="color:#14b8a6;margin:1rem 0 0.5rem 0">Hero Stats</h3>
+<div style="margin:0.5rem 0">
+<select id="debugHeroSelect" style="padding:0.25rem;margin-bottom:0.5rem;font-size:0.9rem;width:100%">
+${heroNames.map(h => `<option value="${h.idx}">${h.name} (POW:${S.heroes[h.idx].p}, HP:${S.heroes[h.idx].h}/${S.heroes[h.idx].m})</option>`).join('')}
+</select>
+<div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+<div style="flex:1">
+<label style="color:white;font-size:0.85rem;display:block">POW:</label>
+<input type="number" id="debugHeroPOW" min="1" max="20" value="1" style="width:100%;padding:0.25rem;font-size:1rem">
+</div>
+<div style="flex:1">
+<label style="color:white;font-size:0.85rem;display:block">Max HP:</label>
+<input type="number" id="debugHeroMaxHP" min="1" max="50" value="5" style="width:100%;padding:0.25rem;font-size:1rem">
+</div>
+</div>
+<button class="btn" onclick="debugSetHeroStats()" style="background:#3b82f6;margin-bottom:0.5rem">Update Hero Stats</button>
+</div>
+` : ''}
+
+${inCombat ? `
+<h3 style="color:#14b8a6;margin:1rem 0 0.5rem 0">Combat</h3>
+<button class="btn" onclick="debugDealDamage()" style="background:#dc2626">Deal 50 DMG to Enemy</button>
+` : ''}
+
 <button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
 <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999" onclick="closeDebugMenu()"></div>
@@ -5071,6 +5173,53 @@ toast(`Dealt 50 damage to ${enemy.n}!`, 2000);
 closeDebugMenu();
 // Check if combat is over
 setTimeout(() => checkCombatOver(), 100);
+}
+
+function debugSetSigilLevel() {
+const sigilSelect = document.getElementById('debugSigilSelect');
+const levelInput = document.getElementById('debugSigilLevel');
+const sigil = sigilSelect.value;
+const newLevel = parseInt(levelInput.value);
+
+if(isNaN(newLevel) || newLevel < 0 || newLevel > 5) {
+toast('Invalid level! Must be 0-5', 2000);
+return;
+}
+
+S.sig[sigil] = newLevel;
+savePermanent();
+upd();
+toast(`Set ${sigil} to Level ${newLevel}!`, 2000);
+closeDebugMenu();
+}
+
+function debugSetHeroStats() {
+const heroSelect = document.getElementById('debugHeroSelect');
+const powInput = document.getElementById('debugHeroPOW');
+const maxHPInput = document.getElementById('debugHeroMaxHP');
+const heroIdx = parseInt(heroSelect.value);
+const newPOW = parseInt(powInput.value);
+const newMaxHP = parseInt(maxHPInput.value);
+
+if(isNaN(newPOW) || newPOW < 1 || newPOW > 20) {
+toast('Invalid POW! Must be 1-20', 2000);
+return;
+}
+if(isNaN(newMaxHP) || newMaxHP < 1 || newMaxHP > 50) {
+toast('Invalid Max HP! Must be 1-50', 2000);
+return;
+}
+
+const hero = S.heroes[heroIdx];
+hero.p = newPOW;
+hero.m = newMaxHP;
+// Also set current HP to max HP for convenience
+hero.h = newMaxHP;
+saveGame();
+upd();
+toast(`Updated ${hero.n}: POW=${newPOW}, HP=${newMaxHP}!`, 2000);
+closeDebugMenu();
+render();
 }
 
 // ===== INIT =====
