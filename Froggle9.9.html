@@ -2076,15 +2076,26 @@ if(action === 'Attack') {
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
 const targetNames = [];
+const damagedEnemyIds = [];
 targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 targetNames.push(e.n);
-dealDamageToEnemy(e, pow);
+damagedEnemyIds.push(e.id);
+// Apply damage without triggering animation yet
+if(e.sh > 0) {
+if(e.sh >= pow) { e.sh -= pow; }
+else { const dmg = pow - e.sh; e.sh = 0; e.h -= dmg; }
+} else {
+e.h -= pow;
+}
 });
+// Trigger all damage animations simultaneously
+damagedEnemyIds.forEach(id => triggerHitAnimation(id));
 if(targetNames.length > 0) toast(`${h.n} attacked ${targetNames.join(', ')} for ${pow} damage each!`);
 } else if(action === 'Shield') {
 const targetNames = [];
+const shieldedIds = [];
 targets.forEach(tgtId => {
 const target = S.heroes.find(x => x.id === tgtId);
 if(!target) return;
@@ -2093,9 +2104,10 @@ const shieldAmt = 2 * pow * level;
 target.sh += shieldAmt;
 if(target.sh > target.m) target.sh = target.m;
 targetNames.push(target.n);
-// Trigger shield animation
-triggerShieldAnimation(target.id);
+shieldedIds.push(target.id);
 });
+// Trigger all shield animations simultaneously
+shieldedIds.forEach(id => triggerShieldAnimation(id));
 if(targetNames.length > 0) {
 const level = getLevel('Shield', heroIdx);
 const shieldAmt = 2 * pow * level;
@@ -2104,13 +2116,13 @@ toast(`${targetNames.join(' and ')} gained ${shieldAmt} shield!`);
 } else if(action === 'Heal') {
 const healed = [];
 const revived = [];
+const healedIds = [];
 targets.forEach(tgtId => {
 const target = S.heroes.find(x => x.id === tgtId);
 if(!target) return;
 const level = getLevel('Heal', heroIdx);
 const healAmt = 2 * pow * level;
-// Trigger heal animation
-triggerHealAnimation(target.id);
+healedIds.push(target.id);
 if(target.ls) {
 target.ls = false;
 target.lst = 0;
@@ -2122,6 +2134,8 @@ if(target.h > target.m) target.h = target.m;
 healed.push(target.n);
 }
 });
+// Trigger all heal animations simultaneously
+healedIds.forEach(id => triggerHealAnimation(id));
 const level = getLevel('Heal', heroIdx);
 const healAmt = 2 * pow * level;
 if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
@@ -2149,7 +2163,11 @@ toast('Prince Quest completed! Ring retrieved!', 3000);
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
 h.h -= totalDmg;
-if(totalDmg > 0) toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
+if(totalDmg > 0) {
+// Hero takes recoil damage - trigger hit animation
+triggerHitAnimation(h.id);
+toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
+}
 if(h.h <= 0 && !h.ls) {
 if(h.g > 0) {
 h.g--;
