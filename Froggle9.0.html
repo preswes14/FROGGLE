@@ -895,7 +895,9 @@ remaining.forEach(r => r.remove());
 
 // NOW show the tutorial pop (after cleanup)
 showTutorialPop('ribbleton_warrior_attack', "That Wolf looks nasty, you should take it out first! Click on the Warrior's Attack sigil!", () => {
+console.log('[TUTORIAL] Story overlay callback executing - setting activeIdx to 0');
 S.activeIdx = 0;
+console.log('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
 renderTutorialCombat();
 });
 }, 50);
@@ -960,7 +962,7 @@ renderTutorialCombat();
 }
 
 function renderTutorialCombat() {
-console.log('[TUTORIAL] renderTutorialCombat called, S.pending:', S.pending);
+console.log('[TUTORIAL] renderTutorialCombat called, S.activeIdx:', S.activeIdx, 'S.pending:', S.pending);
 console.trace('[TUTORIAL] Call stack for renderTutorialCombat');
 const v = document.getElementById('gameView');
 let html = '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(251,191,36,0.1);border-radius:6px;margin-bottom:0.75rem">';
@@ -995,6 +997,9 @@ html += `<div class="${cardClasses}" ${clickHandler?`onclick="${clickHandler}"`:
 h.s.forEach(s => {
 const canClick = !hasActed && isActive && ['Attack','Heal','D20'].includes(s);
 const isPending = S.pending === s && isActive;
+if(s === 'Attack' && i === 0) {
+console.log('[TUTORIAL] Warrior Attack sigil - hasActed:', hasActed, 'isActive:', isActive, 'canClick:', canClick);
+}
 html += `<span class="sigil l1 ${canClick?'clickable':''} ${isPending?'active-action':''}" ${canClick?`onclick="actTutorial('${s}', ${i})"`:''}
 onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
