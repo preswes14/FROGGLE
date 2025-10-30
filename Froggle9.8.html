@@ -1522,15 +1522,31 @@ const isTutorial = tutorialState && S.floor === 0 && tutorialState.stage === 'd2
 let html = '';
 if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
-html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:350px;background:white;border:4px solid #fbbf24;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
+html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #fbbf24;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
-html += `<p style="margin-bottom:0.5rem;color:#14b8a6;font-weight:bold;font-size:0.95rem">Healer has Expand! You can target up to 2 enemies!</p>`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 16, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem">
-<strong style="font-size:1.2rem">DC 16: CONFUSE</strong><br>
+html += `<p style="margin-bottom:0.75rem;color:#14b8a6;font-weight:bold;font-size:0.95rem">Healer starts with Expand! You can target BOTH enemies (Wolf + Goblin)!</p>`;
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 16, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
+<strong style="font-size:1.2rem">✅ DC 16: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal damage = enemy POW</span>
 </div>`;
-html += `<p style="font-size:0.85rem;opacity:0.7;font-style:italic;margin-top:0.5rem">Other options locked during tutorial</p>`;
+// Show other options greyed out
+const lockedOptions = [
+{dc:17, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
+{dc:19, name:'SCARE', desc:'Remove from battle'},
+{dc:20, name:'RECRUIT', desc:'Enemy joins team'}
+];
+lockedOptions.forEach(opt => {
+html += `<div style="margin-bottom:0.5rem;background:#e0e0e0;border:2px solid #999;border-radius:8px;padding:0.75rem;opacity:0.5;cursor:not-allowed">
+<strong style="font-size:0.95rem">🔒 DC ${opt.dc}: ${opt.name}</strong><br>
+<span style="font-size:0.85rem">${opt.desc}</span>
+</div>`;
+});
 html += '</div>';
+// Tutorial: Append as overlay, don't replace combat view
+render(); // First render combat view
+v.insertAdjacentHTML('beforeend', html);
+return;
 } else {
 // Normal D20 menu (centered, blocks view)
 html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px">';
@@ -1561,8 +1577,8 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC},
 if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
 else html += `<button class="btn secondary" onclick="cancelAction()">Cancel</button>`;
 html += '</div>';
-}
 v.innerHTML = html;
+}
 }
 
 function selectD20Action(heroIdx, dc, actionName) {
