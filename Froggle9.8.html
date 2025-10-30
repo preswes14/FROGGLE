@@ -157,6 +157,21 @@ const HERO_PORTRAITS = {
         tapo: 'tapofull.png'
     };
 
+// Death's dialogue lines (cycles through without repeating until all used)
+const DEATH_QUOTES = [
+    "Some days you're the sticky tongue, some days you're the fly.",
+    "You must really like pain. Or do you like death? Weirdo.",
+    "Next time bring me a smoothie or something",
+    "Hey, have you met those ghost boys in the dungeon? I can't get them to make.. you know.. the transition. Help them out, would you?",
+    "Death death lemonade, 'round the coroner I parade",
+    "Ribbit? Ribbbbbit? Rib bit?",
+    "Oh man, a classic green. You just know he's a jumper.",
+    "Hello my baby, hello my honey.",
+    "If you refuse me, honey you'll lose me",
+    "You guys should check out the Discovery Channel to see what normal frogs do",
+    "Toadally froggin died, huh?"
+];
+
 const H = {
 warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Shield','D20']},
@@ -375,7 +390,8 @@ first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false
 },
-tutorialsDisabled: false
+tutorialsDisabled: false,
+usedDeathQuotes: [] // Track which death quotes have been shown
 };
 
 let sel = [];
@@ -532,7 +548,8 @@ effedUnlocked: S.effedUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
-tutorialsDisabled: S.tutorialsDisabled
+tutorialsDisabled: S.tutorialsDisabled,
+usedDeathQuotes: S.usedDeathQuotes
 }));
 }
 
@@ -553,6 +570,7 @@ S.effedUnlocked = j.effedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.tutorialsDisabled = j.tutorialsDisabled || false;
+S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -4391,9 +4409,26 @@ savePermanent(); // Save gold, goingRate, sig upgrades
 const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 
+// Select a random Death quote that hasn't been used yet
+let deathQuote = "";
+if(S.usedDeathQuotes.length >= DEATH_QUOTES.length) {
+// All quotes used - reset the pool
+S.usedDeathQuotes = [];
+}
+const availableQuotes = DEATH_QUOTES.filter((_, idx) => !S.usedDeathQuotes.includes(idx));
+if(availableQuotes.length > 0) {
+const randomIdx = Math.floor(Math.random() * availableQuotes.length);
+deathQuote = availableQuotes[randomIdx];
+// Mark this quote as used
+const quoteIndex = DEATH_QUOTES.indexOf(deathQuote);
+S.usedDeathQuotes.push(quoteIndex);
+savePermanent(); // Save the updated usedDeathQuotes
+}
+
 let html = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:0 auto;color:#e8dcc4">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#999;font-style:italic">"${deathQuote}"</p>` : ''}
 <p style="text-align:center;margin-bottom:1.5rem;font-size:1.1rem">Gold: <strong>${S.gold}</strong> | Going Rate: <strong>${S.goingRate}G</strong></p>`;
 
 if(S.gold === 0) {
