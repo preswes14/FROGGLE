@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo.png"/>
 <link rel="icon" type="image/png" href="assets/tapo.png"/>
-<title>FROGGLE v9.6 - BETA RELEASE</title>
+<title>FROGGLE v9.7 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -640,7 +640,7 @@ v.innerHTML = `
 
 <!-- Version label -->
 <div style="background:rgba(0,0,0,0.7);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(255,255,255,0.3);margin-bottom:1.5rem">
-<p style="font-size:0.9rem;color:white;font-weight:bold">v9.6 BETA RELEASE</p>
+<p style="font-size:0.9rem;color:white;font-weight:bold">v9.7 BETA RELEASE</p>
 </div>
 
 <!-- Button container -->
@@ -737,11 +737,25 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#14b8a6">The Town of Ribbleton</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+<img src="assets/title-screen.png" style="max-width:100%;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2)">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong><br>
 The whole village gathered to celebrate! 🎉
+</p>
+</div>
+`
+},
+{
+html: `
+<div style="text-align:center">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#14b8a6">Ribbleton's Defenders</h2>
+<div style="margin:1.5rem 0">
+<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+</div>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+The whole town gathered around little Tapo as he blew out the candles on his birthday cake.<br>
+<strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
 </p>
 <div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
 <div style="animation:partyFlip 1s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
@@ -749,7 +763,6 @@ The whole village gathered to celebrate! 🎉
 <div style="animation:partyFlip 0.8s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 1.4s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 </div>
-<p style="font-size:0.9rem;opacity:0.7;font-style:italic">Ribbleton's 4 greatest warriors stood guard over the celebrations...</p>
 </div>
 <style>
 @keyframes bounce {
@@ -772,8 +785,7 @@ html: `
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Just as Tapo was blowing out the candles on his birthday cake,<br>
-<strong>a dark portal</strong> tore open in the town square!<br>
+Suddenly, <strong>a dark portal</strong> tore open in the town square!<br>
 Strange, dangerous enemies began to emerge...
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
@@ -827,7 +839,7 @@ overlay.innerHTML = `
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
 A Goblin and a Wolf have appeared from the portal!
 </p>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:center;margin:1.5rem 0">
+<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
 <img src="tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
@@ -842,14 +854,18 @@ A Goblin and a Wolf have appeared from the portal!
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">📖 On Guard!</div>
 </div>
 </div>
+<div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:2.5rem">
+<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
+<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
+</div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
 <img src="warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">⚔️ Charging!</div>
+<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">⚔️ Attacking!</div>
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
 <img src="healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">✚ Charging!</div>
+<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">✚ Attacking!</div>
 </div>
 </div>
 </div>
@@ -869,6 +885,10 @@ Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the
 @keyframes defensiveStance {
 0%, 100% { transform: translateY(0); }
 50% { transform: translateY(-5px); }
+}
+@keyframes enemyThreat {
+0%, 100% { transform: scale(1) rotate(0deg); }
+50% { transform: scale(1.2) rotate(10deg); }
 }
 </style>`;
 document.body.appendChild(overlay);
@@ -898,7 +918,7 @@ showTutorialPop('ribbleton_warrior_attack', "That Wolf looks nasty, you should t
 console.log('[TUTORIAL] Story overlay callback executing - setting activeIdx to 0');
 S.activeIdx = 0;
 console.log('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
-renderTutorialCombat();
+render(); // Use real render function
 });
 }, 50);
 }
@@ -919,19 +939,8 @@ toast('Tutorials disabled for all games');
 title();
 }
 
-// ===== RIBBLETON TUTORIAL COMBAT =====
-let tutorialState = null;
-
+// ===== RIBBLETON TUTORIAL =====
 function startRibbletonTutorial() {
-// Initialize tutorial combat state
-tutorialState = {
-phase: 'warrior_attack',
-round: 1,
-warriorActed: false,
-healerActed: false,
-goblinShield: false
-};
-
 // Set up tutorial heroes
 S.floor = 0; // Special floor 0 for tutorial
 S.gold = 0;
@@ -942,490 +951,10 @@ S.heroes = [
 {id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
-// Set up tutorial enemies
-S.enemies = [
-{id:'e_tutorial_goblin', n:'Goblin', p:1, h:5, m:5, g:0, x:0, s:[], pool:[], gainRate:999, turnsSinceGain:0, drawsPerTurn:1, st:0, li:0, sh:0, alphaActed:false},
-{id:'e_tutorial_wolf', n:'Wolf', p:2, h:5, m:5, g:0, x:0, s:[], pool:[], gainRate:999, turnsSinceGain:0, drawsPerTurn:1, st:0, li:1, sh:0, alphaActed:false}
-];
-
-S.round = 1;
-S.turn = 'player';
-S.activeIdx = -1;
-S.acted = [];
-S.locked = false;
-S.pending = null;
-S.targets = [];
-S.recruits = [];
-
-renderTutorialCombat();
-// Don't show tutorial prompt here - it will be shown after story overlay is dismissed
+// Start combat using real combat system!
+combat(0);
 }
 
-function renderTutorialCombat() {
-console.log('[TUTORIAL] renderTutorialCombat called, S.activeIdx:', S.activeIdx, 'S.pending:', S.pending);
-console.trace('[TUTORIAL] Call stack for renderTutorialCombat');
-const v = document.getElementById('gameView');
-let html = '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(251,191,36,0.1);border-radius:6px;margin-bottom:0.75rem">';
-html += '<div style="font-size:1.3rem;color:#dc2626">RIBBLETON TUTORIAL</div>';
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Round ${S.round}</div>`;
-html += '</div>';
-
-// Combat grid
-html += '<div class="combat-grid">';
-html += '<div class="column heroes">';
-html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
-
-S.heroes.forEach((h,i) => {
-const hp = `${h.h}/${h.m}❤`;
-const isActive = S.activeIdx === i;
-const hasActed = S.acted.includes(i);
-const isTargetable = S.pending === 'Heal';
-const isTargeted = S.targets.includes(h.id);
-let cardClasses = 'card hero';
-if(isActive) cardClasses += ' active';
-if(hasActed) cardClasses += ' acted';
-if(isTargetable) cardClasses += ' targetable';
-if(isTargeted) cardClasses += ' targeted';
-
-const clickHandler = isTargetable ? `targetHeroTutorial(${i})` : (S.pending ? '' : `selectHeroTutorial(${i})`);
-html += `<div class="${cardClasses}" ${clickHandler?`onclick="${clickHandler}"`:''}>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-<div style="text-align:center;font-size:0.8rem">${h.p}⚡ | ${hp}</div>
-<div class="sigil-divider"></div>
-<div class="sigil-row">`;
-
-h.s.forEach(s => {
-const canClick = !hasActed && isActive && ['Attack','Heal','D20'].includes(s);
-const isPending = S.pending === s && isActive;
-if(s === 'Attack' && i === 0) {
-console.log('[TUTORIAL] Warrior Attack sigil - hasActed:', hasActed, 'isActive:', isActive, 'canClick:', canClick);
-}
-html += `<span class="sigil l1 ${canClick?'clickable':''} ${isPending?'active-action':''}" ${canClick?`onclick="actTutorial('${s}', ${i})"`:''}
-onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
-});
-
-html += '</div></div>';
-});
-html += '</div>';
-
-// Enemy lanes
-html += '<div class="column enemies">';
-const enemyLanes = {};
-S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
-
-S.heroes.forEach((hero, laneIdx) => {
-const laneEnemies = enemyLanes[laneIdx] || [];
-html += '<div class="combat-lane">';
-
-if(laneEnemies.length === 0) {
-html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic">Empty</div>`;
-} else {
-laneEnemies.forEach(e => {
-const isTargetable = S.pending && ['Attack'].includes(S.pending);
-console.log('[TUTORIAL] Rendering enemy', e.n, 'isTargetable:', isTargetable, 'S.pending:', S.pending);
-const isTargeted = S.targets.includes(e.id);
-let cardClasses = 'card enemy';
-if(isTargetable) cardClasses += ' targetable';
-if(isTargeted) cardClasses += ' targeted';
-
-const targetPrompt = isTargetable ? `<div style="background:#fbbf24;color:#000;padding:0.25rem;border-radius:4px;margin-top:0.25rem;font-size:0.75rem;font-weight:bold;text-align:center;pointer-events:none"><span style="pointer-events:none;user-select:none">👆</span> CLICK TO TARGET</div>` : '';
-const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-
-const clickHandler = isTargetable ? `onclick="console.log('[TUTORIAL] Enemy card clicked:', '${e.id}'); targetEnemyTutorial('${e.id}')" style="box-shadow:0 0 0 4px #fbbf24;animation:pulse-glow 1s infinite;cursor:pointer;position:relative;z-index:100"` : '';
-console.log('[TUTORIAL] clickHandler for', e.n, ':', clickHandler ? 'SET' : 'NOT SET');
-html += `<div class="${cardClasses}" ${clickHandler}>
-<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem;pointer-events:none"><span style="pointer-events:none;user-select:none;display:inline-block">${enemyEmoji}</span></div>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;pointer-events:none">${e.n}</div>
-<div style="text-align:center;font-size:0.8rem;pointer-events:none">${e.p}⚡ | ${e.h}/${e.m}❤</div>
-<div class="sigil-divider" style="pointer-events:none"></div>
-<div class="sigil-row" style="pointer-events:none">
-<span class="sigil engraved" style="pointer-events:none">${sigilIconOnly('Attack')}</span>`;
-
-// Show Shield intent for Goblin in Round 3
-if(e.n === 'Goblin' && tutorialState.goblinShield) {
-html += `<span class="sigil l1" onmouseenter="showTooltip('Shield', this)" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('Shield', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly('Shield')}</span>`;
-}
-
-html += `</div>${targetPrompt}</div>`;
-});
-}
-html += '</div>';
-});
-
-html += '</div></div>';
-
-// Confirm button if targeting
-if(S.targets.length > 0 && S.pending) {
-html += `<div style="text-align:center;margin-top:1rem">
-<button class="btn" onclick="confirmTutorialAction()" style="background:#22c55e;font-size:1.2rem;padding:1.25rem;box-shadow:0 4px 8px rgba(0,0,0,0.3)">✓ Confirm ${S.pending}</button>
-</div>`;
-}
-
-v.innerHTML = html;
-
-// DEBUG: Check for blocking elements after render
-setTimeout(() => {
-const backdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-console.log('[TUTORIAL] AFTER RENDER - Backdrops present:', backdrops.length);
-if(backdrops.length > 0) {
-console.error('[TUTORIAL] BLOCKING BACKDROPS FOUND!', backdrops);
-backdrops.forEach((b, i) => {
-console.error(`[TUTORIAL] Backdrop ${i}:`, b, 'z-index:', window.getComputedStyle(b).zIndex);
-});
-}
-
-const enemyCards = document.querySelectorAll('.card.enemy.targetable');
-console.log('[TUTORIAL] Targetable enemy cards found:', enemyCards.length);
-enemyCards.forEach((card, i) => {
-const onclick = card.getAttribute('onclick');
-const style = window.getComputedStyle(card);
-console.log(`[TUTORIAL] Enemy card ${i}:`, 'onclick:', onclick ? 'YES' : 'NO', 'z-index:', style.zIndex, 'pointer-events:', style.pointerEvents);
-});
-}, 100);
-}
-
-function selectHeroTutorial(idx) {
-if(S.locked || S.acted.includes(idx)) return;
-S.activeIdx = idx;
-S.pending = null;
-S.targets = [];
-renderTutorialCombat();
-}
-
-function actTutorial(sig, heroIdx) {
-console.log('[DEBUG] actTutorial called with sig:', sig, 'heroIdx:', heroIdx);
-if(S.locked || S.acted.includes(heroIdx)) return;
-
-// Hide any pending tooltips when action is selected
-hideTooltip();
-
-const h = S.heroes[heroIdx];
-S.pending = sig;
-S.targets = [];
-S.currentInstanceTargets = [];
-console.log('[DEBUG] Set S.pending to:', S.pending, 'and cleared S.targets');
-
-toast(`${sig} selected! Now target an enemy.`, 2000);
-
-// Render first so combat screen is ready
-renderTutorialCombat();
-
-// Tutorial-specific action handling (non-blocking toast instead of modal)
-if(tutorialState.phase === 'warrior_attack' && sig === 'Attack' && heroIdx === 0) {
-// Warrior attacking - flag set but no duplicate toast
-if(!S.tutorialFlags.ribbleton_targeting) {
-S.tutorialFlags.ribbleton_targeting = true;
-savePermanent();
-}
-}
-}
-
-function targetEnemyTutorial(enemyId) {
-console.log('[DEBUG] targetEnemyTutorial called with enemyId:', enemyId);
-console.log('[DEBUG] S.pending:', S.pending);
-if(!S.pending) {
-toast('ERROR: No action selected!', 2000);
-return;
-}
-
-toast(`Wolf targeted! Now click Confirm.`, 2500);
-S.targets = [enemyId];
-console.log('[DEBUG] S.targets set to:', S.targets);
-renderTutorialCombat();
-}
-
-function targetHeroTutorial(heroIdx) {
-if(!S.pending || S.pending !== 'Heal') return;
-
-// Toggle target
-const heroId = S.heroes[heroIdx].id;
-if(S.targets.includes(heroId)) {
-S.targets = S.targets.filter(id => id !== heroId);
-} else if(S.targets.length < 2) {
-S.targets.push(heroId);
-}
-
-renderTutorialCombat();
-}
-
-function confirmTutorialAction() {
-const heroIdx = S.activeIdx;
-if(heroIdx < 0 || heroIdx >= S.heroes.length) {
-toast('No hero selected!');
-return;
-}
-const h = S.heroes[heroIdx];
-const sig = S.pending;
-
-if(!sig) {
-toast('No action selected!');
-return;
-}
-
-if(S.targets.length === 0) {
-toast('No target selected!');
-return;
-}
-
-// Execute action based on tutorial phase
-if(tutorialState.phase === 'warrior_attack' && sig === 'Attack') {
-console.log('[DEBUG] Warrior attack phase confirmed');
-// Warrior attacks Wolf
-const wolf = S.enemies.find(e => e.n === 'Wolf');
-console.log('[DEBUG] Wolf found:', wolf);
-console.log('[DEBUG] S.targets:', S.targets);
-if(!wolf) {
-toast('Wolf not found!');
-return;
-}
-console.log('[DEBUG] Checking if S.targets includes wolf.id:', wolf.id, 'Result:', S.targets.includes(wolf.id));
-if(S.targets.includes(wolf.id)) {
-console.log('[DEBUG] Wolf targeted! Executing attack...');
-wolf.h -= 2;
-toast('Wolf takes 2 damage!');
-S.acted.push(heroIdx);
-S.pending = null;
-S.targets = [];
-tutorialState.warriorActed = true;
-tutorialState.phase = 'healer_d20';
-renderTutorialCombat();
-
-// Show next tutorial
-setTimeout(() => {
-showTutorialPop('ribbleton_healer_d20', "Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
-S.activeIdx = 1;
-renderTutorialCombat();
-});
-}, 500);
-} else {
-console.log('[DEBUG] Wolf NOT in targets! This is the bug!');
-toast('Wolf not targeted!');
-}
-} else if(tutorialState.phase === 'healer_d20' && sig === 'D20') {
-// Healer uses D20
-tutorialState.phase = 'd20_menu';
-showD20MenuTutorial();
-} else if(tutorialState.phase === 'healer_heal' && sig === 'Heal') {
-// Healer heals both heroes
-tutorialState.phase = 'heal_targeting';
-S.expandTargetsNeeded = 2;
-showTutorialPop('ribbleton_expand', "Helpful - Healer starts with Expand! That means they can Expand their actions to 1 extra target. Click both heroes to heal off some damage!");
-renderTutorialCombat();
-} else if(tutorialState.phase === 'heal_targeting' && sig === 'Heal') {
-// Execute heal on both heroes
-if(S.targets.length === 2) {
-S.targets.forEach(heroId => {
-const hero = S.heroes.find(h => h.id === heroId);
-if(hero) {
-const healAmount = h.p * 2; // Heal sigil heals POW×2
-hero.h = Math.min(hero.h + healAmount, hero.m);
-}
-});
-toast('Both heroes healed!');
-S.acted.push(heroIdx);
-S.pending = null;
-S.targets = [];
-tutorialState.phase = 'warrior_finish_wolf';
-renderTutorialCombat();
-
-// Show tutorial to finish wolf
-setTimeout(() => {
-showTutorialPop('ribbleton_finish_wolf', "The Wolf is almost done for! Time for the Warrior to finish it off.", () => {
-S.activeIdx = 0;
-renderTutorialCombat();
-});
-}, 500);
-}
-} else if(tutorialState.phase === 'warrior_finish_wolf' && sig === 'Attack') {
-// Warrior finishes wolf
-const wolf = S.enemies.find(e => e.n === 'Wolf');
-if(wolf && S.targets.includes(wolf.id)) {
-wolf.h = 0;
-S.enemies = S.enemies.filter(e => e.id !== wolf.id);
-toast('Wolf defeated!');
-S.acted.push(heroIdx);
-S.pending = null;
-S.targets = [];
-tutorialState.phase = 'round2_complete';
-renderTutorialCombat();
-
-// End round 2 player turn
-setTimeout(() => {
-endTutorialRound2();
-}, 1000);
-}
-} else if(tutorialState.phase === 'free_combat') {
-// Free combat - normal rules
-executeTutorialAction();
-}
-}
-
-function showD20MenuTutorial() {
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div style="max-width:500px;margin:2rem auto;padding:1.5rem;background:white;border:3px solid #000;border-radius:8px">
-<h2 style="text-align:center;margin-bottom:1rem">D20 Action</h2>
-<div style="font-size:0.9rem;margin-bottom:1.5rem;text-align:center">Choose your gambit:</div>
-<div class="choice" onclick="tutorialD20Damage()"><strong>Confuse Enemy (DC 16)</strong><div style="font-size:0.85rem">Deal 2 damage to target</div></div>
-<div class="choice" onclick="tutorialD20Heal()"><strong>Rally Ally (No DC)</strong><div style="font-size:0.85rem">Heal 2 HP to target</div></div>
-</div>`;
-
-showTutorialPop('ribbleton_d20_menu', "All heroes can use their turn to try to turn the tides of battle with a gambit - try to hurt the Wolf with the DC 16 check!");
-}
-
-function tutorialD20Damage() {
-// Fudge the roll to always succeed
-const fakeRoll = 17 + Math.floor(Math.random() * 3); // 17-19
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div style="max-width:500px;margin:2rem auto;padding:1.5rem;background:white;border:3px solid #000;border-radius:8px">
-<h2 style="text-align:center;margin-bottom:1rem">D20 Roll</h2>
-<div class="dice-roll">Rolling 1d20: [${fakeRoll}] → ${fakeRoll}</div>
-<div style="text-align:center;margin:1rem 0;font-size:1.1rem;color:#22c55e;font-weight:bold">SUCCESS! (DC 16)</div>
-<div style="text-align:center;margin-bottom:1.5rem">Wolf takes 2 damage from Confuse!</div>
-<button class="btn" onclick="finishTutorialD20()" class="btn safe">Continue</button>
-</div>`;
-}
-
-function tutorialD20Heal() {
-toast('Try the damage option instead!', 2000);
-showD20MenuTutorial();
-}
-
-function finishTutorialD20() {
-const wolf = S.enemies.find(e => e.n === 'Wolf');
-if(wolf) wolf.h -= 2; // Wolf now at 1 HP
-S.acted.push(1);
-S.pending = null;
-S.targets = [];
-tutorialState.phase = 'enemy_turn_1';
-renderTutorialCombat();
-
-// Show enemy turn tutorial
-setTimeout(() => {
-showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack every turn, and they attack straight across from them!", () => {
-executeTutorialEnemyTurn1();
-});
-}, 500);
-}
-
-function executeTutorialEnemyTurn1() {
-// Goblin attacks Warrior
-S.heroes[0].h -= 1;
-toast('Goblin attacks Warrior for 1 damage!');
-
-setTimeout(() => {
-// Wolf attacks Healer
-S.heroes[1].h -= 2;
-toast('Wolf attacks Healer for 2 damage!');
-
-setTimeout(() => {
-startTutorialRound2();
-}, 1000);
-}, 1000);
-}
-
-function startTutorialRound2() {
-S.round = 2;
-S.acted = [];
-S.activeIdx = -1;
-S.pending = null;
-S.targets = [];
-tutorialState.phase = 'healer_heal';
-renderTutorialCombat();
-
-showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
-S.activeIdx = 1;
-renderTutorialCombat();
-});
-}
-
-function endTutorialRound2() {
-// Goblin attacks Warrior
-S.heroes[0].h -= 1;
-toast('Goblin attacks Warrior for 1 damage!');
-
-setTimeout(() => {
-startTutorialRound3();
-}, 1500);
-}
-
-function startTutorialRound3() {
-S.round = 3;
-S.acted = [];
-S.activeIdx = -1;
-S.pending = null;
-S.targets = [];
-tutorialState.goblinShield = true; // Show shield intent
-tutorialState.phase = 'shield_warning';
-renderTutorialCombat();
-
-showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies use their sigils AFTER they attack, then those sigils fall off. Try to finish him before he can Shield up!", () => {
-showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
-showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile) any sigil to see what it does! This works on your heroes' sigils and enemies' sigils too.", () => {
-tutorialState.phase = 'free_combat';
-renderTutorialCombat();
-});
-});
-});
-}
-
-function executeTutorialAction() {
-// Free combat execution
-const heroIdx = S.activeIdx;
-const h = S.heroes[heroIdx];
-const sig = S.pending;
-
-if(sig === 'Attack' && S.targets.length > 0) {
-const goblin = S.enemies[0];
-goblin.h -= h.p;
-toast(`${h.n} attacks Goblin for ${h.p} damage!`);
-if(goblin.h <= 0) {
-S.enemies = [];
-finishRibbletonTutorial();
-return;
-}
-}
-
-S.acted.push(heroIdx);
-S.pending = null;
-S.targets = [];
-S.activeIdx = -1;
-renderTutorialCombat();
-
-// Check if both acted
-if(S.acted.length === 2) {
-executeTutorialEnemyTurnFree();
-}
-}
-
-function executeTutorialEnemyTurnFree() {
-const goblin = S.enemies[0];
-S.heroes[0].h -= 1;
-toast('Goblin attacks Warrior for 1 damage!');
-
-setTimeout(() => {
-// Goblin uses Shield
-goblin.sh = 2;
-toast('Goblin gained 2 shield!');
-
-setTimeout(() => {
-// Shield falls off
-goblin.sh = 0;
-toast('Shield falls off at end of turn');
-
-setTimeout(() => {
-// Next round
-S.round++;
-S.acted = [];
-S.activeIdx = -1;
-renderTutorialCombat();
-}, 1000);
-}, 1500);
-}, 1000);
-}
 
 function finishRibbletonTutorial() {
 // Post-combat narrative
@@ -1479,7 +1008,7 @@ showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with 
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.6 BETA RELEASE</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.7 BETA RELEASE</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#14b8a6'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
 ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -1700,6 +1229,7 @@ else neutral(f);
 
 function getEnemyComp(f) {
 const heroCount = S.heroes.length;
+if(f===0) return ['goblin', 'wolf']; // Tutorial floor
 if(f===1) return Array(heroCount).fill('goblin');
 if(f===3) return Array(heroCount).fill('wolf');
 if(f===5) return Array(heroCount * 2).fill('orc');
@@ -2737,6 +2267,16 @@ render();
 
 function checkCombatEnd() {
 if(S.enemies.length === 0) {
+// Tutorial Floor 0: Special ending
+if(S.floor === 0) {
+setTimeout(() => {
+toast('Victory!');
+setTimeout(finishRibbletonTutorial, 1000);
+}, 500);
+return true;
+}
+
+// Normal combat victory
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
 let starBonus = 0;
