@@ -1559,7 +1559,7 @@ if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #fbbf24;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
-html += `<p style="margin-bottom:0.75rem;color:#14b8a6;font-weight:bold;font-size:0.95rem">Healer starts with Expand! You can target BOTH enemies (Wolf + Goblin)!</p>`;
+html += `<p style="margin-bottom:0.75rem;color:#14b8a6;font-weight:bold;font-size:1rem;background:rgba(20,184,166,0.15);padding:0.5rem;border-radius:6px;border:2px solid #14b8a6">✨ Healer has Expand L1! D20 actions can target BOTH enemies (Wolf + Goblin)!</p>`;
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 16, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">✅ DC 16: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal damage = enemy POW</span>
@@ -1588,7 +1588,7 @@ html = '<div style="text-align:center;padding:1rem;background:white;border:3px s
 html += '<h3 style="margin-bottom:1rem">D20: Do Something Crazy</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
-if(expandLevel > 0) html += `<p style="margin-bottom:0.5rem;color:#14b8a6;font-weight:bold">Expand L${expandLevel}: Hit up to ${maxTargets} targets!</p>`;
+if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#14b8a6;font-weight:bold;font-size:1.05rem;background:rgba(20,184,166,0.1);padding:0.5rem;border-radius:6px;border:2px solid #14b8a6">✨ Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
 if(S.asteriskD20Repeats > 1) {
 html += `<p style="margin-bottom:0.5rem;color:#f59e0b">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
 html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
@@ -2726,10 +2726,16 @@ else html += `${h.n}'s Turn`;
 }
 }
 html += '</div>';
-html += '<div class="combat-grid">';
-html += '<div class="column heroes">';
-html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
+// New layout: Each hero and their enemies in a horizontal lane
+const enemyLanes = {};
+S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
+
 S.heroes.forEach((h,i) => {
+html += '<div class="combat-lane">';
+html += '<div style="display:flex;gap:0.75rem;justify-content:space-between;align-items:flex-start">';
+
+// Hero section (left side of lane)
+html += '<div style="flex:0 0 auto">';
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const isActive = S.activeIdx === i;
 const isTargetable = S.pending && needsHeroTarget(S.pending);
@@ -2800,17 +2806,13 @@ html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig
 html += '</div></div>';
 }
 }
-});
-html += '</div>';
-html += '<div class="column enemies">';
-html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
-const enemyLanes = {};
-S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
-S.heroes.forEach((hero, laneIdx) => {
-const laneEnemies = enemyLanes[laneIdx] || [];
-html += '<div class="combat-lane">';
+html += '</div>'; // Close hero section
+
+// Enemy section (right side of lane)
+html += '<div style="flex:1;display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:flex-end;align-items:flex-start">';
+const laneEnemies = enemyLanes[i] || [];
 if(laneEnemies.length === 0) {
-html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic">Empty</div>`;
 } else {
 laneEnemies.forEach(e => {
 const isTargetable = (S.pending && needsEnemyTarget(S.pending)) || S.pending === 'D20_TARGET';
@@ -2845,9 +2847,10 @@ html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig
 html += '</div></div>';
 });
 }
+html += '</div>'; // Close enemy section
+html += '</div>'; // Close flex container
 html += '</div>'; // Close combat-lane
 });
-html += '</div></div>';
 v.innerHTML = html;
 }
 
