@@ -753,14 +753,14 @@ v.innerHTML = `
 </div>
 
 <!-- Button container overlaid at bottom of image -->
-<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:1rem;width:90%;max-width:350px">
-<button class="btn" onclick="newGame()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 6px 12px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">New Game</button>
-${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 6px 12px rgba(0,0,0,0.6);background:#14b8a6;border:3px solid #0d9488;font-weight:bold">Load Game</button>` : ''}
-<div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="exportSave()" style="font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:rgba(59,130,246,0.9);border:3px solid #3b82f6;font-weight:bold;flex:1">Export Save</button>
-<button class="btn" onclick="importSave()" style="font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:rgba(168,85,247,0.9);border:3px solid #a855f7;font-weight:bold;flex:1">Import Save</button>
+<div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:0.75rem;width:90%;max-width:350px">
+<button class="btn" onclick="newGame()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 6px 12px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
+${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 6px 12px rgba(0,0,0,0.6);background:#14b8a6;border:3px solid #0d9488;font-weight:bold">💾 Load Game</button>` : ''}
+<div style="display:flex;gap:0.5rem;margin-top:0.25rem">
+<button class="btn" onclick="exportSave()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(59,130,246,0.85);border:2px solid #3b82f6;font-weight:600;flex:1;opacity:0.9">📤 Export</button>
+<button class="btn" onclick="importSave()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(168,85,247,0.85);border:2px solid #a855f7;font-weight:600;flex:1;opacity:0.9">📥 Import</button>
+<button class="btn" onclick="exitGame()" style="font-size:0.85rem;padding:0.5rem;background:rgba(120,120,120,0.85);border:2px solid #666;box-shadow:0 2px 4px rgba(0,0,0,0.4);font-weight:600;flex:1;opacity:0.9">🚪 Exit</button>
 </div>
-<button class="btn" onclick="exitGame()" style="font-size:1.3rem;padding:1.25rem;background:rgba(136,136,136,0.9);border:3px solid #666;box-shadow:0 6px 12px rgba(0,0,0,0.6);font-weight:bold">Exit</button>
 </div>
 </div>
 
@@ -911,8 +911,7 @@ html: `
 <img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlip 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Today is <strong>Tapo the Tadpole's first birthday!</strong><br>
-The whole village of Ribbleton gathered to celebrate! 🎉
+Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 </p>
 </div>
 <style>
@@ -931,7 +930,7 @@ html: `
 <img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-The whole town gathered around little Tapo as he blew out the candles on his birthday cake.<br>
+Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
 <strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
 </p>
 <div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
@@ -962,7 +961,7 @@ html: `
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Suddenly, <strong>a dark portal</strong> tore open in the town square!<br>
+Suddenly, <strong>a dark portal</strong> tore open in Ribbleton's square!<br>
 Strange, dangerous enemies began to emerge...
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
@@ -1146,8 +1145,8 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative
 const slides = [
-{text: "The few enemies remaining around the village scampered back into the portal from whence they came. Relieved, and sheathing their weapons, the frog heroes assembled to try to pick up the string of their failed party - but Tapo was missing!!"},
-{text: "As the village people looked high and low, our heroes realized there was only one possibility - the poor tadpole had squiggled his way through!"},
+{text: "The few enemies remaining around Ribbleton scampered back into the portal from whence they came. Relieved, and sheathing their weapons, the frog heroes assembled to try to pick up the string of their failed party - but Tapo was missing!!"},
+{text: "As the Ribbletonians looked high and low, our heroes realized there was only one possibility - the poor tadpole had squiggled his way through!"},
 {text: "Without a thought for their lives, the brave heroes dove into the swirling darkness..."}
 ];
 slides.onComplete = showTitleCard;
@@ -5179,14 +5178,14 @@ showSimpleVictoryScreen();
 
 function showFirstVictoryCutscene() {
 const slides = [
-{text: "Your heroes emerged from the portal, Tapo cradled safely in the Warrior's arms. The little tadpole squeaked happily as the town of Ribbleton erupted in cheers!"},
-{text: "As the celebration wound down, the village elder approached. \"Heroes,\" she croaked solemnly, \"you have earned a great honor.\""},
-{text: "She led you to an ancient stone chamber behind the town square. In the center stood a marble pedestal, gleaming in the torchlight."},
-{text: "\"This is the Pedestal of Champions,\" the elder explained. \"Place figurines of your heroes upon it, and they will grow stronger with each new journey.\""},
-{text: "The elder gestured to the far wall, where eight empty alcoves waited. \"Each victory earns you the right to place a figurine. Choose wisely - POW or HP.\""},
-{text: "Then her expression darkened. \"But beware... that portal you dove through? It was no accident. Something sinister stirs beyond...\""},
-{text: "As if on cue, the stone wall behind the pedestal EXPLODED in a shower of rubble! A swirling crimson portal materialized, radiating malevolent energy."},
-{text: "\"The EFFED UP realm!\" the elder gasped. \"Only the strongest heroes dare enter there. May the ancients protect you...\""}
+{text: "After 20 grueling floors, your heroes finally found him - Tapo the Tadpole, happily playing with a collection of strange glowing figurines!"},
+{text: "The little tadpole squeaked excitedly as the heroes approached. Around him lay scattered statues - each one depicting a heroic frog warrior."},
+{text: "The heroes carefully gathered the mysterious figurines. As they held them, the statues pulsed with magical energy..."},
+{text: "They found an ancient pedestal nearby, covered in glowing runes. Instinctively, they placed the figurines upon it - and felt power surge through them!"},
+{text: "With Tapo safely in the Warrior's arms and their new treasures secured, the heroes stepped back through the portal..."},
+{text: "The portal deposited them back in Ribbleton's square. The townspeople erupted in cheers as the heroes emerged victorious!"},
+{text: "Exhausted but triumphant, the heroes decided to rest and celebrate their victory. They set Tapo down for just a moment..."},
+{text: "But when they turned around... Tapo was gone! The portal behind them shimmered ominously. That mischievous little tadpole must have hopped back through!"}
 ];
 
 slides.onComplete = () => {
