@@ -51,22 +51,55 @@ def replace_background_and_scale(input_path, output_sizes, frog_green=(34, 197, 
     new_img = Image.new('RGBA', (width, height), (*frog_green, 255))
     new_pixels = new_img.load()
 
-    # Copy non-background pixels
-    # Use color distance threshold from detected background
-    threshold = 50  # Adjust sensitivity
+    # Use flood fill to mark true background
+    from collections import deque
+
+    print("Detecting background with flood fill...")
+    is_background = {}
+
+    # Start flood fill from all 4 corners
+    queue = deque([(0, 0), (width-1, 0), (0, height-1), (width-1, height-1)])
+    visited = set()
+
+    while queue:
+        x, y = queue.popleft()
+        if (x, y) in visited or x < 0 or x >= width or y < 0 or y >= height:
+            continue
+
+        visited.add((x, y))
+        r, g, b, a = pixels[x, y]
+
+        # Calculate distance from detected background color
+        color_dist = ((r - bg_r)**2 + (g - bg_g)**2 + (b - bg_b)**2) ** 0.5
+
+        # If close to background color, mark as background and continue flood
+        if color_dist < 30:
+            is_background[(x, y)] = True
+            # Add neighbors to queue
+            for nx, ny in [(x+1,y), (x-1,y), (x,y+1), (x,y-1)]:
+                if (nx, ny) not in visited:
+                    queue.append((nx, ny))
+
+    print(f"Marked {len(is_background)} background pixels")
+
+    # Now process all pixels
     for y in range(height):
         for x in range(width):
             r, g, b, a = pixels[x, y]
 
-            # Calculate color distance from background
-            color_dist = ((r - bg_r)**2 + (g - bg_g)**2 + (b - bg_b)**2) ** 0.5
-
-            # Keep pixels that are significantly different from background
-            if color_dist > threshold:
-                new_pixels[x, y] = (r, g, b, a)
-            else:
-                # Replace background with frog green
+            if (x, y) in is_background:
+                # True background - replace with green
                 new_pixels[x, y] = (*frog_green, 255)
+            else:
+                # Part of character - keep original but brighten if it's whitish
+                # Check if this is a light/white area (eyes, diaper, bandaid)
+                brightness = (r + g + b) / 3
+                if brightness > 210:
+                    # Light area - convert to pure white
+                    new_pixels[x, y] = (255, 255, 255, a)
+                else:
+                    # Keep original color
+                    new_pixels[x, y] = (r, g, b, a)
 
     # Now scale up Tapo by finding the bounding box and expanding
     # Find bounds of non-green content
@@ -81,7 +114,7 @@ def replace_background_and_scale(input_path, output_sizes, frog_green=(34, 197, 
         tapo_w, tapo_h = tapo_img.size
         aspect = tapo_w / tapo_h
 
-        target_coverage = 0.85  # Tapo takes up 85% of icon
+        target_coverage = 0.95  # Tapo takes up 95% of icon
         if aspect > 1:
             new_tapo_w = int(width * target_coverage)
             new_tapo_h = int(new_tapo_w / aspect)
