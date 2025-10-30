@@ -714,8 +714,7 @@ available = available.filter(n => !n.startsWith(base));
 }
 
 // Floor 10: NEVER allow Enemy Encampment (Floor 11 is always ambush)
-// Floor 19: NEVER allow Enemy Encampment (Floor 20 is solo Dragon fight)
-if(S.floor === 10 || S.floor === 19) {
+if(S.floor === 10) {
 available = available.filter(n => !n.startsWith('encampment'));
 }
 
