@@ -70,14 +70,37 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card.enemy.targetable { box-shadow: 0 0 0 3px #dc2626; }
 .card.hero.targeted { box-shadow: 0 0 0 4px #60a5fa; }
 .card.enemy.targeted { box-shadow: 0 0 0 4px #ef4444; }
-.card.hit-flash { animation: hit-animation 0.3s ease; }
+.card.hit-flash { animation: damage-stagger 0.4s ease; }
+.card.attack-slide { animation: attack-slide 0.5s ease; }
+.card.heal-flash { animation: heal-flash 0.5s ease; position: relative; }
+.card.shield-flash { animation: shield-flash 0.5s ease; position: relative; }
 @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px gold; } 50% { box-shadow: 0 0 0 8px gold; } }
-@keyframes hit-animation {
-  0% { transform: translateX(0); filter: brightness(2); }
-  25% { transform: translateX(-8px); }
-  50% { transform: translateX(0); filter: brightness(1.5); }
-  75% { transform: translateX(-4px); }
-  100% { transform: translateX(0); filter: brightness(1); }
+@keyframes damage-stagger {
+  0% { transform: translateX(0); filter: brightness(1); }
+  15% { transform: translateX(-12px); filter: brightness(2) saturate(2); background-color: rgba(220, 38, 38, 0.4); }
+  30% { transform: translateX(6px); filter: brightness(1.8) saturate(2); background-color: rgba(220, 38, 38, 0.3); }
+  50% { transform: translateX(-6px); filter: brightness(1.5); background-color: rgba(220, 38, 38, 0.2); }
+  70% { transform: translateX(3px); filter: brightness(1.2); }
+  100% { transform: translateX(0); filter: brightness(1); background-color: transparent; }
+}
+@keyframes attack-slide {
+  0% { transform: translateX(0); }
+  30% { transform: translateX(20px); }
+  70% { transform: translateX(20px); }
+  100% { transform: translateX(0); }
+}
+@keyframes heal-flash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.8) hue-rotate(90deg); box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+}
+@keyframes shield-flash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.5) grayscale(0.3); box-shadow: 0 0 20px rgba(156, 163, 175, 0.8); }
+}
+@keyframes heal-cross-fade {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
 }
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
@@ -457,7 +480,49 @@ cards.forEach(card => {
 const onclick = card.getAttribute('onclick');
 if(onclick && onclick.includes(targetId)) {
 card.classList.add('hit-flash');
-setTimeout(() => card.classList.remove('hit-flash'), 300);
+setTimeout(() => card.classList.remove('hit-flash'), 400);
+}
+});
+}
+
+function triggerAttackAnimation(attackerId) {
+const cards = document.querySelectorAll('.card');
+cards.forEach(card => {
+const onclick = card.getAttribute('onclick');
+if(onclick && onclick.includes(attackerId)) {
+card.classList.add('attack-slide');
+setTimeout(() => card.classList.remove('attack-slide'), 500);
+}
+});
+}
+
+function triggerHealAnimation(targetId) {
+const cards = document.querySelectorAll('.card');
+cards.forEach(card => {
+const onclick = card.getAttribute('onclick');
+if(onclick && onclick.includes(targetId)) {
+card.classList.add('heal-flash');
+// Add healing cross overlay
+const cross = document.createElement('div');
+cross.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3rem;color:#22c55e;text-shadow:0 0 10px #22c55e;pointer-events:none;z-index:1000;animation:heal-cross-fade 0.5s ease';
+cross.textContent = '✚';
+card.style.position = 'relative';
+card.appendChild(cross);
+setTimeout(() => {
+card.classList.remove('heal-flash');
+if(cross.parentNode) cross.remove();
+}, 500);
+}
+});
+}
+
+function triggerShieldAnimation(targetId) {
+const cards = document.querySelectorAll('.card');
+cards.forEach(card => {
+const onclick = card.getAttribute('onclick');
+if(onclick && onclick.includes(targetId)) {
+card.classList.add('shield-flash');
+setTimeout(() => card.classList.remove('shield-flash'), 500);
 }
 });
 }
@@ -2008,6 +2073,8 @@ function executeInstance(action, heroIdx, targets) {
 const h = S.heroes[heroIdx];
 const pow = h.p;
 if(action === 'Attack') {
+// Trigger attacker animation
+triggerAttackAnimation(h.id);
 const targetNames = [];
 targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
@@ -2026,6 +2093,8 @@ const shieldAmt = 2 * pow * level;
 target.sh += shieldAmt;
 if(target.sh > target.m) target.sh = target.m;
 targetNames.push(target.n);
+// Trigger shield animation
+triggerShieldAnimation(target.id);
 });
 if(targetNames.length > 0) {
 const level = getLevel('Shield', heroIdx);
@@ -2040,6 +2109,8 @@ const target = S.heroes.find(x => x.id === tgtId);
 if(!target) return;
 const level = getLevel('Heal', heroIdx);
 const healAmt = 2 * pow * level;
+// Trigger heal animation
+triggerHealAnimation(target.id);
 if(target.ls) {
 target.ls = false;
 target.lst = 0;
@@ -2060,6 +2131,8 @@ if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} H
 
 function executeGrapple(heroIdx, targets, stunDuration) {
 const h = S.heroes[heroIdx];
+// Trigger attacker animation (grapple uses same animation as attack)
+triggerAttackAnimation(h.id);
 let totalDmg = 0;
 const targetNames = [];
 targets.forEach(tgtId => {
