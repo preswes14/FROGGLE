@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
 <link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
-<title>FROGGLE v9.91 - BETA RELEASE</title>
+<title>FROGGLE v9.92 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -186,7 +186,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="game-area" id="gameView"></div>
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '9.91';
+const GAME_VERSION = '9.92';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
 
@@ -797,7 +797,7 @@ v.innerHTML = `
 
 <!-- Version label overlaid on image -->
 <div style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5)">
-<p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.91 BETA</p>
+<p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.92 BETA</p>
 </div>
 </div>
 
@@ -1009,7 +1009,7 @@ html: `
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Suddenly, <strong>a dark portal</strong> tore open in Ribbleton's square!<br>
+And thank Toadness they did, because suddenly, <strong>a dark portal</strong> tore open in Ribbleton's square!<br>
 Strange, dangerous enemies began to emerge...
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
@@ -1242,7 +1242,7 @@ showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with 
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.91 BETA RELEASE</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.92 BETA RELEASE</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
 ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -1340,13 +1340,13 @@ if(!cardEl) return;
 
 if(sel.includes(h)) {
 const hData = heroData[h];
-const hPixelImage = HERO_IMAGES[h] || '';
+const hPortraitImage = HERO_PORTRAITS[h] || '';
 const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`).join('');
 cardEl.innerHTML = `
 <div onclick="toggleHeroSelection('${h}')" style="cursor:pointer;background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
 <div style="text-align:center">
 <div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;image-rendering:pixelated">` : ''}
+${hPortraitImage ? `<img src="${hPortraitImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
 <div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
 <div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
 <div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
@@ -2418,10 +2418,21 @@ render();
 S.enemies.forEach(e => {
 if(e.st > 0) e.st--;
 e.turnsSinceGain++;
-// RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
+// RIBBLETON TUTORIAL: Scripted sigil gains for Goblin (Shield on Round 2, Heal on Round 3)
 const isTutorial = tutorialState && S.floor === 0;
-const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
-if(e.turnsSinceGain >= e.gainRate && !isTutorial) {
+if(isTutorial) {
+// Goblin gets Shield on Round 2
+if(e.n === 'Goblin' && S.round === 2 && !e.s.some(s => s.sig === 'Shield')) {
+e.s.push({sig: 'Shield', level: 1, perm: false});
+toast(`${e.n} drew Shield L1!`);
+}
+// Goblin gets Heal on Round 3
+else if(e.n === 'Goblin' && S.round === 3 && !e.s.some(s => s.sig === 'Heal')) {
+e.s.push({sig: 'Heal', level: 1, perm: false});
+toast(`${e.n} drew Heal L1!`);
+}
+// Wolf never gets sigils in tutorial
+} else if(e.turnsSinceGain >= e.gainRate) {
 e.turnsSinceGain = 0;
 // Draw multiple sigils per turn if specified (Dragons draw 2)
 const draws = e.drawsPerTurn || 1;
@@ -2963,14 +2974,9 @@ render();
 });
 return;
 }
-// Round 3: Force Goblin to draw Shield, then PROMPT 9 + 10
-else if(S.round === 3 && tutorialState.stage === 'finish_wolf') {
-// Force Goblin to draw Shield
-const goblin = S.enemies.find(e => e.n === 'Goblin');
-if(goblin && !goblin.s.some(s => s.sig === 'Shield')) {
-goblin.s.push({sig:'Shield', level:1, perm:false});
-toast('Goblin drew Shield L1!');
-}
+// Round 2: Goblin gains Shield (via enemyTurn), then PROMPT 9 + 10
+else if(S.round === 2 && tutorialState.stage === 'finish_wolf') {
+// Shield was already granted in enemyTurn - just show the tutorial
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -2978,10 +2984,10 @@ S.locked = false;
 tutorialState.stage = 'shield_sigil';
 upd();
 render();
-// First show that enemies can get sigils
-showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! They draw from a pool specific to their type, and gain sigils over time.", () => {
+// Explain that enemies can get sigils
+showTutorialPop('enemies_get_sigils', "Enemies can get sigils too! They'll attack every turn, but their sigils are used after attacking and fall off. Attack sigils are permanent though!", () => {
 // Then explain this specific sigil
-showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies use their sigils AFTER they attack, then those sigils fall off. Try to finish him before he can Shield up!", () => {
+showTutorialPop('ribbleton_shield_sigil', "The Goblin drew Shield! Enemies use sigils after they attack. Try to finish him before he can Shield up!", () => {
 // PROMPT 10: Handoff
 showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
@@ -3063,10 +3069,10 @@ const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}
+${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px"></div>` : ''}
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
 const activeSigils = [...h.s, ...(h.ts || [])];
@@ -3218,7 +3224,7 @@ if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
 // Start card stack container if there are queued actions
 if(queuedActions > 0) {
 html += `<div class="card-stack-container">`;
@@ -3229,7 +3235,7 @@ html += `<div class="card-stack-copy"></div>`;
 }
 html += `<div class="${cardClasses}" ${onclick}>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}`;
+${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px"></div>` : ''}`;
 html += '<div class="sigil-divider"></div>';
 html += '<div class="sigil-row">';
 const activeSigils = [...h.s, ...(h.ts || [])];
