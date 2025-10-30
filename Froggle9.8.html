@@ -119,6 +119,11 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 </div>
 <div class="game-area" id="gameView"></div>
 <script>
+// ===== VERSION CHECK =====
+const GAME_VERSION = '9.8';
+console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #14b8a6; font-size: 20px; font-weight: bold;');
+console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
+
 // ===== GAME DATA =====
 // Hero images (base64 encoded PNG)
 const HERO_IMAGES = {
@@ -1510,7 +1515,25 @@ renderD20MenuAfterTutorial(heroIdx);
 function renderD20MenuAfterTutorial(heroIdx) {
 const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
-let html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px">';
+
+// RIBBLETON TUTORIAL: Special D20 menu that doesn't block view
+const isTutorial = tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu';
+
+let html = '';
+if(isTutorial) {
+// Tutorial version: overlay on left side only, keep enemies visible
+html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:350px;background:white;border:4px solid #fbbf24;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
+html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
+html += `<p style="margin-bottom:0.5rem;color:#14b8a6;font-weight:bold;font-size:0.95rem">Healer has Expand! You can target up to 2 enemies!</p>`;
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 16, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem">
+<strong style="font-size:1.2rem">DC 16: CONFUSE</strong><br>
+<span style="font-size:0.95rem">Deal damage = enemy POW</span>
+</div>`;
+html += `<p style="font-size:0.85rem;opacity:0.7;font-style:italic;margin-top:0.5rem">Other options locked during tutorial</p>`;
+html += '</div>';
+} else {
+// Normal D20 menu (centered, blocks view)
+html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px">';
 html += '<h3 style="margin-bottom:1rem">D20: Do Something Crazy</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
@@ -1538,6 +1561,7 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC},
 if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
 else html += `<button class="btn secondary" onclick="cancelAction()">Cancel</button>`;
 html += '</div>';
+}
 v.innerHTML = html;
 }
 
@@ -2022,7 +2046,7 @@ console.log('[TUTORIAL] finishAction - stage:', tutorialState.stage, 'wolfDamage
 if((tutorialState.stage === 'targeting_wolf' || tutorialState.stage === 'warrior_attack') && tutorialState.wolfDamaged && h.n === 'Warrior' && S.round === 1) {
 console.log('[TUTORIAL] Triggering PROMPT 3 - Healer D20');
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
+showTutorialPop('ribbleton_healer_d20', "Nice hit! Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
 S.activeIdx = 1; // Select Healer
 render();
 });
@@ -2060,8 +2084,10 @@ S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: PROMPT 5 - Explain enemy turn before first enemy turn
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'enemy_turn_wait') {
+console.log('[TUTORIAL] Triggering PROMPT 5 - Enemy Turn');
 tutorialState.stage = 'enemy_turn_explained';
 showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack every turn, and they attack straight across from them!", () => {
+console.log('[TUTORIAL] PROMPT 5 dismissed, starting enemy turn');
 setTimeout(() => { S.locked = true; enemyTurn(); }, 500);
 });
 } else {
@@ -2404,8 +2430,10 @@ S.round++;
 // RIBBLETON TUTORIAL: Handle round transitions
 if(tutorialState && S.floor === 0) {
 tutorialState.round = S.round;
+console.log('[TUTORIAL] Round transition - Round:', S.round, 'Stage:', tutorialState.stage);
 // Round 2: PROMPT 6 - Healer heal
 if(S.round === 2 && tutorialState.stage === 'enemy_turn_explained') {
+console.log('[TUTORIAL] Triggering PROMPT 6 - Healer Heal');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -2418,6 +2446,8 @@ S.activeIdx = 1; // Select Healer
 render();
 });
 return;
+} else if(S.round === 2) {
+console.log('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained)');
 }
 // Round 3: Force Goblin to draw Shield, then PROMPT 9 + 10
 else if(S.round === 3 && tutorialState.stage === 'finish_wolf') {
