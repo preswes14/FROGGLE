@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo.png"/>
 <link rel="icon" type="image/png" href="assets/tapo.png"/>
-<title>FROGGLE v9.8 - BETA RELEASE</title>
+<title>FROGGLE v9.9 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -134,7 +134,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="game-area" id="gameView"></div>
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '9.8';
+const GAME_VERSION = '9.9';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #14b8a6; font-size: 20px; font-weight: bold;');
 console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
 
@@ -690,7 +690,7 @@ v.innerHTML = `
 
 <!-- Version label -->
 <div style="background:rgba(0,0,0,0.7);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(255,255,255,0.3);margin-bottom:1.5rem">
-<p style="font-size:0.9rem;color:white;font-weight:bold">v9.8 BETA RELEASE</p>
+<p style="font-size:0.9rem;color:white;font-weight:bold">v9.9 BETA RELEASE</p>
 </div>
 
 <!-- Button container -->
@@ -1068,7 +1068,7 @@ showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with 
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.8 BETA RELEASE</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.9 BETA RELEASE</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#14b8a6'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
 ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
