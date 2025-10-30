@@ -55,7 +55,7 @@ def main():
     crop_and_save(
         f'{assets_dir}/ghost1.png',
         f'{reactions_dir}/ghost-boys.png',
-        (150, 150, 550, 450)  # The two ghost boys
+        (120, 50, 580, 380)  # The two ghost boys with faces
     )
 
     print()

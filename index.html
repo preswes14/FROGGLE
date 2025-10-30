@@ -713,8 +713,12 @@ const base = S.lastNeutral.replace(/[12]$/, '');
 available = available.filter(n => !n.startsWith(base));
 }
 
-// Floor 10: NEVER allow Enemy Encampment (Floor 11 is always ambush)
-if(S.floor === 10) {
+// NEVER allow Enemy Encampment before boss/special floors
+// Floor 8 → Floor 9 Solo Dragon
+// Floor 10 → Floor 11 Ambush (Goblin Army)
+// Floor 14 → Floor 15 Triple Dragon
+// Floor 18 → Floor 19 Final Dragon Army
+if(S.floor === 8 || S.floor === 10 || S.floor === 14 || S.floor === 18) {
 available = available.filter(n => !n.startsWith('encampment'));
 }
 
@@ -1406,6 +1410,17 @@ hero.h += 5;
 }
 });
 initNeutralDeck();
+// Reset temporary neutral state (resets on death)
+S.silverKeyHeld = false;
+S.oracleHero = null;
+S.oracleRoll = null;
+S.oracleStat = null;
+S.wizardSigil = null;
+S.treasureSecretCompartment = false;
+S.princeQuestActive = false;
+S.princeQuestCompleted = false;
+S.princeQuestAmbushed = false;
+S.ambushed = false;
 upd();
 // Check if player has starting XP from Death Boy sacrifices
 if(S.startingXP > 0) {
