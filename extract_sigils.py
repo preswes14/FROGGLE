@@ -43,24 +43,32 @@ def extract_sigils(input_path, output_dir):
         row = idx // cols
         col = idx % cols
 
-        # Calculate approximate cell position
-        x = col * cell_width
-        y = row * cell_height
+        # Calculate cell position with margins to avoid spillover from adjacent sigils
+        # Add 12% margin on each side to ensure clean separation
+        margin_x = cell_width * 0.12
+        margin_y = cell_height * 0.12
 
-        # Crop the cell (we'll auto-crop the actual sigil content later)
-        cell = img.crop((x, y, x + cell_width, y + cell_height))
+        x = col * cell_width + margin_x
+        y = row * cell_height + margin_y
+        width_crop = cell_width - (2 * margin_x)
+        height_crop = cell_height - (2 * margin_y)
+
+        # Crop the cell with margins
+        cell = img.crop((int(x), int(y), int(x + width_crop), int(y + height_crop)))
 
         # Find the bounding box of non-white pixels
         # Convert to grayscale for easier thresholding
         gray = cell.convert('L')
         pixels = gray.load()
 
+        actual_width, actual_height = cell.size
+
         # Find bounds
-        min_x, min_y = cell_width, cell_height
+        min_x, min_y = actual_width, actual_height
         max_x, max_y = 0, 0
 
-        for py in range(cell_height):
-            for px in range(cell_width):
+        for py in range(actual_height):
+            for px in range(actual_width):
                 # If pixel is dark (not white), it's part of the sigil
                 if pixels[px, py] < 250:  # threshold for "not white"
                     min_x = min(min_x, px)
@@ -72,8 +80,8 @@ def extract_sigils(input_path, output_dir):
         padding = 5
         min_x = max(0, min_x - padding)
         min_y = max(0, min_y - padding)
-        max_x = min(cell_width, max_x + padding)
-        max_y = min(cell_height, max_y + padding)
+        max_x = min(actual_width, max_x + padding)
+        max_y = min(actual_height, max_y + padding)
 
         # Crop to the actual sigil bounds
         sigil = cell.crop((min_x, min_y, max_x, max_y))
