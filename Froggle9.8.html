@@ -1106,11 +1106,11 @@ const isLocked = isRun2 && (heroType === 'warrior' || heroType === 'healer');
 if(isLocked) return;
 
 const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
-tank: {name: 'Tank', pow: 1, hp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
-mage: {name: 'Mage', pow: 1, hp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets'},
-healer: {name: 'Healer', pow: 1, hp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies'},
-tapo: {name: 'Tapo', pow: 1, hp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!'}
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies'},
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!'}
 };
 
 const hero = heroData[heroType];
@@ -1134,12 +1134,14 @@ if(!cardEl) return;
 if(sel.includes(h)) {
 const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
+const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`).join('');
 cardEl.innerHTML = `
 <div onclick="toggleHeroSelection('${h}')" style="cursor:pointer;background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
 <div style="text-align:center">
 <div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;image-rendering:pixelated">` : ''}
 <div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
+<div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
 <div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
 </div>
 </div>`;
@@ -2120,7 +2122,10 @@ render();
 S.enemies.forEach(e => {
 if(e.st > 0) e.st--;
 e.turnsSinceGain++;
-if(e.turnsSinceGain >= e.gainRate) {
+// RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
+const isTutorial = tutorialState && S.floor === 0;
+const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
+if(e.turnsSinceGain >= e.gainRate && !isTutorial) {
 e.turnsSinceGain = 0;
 // Draw multiple sigils per turn if specified (Dragons draw 2)
 const draws = e.drawsPerTurn || 1;
@@ -2153,14 +2158,14 @@ const pool = base.pool;
 if(!pool) return;
 const heldSigils = enemy.s.map(sigil => sigil.sig);
 if(pool === 'ANY') {
-const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk', 'Expand'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
 const level = 1 + Math.floor(Math.random() * 3);
 enemy.s.push({sig, level, perm:false});
 } else if(pool === 'ANY_ADVANCED') {
-const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
+const allSigils = ['Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
@@ -2189,7 +2194,7 @@ const pool = enemy.pool;
 if(!pool || pool.length === 0) return;
 const heldSigils = enemy.s.map(sigil => sigil.sig);
 if(pool === 'ANY') {
-const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk', 'Expand'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
@@ -2197,7 +2202,7 @@ const level = 1 + Math.floor(Math.random() * 3);
 enemy.s.push({sig, level, perm:false});
 toast(`${enemy.n} drew ${sig} L${level}!`);
 } else if(pool === 'ANY_ADVANCED') {
-const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
+const allSigils = ['Shield', 'Grapple', 'Heal', 'Alpha', 'Asterisk'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
@@ -2501,8 +2506,10 @@ render();
 
 function checkCombatEnd() {
 if(S.enemies.length === 0) {
-// Tutorial Floor 0: Special ending
+// Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
+S.combatXP = 0;
+S.combatGold = 0;
 setTimeout(() => {
 toast('Victory!');
 setTimeout(finishRibbletonTutorial, 1000);
@@ -2605,7 +2612,7 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
@@ -2782,7 +2789,7 @@ html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':'l4';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
