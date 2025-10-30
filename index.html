@@ -414,6 +414,7 @@ ribbleton_d20_menu: false,
 ribbleton_enemy_turn: false,
 ribbleton_healer_heal: false,
 ribbleton_expand: false,
+healer_expand_explain: false,
 ribbleton_finish_wolf: false,
 enemies_get_sigils: false,
 ribbleton_shield_sigil: false,
@@ -577,9 +578,7 @@ setTimeout(() => reaction.remove(), 400);
 }
 
 function showTutorialPop(flagName, message, onDismiss) {
-console.log('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
 if(S.tutorialsDisabled || S.tutorialFlags[flagName]) {
-console.log('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
 if(onDismiss) onDismiss();
 return;
 }
@@ -593,40 +592,30 @@ backdrop.innerHTML = `
 <button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
 </div>`;
 document.body.appendChild(backdrop);
-console.log('[TUTORIAL] Backdrop created and appended, total backdrops now:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }
 
 function dismissTutorialPop(flagName) {
-console.log('[TUTORIAL] dismissTutorialPop called:', flagName);
-console.log('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 S.tutorialFlags[flagName] = true;
 savePermanent();
 
 // Remove ALL backdrops aggressively
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-console.log('[TUTORIAL] Removing', allBackdrops.length, 'backdrops');
 allBackdrops.forEach((b, i) => {
-console.log('[TUTORIAL] Removing backdrop', i);
 b.remove();
 });
 
 // Verify it's gone
 setTimeout(() => {
 const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
-console.log('[TUTORIAL] Backdrops remaining after pop dismiss:', remaining.length);
 if(remaining.length > 0) {
-console.error('[TUTORIAL] ERROR: Backdrops still blocking!', remaining);
 remaining.forEach(r => {
-console.error('[TUTORIAL] Zombie backdrop:', r);
 r.remove();
 });
 }
 
-console.log('[TUTORIAL] About to call onDismiss callback');
 if(window.tutorialCallback) {
-console.log('[TUTORIAL] Calling onDismiss callback NOW');
 window.tutorialCallback();
 window.tutorialCallback = null;
 } else {
@@ -1139,10 +1128,8 @@ remaining.forEach(r => r.remove());
 
 // PROMPT 1: Warrior Attack
 showTutorialPop('ribbleton_warrior_attack', "Quick! Attack an enemy! Click on Warrior's Attack sigil.", () => {
-console.log('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
-console.log('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
 render();
 });
 }, 50);
@@ -2281,10 +2268,8 @@ enemy.h -= dmg;
 
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && enemy.n === 'Wolf') {
-console.log('[TUTORIAL] Wolf took damage! HP now:', enemy.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
 if(enemy.h > 0 && !tutorialState.wolfDamaged) {
 tutorialState.wolfDamaged = true;
-console.log('[TUTORIAL] Set wolfDamaged = true');
 // Show PROMPT 3 after this action finishes
 }
 }
@@ -2355,10 +2340,8 @@ S.activeIdx = -1;
 // RIBBLETON TUTORIAL: Show prompts after actions
 if(tutorialState && S.floor === 0) {
 const h = S.heroes[heroIdx];
-console.log('[TUTORIAL] finishAction - stage:', tutorialState.stage, 'wolfDamaged:', tutorialState.wolfDamaged, 'hero:', h.n, 'round:', S.round);
 // After Warrior attacks Wolf and damages it -> PROMPT 3
 if((tutorialState.stage === 'targeting_wolf' || tutorialState.stage === 'warrior_attack') && tutorialState.wolfDamaged && h.n === 'Warrior' && S.round === 1) {
-console.log('[TUTORIAL] Triggering PROMPT 3 - Healer D20');
 tutorialState.stage = 'healer_d20';
 showTutorialPop('ribbleton_healer_d20', "Nice hit! Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
 S.activeIdx = 1; // Select Healer
@@ -2398,10 +2381,8 @@ S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: PROMPT 5 - Explain enemy turn before first enemy turn
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'enemy_turn_wait') {
-console.log('[TUTORIAL] Triggering PROMPT 5 - Enemy Turn');
 tutorialState.stage = 'enemy_turn_explained';
 showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack every turn, and they attack straight across from them!", () => {
-console.log('[TUTORIAL] PROMPT 5 dismissed, starting enemy turn');
 setTimeout(() => { S.locked = true; enemyTurn(); }, 500);
 });
 } else {
@@ -2958,7 +2939,6 @@ render();
 });
 return;
 } else if(S.round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
-console.log('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
 // Force the tutorial anyway to prevent it from being skipped
 S.turn = 'player';
 S.activeIdx = -1;
