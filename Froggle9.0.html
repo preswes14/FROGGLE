@@ -58,7 +58,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
 .card.hero { background: #2c63c7; color: white; }
 .card.enemy { background: #b64141; color: white; }
-.card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
+.card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 2s infinite; }
 .card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
 .card.selectable:active { transform: scale(0.98); }
 .card.targetable { cursor: pointer; }
@@ -70,7 +70,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card.enemy.targetable { box-shadow: 0 0 0 3px #dc2626; }
 .card.hero.targeted { box-shadow: 0 0 0 4px #60a5fa; }
 .card.enemy.targeted { box-shadow: 0 0 0 4px #ef4444; }
-.card.hit-flash { animation: hit-animation 0.3s ease; }
+.card.hit-flash { animation: hit-animation 0.6s ease; }
 @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px gold; } 50% { box-shadow: 0 0 0 8px gold; } }
 @keyframes hit-animation {
   0% { transform: translateX(0); filter: brightness(2); }
@@ -84,14 +84,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
-.sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
+.sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 1.6s infinite; }
 .sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
 .sigil.l1 { color: #1e40af; border-color: #1e40af; }
 .sigil.l2 { color: #0d9488; border-color: #0d9488; }
 .sigil.l3 { color: #9333ea; border-color: #9333ea; }
 .sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
 .sigil.engraved { color: #6b7280; border-color: #9ca3af; font-style: italic; opacity: 0.7; background: rgba(107,114,128,0.1); }
-.sigil.asterisk-primed { box-shadow: 0 0 8px #fbbf24; animation: pulse-asterisk 1s infinite; }
+.sigil.asterisk-primed { box-shadow: 0 0 8px #fbbf24; animation: pulse-asterisk 2s infinite; }
 @keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #fbbf24; } 50% { box-shadow: 0 0 16px #fbbf24; } }
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
@@ -504,6 +504,51 @@ tutorialsDisabled: S.tutorialsDisabled
 }));
 }
 
+function downloadSave() {
+const currentGame = localStorage.getItem('froggle8');
+const permanent = localStorage.getItem('froggle8_permanent');
+const saveData = {
+currentGame: currentGame ? JSON.parse(currentGame) : null,
+permanent: permanent ? JSON.parse(permanent) : null,
+timestamp: new Date().toISOString()
+};
+const dataStr = JSON.stringify(saveData, null, 2);
+const dataBlob = new Blob([dataStr], { type: 'application/json' });
+const url = URL.createObjectURL(dataBlob);
+const link = document.createElement('a');
+link.href = url;
+link.download = `froggle_save_${new Date().toISOString().slice(0,10)}.json`;
+link.click();
+URL.revokeObjectURL(url);
+toast('Save file downloaded!', 2000);
+}
+
+function uploadSave(event) {
+const file = event.target.files[0];
+if (!file) return;
+const reader = new FileReader();
+reader.onload = function(e) {
+try {
+const saveData = JSON.parse(e.target.result);
+if (saveData.currentGame) {
+localStorage.setItem('froggle8', JSON.stringify(saveData.currentGame));
+}
+if (saveData.permanent) {
+localStorage.setItem('froggle8_permanent', JSON.stringify(saveData.permanent));
+}
+toast('Save file uploaded successfully!', 2000);
+setTimeout(() => {
+location.reload();
+}, 2000);
+} catch (error) {
+toast('Error loading save file!', 3000);
+console.error('Save upload error:', error);
+}
+};
+reader.readAsText(file);
+event.target.value = '';
+}
+
 function loadPermanent() {
 const d = localStorage.getItem('froggle8_permanent');
 if(!d) return;
@@ -647,6 +692,9 @@ v.innerHTML = `
 <div style="display:flex;flex-direction:column;gap:1rem;width:100%;max-width:350px">
 <button class="btn" onclick="newGame()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 4px 8px rgba(0,0,0,0.3)">New Game</button>
 ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:1.3rem;padding:1.25rem;box-shadow:0 4px 8px rgba(0,0,0,0.3)">Load Game</button>` : ''}
+<button class="btn secondary" onclick="downloadSave()" style="font-size:0.9rem;padding:0.75rem">💾 Download Save</button>
+<button class="btn secondary" onclick="document.getElementById('uploadSaveInput').click()" style="font-size:0.9rem;padding:0.75rem">📂 Upload Save</button>
+<input type="file" id="uploadSaveInput" accept=".json" style="display:none" onchange="uploadSave(event)">
 <button class="btn" onclick="exitGame()" style="font-size:1.3rem;padding:1.25rem;background:#888;box-shadow:0 4px 8px rgba(0,0,0,0.3)">Exit</button>
 </div>
 
@@ -750,17 +798,17 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#14b8a6">Ribbleton's Defenders</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 4s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 The whole town gathered around little Tapo as he blew out the candles on his birthday cake.<br>
 <strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
 </p>
 <div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
-<div style="animation:partyFlip 1s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 4s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 0.8s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 2s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 2s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 8s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 1.6s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 4s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 </div>
 </div>
 <style>
@@ -778,18 +826,18 @@ The whole town gathered around little Tapo as he blew out the candles on his bir
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 1s ease-in-out infinite">DANGER!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:portalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
+<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:portalPulse 2s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 4s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 And thank toadness they did - for just then, <strong>a dark portal</strong> tore open in the town square!<br>
 Strange, dangerous enemies began to emerge...
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
-<div style="animation:enemyAppear 1s ease-out">👺</div>
-<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
+<div style="animation:enemyAppear 2s ease-out">👺</div>
+<div style="animation:enemyAppear 2.6s ease-out">🐺</div>
 </div>
 </div>
 <style>
@@ -835,46 +883,63 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:center;margin:1.5rem 0">
-<!-- Defenders -->
-<div style="position:relative">
-<div style="position:absolute;top:-2.5rem;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:0.5rem 0.75rem;border-radius:8px;font-size:0.75rem;font-weight:bold;white-space:nowrap;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.2)">
-Tank and Mage are<br>defending Tapo and<br>the rest of Ribbleton!
-<div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #22c55e"></div>
+<div style="position:relative;margin:1.5rem 0">
+<!-- Label Text Above -->
+<div style="display:flex;justify-content:space-between;margin-bottom:0.75rem;padding:0 1rem">
+<div style="text-align:center;font-size:0.75rem;font-weight:bold;flex:1">
+<strong>Tank</strong> and <strong>Mage</strong> are<br>defending <strong>Tapo</strong> and<br>the rest of Ribbleton!
 </div>
+<div style="text-align:center;font-size:0.75rem;font-weight:bold;flex:1">
+<strong>Warrior</strong> and <strong>Healer</strong><br>charge towards<br>the threat!
+</div>
+</div>
+
+<!-- Curvy Arrows -->
+<svg width="100%" height="40" style="position:absolute;top:45px;left:0">
+<defs>
+<marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L9,3 z" fill="#22c55e" />
+</marker>
+<marker id="arrowYellow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+<path d="M0,0 L0,6 L9,3 z" fill="#fbbf24" />
+</marker>
+</defs>
+<!-- Arrow to Defenders -->
+<path d="M 25%,5 Q 20%,25 16%,38" stroke="#22c55e" stroke-width="3" fill="none" marker-end="url(#arrowGreen)" />
+<!-- Arrow to Attackers -->
+<path d="M 75%,5 Q 70%,25 60%,38" stroke="#fbbf24" stroke-width="3" fill="none" marker-end="url(#arrowYellow)" />
+</svg>
+
+<!-- Hero Grid -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:center;margin-top:3rem">
+<!-- Defenders -->
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
-<div style="animation:defensiveStance 1.5s ease-in-out infinite">
+<div style="animation:defensiveStance 3s ease-in-out infinite">
 <img src="tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
 </div>
 <div style="text-align:center">
 <img src="assets/tapo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
 </div>
-<div style="animation:defensiveStance 1.3s ease-in-out infinite">
+<div style="animation:defensiveStance 2.6s ease-in-out infinite">
 <img src="magefull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
-</div>
 </div>
 </div>
 
 <!-- Attackers -->
-<div style="position:relative">
-<div style="position:absolute;top:-2.5rem;left:50%;transform:translateX(-50%);background:#fbbf24;color:#000;padding:0.5rem 0.75rem;border-radius:8px;font-size:0.75rem;font-weight:bold;white-space:nowrap;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.2)">
-Warrior and Healer<br>charge towards<br>the threat!
-<div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #fbbf24"></div>
-</div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
-<div style="animation:chargeForward 0.8s ease-out infinite alternate">
+<div style="animation:chargeForward 1.6s ease-out infinite alternate">
 <img src="warriorfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
 </div>
-<div style="animation:chargeForward 1s ease-out infinite alternate">
+<div style="animation:chargeForward 2s ease-out infinite alternate">
 <img src="healerfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
-</div>
 </div>
 </div>
 
 <!-- Enemies -->
 <div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:3rem">
-<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
-<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
+<div style="animation:enemyThreat 2s ease-in-out infinite">👺</div>
+<div style="animation:enemyThreat 2.4s ease-in-out infinite">🐺</div>
+</div>
 </div>
 </div>
 <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
