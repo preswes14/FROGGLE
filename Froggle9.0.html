@@ -739,9 +739,8 @@ html: `
 <div style="margin:1.5rem 0">
 <img src="assets/title-screen.png" style="max-width:100%;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2)">
 </div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Today is <strong>Tapo the Tadpole's first birthday!</strong><br>
-The whole village gathered to celebrate! 🎉
+<p style="font-size:1.5rem;line-height:1.8;margin:1rem 0;font-weight:bold">
+Today is Tapo the Tadpole's <strong style="color:#14b8a6">FIRST BIRTHDAY!</strong> 🎉
 </p>
 </div>
 `
@@ -759,9 +758,9 @@ The whole town gathered around little Tapo as he blew out the candles on his bir
 </p>
 <div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
 <div style="animation:partyFlip 1s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 1.2s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 4s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 0.8s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 1.4s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 2s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 </div>
 </div>
 <style>
@@ -785,7 +784,7 @@ html: `
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Suddenly, <strong>a dark portal</strong> tore open in the town square!<br>
+And thank toadness they did - for just then, <strong>a dark portal</strong> tore open in the town square!<br>
 Strange, dangerous enemies began to emerge...
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
@@ -836,42 +835,48 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
-<p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-A Goblin and a Wolf have appeared from the portal!
-</p>
-<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;align-items:center;margin:1.5rem 0">
+<!-- Defenders -->
+<div style="position:relative">
+<div style="position:absolute;top:-2.5rem;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:0.5rem 0.75rem;border-radius:8px;font-size:0.75rem;font-weight:bold;white-space:nowrap;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.2)">
+Tank and Mage are<br>defending Tapo and<br>the rest of Ribbleton!
+<div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #22c55e"></div>
+</div>
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
 <img src="tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">🛡 On Guard!</div>
 </div>
 <div style="text-align:center">
 <img src="assets/tapo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
-<div style="font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Protected!</div>
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
 <img src="magefull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">📖 On Guard!</div>
 </div>
 </div>
-<div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:2.5rem">
-<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
-<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
+</div>
+
+<!-- Attackers -->
+<div style="position:relative">
+<div style="position:absolute;top:-2.5rem;left:50%;transform:translateX(-50%);background:#fbbf24;color:#000;padding:0.5rem 0.75rem;border-radius:8px;font-size:0.75rem;font-weight:bold;white-space:nowrap;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,0.2)">
+Warrior and Healer<br>charge towards<br>the threat!
+<div style="position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #fbbf24"></div>
 </div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
-<img src="warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">⚔️ Attacking!</div>
+<img src="warriorfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
-<img src="healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">✚ Attacking!</div>
+<img src="healerfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
 </div>
 </div>
 </div>
-<p style="font-size:1rem;line-height:1.6;text-align:center;font-style:italic;opacity:0.9">
-Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the portal!
-</p>
+
+<!-- Enemies -->
+<div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:3rem">
+<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
+<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
+</div>
+</div>
 <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
 <button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#14b8a6;color:#fff;border:2px solid #0f766e;border-radius:8px;cursor:pointer">Let's fight!</button>
 <button onclick="skipTutorialFromOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#888;color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
