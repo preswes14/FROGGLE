@@ -55,8 +55,33 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.3) 80%, transparent);
 }
-.card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
+.card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; position: relative; }
 .card.hero { background: #2c63c7; color: white; }
+/* Card stack for Alpha-granted actions */
+.card-stack-container { position: relative; }
+.card-stack-copy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #000;
+  border-radius: 8px;
+  background: #2c63c7;
+  opacity: 0.6;
+  z-index: -1;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+.card-stack-copy:nth-child(2) { transform: translate(4px, 4px); }
+.card-stack-copy:nth-child(3) { transform: translate(8px, 8px); opacity: 0.4; }
+.card-stack-copy:nth-child(4) { transform: translate(12px, 12px); opacity: 0.3; }
+.card-stack-copy:nth-child(5) { transform: translate(16px, 16px); opacity: 0.2; }
+@keyframes card-slide-out {
+  0% { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(50px, -50px); opacity: 0; }
+}
+.card-removing { animation: card-slide-out 0.4s ease-out forwards; }
 .card.enemy { background: #b64141; color: white; }
 .card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
 .card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
@@ -713,8 +738,12 @@ const base = S.lastNeutral.replace(/[12]$/, '');
 available = available.filter(n => !n.startsWith(base));
 }
 
-// Floor 10: NEVER allow Enemy Encampment (Floor 11 is always ambush)
-if(S.floor === 10) {
+// NEVER allow Enemy Encampment before boss/special floors
+// Floor 8 → Floor 9 Solo Dragon
+// Floor 10 → Floor 11 Ambush (Goblin Army)
+// Floor 14 → Floor 15 Triple Dragon
+// Floor 18 → Floor 19 Final Dragon Army
+if(S.floor === 8 || S.floor === 10 || S.floor === 14 || S.floor === 18) {
 available = available.filter(n => !n.startsWith('encampment'));
 }
 
@@ -1406,6 +1435,17 @@ hero.h += 5;
 }
 });
 initNeutralDeck();
+// Reset temporary neutral state (resets on death)
+S.silverKeyHeld = false;
+S.oracleHero = null;
+S.oracleRoll = null;
+S.oracleStat = null;
+S.wizardSigil = null;
+S.treasureSecretCompartment = false;
+S.princeQuestActive = false;
+S.princeQuestCompleted = false;
+S.princeQuestAmbushed = false;
+S.ambushed = false;
 upd();
 // Check if player has starting XP from Death Boy sacrifices
 if(S.startingXP > 0) {
@@ -3142,11 +3182,22 @@ const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 if(h.st > 0) extra.push(`😵${h.st}T`);
+// Count queued Alpha-granted actions BEFORE hasActed check
+const queuedActions = S.alphaGrantedActions ? S.alphaGrantedActions.filter(idx => idx === i).length : 0;
+if(queuedActions > 0) extra.push(`🃏×${queuedActions}`);
 if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+// Start card stack container if there are queued actions
+if(queuedActions > 0) {
+html += `<div class="card-stack-container">`;
+// Render stack copies (max 4 visible)
+for(let stackIdx = 0; stackIdx < Math.min(queuedActions, 4); stackIdx++) {
+html += `<div class="card-stack-copy"></div>`;
+}
+}
 html += `<div class="${cardClasses}" ${onclick}>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 ${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}`;
@@ -3171,7 +3222,11 @@ ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)"
 });
 html += '</div>';
 html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
-html += '</div>';
+html += '</div>'; // Close hero card
+// Close card stack container if it was opened
+if(queuedActions > 0) {
+html += `</div>`; // Close card-stack-container
+}
 // Show recruit for this hero if exists
 if(S.recruits) {
 const recruit = S.recruits.find(r => r.recruitedBy === i);
