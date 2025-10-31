@@ -67,7 +67,19 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   height: 2px;
   background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.3) 80%, transparent);
 }
-.card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; position: relative; }
+.card {
+  width: 100%;
+  max-width: 320px;
+  border: 3px solid #000;
+  border-radius: 8px;
+  padding: 0.5rem;
+  min-height: 220px;
+  font-size: 0.85rem;
+  transition: transform 0.1s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
 .card.hero { background: #2c63c7; color: white; }
 /* Card stack for Alpha-granted actions */
 .card-stack-container { position: relative; }
@@ -187,6 +199,33 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tooltip.show { opacity: 1; }
 .tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
+
+/* Responsive adjustments for mobile */
+@media (max-width: 480px) {
+  .card { max-width: 280px; min-height: 200px; }
+  .combat-grid { flex-direction: column; }
+  .column { width: 100%; }
+}
+
+/* Landscape mode optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  .card { min-height: 180px; max-width: 240px; font-size: 0.75rem; }
+  .sigil { font-size: 0.9rem; padding: 3px 7px; min-height: 28px; }
+  .header { font-size: 0.7rem; padding: 0.35rem; }
+  .game-area { padding: 0.35rem; }
+}
+
+/* Portrait mode - more vertical space */
+@media (orientation: portrait) and (max-width: 768px) {
+  .card { min-height: 220px; }
+  .combat-grid { gap: 0.5rem; }
+}
+
+/* Larger screens */
+@media (min-width: 1024px) {
+  .card { max-width: 360px; min-height: 240px; }
+  .combat-grid { gap: 1rem; }
+}
 </style>
 </head>
 <body>
@@ -3139,15 +3178,20 @@ if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px"></div>` : ''}
-<div class="sigil-divider"></div>`;
+<!-- Hero Name -->
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${h.n}</div>
+<!-- Hero Portrait - fixed space -->
+<div style="text-align:center;margin-bottom:0.25rem;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
+</div>
+<div class="sigil-divider" style="flex-shrink:0"></div>`;
 // Separate active and passive sigils for heroes
 const allSigils = [...h.s, ...(h.ts || [])];
 const passiveSigils = ['Shield', 'Ghost', 'Alpha', 'Asterisk', 'Star'];
 const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
 const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
-// Active sigils row
+// Active sigils row - takes remaining space
+html += `<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">`;
 if(activeSigilsList.length > 0) {
 html += `<div class="sigil-row">`;
 activeSigilsList.forEach(s => {
@@ -3157,8 +3201,9 @@ html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmo
 });
 html += '</div>';
 }
-// Stats row with passive sigils between POW and HP
-html += `<div style="display:flex;justify-content:space-around;align-items:center;margin-top:0.5rem;padding:0 0.25rem">`;
+html += '</div>';
+// Stats row with passive sigils between POW and HP - fixed at bottom
+html += `<div style="display:flex;justify-content:space-around;align-items:center;margin-top:auto;padding:0.5rem 0.25rem 0 0.25rem;flex-shrink:0">`;
 // POW column
 html += `<div style="text-align:center">
 <div style="font-size:1.3rem;font-weight:bold;line-height:1">${h.p}</div>
@@ -3183,7 +3228,7 @@ html += `<div style="text-align:center">
 html += '</div>';
 // Extra info (shield, ghost) if any
 if(extra.length > 0) {
-html += `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9">${extra.join(' ')}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>`;
 }
 html += '</div>';
 });
@@ -3210,9 +3255,14 @@ if(encampmentGhostCharges > 0) extra.push(`${encampmentGhostCharges}${sigilIconO
 if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
-<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
-<div style="display:flex;justify-content:space-around;align-items:center;margin-bottom:0.25rem">
+<!-- Enemy Emoji - fixed space matching hero portrait -->
+<div style="text-align:center;height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<div style="font-size:2.5rem">${enemyEmoji}</div>
+</div>
+<!-- Enemy Name -->
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${e.n}</div>
+<!-- Stats Row -->
+<div style="display:flex;justify-content:space-around;align-items:center;margin-bottom:0.25rem;flex-shrink:0">
 <div style="text-align:center">
 <div style="font-size:1.1rem;font-weight:bold;line-height:1">${e.p}</div>
 <div style="font-size:0.6rem;opacity:0.8">POW</div>
@@ -3222,8 +3272,10 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 <div style="font-size:0.6rem;opacity:0.8">HP</div>
 </div>
 </div>
-${extra.length>0 ? `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;opacity:0.9">${extra.join(' ')}</div>` : ''}
-<div class="sigil-divider"></div>
+${extra.length>0 ? `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>` : ''}
+<div class="sigil-divider" style="flex-shrink:0"></div>
+<!-- Sigil row - takes remaining space -->
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
 <div class="sigil-row">`;
 // Show base Attack ONLY if enemy doesn't have Attack in their sigil list
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
@@ -3235,7 +3287,7 @@ const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
-html += '</div></div>';
+html += '</div></div></div>'; // Close sigil-row, flex container, and card
 });
 }
 html += '</div>'; // Close combat-lane
