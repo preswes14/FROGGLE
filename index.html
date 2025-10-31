@@ -176,10 +176,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .npc-reaction-text { font-size: 1.1rem; font-weight: bold; text-align: center; line-height: 1.5; color: #1c1b19; max-width: 400px; margin: 0 auto; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
-.tutorial-modal { background: linear-gradient(#fff, #f7f1e3); border: 4px solid #fbbf24; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
-.tutorial-modal h2 { margin-top: 0; color: #6b4423; }
-.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; }
-.tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
+.tutorial-modal { background: linear-gradient(#fff, #f7f1e3); border: 4px solid #fbbf24; border-radius: 12px; padding: 1rem; max-width: 500px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; width: 90%; }
+.tutorial-modal h2 { margin-top: 0; color: #6b4423; font-size: 1.5rem; }
+.tutorial-modal p { margin: 0.75rem 0; font-size: 1rem; line-height: 1.5; }
+.tutorial-modal button { margin-top: 1rem; padding: 0.65rem 1.5rem; font-size: 1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
 .tutorial-modal button:hover { background: #15803d; }
 .tutorial-modal button:active { transform: scale(0.98); }
 .choice.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
@@ -919,12 +919,12 @@ const slide = slides[currentIndex];
 console.log('[FROGGLE] Rendering slide', currentIndex);
 const v = document.getElementById('gameView');
 console.log('[FROGGLE] gameView element:', v);
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
+const skipButton = slides.skippable ? `<button class="btn secondary" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;margin-left:1rem">Skip Tutorial</button>` : '';
 console.log('[FROGGLE] Setting innerHTML for slide', currentIndex);
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:1rem">
 ${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
-<div style="text-align:center">
+<div style="text-align:center;display:flex;justify-content:center;gap:1rem;flex-wrap:wrap">
 <button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
@@ -957,16 +957,26 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlip 3s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlipBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 </p>
 </div>
 <style>
-@keyframes tapoFlip {
-0%, 49% { transform: scaleX(1); }
-50%, 100% { transform: scaleX(-1); }
+@keyframes tapoFlipBounce {
+0% { transform: scaleX(1) translateY(0) scale(1); }
+16.7% { transform: scaleX(1) translateY(-25px) scale(1.08); }
+23.3% { transform: scaleX(1) translateY(0) scale(1); }
+40% { transform: scaleX(1) translateY(-25px) scale(1.08); }
+46.7% { transform: scaleX(1) translateY(0) scale(1); }
+49% { transform: scaleX(1) translateY(0) scale(1); }
+50% { transform: scaleX(-1) translateY(0) scale(1); }
+66.7% { transform: scaleX(-1) translateY(-25px) scale(1.08); }
+73.3% { transform: scaleX(-1) translateY(0) scale(1); }
+90% { transform: scaleX(-1) translateY(-25px) scale(1.08); }
+96.7% { transform: scaleX(-1) translateY(0) scale(1); }
+100% { transform: scaleX(-1) translateY(0) scale(1); }
 }
 </style>
 `
@@ -1063,14 +1073,14 @@ function showTutorialStoryOverlay() {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:550px">
-<p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-A Goblin and a Wolf have appeared from the portal!
+<div class="tutorial-modal">
+<p style="font-size:1rem;line-height:1.5;margin-bottom:1rem">
+A vicious goblin and a terrifying wolf came charging from the portal!
 </p>
 <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
-<img src="tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
+<img src="tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">🛡 On Guard!</div>
 </div>
 <div style="text-align:center">
@@ -3070,15 +3080,32 @@ const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 ${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px"></div>` : ''}
-<div class="sigil-divider"></div>
-<div class="sigil-row">`;
-const activeSigils = [...h.s, ...(h.ts || [])];
-activeSigils.forEach(s => {
+<div class="sigil-divider"></div>`;
+// Separate active and passive sigils for heroes
+const allSigils = [...h.s, ...(h.ts || [])];
+const passiveSigils = ['Shield', 'Ghost', 'Alpha', 'Asterisk', 'Star'];
+const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
+const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
+// Active sigils row
+if(activeSigilsList.length > 0) {
+html += `<div class="sigil-row">`;
+activeSigilsList.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
 html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
 html += '</div>';
+}
+// Passive sigils row
+if(passiveSigilsList.length > 0) {
+html += `<div class="sigil-row" style="margin-top:0.25rem">`;
+passiveSigilsList.forEach(s => {
+const lvl = getLevel(s, i);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+});
+html += '</div>';
+}
 html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '</div>';
 });
