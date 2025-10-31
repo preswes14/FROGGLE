@@ -68,8 +68,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.3) 80%, transparent);
 }
 .card {
-  width: 100%;
-  max-width: 320px;
+  width: 320px;
   border: 3px solid #000;
   border-radius: 8px;
   padding: 0.5rem;
@@ -202,14 +201,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
 /* Responsive adjustments for mobile */
 @media (max-width: 480px) {
-  .card { max-width: 280px; min-height: 200px; }
+  .card { width: 280px; min-height: 200px; }
   .combat-grid { flex-direction: column; }
   .column { width: 100%; }
 }
 
 /* Landscape mode optimization */
 @media (max-height: 500px) and (orientation: landscape) {
-  .card { min-height: 180px; max-width: 240px; font-size: 0.75rem; }
+  .card { min-height: 180px; width: 240px; font-size: 0.75rem; }
   .sigil { font-size: 0.9rem; padding: 3px 7px; min-height: 28px; }
   .header { font-size: 0.7rem; padding: 0.35rem; }
   .game-area { padding: 0.35rem; }
@@ -223,7 +222,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
 /* Larger screens */
 @media (min-width: 1024px) {
-  .card { max-width: 360px; min-height: 240px; }
+  .card { width: 360px; min-height: 240px; }
   .combat-grid { gap: 1rem; }
 }
 </style>
@@ -785,6 +784,11 @@ menu.style.display = 'none';
 function restartLevel() {
 // Close menu
 document.getElementById('betaMenu').style.display = 'none';
+// Prevent restart during tutorial
+if(tutorialState !== null) {
+toast('Cannot restart during tutorial! Use "Back to Title" instead.', 3000);
+return;
+}
 // Confirm with user
 if(!confirm('Restart this level? You will lose all progress on this floor.')) return;
 // Clear combat state
@@ -1070,7 +1074,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlipBounce 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlipBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
@@ -1099,7 +1103,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Ribbleton's Defenders</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
