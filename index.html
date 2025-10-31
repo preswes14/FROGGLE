@@ -3096,17 +3096,34 @@ html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmo
 });
 html += '</div>';
 }
-// Passive sigils row
+// Stats row with passive sigils between POW and HP
+html += `<div style="display:flex;justify-content:space-around;align-items:center;margin-top:0.5rem;padding:0 0.25rem">`;
+// POW column
+html += `<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${h.p}</div>
+<div style="font-size:0.6rem;opacity:0.8">POW</div>
+</div>`;
+// Passive sigils column (center)
 if(passiveSigilsList.length > 0) {
-html += `<div class="sigil-row" style="margin-top:0.25rem">`;
+html += `<div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:60%">`;
 passiveSigilsList.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+html += `<span class="sigil ${cl}" style="font-size:0.7rem" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
 html += '</div>';
 }
-html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
+// HP column
+const hpDisplay = h.ls ? `LS` : `${h.h}/${h.m}`;
+html += `<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${hpDisplay}</div>
+<div style="font-size:0.6rem;opacity:0.8">HP</div>
+</div>`;
+html += '</div>';
+// Extra info (shield, ghost) if any
+if(extra.length > 0) {
+html += `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9">${extra.join(' ')}</div>`;
+}
 html += '</div>';
 });
 html += '</div>';
@@ -3134,7 +3151,17 @@ const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
 <div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
-<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div style="display:flex;justify-content:space-around;align-items:center;margin-bottom:0.25rem">
+<div style="text-align:center">
+<div style="font-size:1.1rem;font-weight:bold;line-height:1">${e.p}</div>
+<div style="font-size:0.6rem;opacity:0.8">POW</div>
+</div>
+<div style="text-align:center">
+<div style="font-size:1.1rem;font-weight:bold;line-height:1">${e.h}/${e.m}</div>
+<div style="font-size:0.6rem;opacity:0.8">HP</div>
+</div>
+</div>
+${extra.length>0 ? `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;opacity:0.9">${extra.join(' ')}</div>` : ''}
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
 // Show base Attack ONLY if enemy doesn't have Attack in their sigil list
