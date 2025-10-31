@@ -68,8 +68,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.3) 80%, transparent);
 }
 .card {
-  width: 100%;
-  max-width: 320px;
+  width: 320px;
   border: 3px solid #000;
   border-radius: 8px;
   padding: 0.5rem;
@@ -202,14 +201,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
 /* Responsive adjustments for mobile */
 @media (max-width: 480px) {
-  .card { max-width: 280px; min-height: 200px; }
+  .card { width: 280px; min-height: 200px; }
   .combat-grid { flex-direction: column; }
   .column { width: 100%; }
 }
 
 /* Landscape mode optimization */
 @media (max-height: 500px) and (orientation: landscape) {
-  .card { min-height: 180px; max-width: 240px; font-size: 0.75rem; }
+  .card { min-height: 180px; width: 240px; font-size: 0.75rem; }
   .sigil { font-size: 0.9rem; padding: 3px 7px; min-height: 28px; }
   .header { font-size: 0.7rem; padding: 0.35rem; }
   .game-area { padding: 0.35rem; }
@@ -223,7 +222,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
 /* Larger screens */
 @media (min-width: 1024px) {
-  .card { max-width: 360px; min-height: 240px; }
+  .card { width: 360px; min-height: 240px; }
   .combat-grid { gap: 1rem; }
 }
 </style>
@@ -785,6 +784,11 @@ menu.style.display = 'none';
 function restartLevel() {
 // Close menu
 document.getElementById('betaMenu').style.display = 'none';
+// Don't allow restart during tutorial (Floor 0)
+if(S.floor === 0) {
+alert('Cannot restart during tutorial. Please skip or complete the tutorial first.');
+return;
+}
 // Confirm with user
 if(!confirm('Restart this level? You will lose all progress on this floor.')) return;
 // Clear combat state
@@ -1070,7 +1074,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlipBounce 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlipBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
@@ -1099,7 +1103,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Ribbleton's Defenders</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
@@ -3211,11 +3215,14 @@ const allSigils = [...h.s, ...(h.ts || [])];
 const passiveSigils = ['Shield', 'Ghost', 'Alpha', 'Asterisk', 'Star'];
 const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
 const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
-// Active sigils row - takes remaining space
+// Active sigils row - takes remaining space (cap at 5, Tapo shows 2 actives with passives below)
 html += `<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">`;
-if(activeSigilsList.length > 0) {
+const maxActivesToShow = h.n === 'Tapo' ? 2 : 5;
+const displayedActives = activeSigilsList.slice(0, maxActivesToShow);
+const sigilsToDisplay = h.n === 'Tapo' ? [...displayedActives, ...passiveSigilsList] : displayedActives;
+if(sigilsToDisplay.length > 0) {
 html += `<div class="sigil-row">`;
-activeSigilsList.forEach(s => {
+sigilsToDisplay.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
 html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
@@ -3230,8 +3237,8 @@ html += `<div style="text-align:center">
 <div style="font-size:1.3rem;font-weight:bold;line-height:1">${h.p}</div>
 <div style="font-size:0.6rem;opacity:0.8">POW</div>
 </div>`;
-// Passive sigils column (center)
-if(passiveSigilsList.length > 0) {
+// Passive sigils column (center) - skip for Tapo since they're already shown above
+if(passiveSigilsList.length > 0 && h.n !== 'Tapo') {
 html += `<div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:60%">`;
 passiveSigilsList.forEach(s => {
 const lvl = getLevel(s, i);
@@ -3429,8 +3436,17 @@ ${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radi
 <!-- Sigils row - takes remaining space -->
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
 <div class="sigil-row">`;
-const activeSigils = [...h.s, ...(h.ts || [])];
-activeSigils.forEach(s => {
+// Separate active and passive sigils
+const allSigils = [...h.s, ...(h.ts || [])];
+const passiveSigils = ['Shield', 'Ghost', 'Alpha', 'Asterisk', 'Star'];
+const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
+const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
+// Cap active sigils at 5, except Tapo shows only 2 actives here
+const maxActivesToShow = h.n === 'Tapo' ? 2 : 5;
+const displayedActives = activeSigilsList.slice(0, maxActivesToShow);
+// For Tapo, mix 2 actives with passives; for others, just show actives
+const sigilsToDisplay = h.n === 'Tapo' ? [...displayedActives, ...passiveSigilsList] : displayedActives;
+sigilsToDisplay.forEach(s => {
 const lvl = getLevel(s, i);
 // Calculate visual level for roll-down effect
 let visualLvl = lvl;
@@ -3492,7 +3508,14 @@ html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
 <div class="sigil-row">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
-recruit.s.forEach(sigil => {
+// Separate active and passive sigils, cap at 5 actives
+const passiveSigils = ['Shield', 'Ghost', 'Alpha', 'Asterisk', 'Star'];
+const activeSigilsList = recruit.s.filter(s => !passiveSigils.includes(s.sig));
+const passiveSigilsList = recruit.s.filter(s => passiveSigils.includes(s.sig));
+const maxActivesToShow = recruit.n === 'Tapo' ? 2 : 5;
+const displayedActives = activeSigilsList.slice(0, maxActivesToShow);
+const sigilsToDisplay = recruit.n === 'Tapo' ? [...displayedActives, ...passiveSigilsList] : displayedActives;
+sigilsToDisplay.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
