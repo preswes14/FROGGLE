@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="FROGGLE"/>
@@ -18,6 +18,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .game-area {
   height: calc(100vh - 44px);
   overflow-y: auto;
+  overflow-x: auto;
   padding: 0.25rem;
   -webkit-overflow-scrolling: touch;
   border: 11px solid #8b5a3c;
@@ -27,6 +28,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
     inset 0 0 11px rgba(0,0,0,0.3),
     0 5px 10px rgba(0,0,0,0.2);
   background: linear-gradient(135deg, #d9cab1 0%, #c9ba9b 100%);
+  touch-action: pan-x pan-y pinch-zoom;
 }
 .btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
 .btn:active { transform: scale(0.98); opacity: 0.9; }
@@ -207,10 +209,25 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
 /* Landscape mode optimization */
 @media (max-height: 500px) and (orientation: landscape) {
-  .card { min-height: 180px; width: 240px; font-size: 0.75rem; }
-  .sigil { font-size: 0.9rem; padding: 3px 7px; min-height: 28px; }
+  .card {
+    min-height: 140px;
+    width: 200px;
+    font-size: 0.65rem;
+    padding: 0.35rem;
+    border: 2px solid #000;
+  }
+  .card.hero {
+    min-height: 120px;
+  }
+  .sigil {
+    font-size: 1rem;
+    padding: 3px 6px;
+    min-height: 24px;
+    margin: 1px;
+  }
   .header { font-size: 0.7rem; padding: 0.35rem; }
-  .game-area { padding: 0.35rem; }
+  .game-area { padding: 0.25rem; }
+  .combat-lane { padding: 0.35rem; margin-bottom: 0.35rem; }
 }
 
 /* Portrait mode - more vertical space */
@@ -3456,10 +3473,13 @@ const usedInstances = S.totalInstances - S.instancesRemaining;
 visualLvl = Math.max(0, lvl - usedInstances);
 }
 const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
-const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
+// Allow clicking sigils even when pending (act() will handle switching logic)
+const canClick = !S.acted.includes(i) && h.st === 0 && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
-html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
+// Stop propagation on sigil clicks to prevent targeting hero (unless hero has acted)
+const stopProp = !hasActed ? 'event.stopPropagation(); ' : '';
+html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="${stopProp}act('${s}', ${i})"`:`onclick="${stopProp}"`}
 onmouseenter="showTooltipDelayed('${s}', this)" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
