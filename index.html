@@ -141,7 +141,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 }
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.sigil { border: 4px solid; border-radius: 6px; padding: 5px 10px; font-size: 1.1rem; display: inline-block; margin: 2px; min-height: 36px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
@@ -2291,11 +2291,15 @@ else { dmg -= enemy.sh; enemy.sh = 0; }
 }
 enemy.h -= dmg;
 
-// RIBBLETON TUTORIAL: Track Wolf damage/death
-if(tutorialState && S.floor === 0 && enemy.n === 'Wolf') {
-if(enemy.h > 0 && !tutorialState.wolfDamaged) {
+// RIBBLETON TUTORIAL: Track enemy damage
+if(tutorialState && S.floor === 0) {
+if(enemy.n === 'Wolf' && enemy.h > 0 && !tutorialState.wolfDamaged) {
 tutorialState.wolfDamaged = true;
-// Show PROMPT 3 after this action finishes
+tutorialState.firstEnemyHit = 'Wolf';
+}
+if(enemy.n === 'Goblin' && enemy.h > 0 && !tutorialState.goblinDamaged) {
+tutorialState.goblinDamaged = true;
+tutorialState.firstEnemyHit = 'Goblin';
 }
 }
 }
@@ -2365,8 +2369,9 @@ S.activeIdx = -1;
 // RIBBLETON TUTORIAL: Show prompts after actions
 if(tutorialState && S.floor === 0) {
 const h = S.heroes[heroIdx];
-// After Warrior attacks Wolf and damages it -> PROMPT 3
-if((tutorialState.stage === 'targeting_wolf' || tutorialState.stage === 'warrior_attack') && tutorialState.wolfDamaged && h.n === 'Warrior' && S.round === 1) {
+// After Warrior attacks any enemy and damages it -> PROMPT 3
+const hasHitEnemy = tutorialState.wolfDamaged || tutorialState.goblinDamaged;
+if((tutorialState.stage === 'targeting_wolf' || tutorialState.stage === 'warrior_attack') && hasHitEnemy && h.n === 'Warrior' && S.round === 1) {
 tutorialState.stage = 'healer_d20';
 showTutorialPop('ribbleton_healer_d20', "Nice hit! Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
 S.activeIdx = 1; // Select Healer
@@ -2383,7 +2388,10 @@ tutorialState.stage = 'enemy_turn_wait';
 // After Healer heals -> PROMPT 8
 else if(tutorialState.stage === 'expand_targets' && h.n === 'Healer') {
 tutorialState.stage = 'finish_wolf';
-showTutorialPop('ribbleton_finish_wolf', "Now finish off that Wolf!", () => {
+// Check which enemy is still alive
+const remainingEnemies = S.enemies.map(e => e.n).join(' and ');
+const message = remainingEnemies ? `Now finish off the ${remainingEnemies}!` : "Now finish them off!";
+showTutorialPop('ribbleton_finish_wolf', message, () => {
 S.activeIdx = 0; // Select Warrior
 render();
 });
@@ -3189,10 +3197,10 @@ return;
 
 // RIBBLETON TUTORIAL: Show targeting prompts
 if(tutorialState && S.floor === 0 && S.pending) {
-// PROMPT 2: Targeting Wolf with Warrior Attack
+// PROMPT 2: Targeting with Warrior Attack
 if(tutorialState.stage === 'warrior_attack' && S.pending === 'Attack' && S.targets.length === 0) {
 tutorialState.stage = 'targeting_wolf';
-showTutorialPop('ribbleton_targeting', "You can choose which enemy to target. That Wolf looks nasty - you should take it out first!", () => {
+showTutorialPop('ribbleton_targeting', "You can choose which enemy to target. Pick one and let's go!", () => {
 render();
 });
 return;
