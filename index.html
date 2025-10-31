@@ -1398,18 +1398,12 @@ showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with 
 document.getElementById('floor-round-display').style.display = 'none';
 
 v.innerHTML = `
-<h1 style="text-align:center;margin:0 0 0.25rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">v9.92 BETA RELEASE</p>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
-${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
-<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
-🏆 Champions of Floor 20 🏆
-</button></div>` : ''}
-
 <div style="max-width:600px;margin:0 auto">
-<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.3rem">Choose 2 Heroes</h2>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
 <div style="position:relative;max-width:100%;margin:0 auto;min-height:400px">
+<!-- Version number overlay at top of image -->
+<div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;text-align:center">
+<p style="font-size:0.75rem;opacity:0.9;text-shadow:0 1px 2px rgba(0,0,0,0.3);color:#fff;font-weight:bold;margin:0">v9.92 BETA</p>
+</div>
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
 <div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
@@ -1431,6 +1425,14 @@ title="Healer"></div>
 <div id="mage-card" style="position:absolute;bottom:10%;left:51%;width:23%;display:none;z-index:10;"></div>
 <div id="healer-card" style="position:absolute;bottom:10%;left:76%;width:23%;display:none;z-index:10;"></div>
 </div>
+
+<h2 style="text-align:center;margin:0.5rem 0;font-size:1.3rem">Choose 2 Heroes</h2>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
+${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
+<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
+🏆 Champions of Floor 20 🏆
+</button></div>` : ''}
 
 ${S.tapoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
@@ -3464,6 +3466,17 @@ ${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radi
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
 <div class="sigil-row">`;
 const activeSigils = [...h.s, ...(h.ts || [])];
+// Smart scaling: make sigils bigger when there are fewer of them
+const sigilCount = activeSigils.length;
+let sigilSize = '1.4rem';
+let sigilPadding = '6px 12px';
+if(sigilCount <= 3) {
+sigilSize = '1.8rem';
+sigilPadding = '8px 16px';
+} else if(sigilCount <= 5) {
+sigilSize = '1.6rem';
+sigilPadding = '7px 14px';
+}
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
 // Calculate visual level for roll-down effect
@@ -3479,7 +3492,7 @@ const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 // Stop propagation on sigil clicks to prevent targeting hero (unless hero has acted)
 const stopProp = !hasActed ? 'event.stopPropagation(); ' : '';
-html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="${stopProp}act('${s}', ${i})"`:`onclick="${stopProp}"`}
+html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" style="font-size:${sigilSize};padding:${sigilPadding}" ${canClick?`onclick="${stopProp}act('${s}', ${i})"`:`onclick="${stopProp}"`}
 onmouseenter="showTooltipDelayed('${s}', this)" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
