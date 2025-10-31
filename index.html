@@ -528,13 +528,34 @@ return colors[Math.min(floor - 1, colors.length - 1)] || colors[0];
 }
 
 function renderHeroCard(hero, idx, onclickHandler, extraInfo = '') {
-const hp = hero.ls ? `Last Stand (T${hero.lst+1})` : `${hero.h}/${hero.m}❤`;
+const hp = hero.ls ? `Last Stand (T${hero.lst+1})` : `${hero.h}/${hero.m}`;
+const hpDisplay = hero.ls ? `LS T${hero.lst+1}` : `${hero.h}/${hero.m}`;
 const extra = [];
 if(hero.sh > 0) extra.push(`${hero.sh}🛡`);
 if(hero.g > 0) extra.push(`${hero.g}${sigilIconOnly('Ghost')}`);
+const heroImage = HERO_PORTRAITS[hero.n.toLowerCase()] || '';
 return `<div class="card hero" onclick="${onclickHandler}" style="cursor:pointer;margin-bottom:0.75rem;transition:transform 0.1s,box-shadow 0.1s" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${hero.n}</div>
-<div style="text-align:center;font-size:0.8rem">${hero.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
+<!-- Hero Name -->
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${hero.n}</div>
+<!-- Hero Portrait - fixed space -->
+<div style="text-align:center;margin-bottom:0.25rem;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
+</div>
+<div class="sigil-divider" style="flex-shrink:0"></div>
+<!-- Empty flex space for sigils (not shown in level-up cards) -->
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px"></div>
+<!-- Stats row -->
+<div style="display:flex;justify-content:space-around;align-items:center;margin-top:auto;padding:0.5rem 0.25rem 0 0.25rem;flex-shrink:0">
+<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${hero.p}</div>
+<div style="font-size:0.6rem;opacity:0.8">POW</div>
+</div>
+<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${hpDisplay}</div>
+<div style="font-size:0.6rem;opacity:0.8">HP</div>
+</div>
+</div>
+${extra.length>0 || extraInfo ? `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')} ${extraInfo}</div>` : ''}
 </div>`;
 }
 
@@ -3398,10 +3419,16 @@ html += `<div class="card-stack-copy"></div>`;
 }
 }
 html += `<div class="${cardClasses}" ${onclick}>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px"></div>` : ''}`;
-html += '<div class="sigil-divider"></div>';
-html += '<div class="sigil-row">';
+<!-- Hero Name -->
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${h.n}</div>
+<!-- Hero Portrait - fixed space -->
+<div style="text-align:center;margin-bottom:0.25rem;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
+</div>
+<div class="sigil-divider" style="flex-shrink:0"></div>
+<!-- Sigils row - takes remaining space -->
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
+<div class="sigil-row">`;
 const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
@@ -3419,8 +3446,25 @@ html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAct
 onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
+html += '</div></div>'; // Close sigil-row and flex container
+// Stats row with POW and HP - fixed at bottom
+html += `<div style="display:flex;justify-content:space-around;align-items:center;margin-top:auto;padding:0.5rem 0.25rem 0 0.25rem;flex-shrink:0">`;
+// POW column
+html += `<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${h.p}</div>
+<div style="font-size:0.6rem;opacity:0.8">POW</div>
+</div>`;
+// HP column (no passive sigils in main combat - they show in sigil row)
+const hpDisplay = h.ls ? `LS T${h.lst+1}` : `${h.h}/${h.m}`;
+html += `<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${hpDisplay}</div>
+<div style="font-size:0.6rem;opacity:0.8">HP</div>
+</div>`;
 html += '</div>';
-html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
+// Extra info (shield, ghost, acted, etc)
+if(extra.length > 0) {
+html += `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>`;
+}
 html += '</div>'; // Close hero card
 // Close card stack container if it was opened
 if(queuedActions > 0) {
@@ -3437,10 +3481,15 @@ const recruitGhostCharges = recruit.ghostCharges || 0;
 if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
 html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${recruit.n} 🤝</div>
-<div style="text-align:center;font-size:0.8rem">${recruit.p}⚡ | ${recruit.h}/${recruit.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
-<div style="text-align:center;font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Recruited</div>
-<div class="sigil-divider"></div>
+<!-- Recruit Name -->
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${recruit.n} 🤝</div>
+<!-- Recruited label - fixed space matching portrait -->
+<div style="text-align:center;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<div style="font-size:0.65rem;opacity:0.7">Recruited</div>
+</div>
+<div class="sigil-divider" style="flex-shrink:0"></div>
+<!-- Sigil row - takes remaining space -->
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
 <div class="sigil-row">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
@@ -3448,7 +3497,22 @@ const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
-html += '</div></div>';
+html += '</div></div>'; // Close sigil-row and flex container
+// Stats row
+html += `<div style="display:flex;justify-content:space-around;align-items:center;margin-top:auto;padding:0.5rem 0.25rem 0 0.25rem;flex-shrink:0">
+<div style="text-align:center">
+<div style="font-size:1.1rem;font-weight:bold;line-height:1">${recruit.p}</div>
+<div style="font-size:0.6rem;opacity:0.8">POW</div>
+</div>
+<div style="text-align:center">
+<div style="font-size:1.1rem;font-weight:bold;line-height:1">${recruit.h}/${recruit.m}</div>
+<div style="font-size:0.6rem;opacity:0.8">HP</div>
+</div>
+</div>`;
+if(extra.length > 0) {
+html += `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>`;
+}
+html += '</div>'; // Close card
 }
 }
 html += '</div>'; // Close hero section
@@ -3474,11 +3538,28 @@ if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
-<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
-<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
-html += '<div class="sigil-divider"></div>';
-html += '<div class="sigil-row">';
+<!-- Enemy Emoji - fixed space -->
+<div style="text-align:center;height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<div style="font-size:2.5rem">${enemyEmoji}</div>
+</div>
+<!-- Enemy Name -->
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${e.n}</div>
+<!-- Stats Row -->
+<div style="display:flex;justify-content:space-around;align-items:center;margin-bottom:0.25rem;flex-shrink:0">
+<div style="text-align:center">
+<div style="font-size:1.1rem;font-weight:bold;line-height:1">${e.p}</div>
+<div style="font-size:0.6rem;opacity:0.8">POW</div>
+</div>
+<div style="text-align:center">
+<div style="font-size:1.1rem;font-weight:bold;line-height:1">${e.h}/${e.m}</div>
+<div style="font-size:0.6rem;opacity:0.8">HP</div>
+</div>
+</div>
+${extra.length>0 ? `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>` : ''}
+<div class="sigil-divider" style="flex-shrink:0"></div>
+<!-- Sigil row - takes remaining space -->
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
+<div class="sigil-row">`;
 // Show base Attack ONLY if enemy doesn't have Attack in their sigil list
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 if(!hasAttackSigil) {
@@ -3489,7 +3570,7 @@ const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
-html += '</div></div>';
+html += '</div></div></div>'; // Close sigil-row, flex container, and card
 });
 }
 html += '</div>'; // Close enemy section
