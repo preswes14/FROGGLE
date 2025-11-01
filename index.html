@@ -5294,6 +5294,8 @@ v.innerHTML = `
 
 function showGhost2() {
 S.ghostBoysConverted = true;
+savePermanent();
+removeNeutralFromDeck('ghost');
 toast('Ghost Boys permanently converted to Empty Playroom!', 3000);
 const v = document.getElementById('gameView');
 v.innerHTML = `
