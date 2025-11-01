@@ -1569,7 +1569,11 @@ if(!cardEl) return;
 if(sel.includes(h)) {
 const hData = heroData[h];
 const hPortraitImage = HERO_PORTRAITS[h] || '';
-const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`).join('');
+const sigilsHTML = hData.sigils.map(s => {
+const lvl = S.sig[s] || 0;
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+return `<span class="sigil ${cl}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
+}).join('');
 cardEl.innerHTML = `
 <div onclick="toggleHeroSelection('${h}')" style="cursor:pointer;background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
 <div style="text-align:center">
@@ -3954,6 +3958,7 @@ function upgradeSigil() {
 showTutorialPop('levelup_upgrade_active', "Each active works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack get it at Level 2, letting them attack twice with 1 action! Passives (Expand, Ghost, Asterisk, Star) work differently - they apply globally to all heroes and enhance your existing actions!");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
+const passiveSigils = ['Expand', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
 if(S.xp < cost) {
@@ -3965,7 +3970,9 @@ if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1r
 else {
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong></div>`;
+const isPassive = passiveSigils.includes(sig);
+const passiveTag = isPassive ? ' <span style="font-size:0.75rem;color:#22c55e">⚡ All Heroes</span>' : '';
+html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong>${passiveTag}</div>`;
 });
 }
 }
@@ -3998,20 +4005,29 @@ const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Alpha', 'Asterisk', 'Star'];
-const available = allSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
+const passiveSigils = ['Expand', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const activeSigils = allSigils.filter(sig => !passiveSigils.includes(sig));
+const availableActives = activeSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to ${h.n}</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
-if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all sigils!</p>`;
+if(availableActives.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all active sigils!</p>`;
 else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
-available.forEach(sig => {
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose an active sigil to add:</p>`;
+availableActives.forEach(sig => {
 const level = S.sig[sig] || 0;
-const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level})</span>
 </div>`;
 });
 }
+// Show passives greyed out with explanation
+html += `<p style="text-align:center;margin:1.5rem 0 0.5rem 0;font-size:0.85rem;opacity:0.7;font-style:italic">Passive Sigils (apply to all heroes):</p>`;
+passiveSigils.forEach(sig => {
+const level = S.sig[sig] || 0;
+html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5" title="Upgrading a passive applies to all heroes!">
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level} - Upgrade in Sigilarium)</span>
+</div>`;
+});
 html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
 v.innerHTML = html;
 }
