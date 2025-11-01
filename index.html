@@ -30,7 +30,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   background: linear-gradient(135deg, #d9cab1 0%, #c9ba9b 100%);
   touch-action: pan-x pan-y pinch-zoom;
 }
-.btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
+.btn { padding: 0.6rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 0.95rem; min-height: 44px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
 .btn:active { transform: scale(0.98); opacity: 0.9; }
 .btn.safe { background: #22c55e; }
 .btn.risky { background: #f59e0b; }
@@ -1585,7 +1585,11 @@ if(!cardEl) return;
 if(sel.includes(h)) {
 const hData = heroData[h];
 const hPortraitImage = HERO_PORTRAITS[h] || '';
-const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`).join('');
+const sigilsHTML = hData.sigils.map(s => {
+const lvl = S.sig[s] || 0;
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+return `<span class="sigil ${cl}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
+}).join('');
 cardEl.innerHTML = `
 <div onclick="toggleHeroSelection('${h}')" style="cursor:pointer;background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
 <div style="text-align:center">
@@ -2562,9 +2566,12 @@ if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
 }
 
+// Tutorial enemies don't award gold or XP
+if(S.floor !== 0) {
 S.gold += enemy.g;
 S.combatGold += enemy.g;
 S.combatXP += enemy.x;
+}
 upd();
 setTimeout(() => {
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
@@ -3865,7 +3872,20 @@ v.innerHTML = `
 
 function nextFloor() {
 saveGame();
-startFloor(S.floor + 1);
+showFloorTransition(S.floor + 1);
+}
+
+function showFloorTransition(nextFloorNum) {
+const v = document.getElementById('gameView');
+const floorColor = getBgColor(nextFloorNum);
+v.innerHTML = `
+<div style="display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column">
+<div style="font-size:4rem;font-weight:bold;color:#000;text-shadow:2px 2px 4px rgba(255,255,255,0.5);margin-bottom:0.5rem">Floor ${nextFloorNum}</div>
+<div style="width:100px;height:4px;background:#000;border-radius:2px"></div>
+</div>`;
+setTimeout(() => {
+startFloor(nextFloorNum);
+}, 1000);
 }
 
 function showStartingXPScreen() {
@@ -3956,6 +3976,7 @@ function upgradeSigil() {
 showTutorialPop('levelup_upgrade_active', "Each active works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack get it at Level 2, letting them attack twice with 1 action! Passives (Expand, Ghost, Asterisk, Star) work differently - they apply globally to all heroes and enhance your existing actions!");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
+const passiveSigils = ['Expand', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
 if(S.xp < cost) {
@@ -3967,7 +3988,9 @@ if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1r
 else {
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong></div>`;
+const isPassive = passiveSigils.includes(sig);
+const passiveTag = isPassive ? ' <span style="font-size:0.75rem;color:#22c55e">⚡ All Heroes</span>' : '';
+html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong>${passiveTag}</div>`;
 });
 }
 }
@@ -4000,20 +4023,29 @@ const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Alpha', 'Asterisk', 'Star'];
-const available = allSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
+const passiveSigils = ['Expand', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const activeSigils = allSigils.filter(sig => !passiveSigils.includes(sig));
+const availableActives = activeSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to ${h.n}</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
-if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all sigils!</p>`;
+if(availableActives.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all active sigils!</p>`;
 else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
-available.forEach(sig => {
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose an active sigil to add:</p>`;
+availableActives.forEach(sig => {
 const level = S.sig[sig] || 0;
-const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level})</span>
 </div>`;
 });
 }
+// Show passives greyed out with explanation
+html += `<p style="text-align:center;margin:1.5rem 0 0.5rem 0;font-size:0.85rem;opacity:0.7;font-style:italic">Passive Sigils (apply to all heroes):</p>`;
+passiveSigils.forEach(sig => {
+const level = S.sig[sig] || 0;
+html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5" title="Upgrading a passive applies to all heroes!">
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level} - Upgrade in Sigilarium)</span>
+</div>`;
+});
 html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
 v.innerHTML = html;
 }
@@ -4098,19 +4130,30 @@ v.innerHTML = `
 
 // ===== 1. SHOPKEEPER =====
 function showShopkeeper1() {
-// Reset flags each time shopkeeper is shown (prevents cross-visit contamination)
-shopSmallBought = false;
-shopLargeBought = false;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
+const bothBought = shopSmallBought && shopLargeBought;
+const anyBought = shopSmallBought || shopLargeBought;
+
+let html = `<div class="neutral-container">
 <img src="assets/neutrals/shopkeeper1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Potions for Sale</div>
-<div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."</div>
-<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>
-<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>
-<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
+<div class="neutral-title">Potions for Sale</div>`;
+
+if(bothBought) {
+html += `<div class="neutral-desc">The hooded figure nods: "You bought everything. Very wise. I have... other wares for good customers..."</div>
+<div class="neutral-outcome" style="color:#22c55e">Both potions purchased! Stage 2 unlocked.</div>`;
+} else {
+html += `<div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices. ${anyBought ? 'Buy both, get something... special.' : 'I only have one of each. Buy both for something... extra.'}"</div>`;
+if(!shopSmallBought) {
+html += `<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>`;
+}
+if(!shopLargeBought) {
+html += `<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>`;
+}
+}
+
+html += `<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
 </div>`;
+v.innerHTML = html;
 }
 
 let shopSmallBought = false;
@@ -5280,6 +5323,8 @@ v.innerHTML = `
 
 function showGhost2() {
 S.ghostBoysConverted = true;
+savePermanent();
+removeNeutralFromDeck('ghost');
 toast('Ghost Boys permanently converted to Empty Playroom!', 3000);
 const v = document.getElementById('gameView');
 v.innerHTML = `
@@ -5417,7 +5462,7 @@ v.innerHTML = `
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
 Baby Tapo has been added to your hero roster!<br>
 <span style="color:#22c55e">Stats: 1 HP / 1 POW</span><br>
-<span style="color:#8b5cf6">Starts with ALL active sigils!</span>
+<span style="color:#fbbf24;font-weight:bold">Starts with ALL active sigils!</span>
 </div>
 </div>
 <button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #fbbf24, #f59e0b);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
