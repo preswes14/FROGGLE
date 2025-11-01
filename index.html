@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
 <link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
-<title>FROGGLE v9.92 - BETA RELEASE</title>
+<title>FROGGLE v9.93 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -266,7 +266,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="game-area" id="gameView"></div>
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '9.92';
+const GAME_VERSION = '9.93';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
 
@@ -358,37 +358,82 @@ return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:
 }
 
 // Sigil descriptions for tooltips
-const SIGIL_DESCRIPTIONS = {
-'Attack': 'Deal POW damage to target. L2: Attack twice. L3: Attack 3 times. L4: Attack 4 times. Stacks with Asterisk.',
-'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield blocks damage before HP.',
-'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
-'D20': 'Roll 1d20 and choose: Damage enemy (DC varies) or Heal ally (no DC). Higher levels roll more dice, take best result.',
-'Expand': 'Your Attack/Shield/Heal target +1 additional target per level. Mage/Healer get +1 Expand level built-in.',
-'Grapple': 'Deal POW damage to target AND they deal POW damage back to you. L2+: Stun target for (Level-1) turns.',
-'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card.',
-'Asterisk': 'Prime by using last action. Next turn: First action hits ALL enemies in lane. One use per combat.',
-'Star': 'Multiply combat XP by (1 + Level×0.5). Stacks across heroes. L4 = 3× XP!',
-'Alpha': 'Grant target hero an extra action this turn. Can target self. Higher levels grant more actions.'
-};
+// Returns level-specific sigil description with bolded variables
+function getSigilDescription(sigilName, level) {
+if(level === undefined || level === null) level = 1;
+level = Math.max(0, Math.min(5, level)); // Clamp to 0-5
+
+switch(sigilName) {
+case 'Attack':
+if(level === 0) return 'Attack Level 0: Inactive (no attacks)';
+if(level === 1) return 'Attack Level 1: Deal POW damage to target <b>1</b> time';
+const times = level;
+return `Attack Level ${level}: Deal POW damage to target <b>${times}</b> times`;
+
+case 'Shield':
+if(level === 0) return 'Shield Level 0: Inactive (no shield)';
+const shieldMult = level * 2;
+return `Shield Level ${level}: Grant target <b>${shieldMult}×POW</b> shield. Shield blocks damage before HP.`;
+
+case 'Heal':
+if(level === 0) return 'Heal Level 0: Inactive (no healing)';
+const healMult = level * 2;
+return `Heal Level ${level}: Restore <b>${healMult}×POW</b> HP to target. Cannot exceed max HP.`;
+
+case 'D20':
+if(level === 0) return 'D20 Level 0: Inactive';
+if(level === 1) return 'D20 Level 1: Roll <b>1d20</b> and choose: Damage enemy (DC varies) or Heal ally (no DC)';
+return `D20 Level ${level}: Roll <b>${level}d20</b>, take best result. Choose: Damage enemy (DC varies) or Heal ally (no DC)`;
+
+case 'Expand':
+if(level === 0) return 'Expand Level 0: No additional targets';
+return `Expand Level ${level}: Your Attack/Shield/Heal targets <b>+${level}</b> additional target${level>1?'s':''}. Mage/Healer get +1 Expand built-in.`;
+
+case 'Grapple':
+if(level === 0) return 'Grapple Level 0: Inactive';
+if(level === 1) return 'Grapple Level 1: Deal POW damage to target AND they deal POW damage back to you. <b>No stun</b>.';
+const stunTurns = level - 1;
+return `Grapple Level ${level}: Deal POW damage to target AND they deal POW damage back to you. Stun target for <b>${stunTurns}</b> turn${stunTurns>1?'s':''}.`;
+
+case 'Ghost':
+return 'Ghost: Cancel the next lethal hit. Each charge prevents one death. Charges shown on card.';
+
+case 'Asterisk':
+return 'Asterisk: Prime by using as last action. Next turn: First action hits ALL enemies. One use per combat.';
+
+case 'Star':
+if(level === 0) return 'Star Level 0: No XP bonus';
+const xpMult = 1 + level * 0.5;
+return `Star Level ${level}: Multiply combat XP by <b>${xpMult}×</b>. Stacks across heroes.`;
+
+case 'Alpha':
+if(level === 0) return 'Alpha Level 0: Inactive';
+if(level === 1) return 'Alpha Level 1: Grant target hero <b>1</b> extra action this turn. Can target self.';
+return `Alpha Level ${level}: Grant target hero <b>${level}</b> extra actions this turn. Can target self.`;
+
+default:
+return sigilName;
+}
+}
 
 // Tooltip system
 let tooltipTimeout = null;
 let currentTooltip = null;
 
-function showTooltipDelayed(sigilName, element) {
+function showTooltipDelayed(sigilName, level, element) {
 // Clear any existing timeout
 if(tooltipTimeout) {
 clearTimeout(tooltipTimeout);
 tooltipTimeout = null;
 }
 // Set new timeout for longer hover (800ms)
-tooltipTimeout = setTimeout(() => showTooltip(sigilName, element), 800);
+tooltipTimeout = setTimeout(() => showTooltip(sigilName, level, element), 800);
 }
 
-function showTooltip(sigilName, element) {
+function showTooltip(sigilName, level, element) {
 // Tooltip display (tutorial explanation happens in Ribbleton combat)
 
-const desc = SIGIL_DESCRIPTIONS[sigilName];
+const desc = getSigilDescription(sigilName, level);
 if(!desc) return;
 
 hideTooltip();
@@ -510,6 +555,7 @@ enemies_get_sigils: false,
 ribbleton_shield_sigil: false,
 ribbleton_handoff: false,
 ribbleton_tooltip_intro: false,
+sigil_rolldown_intro: false,
 levelup_intro: false,
 levelup_stat_upgrade: false,
 levelup_add_active: false,
@@ -947,7 +993,7 @@ v.innerHTML = `
 
 <!-- Version label overlaid on image -->
 <div style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5);z-index:2">
-<p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.92 BETA</p>
+<p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.93 BETA</p>
 </div>
 
 <!-- Buttons at the bottom, underneath Tapo, on the image -->
@@ -1406,7 +1452,7 @@ v.innerHTML = `
 <div style="position:relative;max-width:100%;margin:0 auto;min-height:400px">
 <!-- Version number overlay at top of image -->
 <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;text-align:center">
-<p style="font-size:0.75rem;opacity:0.9;text-shadow:0 1px 2px rgba(0,0,0,0.3);color:#fff;font-weight:bold;margin:0">v9.92 BETA</p>
+<p style="font-size:0.75rem;opacity:0.9;text-shadow:0 1px 2px rgba(0,0,0,0.3);color:#fff;font-weight:bold;margin:0">v9.93 BETA</p>
 </div>
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
@@ -1863,6 +1909,15 @@ S.instancesRemaining = level * repeats;
 S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
+// Tutorial: Explain roll-down effect for first level 2+ multi-instance sigil
+if(S.floor !== 0 && !S.tutorialsDisabled && !S.tutorialFlags.sigil_rolldown_intro && level >= 2) {
+S.tutorialFlags.sigil_rolldown_intro = true;
+savePermanent();
+showTutorial(
+'Sigil Roll-Down',
+`Your level ${level} ${sig} will change colors to keep track of how many hits you've done - but don't worry! It will change back at the end of your turn.`
+);
+}
 render();
 } else if(sig === 'Grapple') {
 const level = getLevel('Grapple', heroIdx);
@@ -3258,7 +3313,7 @@ html += `<div class="sigil-row">`;
 activeSigilsList.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltipDelayed('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltipDelayed('${s}', ${lvl}, this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', ${lvl}, this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
 html += '</div>';
 }
@@ -3276,7 +3331,7 @@ html += `<div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:center;
 passiveSigilsList.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
-html += `<span class="sigil ${cl}" style="font-size:0.7rem" onmouseenter="showTooltipDelayed('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+html += `<span class="sigil ${cl}" style="font-size:0.7rem" onmouseenter="showTooltipDelayed('${s}', ${lvl}, this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', ${lvl}, this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
 html += '</div>';
 }
@@ -3346,7 +3401,7 @@ html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div></div>'; // Close sigil-row, flex container, and card
 });
@@ -3497,8 +3552,8 @@ const isActiveAction = (S.pending === s && S.activeIdx === i);
 // Stop propagation on sigil clicks to prevent targeting hero (unless hero has acted)
 const stopProp = !hasActed ? 'event.stopPropagation(); ' : '';
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" style="font-size:${sigilSize};padding:${sigilPadding}" ${canClick?`onclick="${stopProp}act('${s}', ${i})"`:`onclick="${stopProp}"`}
-onmouseenter="showTooltipDelayed('${s}', this)" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+onmouseenter="showTooltipDelayed('${s}', ${visualLvl}, this)" onmouseleave="hideTooltip()"
+ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', ${visualLvl}, this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
 html += '</div></div>'; // Close sigil-row and flex container
 // Stats row with POW and HP - fixed at bottom
@@ -3549,7 +3604,7 @@ html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 recruit.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', ${sigil.level}, this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>'; // Close sigil-row and flex container
 // Stats row
@@ -3625,7 +3680,7 @@ html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div></div>'; // Close sigil-row, flex container, and card
 }); // End enemies.forEach
