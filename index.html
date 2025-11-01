@@ -510,10 +510,10 @@ sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
 startingXP: 0, // Bonus XP at start of each run (from Death Boy 2 sacrifices)
-pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Effed'}
+pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Frogged'}
 hasAncientStatuette: false,
-gameMode: 'Standard', // 'Standard' or 'Effed'
-effedUnlocked: false,
+gameMode: 'Standard', // 'Standard' or 'Frogged'
+froggedUnlocked: false,
 tapoUnlocked: false, // Unlocked after first FU victory
 debugMode: false, // Debug mode toggle
 // Turn management
@@ -811,7 +811,7 @@ ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 hasAncientStatuette: S.hasAncientStatuette,
 pedestal: S.pedestal,
-effedUnlocked: S.effedUnlocked,
+froggedUnlocked: S.froggedUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
@@ -833,7 +833,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.pedestal = j.pedestal || [];
-S.effedUnlocked = j.effedUnlocked || false;
+S.froggedUnlocked = j.froggedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.tutorialsDisabled = j.tutorialsDisabled || false;
@@ -1510,8 +1510,8 @@ title="Healer"></div>
 
 <h2 style="text-align:center;margin:0.5rem 0;font-size:1.3rem">Choose 2 Heroes</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
-${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
+<p style="text-align:center;margin-bottom:0.5rem;font-size:1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Frogged' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🐸'}</span></p>
+${S.froggedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
 🏆 Champions of Floor 20 🏆
 </button></div>` : ''}
@@ -1629,7 +1629,7 @@ btn.style.opacity = sel.length === 2 ? '1' : '0.4';
 }
 
 function toggleMode() {
-S.gameMode = S.gameMode === 'Standard' ? 'Effed' : 'Standard';
+S.gameMode = S.gameMode === 'Standard' ? 'Frogged' : 'Standard';
 savePermanent();
 title();
 }
@@ -1702,7 +1702,7 @@ function startFloor(f) {
 S.floor=f;
 upd();
 // Special: Floor 20 in Effed mode shows Old Tapo encounter
-if(f === 20 && S.gameMode === 'Effed') {
+if(f === 20 && S.gameMode === 'Frogged') {
 showOldTapo();
 return;
 }
@@ -1763,12 +1763,12 @@ let comp = getEnemyComp(f);
 
 S.enemies = comp.map((t,i) => {
 const base = E[t];
-const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
+const froggedMultiplier = S.gameMode === 'Frogged' ? 5 : 1;
 const enemy = {
 id:`e${Date.now()}${i}`, n:base.n,
-p:base.p * effedMultiplier,
-h:base.h * effedMultiplier,
-m:base.m * effedMultiplier,
+p:base.p * froggedMultiplier,
+h:base.h * froggedMultiplier,
+m:base.m * froggedMultiplier,
 g:base.g, x:base.x, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
@@ -3343,9 +3343,9 @@ render();
 
 function enemyPowerUp() {
 // Apply power-up to all living enemies (not recruits)
-const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
-const powBonus = 1 * effedMultiplier;
-const hpBonus = 5 * effedMultiplier;
+const isFrogged = S.gameMode === 'Frogged';
+const powBonus = isFrogged ? 5 : 1;
+const hpBonus = isFrogged ? 25 : 0; // Standard: no HP bonus, Frogged: +25 HP
 
 let powerUpCount = 0;
 S.enemies.forEach(e => {
@@ -3354,16 +3354,18 @@ if(e.h <= 0) return;
 
 // Apply power-up
 e.p += powBonus;
+if(hpBonus > 0) {
 e.m += hpBonus;
 e.h += hpBonus; // Also heal by the same amount
+}
 powerUpCount++;
 });
 
 // Show toast notification
 if(powerUpCount > 0) {
-const hpText = S.gameMode === 'Effed' ? '+25 HP' : '+5 HP';
-const powText = S.gameMode === 'Effed' ? '+5 POW' : '+1 POW';
-toast(`Enemies grow stronger! ${powText}, ${hpText}`);
+const powText = isFrogged ? '+5 POW' : '+1 POW';
+const message = isFrogged ? `Enemies grow stronger! ${powText}, +25 HP` : `Enemies grow stronger! ${powText}`;
+toast(message);
 
 // Trigger animation on all enemy cards
 setTimeout(() => {
@@ -4829,13 +4831,13 @@ outcome = `${hero.n} slips past quietly. The enemies remain unaware.`;
 const comp = getEnemyComp(S.floor + 1);
 const stragglerType = comp[Math.floor(Math.random() * comp.length)];
 const base = E[stragglerType];
-const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
+const froggedMultiplier = S.gameMode === 'Frogged' ? 5 : 1;
 const straggler = {
 id: `recruit${Date.now()}`,
 n: base.n,
-p: base.p * effedMultiplier,
-h: base.h * effedMultiplier,
-m: base.m * effedMultiplier,
+p: base.p * froggedMultiplier,
+h: base.h * froggedMultiplier,
+m: base.m * froggedMultiplier,
 g: base.g,
 x: base.x,
 s: [],
@@ -5699,12 +5701,12 @@ let html = `
 
 <div style="background:linear-gradient(135deg,rgba(220,38,38,0.1),rgba(127,29,29,0.1));border:3px solid #dc2626;border-radius:12px;padding:2rem;margin-bottom:1.5rem">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.5rem">🌀 Portal to Frogged Up Realm</h2>
-<p style="text-align:center;margin-bottom:1rem;color:#666">Switch between Standard and Effed Up modes</p>
+<p style="text-align:center;margin-bottom:1rem;color:#666">Switch between Standard and Frogged Up modes</p>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem">
-Current Mode: <strong style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</strong>
+Current Mode: <strong style="color:${S.gameMode === 'Frogged' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🐸'}</strong>
 </p>
-<button class="btn" onclick="toggleModeFromChampions()" style="background:${S.gameMode === 'Effed' ? '#22c55e' : '#dc2626'};font-size:1.1rem">
-Enter ${S.gameMode === 'Standard' ? 'Effed Up Realm 🔥' : 'Standard Realm'}
+<button class="btn" onclick="toggleModeFromChampions()" style="background:${S.gameMode === 'Frogged' ? '#22c55e' : '#dc2626'};font-size:1.1rem">
+Enter ${S.gameMode === 'Standard' ? 'Frogged Up Realm 🐸' : 'Standard Realm'}
 </button>
 </div>
 
@@ -5717,7 +5719,7 @@ v.innerHTML = html;
 }
 
 function toggleModeFromChampions() {
-S.gameMode = S.gameMode === 'Standard' ? 'Effed' : 'Standard';
+S.gameMode = S.gameMode === 'Standard' ? 'Frogged' : 'Standard';
 showChampionsMenu();
 }
 
@@ -5859,16 +5861,16 @@ earnedFigurines.push(h.n);
 }
 });
 
-// Unlock Effed Up mode if Standard victory
+// Unlock Frogged Up mode if Standard victory
 const firstStandardVictory = S.gameMode === 'Standard' && !S.tutorialFlags.first_victory_sequence;
 if(S.gameMode === 'Standard') {
-S.effedUnlocked = true;
+S.froggedUnlocked = true;
 if(firstStandardVictory) {
 S.tutorialFlags.first_victory_sequence = true;
 }
 }
 
-const firstFU = S.gameMode === 'Effed' && !S.tutorialFlags.first_fu_victory;
+const firstFU = S.gameMode === 'Frogged' && !S.tutorialFlags.first_fu_victory;
 if(firstFU) {
 S.tutorialFlags.first_fu_victory = true;
 // Note: Tapo is now unlocked at Floor 20 via Old Tapo encounter
@@ -5937,7 +5939,7 @@ function showFUVictoryCredits() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #fbbf24;color:#fff">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">🔥 EFFED UP MODE CONQUERED! 🔥</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">🐸 FROGGED UP MODE CONQUERED! 🐸</h1>
 
 <div style="text-align:center;margin-bottom:2rem;font-size:1.2rem;line-height:1.8">
 <p>You defeated the hardest challenge in FROGGLE.</p>
@@ -6022,8 +6024,8 @@ const v = document.getElementById('gameView');
 let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
 
-if(S.gameMode === 'Effed') {
-html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Effed Up realm once again!<br>Impressive.</p>`;
+if(S.gameMode === 'Frogged') {
+html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
 } else {
 html += `<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem;font-weight:bold">You saved Tapo the Tadpole!</p>`;
