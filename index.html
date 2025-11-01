@@ -3447,7 +3447,7 @@ ${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radi
 <div class="sigil-divider" style="flex-shrink:0"></div>`;
 // Separate active and passive sigils for heroes
 const allSigils = [...h.s, ...(h.ts || [])];
-const passiveSigils = ['Shield', 'Ghost', 'Alpha', 'Asterisk', 'Star'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
 const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
 // Active sigils row - takes remaining space
