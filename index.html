@@ -2643,9 +2643,11 @@ render();
 S.enemies.forEach(e => {
 if(e.st > 0) e.st--;
 e.turnsSinceGain++;
-// RIBBLETON TUTORIAL: Goblin follows normal schedule but gets scripted sigils (Shield, then Heal)
+// RIBBLETON TUTORIAL: Only Goblin draws sigils (scripted), Wolf and others get nothing
 const isTutorial = tutorialState && S.floor === 0;
-if(isTutorial && e.n === 'Goblin' && e.turnsSinceGain >= e.gainRate) {
+if(isTutorial) {
+// In tutorial: only Goblin gets scripted sigils
+if(e.n === 'Goblin' && e.turnsSinceGain >= e.gainRate) {
 e.turnsSinceGain = 0;
 // Script sigils: Shield first, then Heal
 if(!e.s.some(s => s.sig === 'Shield')) {
@@ -2655,8 +2657,10 @@ toast(`${e.n} drew Shield L1!`);
 e.s.push({sig: 'Heal', level: 1, perm: false});
 toast(`${e.n} drew Heal L1!`);
 }
-// Wolf never gets sigils in tutorial
-} else if(!isTutorial && e.turnsSinceGain >= e.gainRate) {
+}
+// All other enemies (Wolf, etc.) get nothing in tutorial
+} else if(e.turnsSinceGain >= e.gainRate) {
+// Not tutorial: normal sigil drawing for all enemies
 e.turnsSinceGain = 0;
 // Draw multiple sigils per turn if specified (Dragons draw 2)
 const draws = e.drawsPerTurn || 1;
