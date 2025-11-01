@@ -205,6 +205,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   .combat-grid { flex-direction: column; }
   .column { width: 100%; }
   .game-area { padding: 0.25rem; }
+  /* Keep split layout on mobile but reduce buffer */
+  .split-combat-left { width: 46% !important; }
+  .split-combat-buffer { width: 8% !important; }
+  .split-combat-right { width: 46% !important; }
 }
 
 /* Landscape mode optimization */
@@ -3413,16 +3417,16 @@ else html += `${h.n}'s Turn`;
 }
 }
 html += '</div>';
-// New layout: Each hero and their enemies in a horizontal lane
-const enemyLanes = {};
-S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
+// New layout: Split screen with heroes on left, enemies on right
+// Container with two columns and middle buffer
+html += '<div style="display:flex;width:100%;gap:0;justify-content:space-between">';
+
+// LEFT COLUMN: All heroes (46% width, right-aligned content)
+html += '<div style="width:46%;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end">';
 
 S.heroes.forEach((h,i) => {
-html += '<div class="combat-lane">';
-html += '<div style="display:flex;gap:0.75rem;justify-content:space-between;align-items:flex-start">';
-
-// Hero section (left side of lane)
-html += '<div style="flex:0 0 auto">';
+// Hero card container
+html += '<div style="display:flex;gap:0.75rem;align-items:flex-start">';
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const isActive = S.activeIdx === i;
 const isTargetable = S.pending && needsHeroTarget(S.pending);
@@ -3565,15 +3569,18 @@ html += `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opaci
 html += '</div>'; // Close card
 }
 }
-html += '</div>'; // Close hero section
+html += '</div>'; // Close hero card container
+}); // End heroes.forEach
 
-// Enemy section (right side of lane)
-html += '<div style="flex:1;display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:flex-end;align-items:flex-start">';
-const laneEnemies = enemyLanes[i] || [];
-if(laneEnemies.length === 0) {
-html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic">Empty</div>`;
-} else {
-laneEnemies.forEach(e => {
+html += '</div>'; // Close left column (heroes)
+
+// MIDDLE BUFFER: 8% gap for visual separation and animations
+html += '<div style="width:8%"></div>';
+
+// RIGHT COLUMN: All enemies (46% width, left-aligned content)
+html += '<div style="width:46%;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-start">';
+
+S.enemies.forEach(e => {
 const isTargetable = (S.pending && needsEnemyTarget(S.pending)) || S.pending === 'D20_TARGET';
 const selectCount = S.targets.filter(t => t === e.id).length;
 let cardClasses = 'card enemy';
@@ -3621,12 +3628,10 @@ const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div></div>'; // Close sigil-row, flex container, and card
-});
-}
-html += '</div>'; // Close enemy section
-html += '</div>'; // Close flex container
-html += '</div>'; // Close combat-lane
-});
+}); // End enemies.forEach
+
+html += '</div>'; // Close right column (enemies)
+html += '</div>'; // Close main split container
 v.innerHTML = html;
 }
 
