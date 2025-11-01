@@ -2811,23 +2811,45 @@ setTimeout(() => executeNormalEnemyPhase(), delay + 300);
 function executeRecruitTurn(recruit) {
 if(recruit.st > 0) { toast(`${recruit.n} (Recruit) is stunned!`); return; }
 if(recruit.h <= 0) return; // Dead recruit
+// Check for Asterisk before base attack
+const asteriskSigil = recruit.s.find(s => s.sig === 'Asterisk' && !s.perm);
+if(asteriskSigil) {
+recruit.asteriskActive = true;
+toast(`${recruit.n} (Recruit) activates Asterisk - next attack hits ALL enemies!`);
+}
 // Recruit attacks enemies (not heroes)
 executeRecruitBaseAttack(recruit);
-const drawnSigils = recruit.s.filter(s => !s.perm && s.sig !== 'Alpha');
+const drawnSigils = recruit.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Asterisk');
 drawnSigils.forEach(sigil => executeRecruitSigil(recruit, sigil));
 recruit.s = recruit.s.filter(s => s.perm);
 render();
 }
 
 function executeRecruitBaseAttack(recruit) {
-// Target lowest HP enemy
+// Target lowest HP enemy, or ALL enemies if Asterisk is active
 if(S.enemies.length === 0) return;
 const targets = S.enemies.filter(e => e.h > 0);
 if(targets.length === 0) return;
+
+if(recruit.asteriskActive) {
+// Attack ALL enemies
+recruit.asteriskActive = false; // Clear flag after use
+const damagedIds = [];
+const targetNames = [];
+targets.forEach(target => {
+dealDamageToEnemyWithoutAnimation(target, recruit.p);
+damagedIds.push(target.id);
+targetNames.push(target.n);
+});
+damagedIds.forEach(id => triggerHitAnimation(id));
+toast(`${recruit.n} (Recruit) attacked ALL enemies for ${recruit.p} each!`);
+} else {
+// Normal: attack lowest HP enemy
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
+}
 }
 
 function executeRecruitSigil(recruit, sigil) {
@@ -2908,8 +2930,14 @@ toast(`${enemy.n} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
+// Check for Asterisk before base attack
+const asteriskSigil = enemy.s.find(s => s.sig === 'Asterisk' && !s.perm);
+if(asteriskSigil) {
+enemy.asteriskActive = true;
+toast(`${enemy.n} activates Asterisk - next attack hits ALL heroes!`);
+}
 executeEnemyBaseAttack(enemy);
-const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
+const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Asterisk');
 drawnSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
 enemy.s = enemy.s.filter(s => s.perm);
 render();
@@ -2985,7 +3013,15 @@ return targets;
 function executeEnemyBaseAttack(enemy) {
 const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
-const targets = selectEnemyTargets(enemy, targetCount);
+
+// Check if Asterisk is active - if so, target ALL heroes
+let targets;
+if(enemy.asteriskActive) {
+targets = S.heroes.filter(h => h.h > 0);
+enemy.asteriskActive = false; // Clear flag after use
+} else {
+targets = selectEnemyTargets(enemy, targetCount);
+}
 
 if(targets.length === 0) return;
 
@@ -3147,9 +3183,11 @@ enemy.ghostCharges = (enemy.ghostCharges || 0) + level;
 if(enemy.ghostCharges > 9) enemy.ghostCharges = 9;
 toast(`${enemy.n} gained ${level} Ghost charge!`);
 } else if(sig === 'Expand') {
-toast(`${enemy.n} used Expand (affects their attacks)`);
+// Expand is passive - affects attacks automatically via getEnemyExpandLevel
+toast(`${enemy.n} has Expand (increases attack targets)`);
 } else if(sig === 'Asterisk') {
-toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
+// Asterisk is handled in executeEnemyTurn before base attack
+toast(`${enemy.n} used Asterisk!`);
 }
 }
 
