@@ -3133,13 +3133,12 @@ toast(`${enemy.n} healed ${healTarget.n} for ${healAmt}!`);
 const target = S.heroes[enemy.li];
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
+// Check if grapple would kill the enemy - if so, skip it
+if(enemy.h <= dmgToEnemy) {
+toast(`${enemy.n} resists grappling ${target.n} (would be fatal)`);
+} else {
 enemy.h -= dmgToEnemy;
 toast(`${enemy.n} grappled ${target.n}!`);
-if(enemy.h <= 0) {
-enemy.h = 0;
-toast(`${enemy.n} defeated by grapple recoil!`);
-S.enemies = S.enemies.filter(e => e.id !== enemy.id);
-} else {
 target.st = level;
 toast(`${target.n} stunned for ${level} turns!`);
 }
@@ -3842,8 +3841,8 @@ v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()">Spend XP</div>
-<button class="btn safe" onclick="nextFloor()">Next Floor</button>`;
+<div class="choice" onclick="levelUpMenu()" style="max-width:300px;margin:0.5rem auto;padding:0.6rem 1rem;font-size:0.95rem">Spend XP</div>
+<button class="btn safe" onclick="nextFloor()" style="max-width:300px;padding:0.6rem 1.5rem;font-size:0.95rem">Next Floor</button>`;
 }
 
 function nextFloor() {
@@ -4378,7 +4377,6 @@ secretFound = true;
 S.treasureSecretCompartment = true;
 }
 
-setTimeout(() => {
 if(trapDmg > 0) {
 const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
 highestHPHero.h -= trapDmg;
@@ -4397,6 +4395,23 @@ toast(`${highestHPHero.n} entered Last Stand!`);
 toast(`${highestHPHero.n} took ${trapDmg} damage!`);
 }
 
+upd();
+
+setTimeout(() => {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<img src="assets/neutrals/treasurechest1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
+<div class="neutral-title">Checking for Traps</div>
+<div style="font-weight:bold;margin-bottom:0.5rem;text-align:center">Rolling to see if the chest is trapped...</div>
+<div class="dice-roll">${trapText}</div>
+<div class="neutral-outcome">${trapOutcome}</div>
+<button class="btn" onclick="checkChestContents(${secretFound})">Check chest contents</button>
+</div>`;
+}, 500);
+}
+
+function checkChestContents(secretFound) {
 const {rolls: contentRolls, best: contentBest} = rollD20Neutral();
 const contentText = showD20Result(contentRolls, contentBest);
 
@@ -4422,13 +4437,14 @@ contentOutcome += ' Inside the secret compartment, you find a small silver key!'
 S.gold += goldGain;
 upd();
 
+setTimeout(() => {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<div class="neutral-title">Opening the Chest</div>
-<div class="dice-roll">${trapText}</div>
-<div class="neutral-outcome">${trapOutcome}</div>
-<div class="dice-roll" style="margin-top:1rem">${contentText}</div>
+<img src="assets/neutrals/treasurechest1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
+<div class="neutral-title">Chest Contents</div>
+<div style="font-weight:bold;margin-bottom:0.5rem;text-align:center">Rolling to see what's inside...</div>
+<div class="dice-roll">${contentText}</div>
 <div class="neutral-outcome">${contentOutcome}</div>
 <button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
@@ -4437,7 +4453,13 @@ v.innerHTML = `
 
 function showTreasureChest2() {
 if(!S.silverKeyHeld) {
-nextFloor();
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Empty Playroom</div>
+<div class="neutral-desc">An empty chamber. The silver chest is nowhere to be found.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
 return;
 }
 const goldGain = 10 * S.heroes.length;
@@ -4548,7 +4570,13 @@ v.innerHTML = `
 
 function showWizard2() {
 if(!S.wizardSigil) {
-nextFloor();
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Empty Playroom</div>
+<div class="neutral-desc">An empty chamber. The wizard is nowhere to be found.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
 return;
 }
 
@@ -4670,7 +4698,13 @@ v.innerHTML = `
 
 function showOracle2() {
 if(S.oracleHero === null || S.oracleRoll === null) {
-nextFloor();
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<div class="neutral-title">Empty Playroom</div>
+<div class="neutral-desc">An empty chamber. The oracle is nowhere to be found.</div>
+<button class="btn" onclick="nextFloor()">Continue</button>
+</div>`;
 return;
 }
 
@@ -5018,6 +5052,8 @@ else {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:550px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
+<div class="neutral-title">The Archway Beckons</div>
 <div class="dice-roll">${rollText}</div>
 <div class="neutral-outcome">The archway SWALLOWS you! You find yourself inside the statue!</div>
 <button class="btn" onclick="showStatue5()">Continue</button>
