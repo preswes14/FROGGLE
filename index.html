@@ -720,6 +720,17 @@ const t = document.createElement('div');
 t.className = 'toast';
 t.textContent = msg;
 document.body.appendChild(t);
+
+// Calculate position based on existing toasts
+const existingToasts = document.querySelectorAll('.toast');
+let offset = 20; // Start 20px from bottom
+existingToasts.forEach((existing, index) => {
+if(existing !== t) {
+offset += existing.offsetHeight + 10; // Add height plus 10px gap
+}
+});
+t.style.bottom = offset + 'px';
+
 setTimeout(() => t.classList.add('show'), 10);
 setTimeout(() => {
 t.classList.remove('show');
@@ -1746,7 +1757,8 @@ m:base.m * effedMultiplier,
 g:base.g, x:base.x, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
-st:0, li: i % S.heroes.length, sh:0, alphaActed: false
+st:0, li: i % S.heroes.length, sh:0, alphaActed: false,
+ghostCharges: 0
 };
 if(base.permSigils) base.permSigils.forEach(ps => enemy.s.push({sig:ps.s, level:ps.l, perm:true}));
 if(base.startSigils) {
@@ -2520,8 +2532,8 @@ triggerHitAnimation(enemy.id);
 dealDamageToEnemyWithoutAnimation(enemy, dmg);
 
 if(enemy.h <= 0) {
-if(enemy.g > 0) {
-enemy.g--;
+if(enemy.ghostCharges > 0) {
+enemy.ghostCharges--;
 enemy.h += dmg;
 toast(`${enemy.n}'s Ghost charge cancelled the lethal hit!`, 2000);
 return;
@@ -2856,16 +2868,22 @@ const dmgToRecruit = target.p;
 recruit.h -= dmgToRecruit;
 toast(`${recruit.n} (Recruit) grappled ${target.n}!`);
 if(recruit.h <= 0) {
+if(recruit.ghostCharges > 0) {
+recruit.ghostCharges--;
+recruit.h += dmgToRecruit;
+toast(`${recruit.n} (Recruit)'s Ghost charge cancelled the lethal hit!`);
+} else {
 recruit.h = 0;
 toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
 S.recruits = S.recruits.filter(r => r.id !== recruit.id);
+}
 } else {
 target.st = level;
 toast(`${target.n} stunned for ${level} turns!`);
 }
 } else if(sig === 'Ghost') {
-recruit.g = (recruit.g || 0) + level;
-if(recruit.g > 9) recruit.g = 9;
+recruit.ghostCharges = (recruit.ghostCharges || 0) + level;
+if(recruit.ghostCharges > 9) recruit.ghostCharges = 9;
 toast(`${recruit.n} (Recruit) gained ${level} Ghost charge!`);
 }
 }
@@ -2987,8 +3005,11 @@ target.sh = 0;
 target.h -= dmg;
 // Check for ghost/last stand
 if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
+// Check ghostCharges for recruits/enemies, or g for heroes
+const ghostCount = target.ghostCharges !== undefined ? target.ghostCharges : target.g;
+if(ghostCount > 0) {
+if(target.ghostCharges !== undefined) target.ghostCharges--;
+else target.g--;
 target.h += dmg;
 } else {
 target.h = 0;
@@ -3001,8 +3022,11 @@ target.lst = 0;
 target.h -= enemy.p;
 // Check for ghost/last stand
 if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
+// Check ghostCharges for recruits/enemies, or g for heroes
+const ghostCount = target.ghostCharges !== undefined ? target.ghostCharges : target.g;
+if(ghostCount > 0) {
+if(target.ghostCharges !== undefined) target.ghostCharges--;
+else target.g--;
 target.h += enemy.p;
 } else {
 target.h = 0;
@@ -3048,8 +3072,11 @@ target.sh = 0;
 target.h -= dmg;
 // Check for ghost/last stand
 if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
+// Check ghostCharges for recruits/enemies, or g for heroes
+const ghostCount = target.ghostCharges !== undefined ? target.ghostCharges : target.g;
+if(ghostCount > 0) {
+if(target.ghostCharges !== undefined) target.ghostCharges--;
+else target.g--;
 target.h += dmg;
 } else {
 target.h = 0;
@@ -3062,8 +3089,11 @@ target.lst = 0;
 target.h -= enemy.p;
 // Check for ghost/last stand
 if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
+// Check ghostCharges for recruits/enemies, or g for heroes
+const ghostCount = target.ghostCharges !== undefined ? target.ghostCharges : target.g;
+if(ghostCount > 0) {
+if(target.ghostCharges !== undefined) target.ghostCharges--;
+else target.g--;
 target.h += enemy.p;
 } else {
 target.h = 0;
@@ -3113,8 +3143,8 @@ toast(`${target.n} stunned for ${level} turns!`);
 }
 }
 } else if(sig === 'Ghost') {
-enemy.g = (enemy.g || 0) + level;
-if(enemy.g > 9) enemy.g = 9;
+enemy.ghostCharges = (enemy.ghostCharges || 0) + level;
+if(enemy.ghostCharges > 9) enemy.ghostCharges = 9;
 toast(`${enemy.n} gained ${level} Ghost charge!`);
 } else if(sig === 'Expand') {
 toast(`${enemy.n} used Expand (affects their attacks)`);
