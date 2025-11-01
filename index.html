@@ -30,7 +30,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   background: linear-gradient(135deg, #d9cab1 0%, #c9ba9b 100%);
   touch-action: pan-x pan-y pinch-zoom;
 }
-.btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
+.btn { padding: 0.6rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 0.95rem; min-height: 44px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
 .btn:active { transform: scale(0.98); opacity: 0.9; }
 .btn.safe { background: #22c55e; }
 .btn.risky { background: #f59e0b; }
@@ -2008,7 +2008,7 @@ v.insertAdjacentHTML('beforeend', html);
 return;
 } else {
 // Normal D20 menu (centered, blocks view)
-html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px">';
+html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:3rem auto;max-width:400px;position:relative;top:20vh">';
 html += '<h3 style="margin-bottom:1rem">D20: Do Something Crazy</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
@@ -2546,9 +2546,12 @@ if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
 }
 
+// Tutorial enemies don't award gold or XP
+if(S.floor !== 0) {
 S.gold += enemy.g;
 S.combatGold += enemy.g;
 S.combatXP += enemy.x;
+}
 upd();
 setTimeout(() => {
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
@@ -3847,7 +3850,20 @@ v.innerHTML = `
 
 function nextFloor() {
 saveGame();
-startFloor(S.floor + 1);
+showFloorTransition(S.floor + 1);
+}
+
+function showFloorTransition(nextFloorNum) {
+const v = document.getElementById('gameView');
+const floorColor = getBgColor(nextFloorNum);
+v.innerHTML = `
+<div style="display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column">
+<div style="font-size:4rem;font-weight:bold;color:#000;text-shadow:2px 2px 4px rgba(255,255,255,0.5);margin-bottom:0.5rem">Floor ${nextFloorNum}</div>
+<div style="width:100px;height:4px;background:#000;border-radius:2px"></div>
+</div>`;
+setTimeout(() => {
+startFloor(nextFloorNum);
+}, 1000);
 }
 
 function showStartingXPScreen() {
