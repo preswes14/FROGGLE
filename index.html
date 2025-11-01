@@ -3506,7 +3506,7 @@ let cardClasses = 'card enemy targetable';
 if(isSelected) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-// Only show ghost charges if enemy actually has them (not gold drops!)
+// Display enemy ghost charges
 const encampmentGhostCharges = e.ghostCharges || 0;
 if(encampmentGhostCharges > 0) extra.push(`${encampmentGhostCharges}${sigilIconOnly('Ghost')}`);
 if(isSelected) extra.push('❌');
@@ -3529,7 +3529,7 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 <div style="font-size:0.6rem;opacity:0.8">HP</div>
 </div>
 </div>
-${extra.length>0 ? `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>` : ''}
+${extra.length>0 ? `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem;opacity:1;flex-shrink:0;font-weight:600">${extra.join(' ')}</div>` : ''}
 <div class="sigil-divider" style="flex-shrink:0"></div>
 <!-- Sigil row - takes remaining space -->
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
@@ -3784,7 +3784,7 @@ if(isTargetable) cardClasses += ' targetable';
 if(selectCount > 0) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-// Only show ghost charges if enemy actually has them (not gold drops!)
+// Display enemy ghost charges
 const ghostCharges = e.ghostCharges || 0;
 if(ghostCharges > 0) extra.push(`${ghostCharges}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
@@ -3808,7 +3808,7 @@ html += `<div class="${cardClasses}" data-id="${e.id}" ${isTargetable?`onclick="
 <div style="font-size:0.6rem;opacity:0.8">HP</div>
 </div>
 </div>
-${extra.length>0 ? `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>` : ''}
+${extra.length>0 ? `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem;opacity:1;flex-shrink:0;font-weight:600">${extra.join(' ')}</div>` : ''}
 <div class="sigil-divider" style="flex-shrink:0"></div>
 <!-- Sigil row - takes remaining space -->
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
