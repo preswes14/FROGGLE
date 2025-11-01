@@ -4536,14 +4536,16 @@ v.innerHTML = `
 // ===== 3. TREASURE CHEST =====
 function showTreasureChest1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/treasurechest1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">A Mysterious Chest</div>
-<div class="neutral-desc">An ornate wooden chest sits against the far wall, its brass fittings gleaming in the torchlight. No lock is visible, but you sense this may not be as simple as it appears.</div>
+const buttonsHtml = `
 <button class="btn risky" onclick="openChest()">Open the chest</button>
-<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/treasurechest1.png',
+'A Mysterious Chest',
+'An ornate wooden chest sits against the far wall, its brass fittings gleaming in the torchlight. No lock is visible, but you sense this may not be as simple as it appears.',
+buttonsHtml
+);
 }
 
 function openChest() {
@@ -4672,14 +4674,16 @@ v.innerHTML = `
 // ===== 4. MUMBLING WIZARD =====
 function showWizard1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/wizard1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Hieroglyphs on the Wall</div>
-<div class="neutral-desc">An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."</div>
+const buttonsHtml = `
 <button class="btn risky" onclick="approachWizard()">Approach the wizard</button>
-<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/wizard1.png',
+'Hieroglyphs on the Wall',
+'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."',
+buttonsHtml
+);
 }
 
 function approachWizard() {
@@ -4829,18 +4833,19 @@ v.innerHTML = `
 // ===== 5. ORACLE =====
 function showOracle1() {
 const v = document.getElementById('gameView');
-let html = `
-<div class="neutral-container">
-<img src="assets/neutrals/prince1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Consult the Oracle</div>
-<div class="neutral-desc">A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?"</div>
-<div style="font-size:0.9rem;margin-bottom:1rem">Choose a hero and their desired fortune:</div>`;
+let buttonsHtml = '<div style="font-size:0.9rem;margin-bottom:0.5rem;color:#000">Choose a hero and their desired fortune:</div>';
 S.heroes.forEach((h, idx) => {
-html += `<div class="choice" onclick="oracleChoose(${idx}, 'POW')"><strong>${h.n}</strong> - Power</div>`;
-html += `<div class="choice" onclick="oracleChoose(${idx}, 'HP')"><strong>${h.n}</strong> - Life</div>`;
+buttonsHtml += `<div class="choice" onclick="oracleChoose(${idx}, 'POW')"><strong>${h.n}</strong> - Power</div>`;
+buttonsHtml += `<div class="choice" onclick="oracleChoose(${idx}, 'HP')"><strong>${h.n}</strong> - Life</div>`;
 });
-html += `<button class="btn safe" onclick="nextFloor()">Do Not Engage</button></div>`;
-v.innerHTML = html;
+buttonsHtml += `<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/prince1.png',
+'Consult the Oracle',
+'A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?"',
+buttonsHtml
+);
 }
 
 function oracleChoose(heroIdx, stat) {
@@ -4964,14 +4969,16 @@ v.innerHTML = `
 // ===== 6. ENEMY ENCAMPMENT =====
 function showEncampment1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/encampment1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Enemies Assembling Ahead</div>
-<div class="neutral-desc">Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven't noticed you yet.</div>
+const buttonsHtml = `
 <button class="btn risky" onclick="chooseEncampmentAction('sneak')">Sneak by?</button>
-<button class="btn risky" onclick="chooseEncampmentAction('engage')">Engage early</button>
-</div>`;
+<button class="btn risky" onclick="chooseEncampmentAction('engage')">Engage early</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/encampment1.png',
+'Enemies Assembling Ahead',
+'Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven't noticed you yet.',
+buttonsHtml
+);
 }
 
 function chooseEncampmentAction(action) {
@@ -5171,15 +5178,21 @@ v.innerHTML = `
 function showStatue1() {
 const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">The Statue</div>
-<div class="neutral-desc">A massive stone statue dominates the chamber. As you watch, it seems to ${deactivated ? 'shift smoothly and gently' : 'grow larger, its surface rippling ominously'}.</div>
-${deactivated ? '<div class="neutral-outcome" style="color:#22c55e">The statue has been deactivated. It poses no threat.</div>' : ''}
+let description = `A massive stone statue dominates the chamber. As you watch, it seems to ${deactivated ? 'shift smoothly and gently' : 'grow larger, its surface rippling ominously'}.`;
+if(deactivated) {
+description += '<br><span style="color:#22c55e;font-weight:bold">The statue has been deactivated. It poses no threat.</span>';
+}
+
+const buttonsHtml = `
 <button class="btn safe" onclick="nextFloor()">Leave now</button>
-<button class="btn risky" onclick="showStatue2()">Remain transfixed</button>
-</div>`;
+<button class="btn risky" onclick="showStatue2()">Remain transfixed</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/statue1.png',
+'The Statue',
+description,
+buttonsHtml
+);
 }
 
 function showStatue2() {
@@ -5350,14 +5363,16 @@ ${getStatuette ? '<div class="neutral-outcome" style="color:#fbbf24">The Ancient
 // ===== 8. GHOST =====
 function showGhost1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/ghost1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Two Ghostly Boys Want to Play</div>
-<div class="neutral-desc">Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.</div>
+const buttonsHtml = `
 <button class="btn danger" onclick="playWithGhostBoys()">Play with the ghost boys</button>
-<button class="btn risky" onclick="nextFloor()">Avoid?</button>
-</div>`;
+<button class="btn risky" onclick="nextFloor()">Avoid?</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/ghost1.png',
+'Two Ghostly Boys Want to Play',
+'Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.',
+buttonsHtml
+);
 }
 
 let ghostEscapeDC = 18;
@@ -5483,14 +5498,16 @@ v.innerHTML = `
 // ===== 9. FLUMMOXED PRINCE(SS) =====
 function showPrince1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/oracle1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Help Recover the Ring</div>
-<div class="neutral-desc">A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"</div>
+const buttonsHtml = `
 <button class="btn" onclick="acceptPrinceQuest()">Accept the quest</button>
-<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/oracle1.png',
+'Help Recover the Ring',
+`A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
+buttonsHtml
+);
 }
 
 function acceptPrinceQuest() {
