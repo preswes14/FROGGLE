@@ -887,6 +887,17 @@ return;
 }
 // Confirm with user
 if(!confirm('Restart this level? You will lose all progress on this floor.')) return;
+// Restore hero health to start of floor
+if(S.floorStartHealth) {
+S.floorStartHealth.forEach(saved => {
+const hero = S.heroes.find(h => h.id === saved.id);
+if(hero) {
+hero.h = saved.h;
+hero.ls = saved.ls;
+hero.lst = saved.lst;
+}
+});
+}
 // Clear combat state
 S.enemies = [];
 S.turn = 'player';
@@ -898,6 +909,8 @@ S.locked = false;
 S.round = 1;
 S.combatXP = 0;
 S.combatGold = 0;
+// Clear recruits
+S.recruits = [];
 // Restart the current floor
 toast('Restarting floor...', 1500);
 setTimeout(() => {
@@ -1737,6 +1750,8 @@ S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.aste
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
+// Save hero health at start of combat for beta restart
+S.floorStartHealth = S.heroes.map(h => ({id: h.id, h: h.h, ls: h.ls, lst: h.lst || 0}));
 S.heroes.forEach(h => {
 h.sh=0;
 h.st=0;
@@ -3203,7 +3218,7 @@ if(S.floor !== 0) {
 if(S.combatTurn === 5) {
 // Show warning at turn 5
 setTimeout(() => {
-showTutorial('Escalation Warning', 'As the battle rages, the forces of evil grow stronger...');
+toast('⚠️ WARNING: Enemies will power up next turn!', 4000);
 }, 500);
 } else if(S.combatTurn >= 6) {
 // Power up enemies at turn 6+
