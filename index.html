@@ -3348,7 +3348,7 @@ setTimeout(() => {
 const enemyCards = document.querySelectorAll('.card.enemy');
 enemyCards.forEach(card => {
 // Only animate living enemies
-const enemyId = card.getAttribute('data-enemy-id');
+const enemyId = card.getAttribute('data-id');
 if(enemyId) {
 const enemy = S.enemies.find(e => e.id === enemyId);
 if(enemy && enemy.h > 0) {
