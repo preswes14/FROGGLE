@@ -390,8 +390,8 @@ return `Heal Level ${level}: Restore <b>${healMult}×POW</b> HP to target. Canno
 
 case 'D20':
 if(level === 0) return 'D20 Level 0: Inactive';
-if(level === 1) return 'D20 Level 1: Roll <b>1d20</b> and choose: Damage enemy (DC varies) or Heal ally (no DC)';
-return `D20 Level ${level}: Roll <b>${level}d20</b>, take best result. Choose: Damage enemy (DC varies) or Heal ally (no DC)`;
+if(level === 1) return 'D20 Level 1: Roll <b>1d20</b> to attempt a risky gambit. Choose from various high-risk, high-reward actions.';
+return `D20 Level ${level}: Roll <b>${level}d20</b>, take best result to attempt a risky gambit. Choose from various high-risk, high-reward actions.`;
 
 case 'Expand':
 if(level === 0) return 'Expand Level 0: No additional targets';
@@ -662,11 +662,11 @@ if(gameArea) gameArea.style.background = getFloorBackground(S.floor);
 }
 
 function triggerHitAnimation(targetId) {
-// Find the card element by searching for the target ID in the card's onclick attribute
+// Find the card element by its data-id attribute
 const cards = document.querySelectorAll('.card');
 cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(targetId)) {
+const cardId = card.getAttribute('data-id');
+if(cardId === targetId) {
 card.classList.add('hit-flash');
 setTimeout(() => card.classList.remove('hit-flash'), 400);
 }
@@ -676,8 +676,8 @@ setTimeout(() => card.classList.remove('hit-flash'), 400);
 function triggerAttackAnimation(attackerId) {
 const cards = document.querySelectorAll('.card');
 cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(attackerId)) {
+const cardId = card.getAttribute('data-id');
+if(cardId === attackerId) {
 card.classList.add('attack-slide');
 setTimeout(() => card.classList.remove('attack-slide'), 500);
 }
@@ -687,8 +687,8 @@ setTimeout(() => card.classList.remove('attack-slide'), 500);
 function triggerHealAnimation(targetId) {
 const cards = document.querySelectorAll('.card');
 cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(targetId)) {
+const cardId = card.getAttribute('data-id');
+if(cardId === targetId) {
 card.classList.add('heal-flash');
 // Add healing cross overlay
 const cross = document.createElement('div');
@@ -707,8 +707,8 @@ if(cross.parentNode) cross.remove();
 function triggerShieldAnimation(targetId) {
 const cards = document.querySelectorAll('.card');
 cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(targetId)) {
+const cardId = card.getAttribute('data-id');
+if(cardId === targetId) {
 card.classList.add('shield-flash');
 setTimeout(() => card.classList.remove('shield-flash'), 500);
 }
@@ -3359,7 +3359,7 @@ const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
-html += `<div class="card hero">
+html += `<div class="card hero" data-id="${h.id}">
 <!-- Hero Name -->
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${h.n}</div>
 <!-- Hero Portrait - fixed space -->
@@ -3436,7 +3436,7 @@ const encampmentGhostCharges = e.ghostCharges || 0;
 if(encampmentGhostCharges > 0) extra.push(`${encampmentGhostCharges}${sigilIconOnly('Ghost')}`);
 if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
+html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')" data-id="${e.id}">
 <!-- Enemy Emoji - fixed space matching hero portrait -->
 <div style="text-align:center;height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
 <div style="font-size:2.5rem">${enemyEmoji}</div>
@@ -3579,7 +3579,7 @@ for(let stackIdx = 0; stackIdx < Math.min(queuedActions, 4); stackIdx++) {
 html += `<div class="card-stack-copy"></div>`;
 }
 }
-html += `<div class="${cardClasses}" ${onclick}>
+html += `<div class="${cardClasses}" ${onclick} data-id="${h.id}">
 <!-- Hero Name -->
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${h.n}</div>
 <!-- Hero Portrait - fixed space -->
@@ -3655,7 +3655,7 @@ if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
 const recruitGhostCharges = recruit.ghostCharges || 0;
 if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
-html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
+html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e" data-id="${recruit.id}">
 <!-- Recruit Name -->
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${recruit.n} 🤝</div>
 <!-- Recruited label - fixed space matching portrait -->
@@ -3715,7 +3715,7 @@ if(ghostCharges > 0) extra.push(`${ghostCharges}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-html += `<div class="${cardClasses}" data-enemy-id="${e.id}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
+html += `<div class="${cardClasses}" data-id="${e.id}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
 <!-- Enemy Emoji - fixed space -->
 <div style="text-align:center;height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
 <div style="font-size:2.5rem">${enemyEmoji}</div>
