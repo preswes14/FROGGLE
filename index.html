@@ -147,6 +147,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.5) grayscale(0.3); box-shadow: 0 0 20px rgba(156, 163, 175, 0.8); }
 }
+.card.power-up { animation: enemy-power-up 1.2s ease; }
+@keyframes enemy-power-up {
+  0% { transform: scale(1); filter: brightness(1); }
+  25% { transform: scale(1.15); filter: brightness(1.5) hue-rotate(-20deg); box-shadow: 0 0 30px rgba(220, 38, 38, 0.9); }
+  50% { transform: scale(1.15); filter: brightness(1.5) hue-rotate(-20deg); box-shadow: 0 0 30px rgba(220, 38, 38, 0.9); }
+  75% { transform: scale(1.05); filter: brightness(1.2); box-shadow: 0 0 15px rgba(220, 38, 38, 0.5); }
+  100% { transform: scale(1); filter: brightness(1); box-shadow: none; }
+}
 @keyframes heal-cross-fade {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
   50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
@@ -1713,6 +1721,7 @@ function combat(f) {
 // Show floor/round display in combat
 document.getElementById('floor-round-display').style.display = 'block';
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
+S.combatTurn=0; // Track total turns for power-up mechanic
 S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
@@ -3158,6 +3167,20 @@ showNPCReaction('assets/reactions/prince-worried.png', `"No, my beloved's ring!!
 }
 
 S.round++;
+S.combatTurn++; // Increment turn counter
+
+// Enemy power-up mechanic (disabled in tutorial)
+if(S.floor !== 0) {
+if(S.combatTurn === 5) {
+// Show warning at turn 5
+setTimeout(() => {
+showTutorial('Escalation Warning', 'As the battle rages, the forces of evil grow stronger...');
+}, 500);
+} else if(S.combatTurn >= 6) {
+// Power up enemies at turn 6+
+setTimeout(() => enemyPowerUp(), 500);
+}
+}
 
 // RIBBLETON TUTORIAL: Handle round transitions
 if(tutorialState && S.floor === 0) {
@@ -3228,6 +3251,51 @@ S.acted = [];
 S.locked = false;
 upd();
 render();
+}
+
+function enemyPowerUp() {
+// Apply power-up to all living enemies (not recruits)
+const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
+const powBonus = 1 * effedMultiplier;
+const hpBonus = 5 * effedMultiplier;
+
+let powerUpCount = 0;
+S.enemies.forEach(e => {
+// Skip dead enemies
+if(e.h <= 0) return;
+
+// Apply power-up
+e.p += powBonus;
+e.m += hpBonus;
+e.h += hpBonus; // Also heal by the same amount
+powerUpCount++;
+});
+
+// Show toast notification
+if(powerUpCount > 0) {
+const hpText = S.gameMode === 'Effed' ? '+25 HP' : '+5 HP';
+const powText = S.gameMode === 'Effed' ? '+5 POW' : '+1 POW';
+toast(`Enemies grow stronger! ${powText}, ${hpText}`);
+
+// Trigger animation on all enemy cards
+setTimeout(() => {
+const enemyCards = document.querySelectorAll('.card.enemy');
+enemyCards.forEach(card => {
+// Only animate living enemies
+const enemyId = card.getAttribute('data-enemy-id');
+if(enemyId) {
+const enemy = S.enemies.find(e => e.id === enemyId);
+if(enemy && enemy.h > 0) {
+card.classList.add('power-up');
+// Remove class after animation completes
+setTimeout(() => card.classList.remove('power-up'), 1200);
+}
+}
+});
+// Re-render after a moment to show updated stats
+setTimeout(() => render(), 600);
+}, 100);
+}
 }
 
 function checkCombatEnd() {
@@ -3649,7 +3717,7 @@ if(ghostCharges > 0) extra.push(`${ghostCharges}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
+html += `<div class="${cardClasses}" data-enemy-id="${e.id}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
 <!-- Enemy Emoji - fixed space -->
 <div style="text-align:center;height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
 <div style="font-size:2.5rem">${enemyEmoji}</div>
