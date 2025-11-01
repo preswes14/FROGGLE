@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="FROGGLE"/>
 <meta name="theme-color" content="#22c55e"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
-<link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
+<link rel="apple-touch-icon" href="assets/tadpo-icon-180.png"/>
+<link rel="icon" type="image/png" href="assets/tadpo-icon.png"/>
 <title>FROGGLE v9.93 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -38,10 +38,53 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .btn.secondary { background: #6b7280; }
 .choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; }
 .choice:active { transform: scale(0.98); background: #f0f0f0; }
-.neutral-container { background: white; border: 3px solid #000; border-radius: 8px; padding: 1.5rem; margin: 1rem auto; max-width: 500px; }
-.neutral-title { font-size: 1.5rem; font-weight: bold; text-align: center; margin-bottom: 1rem; }
-.neutral-desc { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }
-.neutral-outcome { font-size: 0.9rem; padding: 0.75rem; background: #f0f0f0; border-radius: 6px; margin-bottom: 1rem; }
+.neutral-container {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem auto;
+  max-width: 100%;
+  padding: 1rem;
+}
+.neutral-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.neutral-heroes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.neutral-right {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.neutral-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 3px solid #000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+.neutral-text-overlay {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  background: rgba(217,202,177,0.95);
+  border: 3px solid #000;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+.neutral-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem; color: #000; }
+.neutral-desc { font-size: 0.9rem; line-height: 1.4; color: #000; }
+.neutral-outcome { font-size: 0.9rem; padding: 0.75rem; background: rgba(255,255,255,0.8); border-radius: 6px; margin-bottom: 0.5rem; border: 2px solid #000; }
 .dice-roll { font-size: 1.2rem; font-weight: bold; text-align: center; padding: 1rem; background: #2c63c7; color: white; border-radius: 6px; margin: 1rem 0; }
 /* Combat layout */
 .combat-grid { display: flex; gap: 0.75rem; margin-bottom: 1rem; justify-content: center; }
@@ -285,7 +328,7 @@ const HERO_IMAGES = {
         tank: 'tankpixel.png',
         mage: 'magepixel.png',
         healer: 'healerpixel.png',
-        tapo: 'tapopixel.png'
+        tadpo: 'tadpopixel.png'
     };
 
 // Hero portrait images for selection screen
@@ -294,7 +337,7 @@ const HERO_PORTRAITS = {
         tank: 'tankfull.png',
         mage: 'magefull.png',
         healer: 'healerfull.png',
-        tapo: 'tapofull.png'
+        tadpo: 'tadpofull.png'
     };
 
 // Death's dialogue lines (cycles through without repeating until all used)
@@ -317,7 +360,7 @@ warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Shield','D20']},
 mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
 healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']},
-tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','D20','Expand','Grapple','Ghost','Asterisk','Star','Alpha']}
+tadpo: {n:'Tadpo', p:1, h:1, m:1, s:['Attack','Shield','Heal','D20','Expand','Grapple','Ghost','Asterisk','Star','Alpha']}
 };
 
 const E = {
@@ -514,7 +557,7 @@ pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Fro
 hasAncientStatuette: false,
 gameMode: 'Standard', // 'Standard' or 'Frogged'
 froggedUnlocked: false,
-tapoUnlocked: false, // Unlocked after first FU victory
+tadpoUnlocked: false, // Unlocked after first FU victory
 debugMode: false, // Debug mode toggle
 // Turn management
 activeIdx: -1,
@@ -578,7 +621,7 @@ run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
 pedestal_first_placement: false,
-tapo_victory_message: false
+tadpo_victory_message: false
 },
 tutorialsDisabled: false,
 usedDeathQuotes: [] // Track which death quotes have been shown
@@ -640,6 +683,89 @@ ${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radi
 </div>
 </div>
 ${extra.length>0 || extraInfo ? `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')} ${extraInfo}</div>` : ''}
+</div>`;
+}
+
+function renderNeutralEncounter(imageSrc, title, description, buttonsHtml) {
+// Render heroes on left
+let heroesHtml = '<div class="neutral-heroes">';
+S.heroes.forEach((h, i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}`;
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(h.st > 0) extra.push(`😵${h.st}T`);
+const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
+
+// Show sigils
+const allSigils = [...h.s, ...(h.ts || [])];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
+const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
+
+heroesHtml += `<div class="card hero" style="opacity:0.9">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${h.n}</div>
+<div style="text-align:center;margin-bottom:0.25rem;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
+</div>
+<div class="sigil-divider" style="flex-shrink:0"></div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">`;
+
+if(activeSigilsList.length > 0) {
+heroesHtml += `<div class="sigil-row">`;
+activeSigilsList.forEach(s => {
+const lvl = getLevel(s, i);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+heroesHtml += `<span class="sigil ${cl}">${sigilIconOnly(s)}</span>`;
+});
+heroesHtml += '</div>';
+}
+heroesHtml += '</div>';
+
+// Stats row with passive sigils
+heroesHtml += `<div style="display:flex;justify-content:space-around;align-items:center;margin-top:auto;padding:0.5rem 0.25rem 0 0.25rem;flex-shrink:0">
+<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${h.p}</div>
+<div style="font-size:0.6rem;opacity:0.8">POW</div>
+</div>`;
+
+if(passiveSigilsList.length > 0) {
+heroesHtml += `<div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:60%">`;
+passiveSigilsList.forEach(s => {
+const lvl = getLevel(s, i);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+heroesHtml += `<span class="sigil ${cl}" style="font-size:0.7rem">${sigilIconOnly(s)}</span>`;
+});
+heroesHtml += '</div>';
+}
+
+const hpDisplay = h.ls ? `LS` : `${h.h}/${h.m}`;
+heroesHtml += `<div style="text-align:center">
+<div style="font-size:1.3rem;font-weight:bold;line-height:1">${hpDisplay}</div>
+<div style="font-size:0.6rem;opacity:0.8">HP</div>
+</div></div>`;
+
+if(extra.length > 0) {
+heroesHtml += `<div style="text-align:center;font-size:0.7rem;margin-top:0.25rem;opacity:0.9;flex-shrink:0">${extra.join(' ')}</div>`;
+}
+heroesHtml += '</div>';
+});
+heroesHtml += '</div>';
+
+// Build the full layout
+return `<div class="neutral-container">
+<div class="neutral-left">
+${heroesHtml}
+<div style="flex:1"></div>
+${buttonsHtml}
+</div>
+<div class="neutral-right">
+<img src="${imageSrc}" class="neutral-image" alt="Encounter">
+<div class="neutral-text-overlay">
+<div class="neutral-title">${title}</div>
+<div class="neutral-desc">${description}</div>
+</div>
+</div>
 </div>`;
 }
 
@@ -812,7 +938,7 @@ ghostBoysConverted: S.ghostBoysConverted,
 hasAncientStatuette: S.hasAncientStatuette,
 pedestal: S.pedestal,
 froggedUnlocked: S.froggedUnlocked,
-tapoUnlocked: S.tapoUnlocked,
+tadpoUnlocked: S.tadpoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 tutorialsDisabled: S.tutorialsDisabled,
@@ -834,7 +960,7 @@ S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.pedestal = j.pedestal || [];
 S.froggedUnlocked = j.froggedUnlocked || false;
-S.tapoUnlocked = j.tapoUnlocked || false;
+S.tadpoUnlocked = j.tadpoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.tutorialsDisabled = j.tutorialsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
@@ -1028,7 +1154,7 @@ v.innerHTML = `
 <p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.93 BETA</p>
 </div>
 
-<!-- Buttons at the bottom, underneath Tapo, on the image -->
+<!-- Buttons at the bottom, underneath Tadpo, on the image -->
 <div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;width:90%;max-width:500px;z-index:2;padding:0 1rem">
 <!-- New Game: half width -->
 <button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.5);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
@@ -1181,16 +1307,16 @@ const slides = [
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.5rem;margin-bottom:0.5rem;color:#22c55e">Tapo's First Birthday!</h2>
+<h2 style="font-size:1.5rem;margin-bottom:0.5rem;color:#22c55e">Tadpo's First Birthday!</h2>
 <div style="margin:0.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:180px;height:auto;animation:tapoFlipBounce 3s ease-in-out infinite">
+<img src="assets/tadpo-nobg.png" style="max-width:180px;height:auto;animation:tadpoFlipBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:0.95rem;line-height:1.5;margin:0.5rem 0">
-Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
+Today is <strong>Tadpo the Tadpole's first birthday!</strong> 🎉
 </p>
 </div>
 <style>
-@keyframes tapoFlipBounce {
+@keyframes tadpoFlipBounce {
 0% { transform: scaleX(1) translateY(0) scale(1); }
 16.7% { transform: scaleX(1) translateY(-25px) scale(1.08); }
 23.3% { transform: scaleX(1) translateY(0) scale(1); }
@@ -1212,13 +1338,13 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.5rem;margin-bottom:0.5rem;color:#22c55e">Ribbleton's Defenders</h2>
 <p style="font-size:0.95rem;line-height:1.5;margin:0.5rem 0">
-Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
+Ribbletonians gathered around little Tadpo as he blew out the candles on his birthday cake.<br>
 <strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
 </p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;max-width:280px;margin:0.75rem auto;align-items:center;justify-items:center">
 <div style="animation:partyFlip 2s ease-in-out infinite"><img src="warriorfull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 2.4s ease-in-out infinite"><img src="tankfull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="grid-column:1 / -1;animation:bounce 2s ease-in-out infinite"><img src="assets/tapo-nobg.png" style="width:80px;height:auto"></div>
+<div style="grid-column:1 / -1;animation:bounce 2s ease-in-out infinite"><img src="assets/tadpo-nobg.png" style="width:80px;height:auto"></div>
 <div style="animation:partyFlip 1.6s ease-in-out infinite"><img src="magefull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 2.8s ease-in-out infinite"><img src="healerfull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 </div>
@@ -1308,7 +1434,7 @@ A vicious goblin and a terrifying wolf came charging from the portal!
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">🛡 On Guard!</div>
 </div>
 <div style="text-align:center">
-<img src="assets/tapo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
+<img src="assets/tadpo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
 <div style="font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Protected!</div>
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
@@ -1332,7 +1458,7 @@ A vicious goblin and a terrifying wolf came charging from the portal!
 </div>
 </div>
 <p style="font-size:1rem;line-height:1.6;text-align:center;font-style:italic;opacity:0.9">
-Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the portal!
+Tank and Mage stand guard around Tadpo while Warrior and Healer charge toward the portal!
 </p>
 <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
 <button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
@@ -1429,7 +1555,7 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative
 const slides = [
-{text: "The few enemies remaining around Ribbleton scampered back into the portal from whence they came. Relieved, and sheathing their weapons, the frog heroes assembled to try to pick up the string of their failed party - but Tapo was missing!!"},
+{text: "The few enemies remaining around Ribbleton scampered back into the portal from whence they came. Relieved, and sheathing their weapons, the frog heroes assembled to try to pick up the string of their failed party - but Tadpo was missing!!"},
 {text: "As the Ribbletonians looked high and low, our heroes realized there was only one possibility - the poor tadpole had squiggled his way through!"},
 {text: "Without a thought for their lives, the brave heroes dove into the swirling darkness..."}
 ];
@@ -1517,10 +1643,10 @@ ${S.froggedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
 🏆 Champions of Floor 20 🏆
 </button></div>` : ''}
 
-${S.tapoUnlocked ? `
+${S.tadpoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
-<button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#fbbf24 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
-🎉 View Tapo (UNLOCKED!) 🎉
+<button class="btn" onclick="toggleHeroSelection('tadpo')" style="background:linear-gradient(135deg,#fbbf24 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
+🎉 View Tadpo (UNLOCKED!) 🎉
 </button>
 </div>` : ''}
 
@@ -1561,7 +1687,7 @@ warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], d
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
 mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets'},
 healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies'},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!'}
+tadpo: {name: 'Tadpo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!'}
 };
 
 const hero = heroData[heroType];
@@ -1606,9 +1732,9 @@ cardEl.style.display = 'none';
 }
 });
 
-// Handle tapo specially if it exists
-if(heroType === 'tapo' || sel.includes('tapo')) {
-// Tapo button will be updated by title() re-render
+// Handle tadpo specially if it exists
+if(heroType === 'tadpo' || sel.includes('tadpo')) {
+// Tadpo button will be updated by title() re-render
 }
 
 updateSelectionDisplay();
@@ -1708,9 +1834,9 @@ startFloor(1);
 function startFloor(f) {
 S.floor=f;
 upd();
-// Special: Floor 20 in Effed mode shows Old Tapo encounter
+// Special: Floor 20 in Effed mode shows Old Tadpo encounter
 if(f === 20 && S.gameMode === 'Frogged') {
-showOldTapo();
+showOldTadpo();
 return;
 }
 if(f >= 20) { win(); return; }
@@ -4134,26 +4260,28 @@ const v = document.getElementById('gameView');
 const bothBought = shopSmallBought && shopLargeBought;
 const anyBought = shopSmallBought || shopLargeBought;
 
-let html = `<div class="neutral-container">
-<img src="assets/neutrals/shopkeeper1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Potions for Sale</div>`;
+let description, buttonsHtml = '';
 
 if(bothBought) {
-html += `<div class="neutral-desc">The hooded figure nods: "You bought everything. Very wise. I have... other wares for good customers..."</div>
-<div class="neutral-outcome" style="color:#22c55e">Both potions purchased! Stage 2 unlocked.</div>`;
+description = 'The hooded figure nods: "You bought everything. Very wise. I have... other wares for good customers..."<br><span style="color:#22c55e">Both potions purchased! Stage 2 unlocked.</span>';
 } else {
-html += `<div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices. ${anyBought ? 'Buy both, get something... special.' : 'I only have one of each. Buy both for something... extra.'}"</div>`;
+description = `A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices. ${anyBought ? 'Buy both, get something... special.' : 'I only have one of each. Buy both for something... extra.'}"`;
 if(!shopSmallBought) {
-html += `<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>`;
+buttonsHtml += `<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>`;
 }
 if(!shopLargeBought) {
-html += `<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>`;
+buttonsHtml += `<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>`;
 }
 }
 
-html += `<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
-</div>`;
-v.innerHTML = html;
+buttonsHtml += `<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/shopkeeper1.png',
+'Potions for Sale',
+description,
+buttonsHtml
+);
 }
 
 let shopSmallBought = false;
@@ -4280,15 +4408,17 @@ v.innerHTML = `
 // ===== 2. WISHING WELL =====
 function showWishingWell1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/wishingwell1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">The Old Wishing Well</div>
-<div class="neutral-desc">An ancient stone well sits in the center of the chamber. You hear the faint sound of trickling water far below. A glint of gold catches your eye at the bottom.</div>
+const buttonsHtml = `
 <button class="btn risky" onclick="climbWell()">Climb down and get coins</button>
 <button class="btn" onclick="tossWish()">Toss in a coin and make a wish</button>
-<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>`;
+
+v.innerHTML = renderNeutralEncounter(
+'assets/neutrals/wishingwell1.png',
+'The Old Wishing Well',
+'An ancient stone well sits in the center of the chamber. You hear the faint sound of trickling water far below. A glint of gold catches your eye at the bottom.',
+buttonsHtml
+);
 }
 
 function climbWell() {
@@ -5436,36 +5566,36 @@ v.innerHTML = `
 }
 
 // ===== OLD TAPO ENCOUNTER (FLOOR 20) =====
-function showOldTapo() {
+function showOldTadpo() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<img src="assets/old-tadpo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
-"Tapo, you say? Yes…. I was called Tapo once, before I mastered the mysteries of space and time. Save me? Why, I need no saving… In fact…."
+"Tadpo, you say? Yes…. I was called Tadpo once, before I mastered the mysteries of space and time. Save me? Why, I need no saving… In fact…."
 </div>
-<button class="btn" onclick="oldTapoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
+<button class="btn" onclick="oldTadpoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
 </div>`;
 }
 
-function oldTapoTransform() {
+function oldTadpoTransform() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
 <div style="text-align:center;margin:2rem 0">
 <div style="font-size:3rem;animation:clap 0.5s ease-in-out 3;margin-bottom:2rem">👏</div>
-<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #fbbf24;animation:bounce 1s ease-in-out 3">
+<img src="assets/tadpo.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #fbbf24;animation:bounce 1s ease-in-out 3">
 <div style="font-size:2.5rem;font-weight:bold;color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
-✨ Tapo Unlocked! ✨
+✨ Tadpo Unlocked! ✨
 </div>
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
-Baby Tapo has been added to your hero roster!<br>
+Baby Tadpo has been added to your hero roster!<br>
 <span style="color:#22c55e">Stats: 1 HP / 1 POW</span><br>
 <span style="color:#fbbf24;font-weight:bold">Starts with ALL active sigils!</span>
 </div>
 </div>
-<button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #fbbf24, #f59e0b);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
+<button class="btn" onclick="completeTadpoUnlock()" style="background:linear-gradient(135deg, #fbbf24, #f59e0b);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
 </div>
 <style>
 @keyframes clap {
@@ -5483,8 +5613,8 @@ Baby Tapo has been added to your hero roster!<br>
 </style>`;
 }
 
-function completeTapoUnlock() {
-S.tapoUnlocked = true;
+function completeTadpoUnlock() {
+S.tadpoUnlocked = true;
 savePermanent();
 win();
 }
@@ -5921,7 +6051,7 @@ S.tutorialFlags.first_victory_sequence = true;
 const firstFU = S.gameMode === 'Frogged' && !S.tutorialFlags.first_fu_victory;
 if(firstFU) {
 S.tutorialFlags.first_fu_victory = true;
-// Note: Tapo is now unlocked at Floor 20 via Old Tapo encounter
+// Note: Tadpo is now unlocked at Floor 20 via Old Tadpo encounter
 }
 
 savePermanent();
@@ -5941,12 +6071,12 @@ showFUVictoryCredits();
 return;
 }
 
-// TAPO IN PARTY: Show heartfelt thank you (only if Tapo is alive)
-const tapoInParty = S.heroes.some(h => h.n === 'Tapo' && h.h > 0 && !h.ls);
-if(tapoInParty && !S.tutorialFlags.tapo_victory_message) {
-S.tutorialFlags.tapo_victory_message = true;
+// TAPO IN PARTY: Show heartfelt thank you (only if Tadpo is alive)
+const tadpoInParty = S.heroes.some(h => h.n === 'Tadpo' && h.h > 0 && !h.ls);
+if(tadpoInParty && !S.tutorialFlags.tadpo_victory_message) {
+S.tutorialFlags.tadpo_victory_message = true;
 savePermanent();
-showTapoVictoryMessage();
+showTadpoVictoryMessage();
 return;
 }
 
@@ -5962,14 +6092,14 @@ showSimpleVictoryScreen();
 
 function showFirstVictoryCutscene() {
 const slides = [
-{text: "After 20 grueling floors, your heroes finally found him - Tapo the Tadpole, happily playing with a collection of strange glowing figurines!"},
+{text: "After 20 grueling floors, your heroes finally found him - Tadpo the Tadpole, happily playing with a collection of strange glowing figurines!"},
 {text: "The little tadpole squeaked excitedly as the heroes approached. Around him lay scattered statues - each one depicting a heroic frog warrior."},
 {text: "The heroes carefully gathered the mysterious figurines. As they held them, the statues pulsed with magical energy..."},
 {text: "They found an ancient pedestal nearby, covered in glowing runes. Instinctively, they placed the figurines upon it - and felt power surge through them!"},
-{text: "With Tapo safely in the Warrior's arms and their new treasures secured, the heroes stepped back through the portal..."},
+{text: "With Tadpo safely in the Warrior's arms and their new treasures secured, the heroes stepped back through the portal..."},
 {text: "The portal deposited them back in Ribbleton's square. The townspeople erupted in cheers as the heroes emerged victorious!"},
-{text: "Exhausted but triumphant, the heroes decided to rest and celebrate their victory. They set Tapo down for just a moment..."},
-{text: "But when they turned around... Tapo was gone! The portal behind them shimmered ominously. That mischievous little tadpole must have hopped back through!"}
+{text: "Exhausted but triumphant, the heroes decided to rest and celebrate their victory. They set Tadpo down for just a moment..."},
+{text: "But when they turned around... Tadpo was gone! The portal behind them shimmered ominously. That mischievous little tadpole must have hopped back through!"}
 ];
 
 slides.onComplete = () => {
@@ -6009,8 +6139,8 @@ v.innerHTML = `
 
 <div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #fbbf24">
 <h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
-<img src="assets/tapo.png" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
-<p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
+<img src="assets/tadpo.png" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
+<p style="text-align:center;margin-top:1rem">Tadpo the Tadpole is now available as a playable hero!</p>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Has access to ALL sigils in the Sigilarium</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.6;margin-top:0.5rem;font-style:italic">(Glass cannon mode activated)</p>
 </div>
@@ -6022,14 +6152,14 @@ v.innerHTML = `
 </div>`;
 }
 
-function showTapoVictoryMessage() {
+function showTadpoVictoryMessage() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #fbbf24;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
 
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tadpo.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:bounce 2s ease-in-out infinite">
 </div>
 
 <div style="background:rgba(0,0,0,0.2);padding:2rem;border-radius:12px;margin:2rem 0;border:2px solid rgba(251,191,36,0.5)">
@@ -6075,8 +6205,8 @@ let html = `
 if(S.gameMode === 'Frogged') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
 } else {
-html += `<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
-html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem;font-weight:bold">You saved Tapo the Tadpole!</p>`;
+html += `<img src="assets/tadpo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
+html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem;font-weight:bold">You saved Tadpo the Tadpole!</p>`;
 }
 
 if(window.earnedFigurines && window.earnedFigurines.length > 0) {
