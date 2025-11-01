@@ -1849,14 +1849,8 @@ return;
 }
 // Will transition to expand_targets when targeting
 }
-// Stage: finish_wolf - Only allow Warrior to Attack
-else if(tutorialState.stage === 'finish_wolf') {
-if(h.n !== 'Warrior' || sig !== 'Attack') {
-toast("Follow the tutorial instructions!");
-return;
-}
-// Let them finish the wolf
-}
+// Stage: finish_wolf - Free play (no restrictions after healer heals)
+// Players can now choose any action with any hero
 }
 
 if(S.locked) { toast('Wait for enemy turn!'); return; }
