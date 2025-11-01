@@ -4112,19 +4112,30 @@ v.innerHTML = `
 
 // ===== 1. SHOPKEEPER =====
 function showShopkeeper1() {
-// Reset flags each time shopkeeper is shown (prevents cross-visit contamination)
-shopSmallBought = false;
-shopLargeBought = false;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
+const bothBought = shopSmallBought && shopLargeBought;
+const anyBought = shopSmallBought || shopLargeBought;
+
+let html = `<div class="neutral-container">
 <img src="assets/neutrals/shopkeeper1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Potions for Sale</div>
-<div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."</div>
-<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>
-<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>
-<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
+<div class="neutral-title">Potions for Sale</div>`;
+
+if(bothBought) {
+html += `<div class="neutral-desc">The hooded figure nods: "You bought everything. Very wise. I have... other wares for good customers..."</div>
+<div class="neutral-outcome" style="color:#22c55e">Both potions purchased! Stage 2 unlocked.</div>`;
+} else {
+html += `<div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices. ${anyBought ? 'Buy both, get something... special.' : 'I only have one of each. Buy both for something... extra.'}"</div>`;
+if(!shopSmallBought) {
+html += `<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>`;
+}
+if(!shopLargeBought) {
+html += `<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>`;
+}
+}
+
+html += `<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
 </div>`;
+v.innerHTML = html;
 }
 
 let shopSmallBought = false;
@@ -5433,7 +5444,7 @@ v.innerHTML = `
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
 Baby Tapo has been added to your hero roster!<br>
 <span style="color:#22c55e">Stats: 1 HP / 1 POW</span><br>
-<span style="color:#8b5cf6">Starts with ALL active sigils!</span>
+<span style="color:#fbbf24;font-weight:bold">Starts with ALL active sigils!</span>
 </div>
 </div>
 <button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #fbbf24, #f59e0b);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
