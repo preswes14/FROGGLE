@@ -536,7 +536,9 @@ const fib = [1, 1];
 for(let i = 2; i < n; i++) fib.push(fib[i-1] + fib[i-2]);
 return fib;
 }
-const FIB = generateFibonacci(50);
+// Generate 100 Fibonacci numbers to handle XP costs up to 9999+
+// FIB[20] = 10946, so this is more than sufficient
+const FIB = generateFibonacci(100);
 
 // ===== GAME STATE =====
 let S = {
