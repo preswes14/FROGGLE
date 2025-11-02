@@ -571,7 +571,7 @@ instancesRemaining: 0,
 // Asterisk state
 asteriskPrimed: false,
 asteriskMultiplier: 1,
-asteriskUsedThisCombat: false,
+asteriskUsedByHeroes: [], // Track which heroes used Asterisk this combat
 lastActions: {},
 // Neutral encounter state
 neutralDeck: [],
@@ -699,6 +699,13 @@ const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
 
 // Show sigils - Only Expand and Star are true passives (no action required)
 const allSigils = [...h.s, ...(h.ts || [])];
+// Add global passives if upgraded
+const globalPassives = ['Star', 'Asterisk', 'Expand'];
+globalPassives.forEach(gp => {
+if((S.sig[gp] || 0) > 0 && !allSigils.includes(gp)) {
+allSigils.push(gp);
+}
+});
 const passiveSigils = ['Expand', 'Star'];
 const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
 const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
@@ -1879,7 +1886,7 @@ function combat(f) {
 document.getElementById('floor-round-display').style.display = 'block';
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.combatTurn=0; // Track total turns for power-up mechanic
-S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
+S.lastActions={}; S.asteriskUsedByHeroes=[]; S.asteriskPrimed=false; S.asteriskMultiplier=1;
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
@@ -1945,10 +1952,16 @@ showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile)
 
 function getLevel(sig, heroIdx) {
 const h = S.heroes[heroIdx];
+// Star, Asterisk, and Expand are global passives - all heroes get them when upgraded
+if(sig === 'Star' || sig === 'Asterisk' || sig === 'Expand') {
+let base = S.sig[sig] || 0;
+// Mage and Healer get +1 Expand built-in
+if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return base + 1;
+return base;
+}
 const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
 if(!hasSigil) return 0;
 let base = S.sig[sig] || 0;
-if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return base + 1;
 return base;
 }
 
@@ -2037,7 +2050,7 @@ S.activeIdx = heroIdx;
 if(sig === 'Asterisk') {
 const level = getLevel('Asterisk', heroIdx);
 if(level === 0) { toast('Asterisk not unlocked!'); return; }
-if(S.asteriskUsedThisCombat) { toast('Asterisk already used this combat!'); return; }
+if(S.asteriskUsedByHeroes.includes(heroIdx)) { toast(`${h.n} already used Asterisk this combat!`); return; }
 S.asteriskPrimed = true;
 S.asteriskMultiplier = level + 1;
 toast(`Asterisk primed! Next action ×${S.asteriskMultiplier}`);
@@ -2047,7 +2060,7 @@ return;
 
 const repeats = S.asteriskPrimed ? S.asteriskMultiplier : 1;
 if(S.asteriskPrimed) {
-S.asteriskUsedThisCombat = true;
+S.asteriskUsedByHeroes.push(S.activeIdx); // Track this hero used Asterisk
 S.asteriskPrimed = false;
 toast(`Asterisk: ${sig} ×${repeats}!`);
 }
@@ -3540,16 +3553,14 @@ return true;
 // Normal combat victory
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
-let starBonus = 0;
-S.heroes.forEach(h => {
-const starLevel = getLevel('Star', S.heroes.indexOf(h));
-starBonus += starLevel * 0.5;
-});
-const bonusXP = Math.floor(combatXP * (1 + starBonus));
+// Star is a global passive - use the global level once
+const starLevel = S.sig.Star || 0;
+const starMultiplier = 1 + (starLevel * 0.5);
+const bonusXP = Math.floor(combatXP * starMultiplier);
 S.xp += bonusXP;
 S.combatXP = 0; // Reset combat XP
 // Recruits persist until killed - don't clear here
-if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000);
+if(starLevel > 0) toast(`Star L${starLevel} Bonus! ${combatXP} × ${starMultiplier.toFixed(1)} = ${bonusXP} XP`, 3000);
 upd();
 toast('Victory!');
 setTimeout(levelUp, 1000);
@@ -3599,6 +3610,13 @@ ${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radi
 // Only Expand and Star are true passives (no action required)
 // Ghost, Asterisk, and Alpha require actions so they go in the active row
 const allSigils = [...h.s, ...(h.ts || [])];
+// Add global passives if upgraded
+const globalPassives = ['Star', 'Asterisk', 'Expand'];
+globalPassives.forEach(gp => {
+if((S.sig[gp] || 0) > 0 && !allSigils.includes(gp)) {
+allSigils.push(gp);
+}
+});
 const passiveSigils = ['Expand', 'Star'];
 const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
 const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
@@ -3820,7 +3838,14 @@ ${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radi
 <!-- Sigils row - takes remaining space -->
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
 <div class="sigil-row">`;
+// Include global passives that are upgraded (even if hero doesn't have them)
 const activeSigils = [...h.s, ...(h.ts || [])];
+const globalPassives = ['Star', 'Asterisk', 'Expand'];
+globalPassives.forEach(gp => {
+if((S.sig[gp] || 0) > 0 && !activeSigils.includes(gp)) {
+activeSigils.push(gp);
+}
+});
 // Smart scaling: make sigils bigger when there are fewer of them
 const sigilCount = activeSigils.length;
 let sigilSize = '1.4rem';
@@ -3840,9 +3865,13 @@ if(S.activeIdx === i && S.pending === s && isMultiInstance(s) && S.totalInstance
 const usedInstances = S.totalInstances - S.instancesRemaining;
 visualLvl = Math.max(0, lvl - usedInstances);
 }
+// Grey out Asterisk if this hero already used it
+const asteriskUsed = (s === 'Asterisk' && S.asteriskUsedByHeroes && S.asteriskUsedByHeroes.includes(i));
+if(asteriskUsed) visualLvl = 0;
 const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
 // Allow clicking sigils even when pending (act() will handle switching logic)
-const canClick = !S.acted.includes(i) && h.st === 0 && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
+// Don't allow clicking Asterisk if hero already used it
+const canClick = !S.acted.includes(i) && h.st === 0 && !asteriskUsed && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 // Stop propagation on sigil clicks to prevent targeting hero (unless hero has acted)
