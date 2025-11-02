@@ -697,9 +697,9 @@ if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 if(h.st > 0) extra.push(`😵${h.st}T`);
 const heroImage = HERO_PORTRAITS[h.n.toLowerCase()] || '';
 
-// Show sigils
+// Show sigils - Only Expand and Star are true passives (no action required)
 const allSigils = [...h.s, ...(h.ts || [])];
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const passiveSigils = ['Expand', 'Star'];
 const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
 const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
 
@@ -3596,8 +3596,10 @@ ${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radi
 </div>
 <div class="sigil-divider" style="flex-shrink:0"></div>`;
 // Separate active and passive sigils for heroes
+// Only Expand and Star are true passives (no action required)
+// Ghost, Asterisk, and Alpha require actions so they go in the active row
 const allSigils = [...h.s, ...(h.ts || [])];
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const passiveSigils = ['Expand', 'Star'];
 const activeSigilsList = allSigils.filter(s => !passiveSigils.includes(s));
 const passiveSigilsList = allSigils.filter(s => passiveSigils.includes(s));
 // Active sigils row - takes remaining space
@@ -4099,7 +4101,7 @@ levelUpMenu();
 }
 
 function upgradeSigil() {
-showTutorialPop('levelup_upgrade_active', "Each active works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack get it at Level 2, letting them attack twice with 1 action! Passives (Expand, Ghost, Asterisk, Star) work differently - they apply globally to all heroes and enhance your existing actions!");
+showTutorialPop('levelup_upgrade_active', "Each sigil works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack get it at Level 2, letting them attack twice with 1 action! Some sigils like Ghost, Asterisk, and Alpha can only be added via the Sigilarium - they can't be added to individual heroes during level-up.");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 const passiveSigils = ['Expand', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
@@ -4125,7 +4127,7 @@ v.innerHTML = html;
 }
 
 function addSigilToHero() {
-showTutorialPop('levelup_add_active', "Heroes only get 1 action per turn. Active sigils give you more choices - in addition to Attack/Heal/D20, you can grant a hero a new ability like Shield or Ghost!");
+showTutorialPop('levelup_add_active', "Heroes only get 1 action per turn. Adding sigils gives them more choices - in addition to Attack/Heal/D20, you can grant a hero a new ability like Shield or Grapple! Note: Some sigils (Ghost, Asterisk, Star, Alpha) can only be upgraded in the Sigilarium, not added to individual heroes.");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</h2>
@@ -4164,12 +4166,12 @@ html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 </div>`;
 });
 }
-// Show passives greyed out with explanation
-html += `<p style="text-align:center;margin:1.5rem 0 0.5rem 0;font-size:0.85rem;opacity:0.7;font-style:italic">Passive Sigils (apply to all heroes):</p>`;
+// Show special sigils greyed out with explanation
+html += `<p style="text-align:center;margin:1.5rem 0 0.5rem 0;font-size:0.85rem;opacity:0.7;font-style:italic">Sigilarium-Only Upgrades:</p>`;
 passiveSigils.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5" title="Upgrading a passive applies to all heroes!">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level} - Upgrade in Sigilarium)</span>
+html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5" title="This sigil can only be upgraded in the Sigilarium. Only certain heroes can use it (Tadpo has all sigils).">
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level} - Sigilarium only)</span>
 </div>`;
 });
 html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
