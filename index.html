@@ -209,11 +209,11 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
-.sigil.l0 { color: #666; opacity: 0.6; }
-.sigil.l1 { color: #1e40af; }
-.sigil.l2 { color: #0d9488; }
-.sigil.l3 { color: #9333ea; }
-.sigil.l4 { color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
+.sigil.l0 { color: #9ca3af; opacity: 0.5; } /* Grey - inactive */
+.sigil.l1 { color: #000; font-weight: bold; } /* Black */
+.sigil.l2 { color: #14b8a6; font-weight: bold; } /* Teal */
+.sigil.l3 { color: #a855f7; font-weight: bold; } /* Purple */
+.sigil.l4 { color: #f59e0b; font-weight: bold; text-shadow: 0 0 8px rgba(245,158,11,0.5); } /* Gold */
 .sigil.l5 {
   background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
   background-size: 300% 100%;
@@ -1725,7 +1725,7 @@ const hData = heroData[h];
 const hPortraitImage = HERO_PORTRAITS[h] || '';
 const sigilsHTML = hData.sigils.map(s => {
 const lvl = S.sig[s] || 0;
-const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
 return `<span class="sigil ${cl}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
 }).join('');
 cardEl.innerHTML = `
@@ -3721,9 +3721,9 @@ if(!hasAttackSigil) {
 html += `<span class="sigil engraved" onmouseenter="showTooltipDelayed('Attack', 1, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('Attack',1,this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}</span>`;
 });
 html += '</div></div></div>'; // Close sigil-row, flex container, and card
 });
@@ -3935,9 +3935,9 @@ html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e" d
 <div class="sigil-row">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', ${sigil.level}, this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', ${sigil.level}, this), 800)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}</span>`;
 });
 html += '</div></div>'; // Close sigil-row and flex container
 // Stats row
@@ -4011,9 +4011,9 @@ if(!hasAttackSigil) {
 html += `<span class="sigil engraved" onmouseenter="showTooltipDelayed('Attack', 1, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('Attack',1,this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}</span>`;
 });
 html += '</div></div></div>'; // Close sigil-row, flex container, and card
 }); // End enemies.forEach
@@ -4156,12 +4156,17 @@ const level = S.sig[sig] || 0;
 const isPassive = passiveSigils.includes(sig);
 const passiveTag = isPassive ? '<span style="font-size:0.75rem;color:#22c55e;margin-left:0.5rem">⚡ All Heroes</span>' : '';
 // Show current level color
-const currentClass = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':'l4';
+const currentClass = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
 const nextClass = (level+1)===1?'l1':(level+1)===2?'l2':(level+1)===3?'l3':(level+1)===4?'l4':'l5';
-html += `<div class="choice" onclick="upSigil('${sig}')" style="display:flex;align-items:center;justify-content:center;gap:0.5rem">
-<span class="sigil ${currentClass}" style="font-size:1.1rem">${sigilIconOnly(sig)}${level}</span>
-<span style="font-size:1.2rem;opacity:0.5">→</span>
-<span class="sigil ${nextClass}" style="font-size:1.1rem">${sigilIconOnly(sig)}${level+1}</span>
+html += `<div class="choice" onclick="upSigil('${sig}')" style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem">
+<div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+<span class="sigil ${currentClass}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(sig)}</span>
+<span style="font-size:1rem;font-weight:bold">${sig}</span>
+</div>
+<div style="display:flex;align-items:center;gap:0.5rem">
+<span style="font-size:1rem;opacity:0.5">→</span>
+<span class="sigil ${nextClass}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(sig)}</span>
+</div>
 ${passiveTag}
 </div>`;
 });
@@ -4207,8 +4212,10 @@ else {
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose an active sigil to add:</p>`;
 availableActives.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level})</span>
+const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
+html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')" style="display:flex;align-items:center;gap:0.5rem">
+<span class="sigil ${cl}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(sig)}</span>
+<strong style="flex:1">${sig}</strong>
 </div>`;
 });
 }
@@ -4217,9 +4224,12 @@ html += `<p style="text-align:center;margin:1.5rem 0 0.5rem 0;font-size:0.85rem;
 sigilariumOnly.forEach(sig => {
 const level = S.sig[sig] || 0;
 const isPassive = passiveSigils.includes(sig);
-const passiveNote = isPassive ? ' - Applies to all heroes' : '';
-html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5" title="This sigil can only be upgraded in the Sigilarium.${passiveNote}">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level} - Sigilarium only${passiveNote})</span>
+const passiveNote = isPassive ? ' - All Heroes' : '';
+const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
+html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5;display:flex;align-items:center;gap:0.5rem" title="This sigil can only be upgraded in the Sigilarium.${passiveNote}">
+<span class="sigil ${cl}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(sig)}</span>
+<strong style="flex:1">${sig}</strong>
+<span style="font-size:0.75rem;opacity:0.7">Sigilarium${passiveNote}</span>
 </div>`;
 });
 html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
@@ -4424,8 +4434,17 @@ html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
+const currentClass = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
+const nextClass = (level+1)===1?'l1':(level+1)===2?'l2':(level+1)===3?'l3':(level+1)===4?'l4':'l5';
+html += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})" style="display:flex;align-items:center;gap:0.75rem">
+<div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+<span class="sigil ${currentClass}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(sig)}</span>
+<strong>${sig}</strong>
+</div>
+<div style="display:flex;align-items:center;gap:0.5rem">
+<span style="font-size:1rem;opacity:0.5">→</span>
+<span class="sigil ${nextClass}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(sig)}</span>
+</div>
 </div>`;
 });
 html += `<button class="btn risky" onclick="finishDeathsBargain()">Decline</button>`;
@@ -4792,8 +4811,17 @@ let html = `
 heroesWithSigil.forEach(idx => {
 const h = S.heroes[idx];
 const currentLevel = getLevel(randomSigil, idx);
-html += `<div class="choice" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">
-<strong>${h.n}</strong> <span style="opacity:0.7">${sigilIcon(randomSigil)} L${currentLevel} → L${currentLevel+1}</span>
+const currentClass = currentLevel===0?'l0':currentLevel===1?'l1':currentLevel===2?'l2':currentLevel===3?'l3':currentLevel===4?'l4':'l5';
+const nextClass = (currentLevel+1)===1?'l1':(currentLevel+1)===2?'l2':(currentLevel+1)===3?'l3':(currentLevel+1)===4?'l4':'l5';
+html += `<div class="choice" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')" style="display:flex;align-items:center;gap:0.75rem">
+<div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+<strong>${h.n}:</strong>
+<span class="sigil ${currentClass}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(randomSigil)}</span>
+</div>
+<div style="display:flex;align-items:center;gap:0.5rem">
+<span style="font-size:1rem;opacity:0.5">→</span>
+<span class="sigil ${nextClass}" style="font-size:1.2rem;min-width:45px;text-align:center">${sigilIconOnly(randomSigil)}</span>
+</div>
 </div>`;
 });
 html += `</div>`;
