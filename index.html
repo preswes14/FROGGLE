@@ -4134,10 +4134,10 @@ levelUpMenu();
 }
 
 function upgradeSigil() {
-showTutorialPop('levelup_upgrade_active', "Each sigil works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack get it at Level 2, letting them attack twice with 1 action! Some sigils like Ghost, Asterisk, and Alpha can only be added via the Sigilarium - they can't be added to individual heroes during level-up.");
+showTutorialPop('levelup_upgrade_active', "Upgrading a sigil improves it for all heroes who have it! Passive sigils (Star, Asterisk, Expand, Alpha) apply to ALL heroes automatically when upgraded. Active sigils only affect heroes who have that sigil in their repertoire. Some special sigils like Ghost, Asterisk, Star, and Alpha can only be upgraded here in the Sigilarium - they can't be added to individual heroes during level-up.");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
-const passiveSigils = ['Expand', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star', 'Alpha'];
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
 if(S.xp < cost) {
@@ -4150,8 +4150,16 @@ else {
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
 const isPassive = passiveSigils.includes(sig);
-const passiveTag = isPassive ? ' <span style="font-size:0.75rem;color:#22c55e">⚡ All Heroes</span>' : '';
-html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong>${passiveTag}</div>`;
+const passiveTag = isPassive ? '<span style="font-size:0.75rem;color:#22c55e;margin-left:0.5rem">⚡ All Heroes</span>' : '';
+// Show current level color
+const currentClass = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':'l4';
+const nextClass = (level+1)===1?'l1':(level+1)===2?'l2':(level+1)===3?'l3':(level+1)===4?'l4':'l5';
+html += `<div class="choice" onclick="upSigil('${sig}')" style="display:flex;align-items:center;justify-content:center;gap:0.5rem">
+<span class="sigil ${currentClass}" style="font-size:1.1rem">${sigilIconOnly(sig)}${level}</span>
+<span style="font-size:1.2rem;opacity:0.5">→</span>
+<span class="sigil ${nextClass}" style="font-size:1.1rem">${sigilIconOnly(sig)}${level+1}</span>
+${passiveTag}
+</div>`;
 });
 }
 }
@@ -4184,7 +4192,8 @@ const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Alpha', 'Asterisk', 'Star'];
-const passiveSigils = ['Expand', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star', 'Alpha'];
+const sigilariumOnly = ['Ghost', 'Asterisk', 'Star', 'Alpha'];
 const activeSigils = allSigils.filter(sig => !passiveSigils.includes(sig));
 const availableActives = activeSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to ${h.n}</h2>
@@ -4199,12 +4208,14 @@ html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 </div>`;
 });
 }
-// Show special sigils greyed out with explanation
+// Show Sigilarium-only sigils greyed out with explanation
 html += `<p style="text-align:center;margin:1.5rem 0 0.5rem 0;font-size:0.85rem;opacity:0.7;font-style:italic">Sigilarium-Only Upgrades:</p>`;
-passiveSigils.forEach(sig => {
+sigilariumOnly.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5" title="This sigil can only be upgraded in the Sigilarium. Only certain heroes can use it (Tadpo has all sigils).">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level} - Sigilarium only)</span>
+const isPassive = passiveSigils.includes(sig);
+const passiveNote = isPassive ? ' - Applies to all heroes' : '';
+html += `<div class="choice" style="opacity:0.5;cursor:not-allowed;background:#f5f5f5" title="This sigil can only be upgraded in the Sigilarium.${passiveNote}">
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${level} - Sigilarium only${passiveNote})</span>
 </div>`;
 });
 html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
@@ -4230,17 +4241,27 @@ function upSigil(sig) {
 const cost = FIB[S.levelUpCount] || 999;
 if(S.xp < cost) return;
 
-// Show passive sigil tutorial when upgrading Expand or Asterisk from L0 to L1
-const isPassive = ['Expand', 'Asterisk'].includes(sig);
+// Show passive sigil tutorial when upgrading a passive from L0 to L1
+const passiveSigils = ['Expand', 'Asterisk', 'Star', 'Alpha'];
+const isPassive = passiveSigils.includes(sig);
 const currentLevel = S.sig[sig] || 0;
 if(isPassive && currentLevel === 0) {
-showTutorialPop('levelup_upgrade_passive', "Expand and Asterisk start as PASSIVE sigils - they work automatically but can't be used as actions. Upgrade them to L1 to use them actively!");
+showTutorialPop('levelup_upgrade_passive', `${sig} is a PASSIVE sigil! Upgrading it from L0 to L1 grants ALL heroes this ability. Subsequent upgrades improve it for all heroes. Passive sigils apply automatically and don't take up action slots.`);
 }
 
 S.xp -= cost;
 S.levelUpCount++;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
-toast(`${sig} upgraded to L${S.sig[sig]}!`);
+
+// Craft appropriate toast message
+let message = `${sig} upgraded to L${S.sig[sig]}!`;
+if(isPassive && currentLevel === 0) {
+message = `${sig} L${S.sig[sig]} granted to ALL heroes!`;
+} else if(isPassive) {
+message = `${sig} upgraded to L${S.sig[sig]} for ALL heroes!`;
+}
+toast(message);
+
 upd();
 saveGame();
 levelUpMenu();
