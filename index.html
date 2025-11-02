@@ -1151,35 +1151,39 @@ console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:0;background:#d9cab1">
-<!-- Table-bordered container -->
-<div style="position:relative;width:100%;height:100vh;border:11px solid #8b5a3c;box-shadow:inset 0 0 0 3px #5d3a22,inset 0 0 11px rgba(0,0,0,0.3),0 5px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden">
-<!-- Title image as background (not cropped) -->
-<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;z-index:0">
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#d9cab1;overflow:hidden">
+<!-- Table-bordered container fills viewport -->
+<div style="position:relative;width:100%;height:100%;border:11px solid #8b5a3c;box-shadow:inset 0 0 0 3px #5d3a22,inset 0 0 11px rgba(0,0,0,0.3),0 5px 10px rgba(0,0,0,0.2);overflow:hidden">
+<!-- Title image fills entire container (no negative space) -->
+<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
-<!-- Version label overlaid on image -->
-<div style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5);z-index:2">
-<p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.93 BETA</p>
+<!-- Version label - small, above FROGGLE text -->
+<div style="position:absolute;top:18%;left:50%;transform:translateX(-50%);z-index:2;text-align:center">
+<p style="font-size:0.65rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em">v9.93 BETA</p>
 </div>
 
-<!-- Buttons at the bottom, underneath Tadpo, on the image -->
-<div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;width:90%;max-width:500px;z-index:2;padding:0 1rem">
+<!-- Settings button - top right -->
+<div style="position:absolute;top:1rem;right:1rem;z-index:2">
+<button onclick="showSettingsMenu()" style="width:36px;height:36px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.5)" title="Settings">⚙️</button>
+</div>
+
+<!-- Buttons at the bottom, centered -->
+<div style="position:absolute;bottom:8%;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;width:90%;max-width:500px;z-index:2">
 <!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.5);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
+<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
 
 <!-- Right side: smaller buttons stacked -->
 <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem">
-${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:#22c55e;border:2px solid #16a34a;font-weight:600">💾 Load</button>` : ''}
+${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:#22c55e;border:2px solid #16a34a;font-weight:600">💾 Load</button>` : ''}
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(59,130,246,0.85);border:2px solid #3b82f6;font-weight:600;flex:1">📤</button>
-<button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(168,85,247,0.85);border:2px solid #a855f7;font-weight:600;flex:1">📥</button>
+<button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(59,130,246,0.9);border:2px solid #3b82f6;font-weight:600;flex:1" title="Export Save">📤</button>
+<button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(168,85,247,0.9);border:2px solid #a855f7;font-weight:600;flex:1" title="Import Save">📥</button>
 </div>
-<label style="font-size:0.7rem;cursor:pointer;user-select:none;color:white;background:rgba(0,0,0,0.6);padding:0.3rem 0.5rem;border-radius:4px;text-align:center;border:1px solid rgba(255,255,255,0.3)">
-<input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)" style="margin-right:0.25rem"> Debug
-</label>
+</div>
 </div>
 </div>
 </div>`;
+}
 }
 
 function newGame() {
@@ -6306,86 +6310,116 @@ S.debugMode = enabled;
 toast(enabled ? 'Debug Mode ON' : 'Debug Mode OFF', 2000);
 }
 
-function showDebugMenu() {
-const inCombat = S.enemies && S.enemies.length > 0;
+// ===== COMBINED SETTINGS & DEBUG MENU =====
+function showSettingsMenu() {
 const v = document.getElementById('gameView');
+const inCombat = S.enemies && S.enemies.length > 0;
 const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
-const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
+const heroNames = S.heroes ? S.heroes.map((h, i) => ({name: h.n, idx: i})) : [];
 
 let html = `
 <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #fbbf24;border-radius:12px;padding:2rem;z-index:30000;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
-<h2 style="text-align:center;color:#fbbf24;margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
+<h2 style="text-align:center;color:#fbbf24;margin-bottom:1.5rem">⚙️ SETTINGS ${S.debugMode ? '& DEBUG' : ''}</h2>
 
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Resources</h3>
-<button class="btn" onclick="debugAddGold()" style="margin-bottom:0.5rem;background:#22c55e">+100 Gold</button>
-<button class="btn" onclick="debugAddXP()" style="margin-bottom:0.5rem;background:#22c55e">+100 XP</button>
+<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">General</h3>
+<label style="display:block;color:white;margin-bottom:0.5rem;cursor:pointer;user-select:none;padding:0.5rem;background:rgba(255,255,255,0.05);border-radius:6px">
+<input type="checkbox" ${S.tutorialsDisabled ? 'checked' : ''} onchange="toggleTutorials(this.checked)" style="margin-right:0.5rem">
+Disable Tutorials
+</label>
+<label style="display:block;color:white;margin-bottom:0.5rem;cursor:pointer;user-select:none;padding:0.5rem;background:rgba(255,255,255,0.05);border-radius:6px">
+<input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)" style="margin-right:0.5rem">
+Debug Mode
+</label>
 
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Navigation</h3>
-<div style="margin:0.5rem 0">
-<label style="color:white;font-size:0.9rem">Jump to Floor:</label>
-<input type="number" id="debugFloorInput" min="1" max="19" value="${S.floor}" style="width:60px;padding:0.25rem;margin:0 0.5rem;font-size:1rem">
-<button class="btn" onclick="debugJumpFloor()" style="display:inline-block;width:auto;padding:0.5rem 1rem;margin:0;font-size:0.9rem;min-height:auto">Go</button>
+${S.debugMode ? `
+<h3 style="color:#fbbf24;margin:1.5rem 0 0.5rem 0">🛠️ Debug Tools</h3>
+
+<h4 style="color:#22c55e;margin:1rem 0 0.5rem 0;font-size:0.95rem">Resources</h4>
+<button class="btn" onclick="debugAddGold()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">+100 Gold</button>
+<button class="btn" onclick="debugAddXP()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">+100 XP</button>
+
+<h4 style="color:#22c55e;margin:1rem 0 0.5rem 0;font-size:0.95rem">Navigation</h4>
+<div style="margin:0.5rem 0;display:flex;align-items:center;gap:0.5rem">
+<label style="color:white;font-size:0.85rem">Jump to Floor:</label>
+<input type="number" id="debugFloorInput" min="1" max="19" value="${S.floor || 1}" style="width:60px;padding:0.25rem;font-size:0.9rem">
+<button class="btn" onclick="debugJumpFloor()" style="flex:0 0 auto;padding:0.5rem 1rem;margin:0;font-size:0.85rem;min-height:auto">Go</button>
 </div>
 
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Sigil Levels</h3>
-<div style="margin:0.5rem 0">
-<select id="debugSigilSelect" style="padding:0.25rem;margin-right:0.5rem;font-size:0.9rem">
+<h4 style="color:#22c55e;margin:1rem 0 0.5rem 0;font-size:0.95rem">Sigil Levels</h4>
+<div style="margin:0.5rem 0;display:flex;align-items:center;gap:0.5rem">
+<select id="debugSigilSelect" style="flex:1;padding:0.25rem;font-size:0.85rem">
 ${allSigils.map(sig => `<option value="${sig}">${sig} (L${S.sig[sig] || 0})</option>`).join('')}
 </select>
-<input type="number" id="debugSigilLevel" min="0" max="5" value="1" style="width:50px;padding:0.25rem;margin:0 0.5rem;font-size:1rem">
-<button class="btn" onclick="debugSetSigilLevel()" style="display:inline-block;width:auto;padding:0.5rem 1rem;margin:0;font-size:0.9rem;min-height:auto">Set</button>
+<input type="number" id="debugSigilLevel" min="0" max="5" value="1" style="width:50px;padding:0.25rem;font-size:0.9rem">
+<button class="btn" onclick="debugSetSigilLevel()" style="flex:0 0 auto;padding:0.5rem 1rem;margin:0;font-size:0.85rem;min-height:auto">Set</button>
 </div>
 
 ${heroNames.length > 0 ? `
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Hero Stats</h3>
+<h4 style="color:#22c55e;margin:1rem 0 0.5rem 0;font-size:0.95rem">Hero Stats</h4>
 <div style="margin:0.5rem 0">
-<select id="debugHeroSelect" style="padding:0.25rem;margin-bottom:0.5rem;font-size:0.9rem;width:100%">
+<select id="debugHeroSelect" style="padding:0.25rem;margin-bottom:0.5rem;font-size:0.85rem;width:100%">
 ${heroNames.map(h => `<option value="${h.idx}">${h.name} (POW:${S.heroes[h.idx].p}, HP:${S.heroes[h.idx].h}/${S.heroes[h.idx].m})</option>`).join('')}
 </select>
 <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
 <div style="flex:1">
-<label style="color:white;font-size:0.85rem;display:block">POW:</label>
-<input type="number" id="debugHeroPOW" min="1" max="20" value="1" style="width:100%;padding:0.25rem;font-size:1rem">
+<label style="color:white;font-size:0.75rem;display:block">POW:</label>
+<input type="number" id="debugHeroPOW" min="1" max="20" value="1" style="width:100%;padding:0.25rem;font-size:0.9rem">
 </div>
 <div style="flex:1">
-<label style="color:white;font-size:0.85rem;display:block">Max HP:</label>
-<input type="number" id="debugHeroMaxHP" min="1" max="50" value="5" style="width:100%;padding:0.25rem;font-size:1rem">
+<label style="color:white;font-size:0.75rem;display:block">Max HP:</label>
+<input type="number" id="debugHeroMaxHP" min="1" max="50" value="5" style="width:100%;padding:0.25rem;font-size:0.9rem">
 </div>
 </div>
-<button class="btn" onclick="debugSetHeroStats()" style="background:#3b82f6;margin-bottom:0.5rem">Update Hero Stats</button>
+<button class="btn" onclick="debugSetHeroStats()" style="background:#3b82f6;margin-bottom:0.5rem;font-size:0.9rem">Update Hero Stats</button>
 </div>
 ` : ''}
 
 ${inCombat ? `
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Combat</h3>
-<button class="btn" onclick="debugDealDamage()" style="background:#dc2626">Deal 50 DMG to Enemy</button>
+<h4 style="color:#22c55e;margin:1rem 0 0.5rem 0;font-size:0.95rem">Combat</h4>
+<button class="btn" onclick="debugDealDamage()" style="background:#dc2626;font-size:0.9rem">Deal 50 DMG to Enemy</button>
+` : ''}
 ` : ''}
 
-<button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
+<button class="btn" onclick="closeSettingsMenu()" style="margin-top:1.5rem;background:#888">Close</button>
 </div>
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999" onclick="closeDebugMenu()"></div>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999" onclick="closeSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
 
-function closeDebugMenu() {
-// Remove debug menu elements
+function closeSettingsMenu() {
+// Remove settings/debug menu elements
 const menus = document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]');
 menus.forEach(m => m.remove());
+}
+
+function toggleTutorials(disabled) {
+S.tutorialsDisabled = disabled;
+savePermanent();
+toast(disabled ? 'Tutorials disabled' : 'Tutorials enabled', 2000);
+}
+
+// Keep old function names for compatibility
+function showDebugMenu() {
+showSettingsMenu();
+}
+
+function closeDebugMenu() {
+closeSettingsMenu();
 }
 
 function debugAddGold() {
 S.gold += 100;
 upd();
 toast('Added 100 Gold!', 2000);
-closeDebugMenu();
+closeSettingsMenu();
 }
 
 function debugAddXP() {
 S.xp += 100;
 upd();
 toast('Added 100 XP!', 2000);
-closeDebugMenu();
+closeSettingsMenu();
 }
 
 function debugJumpFloor() {
@@ -6395,7 +6429,7 @@ if(targetFloor < 1 || targetFloor > 19 || isNaN(targetFloor)) {
 toast('Invalid floor! Must be 1-19', 2000);
 return;
 }
-closeDebugMenu();
+closeSettingsMenu();
 S.floor = targetFloor;
 upd();
 startFloor(targetFloor);
@@ -6413,7 +6447,7 @@ enemy.h -= 50;
 if(enemy.h < 0) enemy.h = 0;
 upd();
 toast(`Dealt 50 damage to ${enemy.n}!`, 2000);
-closeDebugMenu();
+closeSettingsMenu();
 // Check if combat is over
 setTimeout(() => checkCombatOver(), 100);
 }
@@ -6433,7 +6467,7 @@ S.sig[sigil] = newLevel;
 savePermanent();
 upd();
 toast(`Set ${sigil} to Level ${newLevel}!`, 2000);
-closeDebugMenu();
+closeSettingsMenu();
 }
 
 function debugSetHeroStats() {
@@ -6461,7 +6495,7 @@ hero.h = newMaxHP;
 saveGame();
 upd();
 toast(`Updated ${hero.n}: POW=${newPOW}, HP=${newMaxHP}!`, 2000);
-closeDebugMenu();
+closeSettingsMenu();
 render();
 }
 
