@@ -8,8 +8,8 @@
 <meta name="apple-mobile-web-app-title" content="FROGGLE"/>
 <meta name="theme-color" content="#22c55e"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="assets/tadpo-icon-180.png"/>
-<link rel="icon" type="image/png" href="assets/tadpo-icon.png"/>
+<link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
+<link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
 <title>FROGGLE v9.93 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -606,6 +606,7 @@ enemies_get_sigils: false,
 ribbleton_shield_sigil: false,
 ribbleton_handoff: false,
 ribbleton_tooltip_intro: false,
+enemy_power_up_first_time: false,
 sigil_rolldown_intro: false,
 levelup_intro: false,
 levelup_stat_upgrade: false,
@@ -1316,7 +1317,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.5rem;margin-bottom:0.5rem;color:#22c55e">Tadpo's First Birthday!</h2>
 <div style="margin:0.5rem 0">
-<img src="assets/tadpo-nobg.png" style="max-width:180px;height:auto;animation:tadpoFlipBounce 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:180px;height:auto;animation:tadpoFlipBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:0.95rem;line-height:1.5;margin:0.5rem 0">
 Today is <strong>Tadpo the Tadpole's first birthday!</strong> 🎉
@@ -1351,7 +1352,7 @@ Ribbletonians gathered around little Tadpo as he blew out the candles on his bir
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;max-width:280px;margin:0.75rem auto;align-items:center;justify-items:center">
 <div style="animation:partyFlip 2s ease-in-out infinite"><img src="warriorfull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 2.4s ease-in-out infinite"><img src="tankfull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="grid-column:1 / -1;animation:bounce 2s ease-in-out infinite"><img src="assets/tadpo-nobg.png" style="width:80px;height:auto"></div>
+<div style="grid-column:1 / -1;animation:bounce 2s ease-in-out infinite"><img src="assets/tapo-nobg.png" style="width:80px;height:auto"></div>
 <div style="animation:partyFlip 1.6s ease-in-out infinite"><img src="magefull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 2.8s ease-in-out infinite"><img src="healerfull.png" style="width:90px;height:auto;border-radius:6px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 </div>
@@ -1441,7 +1442,7 @@ A vicious goblin and a terrifying wolf came charging from the portal!
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">🛡 On Guard!</div>
 </div>
 <div style="text-align:center">
-<img src="assets/tadpo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
+<img src="assets/tapo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
 <div style="font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Protected!</div>
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
@@ -3058,13 +3059,16 @@ toast(`${enemy.n} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
-// Check for Asterisk before base attack
+// Check for Asterisk before base attack - multiplies attack count
 const asteriskSigil = enemy.s.find(s => s.sig === 'Asterisk' && !s.perm);
+const attackCount = asteriskSigil ? (1 + asteriskSigil.level) : 1;
 if(asteriskSigil) {
-enemy.asteriskActive = true;
-toast(`${enemy.n} activates Asterisk - next attack hits ALL heroes!`);
+toast(`${enemy.n} activates Asterisk L${asteriskSigil.level} - attacks ${attackCount} times!`);
 }
+// Execute base attack multiple times if Asterisk is active
+for(let i = 0; i < attackCount; i++) {
 executeEnemyBaseAttack(enemy);
+}
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Asterisk');
 drawnSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
 enemy.s = enemy.s.filter(s => s.perm);
@@ -3142,14 +3146,8 @@ function executeEnemyBaseAttack(enemy) {
 const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
 
-// Check if Asterisk is active - if so, target ALL heroes
-let targets;
-if(enemy.asteriskActive) {
-targets = S.heroes.filter(h => h.h > 0);
-enemy.asteriskActive = false; // Clear flag after use
-} else {
-targets = selectEnemyTargets(enemy, targetCount);
-}
+// Select targets based on Expand level
+const targets = selectEnemyTargets(enemy, targetCount);
 
 if(targets.length === 0) return;
 
@@ -3367,6 +3365,11 @@ if(S.floor !== 0) {
 if(S.combatTurn === 5) {
 // Show warning at turn 5
 setTimeout(() => {
+// First time: show narrative popup
+if(!S.tutorialFlags.enemy_power_up_first_time) {
+S.tutorialFlags.enemy_power_up_first_time = true;
+showTutorialPop('enemy_power_up_first_time', "As the battle rages on, the enemies gain strength! From turn 6 onward, enemies will power up each turn, becoming more dangerous. End fights quickly!");
+}
 toast('⚠️ WARNING: Enemies will power up next turn!', 4000);
 }, 500);
 } else if(S.combatTurn >= 6) {
@@ -3375,70 +3378,8 @@ setTimeout(() => enemyPowerUp(), 500);
 }
 }
 
-// RIBBLETON TUTORIAL: Handle round transitions
-if(tutorialState && S.floor === 0) {
-tutorialState.round = S.round;
-console.log('[TUTORIAL] Round transition - Round:', S.round, 'Stage:', tutorialState.stage);
-// Round 2: PROMPT 6 - Healer heal
-// Accept either 'enemy_turn_explained' or 'finish_wolf' stage (in case player killed wolf early)
-if(S.round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
-console.log('[TUTORIAL] Triggering PROMPT 6 - Healer Heal (stage:', tutorialState.stage, ')');
-S.turn = 'player';
-S.activeIdx = -1;
-S.acted = [];
-S.locked = false;
-tutorialState.stage = 'healer_heal';
-upd();
-render();
-showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
-S.activeIdx = 1; // Select Healer
-render();
-});
-return;
-} else if(S.round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
-// Force the tutorial anyway to prevent it from being skipped
-S.turn = 'player';
-S.activeIdx = -1;
-S.acted = [];
-S.locked = false;
-tutorialState.stage = 'healer_heal';
-upd();
-render();
-showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
-S.activeIdx = 1; // Select Healer
-render();
-});
-return;
-}
-// When Goblin gains Shield (following its normal schedule), show PROMPT 9 + 10
-else if(tutorialState.stage === 'finish_wolf') {
-const goblin = S.enemies.find(e => e.n === 'Goblin');
-if(goblin && goblin.s.some(s => s.sig === 'Shield')) {
-// Shield was already granted in enemyTurn - just show the tutorial
-S.turn = 'player';
-S.activeIdx = -1;
-S.acted = [];
-S.locked = false;
-tutorialState.stage = 'shield_sigil';
-upd();
-render();
-// Explain that enemies can get sigils
-showTutorialPop('enemies_get_sigils', "Enemies can get sigils too! They'll attack every turn, but their sigils are used after attacking and fall off. Attack sigils are permanent though!", () => {
-// Then explain this specific sigil
-showTutorialPop('ribbleton_shield_sigil', "The Goblin drew Shield! Enemies use sigils after they attack. Try to finish him before he can Shield up!", () => {
-// PROMPT 10: Handoff
-showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
-tutorialState.stage = 'free';
-render();
-});
-});
-});
-return;
-}
-}
-}
-
 // Draw enemy sigils at START of player turn so player can strategize
+// IMPORTANT: This must happen BEFORE tutorial checks so the Goblin Shield tutorial can detect the sigil
 S.enemies.forEach(e => {
 e.turnsSinceGain++;
 // RIBBLETON TUTORIAL: Only Goblin draws sigils (scripted), Wolf and others get nothing
@@ -3480,6 +3421,69 @@ drawEnemySigil(r);
 }
 }
 });
+}
+
+// RIBBLETON TUTORIAL: Handle round transitions (AFTER sigils are drawn)
+if(tutorialState && S.floor === 0) {
+tutorialState.round = S.round;
+console.log('[TUTORIAL] Round transition - Round:', S.round, 'Stage:', tutorialState.stage);
+// Round 2: PROMPT 6 - Healer heal
+// Accept either 'enemy_turn_explained' or 'finish_wolf' stage (in case player killed wolf early)
+if(S.round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
+console.log('[TUTORIAL] Triggering PROMPT 6 - Healer Heal (stage:', tutorialState.stage, ')');
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+tutorialState.stage = 'healer_heal';
+upd();
+render();
+showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
+S.activeIdx = 1; // Select Healer
+render();
+});
+return;
+} else if(S.round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
+// Force the tutorial anyway to prevent it from being skipped
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+tutorialState.stage = 'healer_heal';
+upd();
+render();
+showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
+S.activeIdx = 1; // Select Healer
+render();
+});
+return;
+}
+// When Goblin gains Shield (following its normal schedule), show PROMPT 9 + 10
+else if(tutorialState.stage === 'finish_wolf') {
+const goblin = S.enemies.find(e => e.n === 'Goblin');
+if(goblin && goblin.s.some(s => s.sig === 'Shield')) {
+// Shield was already granted above - just show the tutorial
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+tutorialState.stage = 'shield_sigil';
+upd();
+render();
+// Explain that enemies can get sigils
+showTutorialPop('enemies_get_sigils', "Enemies can get sigils too! They'll attack every turn, but their sigils are used after attacking and fall off. Attack sigils are permanent though!", () => {
+// Then explain this specific sigil
+showTutorialPop('ribbleton_shield_sigil', "The Goblin drew Shield! Enemies use sigils after they attack. Try to finish him before he can Shield up!", () => {
+// PROMPT 10: Handoff
+showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
+tutorialState.stage = 'free';
+render();
+});
+});
+});
+return;
+}
+}
 }
 
 S.turn = 'player';
@@ -3710,7 +3714,7 @@ ${extra.length>0 ? `<div style="text-align:center;font-size:0.85rem;margin-botto
 // Show base Attack ONLY if enemy doesn't have Attack in their sigil list
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 if(!hasAttackSigil) {
-html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+html += `<span class="sigil engraved" onmouseenter="showTooltipDelayed('Attack', 1, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('Attack',1,this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
@@ -4000,7 +4004,7 @@ ${extra.length>0 ? `<div style="text-align:center;font-size:0.85rem;margin-botto
 // Show base Attack ONLY if enemy doesn't have Attack in their sigil list
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 if(!hasAttackSigil) {
-html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+html += `<span class="sigil engraved" onmouseenter="showTooltipDelayed('Attack', 1, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('Attack',1,this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
@@ -4075,10 +4079,10 @@ const cost = FIB[S.levelUpCount] || 999;
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Spend XP</h2>
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
-<div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
-<div class="choice" onclick="upgradeSigil()">Upgrade Sigil Level</div>
-<div class="choice" onclick="addSigilToHero()">Add Sigil to Hero</div>
-<button class="btn secondary" onclick="levelUp()">Back</button>`;
+<div class="choice" onclick="heroStats()" style="max-width:350px;margin:0.75rem auto">Upgrade Hero <strong>Stats</strong></div>
+<div class="choice" onclick="upgradeSigil()" style="max-width:350px;margin:0.75rem auto">Upgrade <strong>Sigil Level</strong></div>
+<div class="choice" onclick="addSigilToHero()" style="max-width:350px;margin:0.75rem auto"><strong>Add Sigil</strong> to Hero</div>
+<button class="btn secondary" onclick="levelUp()" style="max-width:350px">Back</button>`;
 }
 
 function heroStats() {
@@ -5618,7 +5622,7 @@ function showOldTadpo() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<img src="assets/old-tadpo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
 "Tadpo, you say? Yes…. I was called Tadpo once, before I mastered the mysteries of space and time. Save me? Why, I need no saving… In fact…."
@@ -5633,7 +5637,7 @@ v.innerHTML = `
 <div class="neutral-container">
 <div style="text-align:center;margin:2rem 0">
 <div style="font-size:3rem;animation:clap 0.5s ease-in-out 3;margin-bottom:2rem">👏</div>
-<img src="assets/tadpo.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #fbbf24;animation:bounce 1s ease-in-out 3">
+<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #fbbf24;animation:bounce 1s ease-in-out 3">
 <div style="font-size:2.5rem;font-weight:bold;color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
 ✨ Tadpo Unlocked! ✨
 </div>
@@ -6187,7 +6191,7 @@ v.innerHTML = `
 
 <div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #fbbf24">
 <h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
-<img src="assets/tadpo.png" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
+<img src="assets/tapo.png" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tadpo the Tadpole is now available as a playable hero!</p>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Has access to ALL sigils in the Sigilarium</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.6;margin-top:0.5rem;font-style:italic">(Glass cannon mode activated)</p>
@@ -6207,7 +6211,7 @@ v.innerHTML = `
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
 
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tadpo.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:bounce 2s ease-in-out infinite">
 </div>
 
 <div style="background:rgba(0,0,0,0.2);padding:2rem;border-radius:12px;margin:2rem 0;border:2px solid rgba(251,191,36,0.5)">
@@ -6253,7 +6257,7 @@ let html = `
 if(S.gameMode === 'Frogged') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
 } else {
-html += `<img src="assets/tadpo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
+html += `<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem;font-weight:bold">You saved Tadpo the Tadpole!</p>`;
 }
 
