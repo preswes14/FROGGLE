@@ -1149,6 +1149,9 @@ return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
 console.log('[FROGGLE] mainTitlePage START');
+// Hide header on main title screen
+const header = document.querySelector('.header');
+if(header) header.style.display = 'none';
 // Hide beta settings button on title screen (to avoid duplicate)
 const betaSettings = document.getElementById('betaSettings');
 if(betaSettings) betaSettings.style.display = 'none';
@@ -1168,8 +1171,8 @@ v.innerHTML = `
 <p style="font-size:0.65rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em">v9.95 BETA</p>
 </div>
 
-<!-- Settings button - top right -->
-<div style="position:absolute;top:1rem;right:1rem;z-index:2">
+<!-- Settings button - top center -->
+<div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);z-index:2">
 <button onclick="showSettingsMenu()" style="width:36px;height:36px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.5)" title="Settings">⚙️</button>
 </div>
 
@@ -1196,15 +1199,41 @@ console.log('[FROGGLE] newGame called');
 // Show beta settings button when leaving title screen
 const betaSettings = document.getElementById('betaSettings');
 if(betaSettings) betaSettings.style.display = 'block';
-// Ask player if they want to play the tutorial
-const wantsTutorial = confirm('Would you like to play the tutorial?\n\nThe tutorial will teach you the basics of combat and introduce the story.');
-if(wantsTutorial) {
+// Show styled tutorial prompt
+showTutorialPrompt();
+}
+
+function showTutorialPrompt() {
+const v = document.getElementById('gameView');
+const promptHTML = `
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #fbbf24;border-radius:12px;padding:2rem;z-index:30000;max-width:500px;width:90%">
+<h2 style="text-align:center;color:#fbbf24;margin-bottom:1rem;font-size:1.5rem">🐸 Welcome to FROGGLE! 🐸</h2>
+<p style="text-align:center;color:#fff;font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
+Would you like to play the tutorial?<br><br>
+<span style="font-size:0.95rem;opacity:0.8">The tutorial will teach you the basics of combat and introduce the story.</span>
+</p>
+<div style="display:flex;gap:1rem;justify-content:center">
+<button class="btn" onclick="acceptTutorial()" style="flex:1;padding:1rem;font-size:1.1rem;background:#22c55e;border:3px solid #16a34a;font-weight:bold">Yes, Show Tutorial</button>
+<button class="btn secondary" onclick="skipTutorialPrompt()" style="flex:1;padding:1rem;font-size:1.1rem;font-weight:bold">Skip to Hero Select</button>
+</div>
+</div>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999"></div>
+`;
+v.insertAdjacentHTML('beforeend', promptHTML);
+}
+
+function acceptTutorial() {
+// Remove prompt
+document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]').forEach(el => el.remove());
 console.log('[FROGGLE] Player chose tutorial - showing tutorial story');
 showTutorialStory();
-} else {
+}
+
+function skipTutorialPrompt() {
+// Remove prompt
+document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]').forEach(el => el.remove());
 console.log('[FROGGLE] Player skipped tutorial - going to hero selection');
 title();
-}
 }
 
 function loadGameFromTitle() {
@@ -1285,6 +1314,10 @@ input.click();
 // ===== NARRATIVE SLIDE SYSTEM =====
 function showNarrativeSlide(slides, currentIndex = 0) {
 console.log('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
+// Hide header during narrative scenes
+const header = document.querySelector('.header');
+if(header) header.style.display = 'none';
+
 if(currentIndex >= slides.length) {
 // All slides shown, call completion callback
 console.log('[FROGGLE] All slides complete, calling onComplete');
@@ -1623,8 +1656,14 @@ const v = document.getElementById('gameView');
 const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
 
-// Hide floor/round display on title screen
-document.getElementById('floor-round-display').style.display = 'none';
+// Show header with custom text for hero select
+const header = document.querySelector('.header');
+if(header) header.style.display = 'flex';
+const floorRoundDisplay = document.getElementById('floor-round-display');
+if(floorRoundDisplay) {
+floorRoundDisplay.innerHTML = 'Home Base | Ribbleton';
+floorRoundDisplay.style.display = 'block';
+}
 
 // Show suggestion for first run
 const showSuggestion = S.runNumber === 1;
@@ -1883,8 +1922,14 @@ return ['goblin'];
 
 // ===== COMBAT (v7.2 PERFECT COMBAT - UNCHANGED) =====
 function combat(f) {
-// Show floor/round display in combat
-document.getElementById('floor-round-display').style.display = 'block';
+// Show header and restore normal floor/round display in combat
+const header = document.querySelector('.header');
+if(header) header.style.display = 'flex';
+const floorRoundDisplay = document.getElementById('floor-round-display');
+if(floorRoundDisplay) {
+floorRoundDisplay.innerHTML = 'Floor <span id="floor">1</span> | Round <span id="round">1</span>';
+floorRoundDisplay.style.display = 'block';
+}
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.combatTurn=0; // Track total turns for power-up mechanic
 S.lastActions={}; S.asteriskUsedByHeroes=[]; S.asteriskPrimed=false; S.asteriskMultiplier=1;
@@ -4313,8 +4358,14 @@ levelUpMenu();
 
 // ===== NEUTRAL ENCOUNTERS =====
 function neutral(f) {
-// Show floor/round display in neutral
-document.getElementById('floor-round-display').style.display = 'block';
+// Show header and restore normal floor/round display in neutral
+const header = document.querySelector('.header');
+if(header) header.style.display = 'flex';
+const floorRoundDisplay = document.getElementById('floor-round-display');
+if(floorRoundDisplay) {
+floorRoundDisplay.innerHTML = 'Floor <span id="floor">1</span> | Round <span id="round">1</span>';
+floorRoundDisplay.style.display = 'block';
+}
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
 showTutorialPop('neutral_intro', "You can usually walk straight through these floors, but most can offer a benefit if you play it right!");
