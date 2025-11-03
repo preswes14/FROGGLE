@@ -1159,8 +1159,8 @@ v.innerHTML = `
 <!-- Title image with proper aspect ratio -->
 <img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;z-index:0">
 
-<!-- Version label - small, above FROGGLE text -->
-<div style="position:absolute;top:18%;left:50%;transform:translateX(-50%);z-index:2;text-align:center">
+<!-- Version label - positioned higher, above FROGGLE text -->
+<div style="position:absolute;top:10%;left:50%;transform:translateX(-50%);z-index:2;text-align:center">
 <p style="font-size:0.65rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em">v9.93 BETA</p>
 </div>
 
@@ -1178,8 +1178,8 @@ v.innerHTML = `
 <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem">
 ${hasSavedGame ? '<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:#22c55e;border:2px solid #16a34a;font-weight:600">💾 Load</button>' : ''}
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(59,130,246,0.9);border:2px solid #3b82f6;font-weight:600;flex:1" title="Export Save">📤</button>
-<button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(168,85,247,0.9);border:2px solid #a855f7;font-weight:600;flex:1" title="Import Save">📥</button>
+<button class="btn" onclick="exportSave()" style="font-size:0.7rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(59,130,246,0.9);border:2px solid #3b82f6;font-weight:600;flex:1" title="Export Save">Export</button>
+<button class="btn" onclick="importSave()" style="font-size:0.7rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(168,85,247,0.9);border:2px solid #a855f7;font-weight:600;flex:1" title="Import Save">Import</button>
 </div>
 </div>
 </div>
@@ -1619,7 +1619,7 @@ showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with 
 document.getElementById('floor-round-display').style.display = 'none';
 
 v.innerHTML = `
-<div style="max-width:600px;margin:0 auto">
+<div style="max-width:600px;margin:0 auto;padding:0.5rem;padding-bottom:3rem;overflow-y:auto;max-height:100vh">
 <div style="position:relative;max-width:100%;margin:0 auto;min-height:400px">
 <!-- Version number overlay at top of image -->
 <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;text-align:center">
@@ -1669,7 +1669,7 @@ ${S.tadpoUnlocked ? `
 <div id="selection-display" style="margin-top:0.5rem;font-size:1.1rem;color:#2563eb"></div>
 </div>
 
-<button class="btn" id="start" onclick="start()" disabled style="opacity:0.4;width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
+<button class="btn" id="start" onclick="start()" disabled style="opacity:0.4;width:100%;padding:1rem;font-size:1.1rem;margin-bottom:1rem">Delve into Floor 1</button>
 </div>`;
 
 console.log('[FROGGLE] title() innerHTML set successfully');
