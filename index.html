@@ -3549,8 +3549,10 @@ setTimeout(() => render(), 600);
 
 function checkCombatEnd() {
 if(S.enemies.length === 0) {
+console.log('[FROGGLE] checkCombatEnd() - Victory! Floor:', S.floor);
 // Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
+console.log('[FROGGLE] Tutorial floor victory path');
 S.combatXP = 0;
 S.combatGold = 0;
 setTimeout(() => {
@@ -3561,6 +3563,7 @@ return true;
 }
 
 // Normal combat victory
+console.log('[FROGGLE] Normal combat victory path');
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
 // Star is a global passive - use the global level once
@@ -3573,6 +3576,7 @@ S.combatXP = 0; // Reset combat XP
 if(starLevel > 0) toast(`Star L${starLevel} Bonus! ${combatXP} × ${starMultiplier.toFixed(1)} = ${bonusXP} XP`, 3000);
 upd();
 toast('Victory!');
+console.log('[FROGGLE] Calling levelUp() in 1 second...');
 setTimeout(levelUp, 1000);
 }, 500);
 return true;
@@ -4027,6 +4031,7 @@ v.innerHTML = html;
 
 // ===== LEVEL UP =====
 function levelUp() {
+console.log('[FROGGLE] levelUp() called - floor:', S.floor, 'XP:', S.xp);
 const v = document.getElementById('gameView');
 const nextCost = FIB[S.levelUpCount] || 999;
 v.innerHTML = `
@@ -4035,14 +4040,23 @@ v.innerHTML = `
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
 <div class="choice" onclick="levelUpMenu()" style="max-width:300px;margin:0.5rem auto;padding:0.6rem 1rem;font-size:0.95rem">Spend XP</div>
 <button class="btn safe" onclick="nextFloor()" style="max-width:300px;padding:0.6rem 1.5rem;font-size:0.95rem">Next Floor</button>`;
+console.log('[FROGGLE] levelUp() screen rendered successfully');
 }
 
 function nextFloor() {
+console.log('[FROGGLE] nextFloor() called - current floor:', S.floor);
+try {
 saveGame();
+console.log('[FROGGLE] Game saved, transitioning to floor:', S.floor + 1);
 showFloorTransition(S.floor + 1);
+} catch(e) {
+console.error('[FROGGLE] Error in nextFloor():', e);
+toast(`Error advancing floor: ${e.message}`, 3000);
+}
 }
 
 function showFloorTransition(nextFloorNum) {
+console.log('[FROGGLE] showFloorTransition() called for floor:', nextFloorNum);
 const v = document.getElementById('gameView');
 const floorColor = getBgColor(nextFloorNum);
 v.innerHTML = `
@@ -4050,6 +4064,7 @@ v.innerHTML = `
 <div style="font-size:4rem;font-weight:bold;color:#000;text-shadow:2px 2px 4px rgba(255,255,255,0.5);margin-bottom:0.5rem">Floor ${nextFloorNum}</div>
 <div style="width:100px;height:4px;background:#000;border-radius:2px"></div>
 </div>`;
+console.log('[FROGGLE] Floor transition screen rendered, will start floor in 1s');
 setTimeout(() => {
 startFloor(nextFloorNum);
 }, 1000);
