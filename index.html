@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
 <link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
-<title>FROGGLE v9.93 - BETA RELEASE</title>
+<title>FROGGLE v9.94 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -317,7 +317,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="game-area" id="gameView"></div>
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '9.93';
+const GAME_VERSION = '9.94';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
 
@@ -1148,6 +1148,9 @@ return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
 console.log('[FROGGLE] mainTitlePage START');
+// Hide beta settings button on title screen (to avoid duplicate)
+const betaSettings = document.getElementById('betaSettings');
+if(betaSettings) betaSettings.style.display = 'none';
 const v = document.getElementById('gameView');
 console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
@@ -1161,7 +1164,7 @@ v.innerHTML = `
 
 <!-- Version label - positioned higher, above FROGGLE text -->
 <div style="position:absolute;top:10%;left:50%;transform:translateX(-50%);z-index:2;text-align:center">
-<p style="font-size:0.65rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em">v9.93 BETA</p>
+<p style="font-size:0.65rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em">v9.94 BETA</p>
 </div>
 
 <!-- Settings button - top right -->
@@ -1189,6 +1192,9 @@ ${hasSavedGame ? '<button class="btn" onclick="loadGameFromTitle()" style="font-
 
 function newGame() {
 console.log('[FROGGLE] newGame called - runNumber:', S.runNumber, 'tutorialsDisabled:', S.tutorialsDisabled);
+// Show beta settings button when leaving title screen
+const betaSettings = document.getElementById('betaSettings');
+if(betaSettings) betaSettings.style.display = 'block';
 if(S.runNumber === 1 && !S.tutorialsDisabled) {
 console.log('[FROGGLE] Showing tutorial story');
 showTutorialStory();
@@ -1201,6 +1207,9 @@ title();
 function loadGameFromTitle() {
 const s = localStorage.getItem('froggle8');
 if(s) {
+// Show beta settings button when leaving title screen
+const betaSettings = document.getElementById('betaSettings');
+if(betaSettings) betaSettings.style.display = 'block';
 loadGame();
 } else {
 toast('No saved game found!');
@@ -1623,7 +1632,7 @@ v.innerHTML = `
 <div style="position:relative;max-width:100%;margin:0 auto;min-height:400px">
 <!-- Version number overlay at top of image -->
 <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;text-align:center">
-<p style="font-size:0.75rem;opacity:0.9;text-shadow:0 1px 2px rgba(0,0,0,0.3);color:#fff;font-weight:bold;margin:0">v9.93 BETA</p>
+<p style="font-size:0.75rem;opacity:0.9;text-shadow:0 1px 2px rgba(0,0,0,0.3);color:#fff;font-weight:bold;margin:0">v9.94 BETA</p>
 </div>
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
