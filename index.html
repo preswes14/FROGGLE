@@ -1907,9 +1907,15 @@ if(S.ambushed) h.st = 1;
 });
 let comp = getEnemyComp(f);
 
+// Track slots per lane for hard-coded positioning
+const slotsPerLane = {};
 S.enemies = comp.map((t,i) => {
 const base = E[t];
 const froggedMultiplier = S.gameMode === 'Frogged' ? 5 : 1;
+const laneIdx = i % S.heroes.length;
+// Track which slot in the lane this enemy occupies
+if(!slotsPerLane[laneIdx]) slotsPerLane[laneIdx] = 0;
+const slotInLane = slotsPerLane[laneIdx]++;
 const enemy = {
 id:`e${Date.now()}${i}`, n:base.n,
 p:base.p * froggedMultiplier,
@@ -1918,7 +1924,7 @@ m:base.m * froggedMultiplier,
 g:base.g, x:base.x, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
-st:0, li: i % S.heroes.length, sh:0, alphaActed: false,
+st:0, li: laneIdx, slot: slotInLane, sh:0, alphaActed: false,
 ghostCharges: 0
 };
 if(base.permSigils) base.permSigils.forEach(ps => enemy.s.push({sig:ps.s, level:ps.l, perm:true}));
@@ -1935,6 +1941,8 @@ drawEnemyStartSigil(enemy, base);
 }
 return enemy;
 });
+// Store max slots per lane for rendering empty slots
+S.maxSlotsPerLane = slotsPerLane;
 if(S.ambushed) {
 toast('AMBUSHED! All heroes stunned Turn 1!', 3000);
 // Track if prince quest was active during ambush (extends deadline to Round 2)
@@ -3678,15 +3686,27 @@ html += '</div>';
 html += '</div>';
 html += '<div class="column enemies">';
 html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
-const enemyLanes = {};
-S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
+// Group enemies by lane AND slot for fixed positioning
+const enemyByLaneAndSlot = {};
+S.enemies.forEach(e => {
+if(!enemyByLaneAndSlot[e.li]) enemyByLaneAndSlot[e.li] = {};
+enemyByLaneAndSlot[e.li][e.slot] = e;
+});
 S.heroes.forEach((hero, laneIdx) => {
-const laneEnemies = enemyLanes[laneIdx] || [];
+const maxSlots = S.maxSlotsPerLane ? (S.maxSlotsPerLane[laneIdx] || 0) : 0;
+const laneEnemies = enemyByLaneAndSlot[laneIdx] || {};
 html += '<div class="combat-lane">';
-if(laneEnemies.length === 0) {
+if(maxSlots === 0) {
 html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
 } else {
-laneEnemies.forEach(e => {
+// Render each slot in order, showing empty slot if enemy is dead
+for(let slotNum = 0; slotNum < maxSlots; slotNum++) {
+const e = laneEnemies[slotNum];
+if(!e) {
+// Empty slot - enemy was defeated
+html += `<div style="height:60px;margin:0.5rem 0;opacity:0.3;text-align:center;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-style:italic;color:#666">—</div>`;
+continue;
+}
 const isSelected = S.encampmentSelectedTargets.includes(e.id);
 let cardClasses = 'card enemy targetable';
 if(isSelected) cardClasses += ' targeted';
@@ -3731,7 +3751,7 @@ const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}</span>`;
 });
 html += '</div></div></div>'; // Close sigil-row, flex container, and card
-});
+} // End for loop through slots
 }
 html += '</div>'; // Close combat-lane
 });
@@ -4057,7 +4077,6 @@ toast(`Error advancing floor: ${e.message}`, 3000);
 function showFloorTransition(nextFloorNum) {
 console.log('[FROGGLE] showFloorTransition() called for floor:', nextFloorNum);
 const v = document.getElementById('gameView');
-const floorColor = getBgColor(nextFloorNum);
 v.innerHTML = `
 <div style="display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column">
 <div style="font-size:4rem;font-weight:bold;color:#000;text-shadow:2px 2px 4px rgba(255,255,255,0.5);margin-bottom:0.5rem">Floor ${nextFloorNum}</div>
@@ -4154,10 +4173,10 @@ levelUpMenu();
 }
 
 function upgradeSigil() {
-showTutorialPop('levelup_upgrade_active', "Upgrading a sigil improves it for all heroes who have it! Passive sigils (Star, Asterisk, Expand, Alpha) apply to ALL heroes automatically when upgraded. Active sigils only affect heroes who have that sigil in their repertoire. Some special sigils like Ghost, Asterisk, Star, and Alpha can only be upgraded here in the Sigilarium - they can't be added to individual heroes during level-up.");
+showTutorialPop('levelup_upgrade_active', "Upgrading a sigil improves it for all heroes who have it! Passive sigils (Star, Asterisk, Expand) apply to ALL heroes automatically when upgraded. Active sigils only affect heroes who have that sigil in their repertoire. Some special sigils like Ghost, Asterisk, Star, and Alpha can only be upgraded here in the Sigilarium - they can't be added to individual heroes during level-up.");
 const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
-const passiveSigils = ['Expand', 'Asterisk', 'Star', 'Alpha'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
 if(S.xp < cost) {
@@ -4217,7 +4236,7 @@ const cost = FIB[S.levelUpCount] || 999;
 const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Alpha', 'Asterisk', 'Star'];
-const passiveSigils = ['Expand', 'Asterisk', 'Star', 'Alpha'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const sigilariumOnly = ['Ghost', 'Asterisk', 'Star', 'Alpha'];
 const activeSigils = allSigils.filter(sig => !passiveSigils.includes(sig));
 const availableActives = activeSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
@@ -4272,7 +4291,7 @@ const cost = FIB[S.levelUpCount] || 999;
 if(S.xp < cost) return;
 
 // Show passive sigil tutorial when upgrading a passive from L0 to L1
-const passiveSigils = ['Expand', 'Asterisk', 'Star', 'Alpha'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const isPassive = passiveSigils.includes(sig);
 const currentLevel = S.sig[sig] || 0;
 if(isPassive && currentLevel === 0) {
