@@ -1176,7 +1176,7 @@ v.innerHTML = `
 
 <!-- Right side: smaller buttons stacked -->
 <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem">
-${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:#22c55e;border:2px solid #16a34a;font-weight:600">💾 Load</button>` : ''}
+${hasSavedGame ? '<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:#22c55e;border:2px solid #16a34a;font-weight:600">💾 Load</button>' : ''}
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(59,130,246,0.9);border:2px solid #3b82f6;font-weight:600;flex:1" title="Export Save">📤</button>
 <button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(168,85,247,0.9);border:2px solid #a855f7;font-weight:600;flex:1" title="Import Save">📥</button>
