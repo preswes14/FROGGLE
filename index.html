@@ -631,6 +631,7 @@ usedDeathQuotes: [] // Track which death quotes have been shown
 };
 
 let sel = [];
+let comingFromTutorial = false; // Track if player just completed tutorial
 
 // ===== RIBBLETON TUTORIAL STATE =====
 let tutorialState = null;
@@ -1061,7 +1062,7 @@ document.getElementById('betaMenu').style.display = 'none';
 if(!confirm('Return to title screen? Unsaved progress will be lost.')) return;
 toast('Returning to title...', 1500);
 setTimeout(() => {
-title();
+mainTitlePage();
 }, 500);
 }
 
@@ -1179,7 +1180,7 @@ v.innerHTML = `
 
 <!-- Right side: smaller buttons stacked -->
 <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem">
-${hasSavedGame ? '<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:#22c55e;border:2px solid #16a34a;font-weight:600">💾 Load</button>' : ''}
+<button class="btn" onclick="${hasSavedGame ? 'loadGameFromTitle()' : ''}" ${hasSavedGame ? '' : 'disabled'} style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:${hasSavedGame ? '#22c55e' : '#888'};border:2px solid ${hasSavedGame ? '#16a34a' : '#666'};font-weight:600;opacity:${hasSavedGame ? '1' : '0.5'};cursor:${hasSavedGame ? 'pointer' : 'not-allowed'}">💾 Load Game</button>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="exportSave()" style="font-size:0.7rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(59,130,246,0.9);border:2px solid #3b82f6;font-weight:600;flex:1" title="Export Save">Export</button>
 <button class="btn" onclick="importSave()" style="font-size:0.7rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(168,85,247,0.9);border:2px solid #a855f7;font-weight:600;flex:1" title="Import Save">Import</button>
@@ -1191,23 +1192,17 @@ ${hasSavedGame ? '<button class="btn" onclick="loadGameFromTitle()" style="font-
 }
 
 function newGame() {
-console.log('[FROGGLE] newGame called - runNumber:', S.runNumber, 'tutorialsDisabled:', S.tutorialsDisabled);
-// Check if this is truly the first run (no permanent storage exists)
-const hasPermanentStorage = localStorage.getItem('froggle8_permanent');
-if(!hasPermanentStorage) {
-// First time ever - ensure tutorial shows
-console.log('[FROGGLE] First run detected - resetting runNumber and tutorialsDisabled');
-S.runNumber = 1;
-S.tutorialsDisabled = false;
-}
+console.log('[FROGGLE] newGame called');
 // Show beta settings button when leaving title screen
 const betaSettings = document.getElementById('betaSettings');
 if(betaSettings) betaSettings.style.display = 'block';
-if(S.runNumber === 1 && !S.tutorialsDisabled) {
-console.log('[FROGGLE] Showing tutorial story');
+// Ask player if they want to play the tutorial
+const wantsTutorial = confirm('Would you like to play the tutorial?\n\nThe tutorial will teach you the basics of combat and introduce the story.');
+if(wantsTutorial) {
+console.log('[FROGGLE] Player chose tutorial - showing tutorial story');
 showTutorialStory();
 } else {
-console.log('[FROGGLE] Skipping tutorial, going to title()');
+console.log('[FROGGLE] Player skipped tutorial - going to hero selection');
 title();
 }
 }
@@ -1605,7 +1600,8 @@ v.innerHTML = `
 
 setTimeout(() => {
 tutorialState = null;
-title(); // Go to hero select (which will auto-select Warrior + Healer for Run 1)
+comingFromTutorial = true; // Mark that we're coming from tutorial
+title(); // Go to hero select
 }, 5500);
 }
 
@@ -1614,26 +1610,24 @@ let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
 console.log('[FROGGLE] title() called - Hero selection screen');
-// TUTORIAL: Run 1 selects Warrior + Healer after hero select screen
-const isRun1 = S.runNumber === 1;
-if(isRun1 && !S.tutorialsDisabled) {
-// Auto-select for tutorial but show the screen
-console.log('[FROGGLE] Auto-selecting Warrior + Healer for tutorial');
+// Auto-select Warrior + Healer if coming from tutorial
+if(comingFromTutorial) {
+console.log('[FROGGLE] Auto-selecting Warrior + Healer after tutorial');
 sel = ['warrior', 'healer'];
+comingFromTutorial = false; // Reset flag
+} else {
+sel = []; // Clear selection
 }
 
 const v = document.getElementById('gameView');
 const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
 
-// TUTORIAL: Run 2 forces Tank + Mage
-const isRun2 = S.runNumber === 2;
-if(isRun2) {
-showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with extra health, and Mage starts with the ability to hit 2 targets at once!");
-}
-
 // Hide floor/round display on title screen
 document.getElementById('floor-round-display').style.display = 'none';
+
+// Show suggestion for first run
+const showSuggestion = S.runNumber === 1;
 
 v.innerHTML = `
 <div style="max-width:600px;margin:0 auto;padding:0.5rem;padding-bottom:3rem;overflow-y:auto;max-height:100vh">
@@ -1644,17 +1638,17 @@ v.innerHTML = `
 </div>
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
-<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun2?'':'toggleHeroSelection(\'warrior\')'}"
+<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;"
+onclick="toggleHeroSelection('warrior')"
 title="Warrior"></div>
-<div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;${isRun1?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun1?'':'toggleHeroSelection(\'tank\')'}"
+<div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;"
+onclick="toggleHeroSelection('tank')"
 title="Tank"></div>
-<div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;${isRun1?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun1?'':'toggleHeroSelection(\'mage\')'}"
+<div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;"
+onclick="toggleHeroSelection('mage')"
 title="Mage"></div>
-<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun2?'':'toggleHeroSelection(\'healer\')'}"
+<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;"
+onclick="toggleHeroSelection('healer')"
 title="Healer"></div>
 
 <!-- Hero card overlays -->
@@ -1666,7 +1660,7 @@ title="Healer"></div>
 
 <h2 style="text-align:center;margin:0.5rem 0;font-size:1.3rem">Choose 2 Heroes</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-${isRun1 && !S.tutorialsDisabled ? `<p style="text-align:center;margin-bottom:0.5rem;font-size:0.95rem;color:#22c55e;font-weight:600;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">💡 Warrior and Healer are a good pair - give them a try for your first run!</p>` : ''}
+${showSuggestion ? `<p style="text-align:center;margin-bottom:0.5rem;font-size:0.95rem;color:#22c55e;font-weight:600;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">💡 Warrior and Healer are a good pair - give them a try for your first run!</p>` : ''}
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Frogged' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🐸'}</span></p>
 ${S.froggedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -1690,28 +1684,12 @@ ${S.tadpoUnlocked ? `
 </div>`;
 
 console.log('[FROGGLE] title() innerHTML set successfully');
-if(!isRun1 || S.tutorialsDisabled) sel = [];
 
 // Update selection display
 updateSelectionDisplay();
-
-// If run 1 with tutorial, enable start button
-if(isRun1 && !S.tutorialsDisabled) {
-setTimeout(() => {
-const b = document.getElementById('start');
-if(b) { b.disabled = false; b.style.opacity = '1'; }
-updateSelectionDisplay();
-}, 0);
-}
 }
 
 function toggleHeroSelection(heroType) {
-const isRun1 = S.runNumber === 1 && !S.tutorialsDisabled;
-const isRun2 = S.runNumber === 2;
-const isLockedRun1 = isRun1 && (heroType === 'tank' || heroType === 'mage');
-const isLockedRun2 = isRun2 && (heroType === 'warrior' || heroType === 'healer');
-if(isLockedRun1 || isLockedRun2) return;
-
 const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
