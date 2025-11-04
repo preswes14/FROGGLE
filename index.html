@@ -1758,6 +1758,7 @@ updateSelectionDisplay();
 }
 
 function toggleHeroSelection(heroType) {
+console.log('[FROGGLE] toggleHeroSelection called with:', heroType);
 const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
@@ -1771,6 +1772,7 @@ const portrait = HERO_PORTRAITS[heroType] || '';
 
 // Toggle selection
 const isSelected = sel.includes(heroType);
+console.log('[FROGGLE] Before toggle - sel:', sel, 'isSelected:', isSelected);
 if(isSelected) {
 sel = sel.filter(h => h !== heroType);
 } else {
@@ -1778,6 +1780,7 @@ if(sel.length < 2) {
 sel.push(heroType);
 }
 }
+console.log('[FROGGLE] After toggle - sel:', sel);
 
 // Update all card displays
 ['warrior', 'tank', 'mage', 'healer'].forEach(h => {
@@ -1871,7 +1874,12 @@ toggleHeroSelection(t);
 }
 
 function start() {
-if(sel.length!==2) return;
+console.log('[FROGGLE] start() called - sel:', sel, 'sel.length:', sel.length);
+if(sel.length!==2) {
+console.error('[FROGGLE] start() BLOCKED - sel.length is', sel.length, 'but needs to be 2');
+return;
+}
+console.log('[FROGGLE] start() proceeding - creating heroes and starting floor 1');
 S.floor=1; S.xp=0; S.levelUpCount=0;
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
