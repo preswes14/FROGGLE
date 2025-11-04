@@ -1171,20 +1171,20 @@ console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#d9cab1;overflow:hidden">
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#d9cab1;overflow:hidden">
 <!-- Table-bordered container fills viewport -->
 <div style="position:relative;width:100%;height:100%;border:11px solid #8b5a3c;box-shadow:inset 0 0 0 3px #5d3a22,inset 0 0 11px rgba(0,0,0,0.3),0 5px 10px rgba(0,0,0,0.2);overflow:hidden">
-<!-- Title image with proper aspect ratio -->
-<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;z-index:0">
+<!-- Title image fills entire space -->
+<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
-<!-- Version label - positioned below settings gear -->
-<div style="position:absolute;top:6%;left:50%;transform:translateX(-50%);z-index:2;text-align:center">
-<p style="font-size:0.65rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em">v9.95 BETA</p>
+<!-- Settings gear - top left, tucked between F and purple frog -->
+<div style="position:absolute;top:5%;left:8%;z-index:2">
+<button onclick="showSettingsMenu()" style="width:36px;height:36px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.5)" title="Settings">⚙️</button>
 </div>
 
-<!-- Settings button - top center -->
-<div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);z-index:2">
-<button onclick="showSettingsMenu()" style="width:36px;height:36px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.5)" title="Settings">⚙️</button>
+<!-- Version label - top right, 2 lines -->
+<div style="position:absolute;top:5%;right:8%;z-index:2;text-align:right">
+<p style="font-size:0.7rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em;line-height:1.3">v9.95<br>BETA</p>
 </div>
 
 <!-- Buttons at the bottom, centered -->
