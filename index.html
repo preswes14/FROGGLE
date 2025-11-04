@@ -206,6 +206,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: none; border-radius: 6px; padding: 6px 12px; font-size: 1.4rem; display: inline-block; margin: 2px; min-height: 42px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+/* Shrink sigils when there are many in a row */
+.sigil-row:has(.sigil:nth-child(6)) .sigil { font-size: 1.2rem; padding: 5px 10px; min-height: 36px; }
+.sigil-row:has(.sigil:nth-child(8)) .sigil { font-size: 1rem; padding: 4px 8px; min-height: 32px; }
+.sigil-row:has(.sigil:nth-child(10)) .sigil { font-size: 0.9rem; padding: 3px 7px; min-height: 28px; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
@@ -250,11 +254,19 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
 
-/* Responsive adjustments for mobile - optimized for max 3 heroes */
+/* Responsive adjustments for mobile - fixed reasonable sizes */
 @media (max-width: 480px) {
   .card {
-    width: min(92vw, 340px);
-    min-height: 200px;
+    width: 260px;
+    min-height: 180px;
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
+  .sigil {
+    font-size: 0.9rem;
+    padding: 4px 7px;
+    min-height: 26px;
+    margin: 2px;
   }
   .combat-grid { flex-direction: column; }
   .column { width: 100%; }
@@ -291,9 +303,15 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 /* Portrait mode - more vertical space, optimized for max 3 heroes */
 @media (orientation: portrait) and (max-width: 768px) {
   .card {
-    width: min(95vw, 400px);
-    min-height: 220px;
+    width: 280px;
+    min-height: 200px;
+    font-size: 0.85rem;
+  }
+  .sigil {
     font-size: 1rem;
+    padding: 5px 8px;
+    min-height: 28px;
+    margin: 2px;
   }
   .combat-grid { gap: 0.75rem; }
   .game-area { padding: 0.5rem; }
