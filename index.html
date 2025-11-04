@@ -1840,7 +1840,13 @@ if(sel.length === 0) {
 display.textContent = 'None';
 display.style.color = '#6b7280';
 } else {
-const heroNames = sel.map(h => H[h].n);
+const heroNames = sel.map(h => {
+if(!H[h]) {
+console.error('[FROGGLE] Hero not found in H object:', h);
+return 'Unknown';
+}
+return H[h].n;
+});
 display.textContent = heroNames.join(' + ');
 display.style.color = '#2563eb';
 }
@@ -1890,11 +1896,17 @@ return;
 console.log('[FROGGLE] start() proceeding - creating heroes and starting floor 1');
 S.floor=1; S.xp=0; S.levelUpCount=0;
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
-S.heroes = sel.map((t,i) => ({
+S.heroes = sel.map((t,i) => {
+if(!H[t]) {
+console.error('[FROGGLE] Hero not found in H object:', t);
+return null;
+}
+return {
 id:`h${Date.now()}${i}`,
 n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
-}));
+};
+}).filter(h => h !== null); // Remove any null entries
 // Apply pedestal buffs
 S.pedestal.forEach(slot => {
 if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
