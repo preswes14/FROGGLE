@@ -1942,13 +1942,54 @@ startFloor(1);
 }
 
 // ===== FLOOR MANAGEMENT =====
-function showFloorInterstitial(f, callback) {
+function getCombatFloorTitle(floor) {
+const titles = {
+1: 'Goblin Skirmish',
+3: 'Wolf Pack',
+5: 'Orc Horde',
+7: 'Mixed Army',
+9: 'Solo Dragon',
+11: 'Goblin Army',
+13: 'Wolf Legion',
+15: 'Triple Dragon',
+17: 'Giant\'s Army',
+19: 'Dragon Army'
+};
+return titles[floor] || 'Combat';
+}
+
+function getNeutralEncounterTitle(encounterId) {
+const titles = {
+'shopkeeper1': 'Potions for Sale',
+'shopkeeper2': 'Rare Potions',
+'wishingwell1': 'The Old Wishing Well',
+'wishingwell2': 'The Dry Well',
+'treasurechest1': 'Treasure Chest',
+'treasurechest2': 'Mimic Chest',
+'wizard1': 'Hieroglyphs on the Wall',
+'wizard2': 'The Wizard\'s Test',
+'oracle1': 'The Oracle',
+'oracle2': 'The Oracle Returns',
+'encampment1': 'Enemy Encampment',
+'encampment2': 'Enemy Fortress',
+'statue1': 'Ancient Statue',
+'statue2': 'Living Statue',
+'ghost1': 'Ghost Boys',
+'ghost2': 'Ghost Boys Return',
+'prince1': 'The Lost Ring',
+'prince2': 'The Prince\'s Gratitude'
+};
+return titles[encounterId] || 'Neutral Encounter';
+}
+
+function showFloorInterstitial(f, title, callback) {
 const v = document.getElementById('gameView');
 const bgColor = getFloorBackground(f);
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:${bgColor};display:flex;align-items:center;justify-content:center;z-index:30000">
 <div style="text-align:center;color:#fff">
-<div style="font-size:3.5rem;font-weight:bold;text-shadow:0 4px 8px rgba(0,0,0,0.8)">Floor ${f}</div>
+<div style="font-size:3.5rem;font-weight:bold;text-shadow:0 4px 8px rgba(0,0,0,0.8);margin-bottom:1rem">Floor ${f}</div>
+<div style="font-size:1.8rem;font-weight:600;text-shadow:0 2px 4px rgba(0,0,0,0.8);opacity:0.9">${title}</div>
 </div>
 </div>`;
 
@@ -1960,8 +2001,20 @@ callback();
 function startFloor(f) {
 S.floor=f;
 upd();
+
+// Determine floor title
+let floorTitle;
+if(f % 2 === 1) {
+// Combat floor (odd)
+floorTitle = getCombatFloorTitle(f);
+} else {
+// Neutral floor (even) - pre-select encounter to show title
+S.preSelectedNeutral = getNeutralEncounter();
+floorTitle = getNeutralEncounterTitle(S.preSelectedNeutral);
+}
+
 // Show floor interstitial, then proceed with floor
-showFloorInterstitial(f, () => {
+showFloorInterstitial(f, floorTitle, () => {
 // Special: Floor 20 in Effed mode shows Old Tadpo encounter
 if(f === 20 && S.gameMode === 'Frogged') {
 showOldTadpo();
@@ -4453,7 +4506,9 @@ if(f === 2) {
 showTutorialPop('neutral_intro', "You can usually walk straight through these floors, but most can offer a benefit if you play it right!");
 }
 
-const enc = getNeutralEncounter();
+// Use pre-selected encounter from interstitial, or select one now
+const enc = S.preSelectedNeutral || getNeutralEncounter();
+S.preSelectedNeutral = null; // Clear after use
 
 if(S.ghostBoysConverted && enc.startsWith('ghost')) {
 showEmptyPlayroom();
