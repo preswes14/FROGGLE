@@ -206,6 +206,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: none; border-radius: 6px; padding: 6px 12px; font-size: 1.4rem; display: inline-block; margin: 2px; min-height: 42px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+/* Shrink sigils when there are many in a row */
+.sigil-row:has(.sigil:nth-child(6)) .sigil { font-size: 1.2rem; padding: 5px 10px; min-height: 36px; }
+.sigil-row:has(.sigil:nth-child(8)) .sigil { font-size: 1rem; padding: 4px 8px; min-height: 32px; }
+.sigil-row:has(.sigil:nth-child(10)) .sigil { font-size: 0.9rem; padding: 3px 7px; min-height: 28px; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
@@ -250,11 +254,19 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
 
-/* Responsive adjustments for mobile - optimized for max 3 heroes */
+/* Responsive adjustments for mobile - fixed reasonable sizes */
 @media (max-width: 480px) {
   .card {
-    width: min(92vw, 340px);
-    min-height: 200px;
+    width: 260px;
+    min-height: 180px;
+    font-size: 0.8rem;
+    padding: 0.4rem;
+  }
+  .sigil {
+    font-size: 0.9rem;
+    padding: 4px 7px;
+    min-height: 26px;
+    margin: 2px;
   }
   .combat-grid { flex-direction: column; }
   .column { width: 100%; }
@@ -291,9 +303,15 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 /* Portrait mode - more vertical space, optimized for max 3 heroes */
 @media (orientation: portrait) and (max-width: 768px) {
   .card {
-    width: min(95vw, 400px);
-    min-height: 220px;
+    width: 280px;
+    min-height: 200px;
+    font-size: 0.85rem;
+  }
+  .sigil {
     font-size: 1rem;
+    padding: 5px 8px;
+    min-height: 28px;
+    margin: 2px;
   }
   .combat-grid { gap: 0.75rem; }
   .game-area { padding: 0.5rem; }
@@ -1189,8 +1207,8 @@ v.innerHTML = `
 
 <!-- Buttons at the bottom, extreme edge, 10% smaller -->
 <div style="position:absolute;bottom:0.5%;left:50%;transform:translateX(-50%);display:flex;gap:0.45rem;width:90%;max-width:500px;z-index:2">
-<!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:0.9rem;padding:0.68rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
+<!-- New Game: half width, shorter to show more of Tadpo -->
+<button class="btn" onclick="newGame()" style="flex:1;font-size:0.9rem;padding:0.5rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 New Game 🐸</button>
 
 <!-- Right side: smaller buttons stacked -->
 <div style="flex:1;display:flex;flex-direction:column;gap:0.45rem">
@@ -1740,6 +1758,7 @@ updateSelectionDisplay();
 }
 
 function toggleHeroSelection(heroType) {
+console.log('[FROGGLE] toggleHeroSelection called with:', heroType);
 const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
@@ -1753,6 +1772,7 @@ const portrait = HERO_PORTRAITS[heroType] || '';
 
 // Toggle selection
 const isSelected = sel.includes(heroType);
+console.log('[FROGGLE] Before toggle - sel:', sel, 'isSelected:', isSelected);
 if(isSelected) {
 sel = sel.filter(h => h !== heroType);
 } else {
@@ -1760,6 +1780,7 @@ if(sel.length < 2) {
 sel.push(heroType);
 }
 }
+console.log('[FROGGLE] After toggle - sel:', sel);
 
 // Update all card displays
 ['warrior', 'tank', 'mage', 'healer'].forEach(h => {
@@ -1800,8 +1821,12 @@ updateSelectionDisplay();
 
 
 function updateSelectionDisplay() {
+console.log('[FROGGLE] updateSelectionDisplay - sel:', sel);
 const display = document.getElementById('selection-display');
-if(!display) return;
+if(!display) {
+console.error('[FROGGLE] selection-display element not found!');
+return;
+}
 
 if(sel.length === 0) {
 display.textContent = 'None';
@@ -1813,10 +1838,13 @@ display.style.color = '#2563eb';
 }
 
 const btn = document.getElementById('start');
-if(btn) {
+if(!btn) {
+console.error('[FROGGLE] start button not found!');
+return;
+}
+console.log('[FROGGLE] Button found, sel.length:', sel.length, 'enabling:', sel.length === 2);
 btn.disabled = sel.length !== 2;
 btn.style.opacity = sel.length === 2 ? '1' : '0.4';
-}
 }
 
 function toggleMode() {
@@ -1846,7 +1874,12 @@ toggleHeroSelection(t);
 }
 
 function start() {
-if(sel.length!==2) return;
+console.log('[FROGGLE] start() called - sel:', sel, 'sel.length:', sel.length);
+if(sel.length!==2) {
+console.error('[FROGGLE] start() BLOCKED - sel.length is', sel.length, 'but needs to be 2');
+return;
+}
+console.log('[FROGGLE] start() proceeding - creating heroes and starting floor 1');
 S.floor=1; S.xp=0; S.levelUpCount=0;
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
