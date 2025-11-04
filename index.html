@@ -810,14 +810,22 @@ ${buttonsHtml}
 }
 
 function upd() {
-document.getElementById('floor').textContent = S.floor;
-document.getElementById('round').textContent = S.round || '-';
-document.getElementById('gold').textContent = S.gold;
+const floorEl = document.getElementById('floor');
+const roundEl = document.getElementById('round');
+const goldEl = document.getElementById('gold');
+const xpEl = document.getElementById('xp');
+
+// Only update elements if they exist (they won't exist on hero select screen)
+if(floorEl) floorEl.textContent = S.floor;
+if(roundEl) roundEl.textContent = S.round || '-';
+if(goldEl) goldEl.textContent = S.gold;
 // Show combat XP during combat, cumulative XP otherwise
+if(xpEl) {
 if(S.combatXP !== undefined && S.combatXP > 0) {
-document.getElementById('xp').textContent = `${S.xp} (+${S.combatXP})`;
+xpEl.textContent = `${S.xp} (+${S.combatXP})`;
 } else {
-document.getElementById('xp').textContent = S.xp;
+xpEl.textContent = S.xp;
+}
 }
 // Show/hide debug button
 const debugBtn = document.getElementById('debugBtn');
