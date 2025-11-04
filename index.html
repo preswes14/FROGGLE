@@ -1177,27 +1177,27 @@ v.innerHTML = `
 <!-- Title image fills entire space -->
 <img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
-<!-- Settings gear - top left corner -->
-<div style="position:absolute;top:2%;left:2%;z-index:2">
-<button onclick="showSettingsMenu()" style="width:36px;height:36px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.5)" title="Settings">⚙️</button>
+<!-- Settings gear - extreme top left corner -->
+<div style="position:absolute;top:0.5%;left:0.5%;z-index:2">
+<button onclick="showSettingsMenu()" style="width:32px;height:32px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.1rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.5)" title="Settings">⚙️</button>
 </div>
 
-<!-- Version label - top right corner, 2 lines -->
-<div style="position:absolute;top:2%;right:2%;z-index:2;text-align:right">
-<p style="font-size:0.7rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em;line-height:1.3">v9.95<br>BETA</p>
+<!-- Version label - extreme top right corner, 2 lines -->
+<div style="position:absolute;top:0.5%;right:0.5%;z-index:2;text-align:right">
+<p style="font-size:0.65rem;color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);margin:0;letter-spacing:0.05em;line-height:1.3">v9.95<br>BETA</p>
 </div>
 
-<!-- Buttons at the bottom, pushed lower -->
-<div style="position:absolute;bottom:3%;left:50%;transform:translateX(-50%);display:flex;gap:0.5rem;width:90%;max-width:500px;z-index:2">
+<!-- Buttons at the bottom, extreme edge, 10% smaller -->
+<div style="position:absolute;bottom:0.5%;left:50%;transform:translateX(-50%);display:flex;gap:0.45rem;width:90%;max-width:500px;z-index:2">
 <!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
+<button class="btn" onclick="newGame()" style="flex:1;font-size:0.9rem;padding:0.68rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
 
 <!-- Right side: smaller buttons stacked -->
-<div style="flex:1;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="${hasSavedGame ? 'loadGameFromTitle()' : ''}" ${hasSavedGame ? '' : 'disabled'} style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:${hasSavedGame ? '#22c55e' : '#888'};border:2px solid ${hasSavedGame ? '#16a34a' : '#666'};font-weight:600;opacity:${hasSavedGame ? '1' : '0.5'};cursor:${hasSavedGame ? 'pointer' : 'not-allowed'}">💾 Load Game</button>
-<div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="exportSave()" style="font-size:0.7rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(59,130,246,0.9);border:2px solid #3b82f6;font-weight:600;flex:1" title="Export Save">Export</button>
-<button class="btn" onclick="importSave()" style="font-size:0.7rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(168,85,247,0.9);border:2px solid #a855f7;font-weight:600;flex:1" title="Import Save">Import</button>
+<div style="flex:1;display:flex;flex-direction:column;gap:0.45rem">
+<button class="btn" onclick="${hasSavedGame ? 'loadGameFromTitle()' : ''}" ${hasSavedGame ? '' : 'disabled'} style="font-size:0.77rem;padding:0.45rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:${hasSavedGame ? '#22c55e' : '#888'};border:2px solid ${hasSavedGame ? '#16a34a' : '#666'};font-weight:600;opacity:${hasSavedGame ? '1' : '0.5'};cursor:${hasSavedGame ? 'pointer' : 'not-allowed'}">💾 Load Game</button>
+<div style="display:flex;gap:0.45rem">
+<button class="btn" onclick="exportSave()" style="font-size:0.63rem;padding:0.36rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(59,130,246,0.9);border:2px solid #3b82f6;font-weight:600;flex:1" title="Export Save">Export</button>
+<button class="btn" onclick="importSave()" style="font-size:0.63rem;padding:0.36rem;box-shadow:0 2px 4px rgba(0,0,0,0.5);background:rgba(168,85,247,0.9);border:2px solid #a855f7;font-weight:600;flex:1" title="Import Save">Import</button>
 </div>
 </div>
 </div>
