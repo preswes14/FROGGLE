@@ -1207,8 +1207,8 @@ v.innerHTML = `
 
 <!-- Buttons at the bottom, extreme edge, 10% smaller -->
 <div style="position:absolute;bottom:0.5%;left:50%;transform:translateX(-50%);display:flex;gap:0.45rem;width:90%;max-width:500px;z-index:2">
-<!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:0.9rem;padding:0.68rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
+<!-- New Game: half width, shorter to show more of Tadpo -->
+<button class="btn" onclick="newGame()" style="flex:1;font-size:0.9rem;padding:0.5rem;box-shadow:0 4px 8px rgba(0,0,0,0.6);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 New Game 🐸</button>
 
 <!-- Right side: smaller buttons stacked -->
 <div style="flex:1;display:flex;flex-direction:column;gap:0.45rem">
@@ -1818,8 +1818,12 @@ updateSelectionDisplay();
 
 
 function updateSelectionDisplay() {
+console.log('[FROGGLE] updateSelectionDisplay - sel:', sel);
 const display = document.getElementById('selection-display');
-if(!display) return;
+if(!display) {
+console.error('[FROGGLE] selection-display element not found!');
+return;
+}
 
 if(sel.length === 0) {
 display.textContent = 'None';
@@ -1831,10 +1835,13 @@ display.style.color = '#2563eb';
 }
 
 const btn = document.getElementById('start');
-if(btn) {
+if(!btn) {
+console.error('[FROGGLE] start button not found!');
+return;
+}
+console.log('[FROGGLE] Button found, sel.length:', sel.length, 'enabling:', sel.length === 2);
 btn.disabled = sel.length !== 2;
 btn.style.opacity = sel.length === 2 ? '1' : '0.4';
-}
 }
 
 function toggleMode() {
