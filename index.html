@@ -123,24 +123,27 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .column.enemies { flex: 0 0 auto; }
 .combat-lane {
   background: rgba(255,255,255,0.05);
-  border-top: 3px solid rgba(0,0,0,0.3);
-  border-bottom: 3px solid rgba(255,255,255,0.2);
-  border-left: 2px solid rgba(0,0,0,0.2);
-  border-right: 2px solid rgba(0,0,0,0.2);
+  border: 3px solid #8b5a3c;
   border-radius: 6px;
   padding: 0.75rem;
-  margin-bottom: 0.75rem;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(255,255,255,0.1);
+  margin-bottom: 1rem;
+  box-shadow:
+    inset 0 0 0 2px #5d3a22,
+    inset 0 2px 4px rgba(0,0,0,0.15),
+    inset 0 -2px 4px rgba(255,255,255,0.1),
+    0 3px 6px rgba(0,0,0,0.2);
   position: relative;
 }
 .combat-lane:not(:last-child)::after {
   content: '';
   position: absolute;
-  bottom: -0.75rem;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.3) 80%, transparent);
+  bottom: -1rem;
+  left: -3px;
+  right: -3px;
+  height: 4px;
+  background: #8b5a3c;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 10;
 }
 .card {
   width: 320px;
@@ -243,16 +246,16 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
-.sigil.l0 { color: #9ca3af; opacity: 0.5; } /* Grey - inactive */
-.sigil.l1 { color: #000; font-weight: bold; } /* Black */
-.sigil.l2 { color: #14b8a6; font-weight: bold; } /* Teal */
-.sigil.l3 { color: #a855f7; font-weight: bold; } /* Purple */
-.sigil.l4 { color: #f59e0b; font-weight: bold; text-shadow: 0 0 8px rgba(245,158,11,0.5); } /* Gold */
+.sigil.l0 { color: #9ca3af !important; opacity: 0.5; } /* Grey - inactive */
+.sigil.l1 { color: #000 !important; font-weight: bold; } /* Black */
+.sigil.l2 { color: #14b8a6 !important; font-weight: bold; } /* Teal */
+.sigil.l3 { color: #a855f7 !important; font-weight: bold; } /* Purple */
+.sigil.l4 { color: #f59e0b !important; font-weight: bold; text-shadow: 0 0 8px rgba(245,158,11,0.5); } /* Gold */
 .sigil.l5 {
   background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
   background-size: 300% 100%;
   animation: rainbow-shift 3s linear infinite;
-  color: white;
+  color: white !important;
   text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,0,128,0.6);
   font-weight: bold;
 }
@@ -330,13 +333,30 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
     margin: 1px;
   }
 
+  /* Ensure sigils show at least 2 per row on mobile portrait */
+  .sigil-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .sigil-row .sigil {
+    flex: 0 0 auto;
+    min-width: calc(50% - 8px);
+    max-width: calc(50% - 8px);
+    box-sizing: border-box;
+  }
+
   .combat-lane {
     width: 100%;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 0.5rem;
     padding: 0.5rem;
     margin-bottom: 0.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .combat-lane > .card {
@@ -431,10 +451,13 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
   .combat-lane {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 0.4rem;
     padding: 0.4rem;
     margin-bottom: 0.4rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .card {
@@ -547,9 +570,12 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
   .combat-lane {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 0.75rem;
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -575,8 +601,11 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 
   .combat-lane {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: 0.75rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -600,9 +629,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
 <!-- Beta Settings Menu -->
-<div id="betaSettings" style="position:fixed;top:10px;left:10px;z-index:30000">
-<button onclick="toggleBetaMenu()" style="width:32px;height:32px;border-radius:50%;background:rgba(107,114,128,0.8);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.3)" title="Beta Settings">⚙️</button>
-<div id="betaMenu" style="display:none;position:absolute;top:40px;left:0;background:white;border:3px solid #4b5563;border-radius:8px;padding:0.75rem;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
+<div id="betaSettings" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:30000">
+<button onclick="toggleBetaMenu()" style="width:36px;height:36px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 6px rgba(0,0,0,0.4)" title="Beta Settings">⚙️</button>
+<div id="betaMenu" style="display:none;position:absolute;top:44px;left:50%;transform:translateX(-50%);background:white;border:3px solid #4b5563;border-radius:8px;padding:0.75rem;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
 <div style="font-size:0.7rem;font-weight:bold;color:#6b7280;margin-bottom:0.5rem;text-align:center">BETA TOOLS</div>
 <button onclick="restartLevel()" style="width:100%;padding:0.5rem;background:#ef4444;color:white;border:2px solid #dc2626;border-radius:6px;font-weight:bold;font-size:0.85rem;cursor:pointer;margin-bottom:0.5rem">🔄 Restart Level</button>
 <button onclick="backToTitle()" style="width:100%;padding:0.5rem;background:#6b7280;color:white;border:2px solid #4b5563;border-radius:6px;font-weight:bold;font-size:0.85rem;cursor:pointer">🏠 Back to Title</button>
@@ -845,6 +874,9 @@ levelUpCount: 0,
 heroes: [],
 enemies: [],
 recruits: [], // Recruited enemies fighting for player
+// PERMANENT sigil levels (persist across deaths, purchased at Death Screen)
+permanentSig: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+// ACTIVE sigil levels (permanent + temporary from Level Ups this run)
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
@@ -1057,18 +1089,26 @@ heroesHtml += '</div>';
 });
 heroesHtml += '</div>';
 
-// Build the full layout
-return `<div class="neutral-container">
-<div class="neutral-left">
+// Build the full layout with art as background
+return `<div style="position:relative;min-height:100vh;background-image:url('${imageSrc}');background-size:cover;background-position:center;background-repeat:no-repeat">
+<!-- Semi-transparent overlay for better readability -->
+<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right, rgba(217,202,177,0.95) 0%, rgba(217,202,177,0.7) 40%, transparent 70%);"></div>
+
+<!-- Content container -->
+<div style="position:relative;display:flex;flex-direction:column;min-height:100vh;padding:1rem;gap:1rem">
+<!-- Heroes on the left -->
+<div style="flex:0 0 auto;max-width:400px">
 ${heroesHtml}
-<div style="flex:1"></div>
-${buttonsHtml}
 </div>
-<div class="neutral-right">
-<img src="${imageSrc}" class="neutral-image" alt="Encounter">
-<div class="neutral-text-overlay">
-<div class="neutral-title">${title}</div>
-<div class="neutral-desc">${description}</div>
+
+<!-- Spacer to push text/buttons to bottom -->
+<div style="flex:1"></div>
+
+<!-- Encounter info and buttons -->
+<div style="max-width:500px;background:rgba(217,202,177,0.98);border:3px solid #8b5a3c;border-radius:12px;padding:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.4)">
+<div class="neutral-title" style="margin-bottom:0.75rem">${title}</div>
+<div class="neutral-desc" style="margin-bottom:1rem">${description}</div>
+${buttonsHtml}
 </div>
 </div>
 </div>`;
@@ -1244,7 +1284,7 @@ localStorage.setItem('froggle8_permanent', JSON.stringify({
 gold: S.gold,
 goingRate: S.goingRate,
 startingXP: S.startingXP,
-sig: S.sig,
+permanentSig: S.permanentSig,
 sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
@@ -1266,7 +1306,8 @@ const j = JSON.parse(d);
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
-S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// Load permanent sigils (for old saves, migrate from j.sig)
+S.permanentSig = j.permanentSig || j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
@@ -2001,7 +2042,6 @@ title="Healer"></div>
 
 <h2 style="text-align:center;margin:0.5rem 0;font-size:1.3rem">Choose 2 Heroes</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-${showSuggestion ? `<p style="text-align:center;margin-bottom:0.5rem;font-size:0.95rem;color:#22c55e;font-weight:600;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">💡 Warrior and Healer are a good pair - give them a try for your first run!</p>` : ''}
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Frogged' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🐸'}</span></p>
 ${S.froggedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -2028,6 +2068,31 @@ console.log('[FROGGLE] title() innerHTML set successfully');
 
 // Update selection display
 updateSelectionDisplay();
+
+// Show suggestion modal for first-time players
+if(showSuggestion) {
+setTimeout(() => showHeroSuggestionModal(), 500);
+}
+}
+
+function showHeroSuggestionModal() {
+const backdrop = document.createElement('div');
+backdrop.className = 'tutorial-modal-backdrop';
+backdrop.innerHTML = `
+<div class="tutorial-modal" style="max-width:400px">
+<h2 style="margin-top:0">💡 New Player Tip</h2>
+<p style="font-size:1rem;margin:1rem 0;line-height:1.6">
+<strong style="color:#22c55e">Warrior</strong> and <strong style="color:#22c55e">Healer</strong> are a great starting pair!
+</p>
+<p style="font-size:0.9rem;margin:1rem 0;opacity:0.8;line-height:1.5">
+The Warrior's strong attacks complement the Healer's support abilities perfectly for your first run.
+</p>
+<button class="btn safe" onclick="this.closest('.tutorial-modal-backdrop').remove()" style="margin-top:0.5rem;padding:0.75rem 1.5rem">
+Got it!
+</button>
+</div>
+`;
+document.body.appendChild(backdrop);
 }
 
 function toggleHeroSelection(heroType) {
@@ -2160,6 +2225,19 @@ return;
 }
 console.log('[FROGGLE] start() proceeding - creating heroes and starting floor 1');
 S.floor=1; S.xp=0; S.levelUpCount=0;
+// Reset temporary sigil levels to permanent + base (1 for starter sigils, 0 for rest)
+S.sig = {
+Attack: Math.max(1, S.permanentSig.Attack),
+Shield: Math.max(1, S.permanentSig.Shield),
+Heal: Math.max(1, S.permanentSig.Heal),
+D20: Math.max(1, S.permanentSig.D20),
+Expand: S.permanentSig.Expand,
+Grapple: S.permanentSig.Grapple,
+Ghost: S.permanentSig.Ghost,
+Asterisk: S.permanentSig.Asterisk,
+Star: S.permanentSig.Star,
+Alpha: S.permanentSig.Alpha
+};
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => {
 if(!H[t]) {
@@ -4377,7 +4455,7 @@ html += '</div>'; // Close hero card
 if(queuedActions > 0) {
 html += `</div>`; // Close card-stack-container
 }
-// Show recruit for this hero if exists
+// Show recruit for this hero if exists (BEHIND the hero)
 if(S.recruits) {
 const recruit = S.recruits.find(r => r.recruitedBy === i);
 if(recruit) {
@@ -4387,12 +4465,14 @@ if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
 const recruitGhostCharges = recruit.ghostCharges || 0;
 if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
-html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e" data-id="${recruit.id}">
+// Get recruit's emoji
+const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e;position:relative;z-index:-1;margin-top:-1rem;padding-top:1.5rem" data-id="${recruit.id}">
 <!-- Recruit Name -->
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${recruit.n} 🤝</div>
-<!-- Recruited label - fixed space matching portrait -->
-<div style="text-align:center;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-<div style="font-size:0.65rem;opacity:0.7">Recruited</div>
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${recruit.n}</div>
+<!-- Recruit Emoji - fixed space matching portrait -->
+<div style="text-align:center;margin-bottom:0.25rem;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<div style="font-size:2.5rem">${recruitEmoji}</div>
 </div>
 <div class="sigil-divider" style="flex-shrink:0"></div>
 <!-- Sigil row - takes remaining space -->
@@ -4506,8 +4586,9 @@ function nextFloor() {
 console.log('[FROGGLE] nextFloor() called - current floor:', S.floor);
 try {
 saveGame();
-console.log('[FROGGLE] Game saved, transitioning to floor:', S.floor + 1);
-showFloorTransition(S.floor + 1);
+console.log('[FROGGLE] Game saved, starting floor:', S.floor + 1);
+// Start floor directly - interstitial will be shown by startFloor()
+startFloor(S.floor + 1);
 } catch(e) {
 console.error('[FROGGLE] Error in nextFloor():', e);
 toast(`Error advancing floor: ${e.message}`, 3000);
@@ -4939,11 +5020,13 @@ v.innerHTML = html;
 function acceptDeathsBargain(sig, cost) {
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 S.gold -= cost;
+S.permanentSig[sig] = (S.permanentSig[sig] || 0) + 1;
+// Also upgrade active sig for this run
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 // NOTE: Going Rate does NOT increase for Death's Bargain!
 upd();
 savePermanent();
-toast(`${sig} permanently upgraded to L${S.sig[sig]}! (GR unchanged)`, 3000);
+toast(`${sig} permanently upgraded to L${S.permanentSig[sig]}! (GR unchanged)`, 3000);
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
@@ -6233,6 +6316,10 @@ savePermanent(); // Save the updated usedDeathQuotes
 
 let html = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:0 auto;color:#e8dcc4">
+<!-- Death's visage -->
+<div style="text-align:center;margin-bottom:1.5rem">
+<img src="assets/neutrals/shopkeeper2.png" style="max-width:300px;width:100%;height:auto;border-radius:12px;border:3px solid #dc2626;box-shadow:0 8px 24px rgba(220,38,38,0.4)">
+</div>
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#999;font-style:italic">"${deathQuote}"</p>` : ''}
 <p style="text-align:center;margin-bottom:1.5rem;font-size:1.1rem">Gold: <strong>${S.gold}</strong> | Going Rate: <strong>${S.goingRate}G</strong></p>`;
@@ -6244,7 +6331,8 @@ html += `<h3 style="margin-bottom:1rem">Upgrade Sigilarium:</h3>`;
 html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.5rem">`;
 
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
+// Show PERMANENT level on death screen (not inflated temporary level from the run)
+const currentLevel = S.permanentSig[sig] || 0;
 if(currentLevel >= 4) return; // Max level
 
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
@@ -6286,11 +6374,10 @@ html += `
 <p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no +5G increase)</p>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
 
-// List all sigils that can be sold back
+// List all sigils that can be sold back (show PERMANENT levels)
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-const canSellBack = currentLevel > baseLevel;
+const currentLevel = S.permanentSig[sig] || 0;
+const canSellBack = currentLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIcon(sig)} L${currentLevel}</span>
@@ -6309,11 +6396,10 @@ html += `</div>
 <div style="font-size:0.8rem;margin-bottom:0.5rem;opacity:0.7">Current Starting XP: ${S.startingXP}</div>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G → ${Math.max(1, S.goingRate - 5)}G</div>`;
 
-// List all sigils that can be sacrificed
+// List all sigils that can be sacrificed (show PERMANENT levels)
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-const canSacrifice = currentLevel > baseLevel && S.goingRate > 1;
+const currentLevel = S.permanentSig[sig] || 0;
+const canSacrifice = currentLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIcon(sig)} L${currentLevel}</span>
@@ -6374,34 +6460,32 @@ v.innerHTML = html;
 function purchaseSigilUpgrade(sig, cost) {
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 S.gold -= cost;
-S.sig[sig] = (S.sig[sig] || 0) + 1;
+S.permanentSig[sig] = (S.permanentSig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
 S.goingRate += 5;
-toast(`${sig} upgraded to L${S.sig[sig]}!`, 2000);
+toast(`${sig} PERMANENTLY upgraded to L${S.permanentSig[sig]}!`, 2000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
 
 function deathBoySellBack(sig) {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-if(currentLevel <= baseLevel) {
+const currentLevel = S.permanentSig[sig] || 0;
+if(currentLevel <= 0) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
-// Sell back: get gold, lower sigil level, no going rate change
+// Sell back: get gold, lower permanent sigil level, no going rate change
 S.gold += S.goingRate;
-S.sig[sig]--;
+S.permanentSig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
-toast(`Sold ${sig} L${currentLevel}→L${S.sig[sig]} for ${S.goingRate}G!`, 3000);
+toast(`Sold ${sig} L${currentLevel}→L${S.permanentSig[sig]} for ${S.goingRate}G!`, 3000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
 
 function deathBoySacrifice(sig) {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-if(currentLevel <= baseLevel) {
+const currentLevel = S.permanentSig[sig] || 0;
+if(currentLevel <= 0) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
@@ -6409,13 +6493,13 @@ if(S.goingRate <= 1) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
-// Sacrifice: get starting XP, lower sigil level, decrease going rate
+// Sacrifice: get starting XP, lower permanent sigil level, decrease going rate
 const xpGained = S.goingRate;
 S.startingXP += xpGained;
-S.sig[sig]--;
+S.permanentSig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
 S.goingRate = Math.max(1, S.goingRate - 5);
-toast(`Sacrificed ${sig} L${currentLevel}→L${S.sig[sig]} for +${xpGained}XP permanently!`, 3000);
+toast(`Sacrificed ${sig} L${currentLevel}→L${S.permanentSig[sig]} for +${xpGained}XP permanently!`, 3000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
