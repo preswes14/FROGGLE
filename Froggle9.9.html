@@ -42,18 +42,19 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   border-right: 2px solid rgba(0,0,0,0.2);
   border-radius: 6px;
   padding: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.15), inset 0 -2px 4px rgba(255,255,255,0.1);
   position: relative;
 }
 .combat-lane:not(:last-child)::after {
   content: '';
   position: absolute;
-  bottom: -0.75rem;
+  bottom: -1.5rem;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.3) 20%, rgba(0,0,0,0.3) 80%, transparent);
+  height: 4px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.6) 10%, rgba(0,0,0,0.6) 90%, transparent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 .card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
 .card.hero { background: #2c63c7; color: white; }
@@ -467,33 +468,24 @@ if(gameArea) gameArea.style.background = getFloorBackground(S.floor);
 }
 
 function triggerHitAnimation(targetId) {
-// Find the card element by searching for the target ID in the card's onclick attribute
-const cards = document.querySelectorAll('.card');
-cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(targetId)) {
+const card = document.getElementById(targetId);
+if(card) {
 card.classList.add('hit-flash');
 setTimeout(() => card.classList.remove('hit-flash'), 400);
 }
-});
 }
 
 function triggerAttackAnimation(attackerId) {
-const cards = document.querySelectorAll('.card');
-cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(attackerId)) {
+const card = document.getElementById(attackerId);
+if(card) {
 card.classList.add('attack-slide');
 setTimeout(() => card.classList.remove('attack-slide'), 500);
 }
-});
 }
 
 function triggerHealAnimation(targetId) {
-const cards = document.querySelectorAll('.card');
-cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(targetId)) {
+const card = document.getElementById(targetId);
+if(card) {
 card.classList.add('heal-flash');
 // Add healing cross overlay
 const cross = document.createElement('div');
@@ -506,18 +498,14 @@ card.classList.remove('heal-flash');
 if(cross.parentNode) cross.remove();
 }, 500);
 }
-});
 }
 
 function triggerShieldAnimation(targetId) {
-const cards = document.querySelectorAll('.card');
-cards.forEach(card => {
-const onclick = card.getAttribute('onclick');
-if(onclick && onclick.includes(targetId)) {
+const card = document.getElementById(targetId);
+if(card) {
 card.classList.add('shield-flash');
 setTimeout(() => card.classList.remove('shield-flash'), 500);
 }
-});
 }
 
 function toast(msg, dur=2000) {
@@ -2961,7 +2949,7 @@ ${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${
 const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
-const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':'l4';
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
 html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
 });
 html += '</div>';
@@ -3002,7 +2990,7 @@ if(!hasAttackSigil) {
 html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
@@ -3105,7 +3093,7 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
-html += `<div class="${cardClasses}" ${onclick}>
+html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 ${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}`;
 html += '<div class="sigil-divider"></div>';
@@ -3140,7 +3128,7 @@ if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
 const recruitGhostCharges = recruit.ghostCharges || 0;
 if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
-html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
+html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${recruit.n} 🤝</div>
 <div style="text-align:center;font-size:0.8rem">${recruit.p}⚡ | ${recruit.h}/${recruit.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div style="text-align:center;font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Recruited</div>
@@ -3148,7 +3136,7 @@ html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e">
 <div class="sigil-row">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
@@ -3177,7 +3165,7 @@ if(ghostCharges > 0) extra.push(`${ghostCharges}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-html += `<div class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
+html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
 <div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
 <div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>`;
@@ -3189,7 +3177,7 @@ if(!hasAttackSigil) {
 html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
-const cl = sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
 const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
