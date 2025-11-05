@@ -4455,7 +4455,7 @@ html += '</div>'; // Close hero card
 if(queuedActions > 0) {
 html += `</div>`; // Close card-stack-container
 }
-// Show recruit for this hero if exists
+// Show recruit for this hero if exists (BEHIND the hero)
 if(S.recruits) {
 const recruit = S.recruits.find(r => r.recruitedBy === i);
 if(recruit) {
@@ -4465,12 +4465,14 @@ if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
 const recruitGhostCharges = recruit.ghostCharges || 0;
 if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
-html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e" data-id="${recruit.id}">
+// Get recruit's emoji
+const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+html += `<div class="card hero" style="opacity:0.85;border:2px dashed #22c55e;position:relative;z-index:-1;margin-top:-1rem;padding-top:1.5rem" data-id="${recruit.id}">
 <!-- Recruit Name -->
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${recruit.n} 🤝</div>
-<!-- Recruited label - fixed space matching portrait -->
-<div style="text-align:center;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-<div style="font-size:0.65rem;opacity:0.7">Recruited</div>
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem;flex-shrink:0">${recruit.n}</div>
+<!-- Recruit Emoji - fixed space matching portrait -->
+<div style="text-align:center;margin-bottom:0.25rem;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+<div style="font-size:2.5rem">${recruitEmoji}</div>
 </div>
 <div class="sigil-divider" style="flex-shrink:0"></div>
 <!-- Sigil row - takes remaining space -->
