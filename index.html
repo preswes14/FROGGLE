@@ -1074,18 +1074,26 @@ heroesHtml += '</div>';
 });
 heroesHtml += '</div>';
 
-// Build the full layout
-return `<div class="neutral-container">
-<div class="neutral-left">
+// Build the full layout with art as background
+return `<div style="position:relative;min-height:100vh;background-image:url('${imageSrc}');background-size:cover;background-position:center;background-repeat:no-repeat">
+<!-- Semi-transparent overlay for better readability -->
+<div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to right, rgba(217,202,177,0.95) 0%, rgba(217,202,177,0.7) 40%, transparent 70%);"></div>
+
+<!-- Content container -->
+<div style="position:relative;display:flex;flex-direction:column;min-height:100vh;padding:1rem;gap:1rem">
+<!-- Heroes on the left -->
+<div style="flex:0 0 auto;max-width:400px">
 ${heroesHtml}
-<div style="flex:1"></div>
-${buttonsHtml}
 </div>
-<div class="neutral-right">
-<img src="${imageSrc}" class="neutral-image" alt="Encounter">
-<div class="neutral-text-overlay">
-<div class="neutral-title">${title}</div>
-<div class="neutral-desc">${description}</div>
+
+<!-- Spacer to push text/buttons to bottom -->
+<div style="flex:1"></div>
+
+<!-- Encounter info and buttons -->
+<div style="max-width:500px;background:rgba(217,202,177,0.98);border:3px solid #8b5a3c;border-radius:12px;padding:1rem;box-shadow:0 4px 12px rgba(0,0,0,0.4)">
+<div class="neutral-title" style="margin-bottom:0.75rem">${title}</div>
+<div class="neutral-desc" style="margin-bottom:1rem">${description}</div>
+${buttonsHtml}
 </div>
 </div>
 </div>`;
@@ -4547,8 +4555,9 @@ function nextFloor() {
 console.log('[FROGGLE] nextFloor() called - current floor:', S.floor);
 try {
 saveGame();
-console.log('[FROGGLE] Game saved, transitioning to floor:', S.floor + 1);
-showFloorTransition(S.floor + 1);
+console.log('[FROGGLE] Game saved, starting floor:', S.floor + 1);
+// Start floor directly - interstitial will be shown by startFloor()
+startFloor(S.floor + 1);
 } catch(e) {
 console.error('[FROGGLE] Error in nextFloor():', e);
 toast(`Error advancing floor: ${e.message}`, 3000);
