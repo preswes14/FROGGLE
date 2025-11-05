@@ -330,6 +330,20 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
     margin: 1px;
   }
 
+  /* Ensure sigils show at least 2 per row on mobile portrait */
+  .sigil-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .sigil-row .sigil {
+    flex: 0 0 auto;
+    min-width: calc(50% - 8px);
+    max-width: calc(50% - 8px);
+    box-sizing: border-box;
+  }
+
   .combat-lane {
     width: 100%;
     display: flex;
@@ -600,9 +614,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
 <!-- Beta Settings Menu -->
-<div id="betaSettings" style="position:fixed;top:10px;left:10px;z-index:30000">
-<button onclick="toggleBetaMenu()" style="width:32px;height:32px;border-radius:50%;background:rgba(107,114,128,0.8);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.3)" title="Beta Settings">⚙️</button>
-<div id="betaMenu" style="display:none;position:absolute;top:40px;left:0;background:white;border:3px solid #4b5563;border-radius:8px;padding:0.75rem;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
+<div id="betaSettings" style="position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:30000">
+<button onclick="toggleBetaMenu()" style="width:36px;height:36px;border-radius:50%;background:rgba(107,114,128,0.9);border:2px solid #4b5563;color:white;font-size:1.2rem;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 6px rgba(0,0,0,0.4)" title="Beta Settings">⚙️</button>
+<div id="betaMenu" style="display:none;position:absolute;top:44px;left:50%;transform:translateX(-50%);background:white;border:3px solid #4b5563;border-radius:8px;padding:0.75rem;min-width:180px;box-shadow:0 4px 12px rgba(0,0,0,0.3)">
 <div style="font-size:0.7rem;font-weight:bold;color:#6b7280;margin-bottom:0.5rem;text-align:center">BETA TOOLS</div>
 <button onclick="restartLevel()" style="width:100%;padding:0.5rem;background:#ef4444;color:white;border:2px solid #dc2626;border-radius:6px;font-weight:bold;font-size:0.85rem;cursor:pointer;margin-bottom:0.5rem">🔄 Restart Level</button>
 <button onclick="backToTitle()" style="width:100%;padding:0.5rem;background:#6b7280;color:white;border:2px solid #4b5563;border-radius:6px;font-weight:bold;font-size:0.85rem;cursor:pointer">🏠 Back to Title</button>
@@ -2001,7 +2015,6 @@ title="Healer"></div>
 
 <h2 style="text-align:center;margin:0.5rem 0;font-size:1.3rem">Choose 2 Heroes</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-${showSuggestion ? `<p style="text-align:center;margin-bottom:0.5rem;font-size:0.95rem;color:#22c55e;font-weight:600;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">💡 Warrior and Healer are a good pair - give them a try for your first run!</p>` : ''}
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Frogged' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🐸'}</span></p>
 ${S.froggedUnlocked ? `<div style="text-align:center;margin-bottom:0.5rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -2028,6 +2041,31 @@ console.log('[FROGGLE] title() innerHTML set successfully');
 
 // Update selection display
 updateSelectionDisplay();
+
+// Show suggestion modal for first-time players
+if(showSuggestion) {
+setTimeout(() => showHeroSuggestionModal(), 500);
+}
+}
+
+function showHeroSuggestionModal() {
+const backdrop = document.createElement('div');
+backdrop.className = 'tutorial-modal-backdrop';
+backdrop.innerHTML = `
+<div class="tutorial-modal" style="max-width:400px">
+<h2 style="margin-top:0">💡 New Player Tip</h2>
+<p style="font-size:1rem;margin:1rem 0;line-height:1.6">
+<strong style="color:#22c55e">Warrior</strong> and <strong style="color:#22c55e">Healer</strong> are a great starting pair!
+</p>
+<p style="font-size:0.9rem;margin:1rem 0;opacity:0.8;line-height:1.5">
+The Warrior's strong attacks complement the Healer's support abilities perfectly for your first run.
+</p>
+<button class="btn safe" onclick="this.closest('.tutorial-modal-backdrop').remove()" style="margin-top:0.5rem;padding:0.75rem 1.5rem">
+Got it!
+</button>
+</div>
+`;
+document.body.appendChild(backdrop);
 }
 
 function toggleHeroSelection(heroType) {
