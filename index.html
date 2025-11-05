@@ -3146,8 +3146,8 @@ if(target.h > target.m) target.h = target.m;
 healed.push(target.n);
 }
 });
-// Trigger all heal animations simultaneously
-healedIds.forEach(id => triggerHealAnimation(id));
+// Queue heal animations to trigger after next render
+healedIds.forEach(id => S.pendingAnimations.push({type: 'heal', id}));
 const level = getLevel('Heal', heroIdx);
 const healAmt = 2 * pow * level;
 if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
@@ -3157,8 +3157,8 @@ if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} H
 
 function executeGrapple(heroIdx, targets, stunDuration) {
 const h = S.heroes[heroIdx];
-// Trigger attacker animation (grapple uses same animation as attack)
-triggerAttackAnimation(h.id);
+// Queue attacker animation (grapple uses same animation as attack)
+S.pendingAnimations.push({type: 'attack', id: h.id});
 let totalDmg = 0;
 const targetNames = [];
 targets.forEach(tgtId => {
