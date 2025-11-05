@@ -891,6 +891,8 @@ debugMode: false, // Debug mode toggle
 activeIdx: -1,
 acted: [],
 locked: false,
+// Animation queue
+pendingAnimations: [],
 // Action state
 pending: null,
 targets: [],
@@ -3059,8 +3061,6 @@ function executeInstance(action, heroIdx, targets) {
 const h = S.heroes[heroIdx];
 const pow = h.p;
 if(action === 'Attack') {
-// Trigger attacker animation
-triggerAttackAnimation(h.id);
 const targetNames = [];
 const damagedEnemyIds = [];
 targets.forEach(tgtId => {
@@ -3071,9 +3071,10 @@ damagedEnemyIds.push(e.id);
 // Apply damage using dealDamageToEnemy to trigger tutorial logic
 dealDamageToEnemyWithoutAnimation(e, pow);
 });
-// Trigger all damage animations simultaneously
-damagedEnemyIds.forEach(id => triggerHitAnimation(id));
 if(targetNames.length > 0) toast(`${h.n} attacked ${targetNames.join(', ')} for ${pow} damage each!`);
+// Queue animations to trigger after next render
+S.pendingAnimations.push({type: 'attack', id: h.id});
+damagedEnemyIds.forEach(id => S.pendingAnimations.push({type: 'hit', id}));
 
 // Check for dead enemies and remove them
 const deadEnemies = [];
@@ -3117,8 +3118,8 @@ if(target.sh > target.m) target.sh = target.m;
 targetNames.push(target.n);
 shieldedIds.push(target.id);
 });
-// Trigger all shield animations simultaneously
-shieldedIds.forEach(id => triggerShieldAnimation(id));
+// Queue shield animations to trigger after next render
+shieldedIds.forEach(id => S.pendingAnimations.push({type: 'shield', id}));
 if(targetNames.length > 0) {
 const level = getLevel('Shield', heroIdx);
 const shieldAmt = 2 * pow * level;
@@ -4510,10 +4511,37 @@ html += '</div>'; // Close left column (heroes)
 // MIDDLE BUFFER: 8% gap for visual separation and animations
 html += '<div style="width:8%"></div>';
 
-// RIGHT COLUMN: All enemies (46% width, left-aligned content)
-html += '<div style="width:46%;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-start">';
+// RIGHT COLUMN: Enemies by lane (46% width, left-aligned content)
+html += '<div style="width:46%;display:flex;flex-direction:column;gap:0.5rem">';
 
+// Group enemies by lane AND slot for proper discrete lane display
+const enemyByLaneAndSlot = {};
 S.enemies.forEach(e => {
+if(!enemyByLaneAndSlot[e.li]) enemyByLaneAndSlot[e.li] = {};
+enemyByLaneAndSlot[e.li][e.slot] = e;
+});
+
+// Render one lane per hero
+S.heroes.forEach((hero, laneIdx) => {
+const maxSlots = S.maxSlotsPerLane ? (S.maxSlotsPerLane[laneIdx] || 0) : 0;
+const laneEnemies = enemyByLaneAndSlot[laneIdx] || {};
+
+// Start lane container with visible border
+html += `<div class="combat-lane" style="min-height:80px">`;
+
+if(maxSlots === 0) {
+// Empty lane
+html += `<div style="text-align:center;font-size:0.75rem;padding:1rem;opacity:0.5;font-style:italic">Empty Lane</div>`;
+} else {
+// Render each slot in order
+for(let slotNum = 0; slotNum < maxSlots; slotNum++) {
+const e = laneEnemies[slotNum];
+if(!e) {
+// Empty slot where enemy died
+html += `<div style="width:200px;min-height:80px;margin:0.25rem;opacity:0.2;border:2px dashed #666;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-style:italic">—</div>`;
+continue;
+}
+
 const isTargetable = (S.pending && needsEnemyTarget(S.pending)) || S.pending === 'D20_TARGET';
 const selectCount = S.targets.filter(t => t === e.id).length;
 let cardClasses = 'card enemy';
@@ -4521,12 +4549,12 @@ if(isTargetable) cardClasses += ' targetable';
 if(selectCount > 0) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-// Display enemy ghost charges
 const ghostCharges = e.ghostCharges || 0;
 if(ghostCharges > 0) extra.push(`${ghostCharges}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
+
 html += `<div class="${cardClasses}" data-id="${e.id}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">
 <!-- Enemy Emoji - fixed space -->
 <div style="text-align:center;height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -4550,6 +4578,7 @@ ${extra.length>0 ? `<div style="text-align:center;font-size:0.85rem;margin-botto
 <!-- Sigil row - takes remaining space -->
 <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-height:60px">
 <div class="sigil-row">`;
+
 // Show base Attack ONLY if enemy doesn't have Attack in their sigil list
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 if(!hasAttackSigil) {
@@ -4561,11 +4590,28 @@ const permStyle = sigil.perm ? 'engraved' : cl;
 html += `<span class="sigil ${permStyle}" onmouseenter="showTooltipDelayed('${sigil.sig}', ${sigil.level}, this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',${sigil.level},this),800)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}</span>`;
 });
 html += '</div></div></div>'; // Close sigil-row, flex container, and card
-}); // End enemies.forEach
+} // End slot loop
+}
+
+html += '</div>'; // Close combat-lane
+});
 
 html += '</div>'; // Close right column (enemies)
 html += '</div>'; // Close main split container
 v.innerHTML = html;
+
+// Trigger any pending animations after render completes
+if(S.pendingAnimations && S.pendingAnimations.length > 0) {
+setTimeout(() => {
+S.pendingAnimations.forEach(anim => {
+if(anim.type === 'attack') triggerAttackAnimation(anim.id);
+else if(anim.type === 'hit') triggerHitAnimation(anim.id);
+else if(anim.type === 'heal') triggerHealAnimation(anim.id);
+else if(anim.type === 'shield') triggerShieldAnimation(anim.id);
+});
+S.pendingAnimations = [];
+}, 50);
+}
 }
 
 // ===== LEVEL UP =====
