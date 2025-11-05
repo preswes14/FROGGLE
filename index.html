@@ -874,6 +874,9 @@ levelUpCount: 0,
 heroes: [],
 enemies: [],
 recruits: [], // Recruited enemies fighting for player
+// PERMANENT sigil levels (persist across deaths, purchased at Death Screen)
+permanentSig: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+// ACTIVE sigil levels (permanent + temporary from Level Ups this run)
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
@@ -1281,7 +1284,7 @@ localStorage.setItem('froggle8_permanent', JSON.stringify({
 gold: S.gold,
 goingRate: S.goingRate,
 startingXP: S.startingXP,
-sig: S.sig,
+permanentSig: S.permanentSig,
 sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
@@ -1303,7 +1306,8 @@ const j = JSON.parse(d);
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
-S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// Load permanent sigils (for old saves, migrate from j.sig)
+S.permanentSig = j.permanentSig || j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
@@ -2221,6 +2225,19 @@ return;
 }
 console.log('[FROGGLE] start() proceeding - creating heroes and starting floor 1');
 S.floor=1; S.xp=0; S.levelUpCount=0;
+// Reset temporary sigil levels to permanent + base (1 for starter sigils, 0 for rest)
+S.sig = {
+Attack: Math.max(1, S.permanentSig.Attack),
+Shield: Math.max(1, S.permanentSig.Shield),
+Heal: Math.max(1, S.permanentSig.Heal),
+D20: Math.max(1, S.permanentSig.D20),
+Expand: S.permanentSig.Expand,
+Grapple: S.permanentSig.Grapple,
+Ghost: S.permanentSig.Ghost,
+Asterisk: S.permanentSig.Asterisk,
+Star: S.permanentSig.Star,
+Alpha: S.permanentSig.Alpha
+};
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => {
 if(!H[t]) {
@@ -5001,11 +5018,13 @@ v.innerHTML = html;
 function acceptDeathsBargain(sig, cost) {
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 S.gold -= cost;
+S.permanentSig[sig] = (S.permanentSig[sig] || 0) + 1;
+// Also upgrade active sig for this run
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 // NOTE: Going Rate does NOT increase for Death's Bargain!
 upd();
 savePermanent();
-toast(`${sig} permanently upgraded to L${S.sig[sig]}! (GR unchanged)`, 3000);
+toast(`${sig} permanently upgraded to L${S.permanentSig[sig]}! (GR unchanged)`, 3000);
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
@@ -6310,7 +6329,8 @@ html += `<h3 style="margin-bottom:1rem">Upgrade Sigilarium:</h3>`;
 html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.5rem">`;
 
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
+// Show PERMANENT level on death screen (not inflated temporary level from the run)
+const currentLevel = S.permanentSig[sig] || 0;
 if(currentLevel >= 4) return; // Max level
 
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
@@ -6352,11 +6372,10 @@ html += `
 <p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no +5G increase)</p>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
 
-// List all sigils that can be sold back
+// List all sigils that can be sold back (show PERMANENT levels)
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-const canSellBack = currentLevel > baseLevel;
+const currentLevel = S.permanentSig[sig] || 0;
+const canSellBack = currentLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIcon(sig)} L${currentLevel}</span>
@@ -6375,11 +6394,10 @@ html += `</div>
 <div style="font-size:0.8rem;margin-bottom:0.5rem;opacity:0.7">Current Starting XP: ${S.startingXP}</div>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G → ${Math.max(1, S.goingRate - 5)}G</div>`;
 
-// List all sigils that can be sacrificed
+// List all sigils that can be sacrificed (show PERMANENT levels)
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-const canSacrifice = currentLevel > baseLevel && S.goingRate > 1;
+const currentLevel = S.permanentSig[sig] || 0;
+const canSacrifice = currentLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIcon(sig)} L${currentLevel}</span>
@@ -6440,34 +6458,32 @@ v.innerHTML = html;
 function purchaseSigilUpgrade(sig, cost) {
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 S.gold -= cost;
-S.sig[sig] = (S.sig[sig] || 0) + 1;
+S.permanentSig[sig] = (S.permanentSig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
 S.goingRate += 5;
-toast(`${sig} upgraded to L${S.sig[sig]}!`, 2000);
+toast(`${sig} PERMANENTLY upgraded to L${S.permanentSig[sig]}!`, 2000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
 
 function deathBoySellBack(sig) {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-if(currentLevel <= baseLevel) {
+const currentLevel = S.permanentSig[sig] || 0;
+if(currentLevel <= 0) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
-// Sell back: get gold, lower sigil level, no going rate change
+// Sell back: get gold, lower permanent sigil level, no going rate change
 S.gold += S.goingRate;
-S.sig[sig]--;
+S.permanentSig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
-toast(`Sold ${sig} L${currentLevel}→L${S.sig[sig]} for ${S.goingRate}G!`, 3000);
+toast(`Sold ${sig} L${currentLevel}→L${S.permanentSig[sig]} for ${S.goingRate}G!`, 3000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
 
 function deathBoySacrifice(sig) {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-if(currentLevel <= baseLevel) {
+const currentLevel = S.permanentSig[sig] || 0;
+if(currentLevel <= 0) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
@@ -6475,13 +6491,13 @@ if(S.goingRate <= 1) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
-// Sacrifice: get starting XP, lower sigil level, decrease going rate
+// Sacrifice: get starting XP, lower permanent sigil level, decrease going rate
 const xpGained = S.goingRate;
 S.startingXP += xpGained;
-S.sig[sig]--;
+S.permanentSig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
 S.goingRate = Math.max(1, S.goingRate - 5);
-toast(`Sacrificed ${sig} L${currentLevel}→L${S.sig[sig]} for +${xpGained}XP permanently!`, 3000);
+toast(`Sacrificed ${sig} L${currentLevel}→L${S.permanentSig[sig]} for +${xpGained}XP permanently!`, 3000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
