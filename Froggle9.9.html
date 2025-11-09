@@ -167,7 +167,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <body>
 <div class="header">
 <div>Floor <span id="floor">1</span> | Round <span id="round">1</span></div>
+<div style="display:flex;gap:0.25rem">
+<button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">⚙️</button>
 <div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#fbbf24;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🛠️</button></div>
+</div>
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
 <div class="game-area" id="gameView"></div>
@@ -1507,6 +1510,10 @@ const h = S.heroes[heroIdx];
 const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
 if(!hasSigil) return 0;
 let base = S.sig[sig] || 0;
+// Actives start at level 1 minimum, passives start at 0
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+if(actives.includes(sig) && base === 0) base = 1;
+// Special case: Mage and Healer get +1 to Expand
 if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return base + 1;
 return base;
 }
@@ -3132,7 +3139,7 @@ const usedInstances = S.totalInstances - S.instancesRemaining;
 visualLvl = Math.max(0, lvl - usedInstances);
 }
 const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
-const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk'].includes(s);
+const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk','Alpha'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
@@ -5423,6 +5430,91 @@ v.insertAdjacentHTML('beforeend', html);
 
 function closeDebugMenu() {
 // Remove debug menu elements
+const menus = document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]');
+menus.forEach(m => m.remove());
+}
+
+// ===== SETTINGS MENU =====
+function showSettingsMenu() {
+const v = document.getElementById('gameView');
+const inGame = S.heroes && S.heroes.length > 0;
+
+let html = `
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #3b82f6;border-radius:12px;padding:2rem;z-index:30000;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
+<h2 style="text-align:center;color:#3b82f6;margin-bottom:1.5rem">⚙️ SETTINGS ⚙️</h2>
+
+${inGame ? `
+<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Game</h3>
+<button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
+` : ''}
+
+<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Reference</h3>
+<button class="btn" onclick="showSigilarium()" style="margin-bottom:0.5rem;background:#9333ea">📖 View Sigilarium</button>
+
+<button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
+</div>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999" onclick="closeSettingsMenu()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+function closeSettingsMenu() {
+const menus = document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]');
+menus.forEach(m => m.remove());
+}
+
+function manualSave() {
+saveGame();
+toast('Game Saved!', 2000);
+closeSettingsMenu();
+}
+
+function showSigilarium() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+
+let html = `
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(#fff,#f7f1e3);border:3px solid #9333ea;border-radius:12px;padding:2rem;z-index:30000;max-width:600px;width:90%;max-height:80vh;overflow-y:auto">
+<h2 style="text-align:center;color:#9333ea;margin-bottom:1rem">📖 SIGILARIUM 📖</h2>
+<p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-bottom:1.5rem">All Sigils and Their Permanent Upgrade Levels</p>
+
+<div style="display:grid;gap:0.75rem">
+`;
+
+allSigils.forEach(sig => {
+const level = S.sig[sig] || 0;
+const isActive = actives.includes(sig);
+const effectiveLevel = isActive && level === 0 ? 1 : level;
+const cl = effectiveLevel===0?'l0':effectiveLevel===1?'l1':effectiveLevel===2?'l2':effectiveLevel===3?'l3':effectiveLevel===4?'l4':'l5';
+const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
+
+html += `
+<div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
+<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
+<span class="sigil ${cl}" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
+<div>
+<div style="font-weight:bold;font-size:1.1rem">${sig}</div>
+<div style="font-size:0.85rem;opacity:0.8">${isActive ? 'Active' : 'Passive'} • Permanent Level: ${level}</div>
+${isActive && level === 0 ? '<div style="font-size:0.75rem;color:#22c55e;font-style:italic">Starts at Level 1 when equipped</div>' : ''}
+</div>
+</div>
+<div style="font-size:0.9rem;line-height:1.4;color:#4b5563">${desc}</div>
+</div>
+`;
+});
+
+html += `
+</div>
+<button class="btn" onclick="closeSigilarium()" style="margin-top:1.5rem;background:#9333ea;width:100%">Close</button>
+</div>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999" onclick="closeSigilarium()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+function closeSigilarium() {
 const menus = document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]');
 menus.forEach(m => m.remove());
 }
