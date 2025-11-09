@@ -69,7 +69,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   width: 100%;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-.card { width: 100%; max-width: 320px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
+.card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
 .card.hero { background: #2c63c7; color: white; }
 .card.enemy { background: #b64141; color: white; }
 .card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
@@ -1210,7 +1210,7 @@ ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <div style="max-width:600px;margin:0 auto">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-<div style="position:relative;max-width:100%;margin:0 auto;min-height:400px">
+<div style="position:relative;max-width:100%;margin:0 auto">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
 <div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
@@ -4823,8 +4823,13 @@ html += `<h3 style="margin-bottom:1rem">Upgrade Sigilarium:</h3>`;
 html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.5rem">`;
 
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
-if(currentLevel >= 4) return; // Max level
+const permLevel = S.sig[sig] || 0;
+// Actives show their effective level (perm + 1 for display)
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const isActive = actives.includes(sig);
+const currentLevel = isActive ? permLevel + 1 : permLevel;
+const nextLevel = currentLevel + 1;
+if(currentLevel >= 5) return; // Max level (5 for display)
 
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
 const baseCost = S.goingRate;
@@ -4832,14 +4837,14 @@ const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colorClass = ['#000', '#fff', '#22c55e', '#a855f7', '#fbbf24'][currentLevel];
-const nextColorClass = ['#000', '#fff', '#22c55e', '#a855f7', '#fbbf24'][currentLevel + 1];
+const colorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'][currentLevel];
+const nextColorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'][nextLevel];
 
 html += `
 <div style="background:rgba(255,255,255,0.05);padding:0.75rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
 <div style="font-weight:bold;margin-bottom:0.5rem">${sigilIcon(sig)}</div>
 <div style="font-size:0.9rem;margin-bottom:0.5rem">
-<span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${currentLevel+1}</span>
+<span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
 <div style="font-size:0.85rem;margin-bottom:0.5rem;color:#999">Cost: ${cost}G</div>
 <button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.4rem 0.8rem;font-size:0.85rem">
@@ -4866,10 +4871,12 @@ html += `
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
 
 // List all sigils that can be sold back
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-const canSellBack = currentLevel > baseLevel;
+const permLevel = S.sig[sig] || 0;
+const isActive = actives.includes(sig);
+const currentLevel = isActive ? permLevel + 1 : permLevel;
+const canSellBack = permLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIcon(sig)} L${currentLevel}</span>
@@ -4889,10 +4896,12 @@ html += `</div>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G → ${Math.max(1, S.goingRate - 5)}G</div>`;
 
 // List all sigils that can be sacrificed
+const actives2 = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
 allSigils.forEach(sig => {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-const canSacrifice = currentLevel > baseLevel && S.goingRate > 1;
+const permLevel = S.sig[sig] || 0;
+const isActive = actives2.includes(sig);
+const currentLevel = isActive ? permLevel + 1 : permLevel;
+const canSacrifice = permLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIcon(sig)} L${currentLevel}</span>
@@ -4928,25 +4937,28 @@ showDeathScreen(); // Refresh
 }
 
 function deathBoySellBack(sig) {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-if(currentLevel <= baseLevel) {
+const permLevel = S.sig[sig] || 0;
+if(permLevel <= 0) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
 // Sell back: get gold, lower sigil level, no going rate change
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const isActive = actives.includes(sig);
+const oldLevel = isActive ? permLevel + 1 : permLevel;
 S.gold += S.goingRate;
 S.sig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
-toast(`Sold ${sig} L${currentLevel}→L${S.sig[sig]} for ${S.goingRate}G!`, 3000);
+const newPermLevel = S.sig[sig];
+const newLevel = isActive ? newPermLevel + 1 : newPermLevel;
+toast(`Sold ${sig} L${oldLevel}→L${newLevel} for ${S.goingRate}G!`, 3000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
 
 function deathBoySacrifice(sig) {
-const currentLevel = S.sig[sig] || 0;
-const baseLevel = ['Attack','Shield','Heal','D20'].includes(sig) ? 1 : 0;
-if(currentLevel <= baseLevel) {
+const permLevel = S.sig[sig] || 0;
+if(permLevel <= 0) {
 toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
@@ -4955,12 +4967,17 @@ toast("Whoa, something's weird. I can't do that", 3000);
 return;
 }
 // Sacrifice: get starting XP, lower sigil level, decrease going rate
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const isActive = actives.includes(sig);
+const oldLevel = isActive ? permLevel + 1 : permLevel;
 const xpGained = S.goingRate;
 S.startingXP += xpGained;
 S.sig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
 S.goingRate = Math.max(1, S.goingRate - 5);
-toast(`Sacrificed ${sig} L${currentLevel}→L${S.sig[sig]} for +${xpGained}XP permanently!`, 3000);
+const newPermLevel = S.sig[sig];
+const newLevel = isActive ? newPermLevel + 1 : newPermLevel;
+toast(`Sacrificed ${sig} L${oldLevel}→L${newLevel} for +${xpGained}XP permanently!`, 3000);
 savePermanent();
 showDeathScreen(); // Refresh
 }
