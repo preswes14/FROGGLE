@@ -149,6 +149,15 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
+.toast-log { position: fixed; bottom: 80px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 0.5rem; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; transition: all 0.3s; }
+.toast-log.minimized { max-height: 40px; overflow: hidden; cursor: pointer; }
+.toast-log.minimized:hover { background: linear-gradient(#f7f1e3, #e7e1d3); }
+.toast-log-header { font-weight: bold; font-size: 0.85rem; margin-bottom: 0.25rem; padding: 0.25rem 0.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+.toast-log-toggle { font-size: 1rem; }
+.toast-log-entries { max-height: 200px; overflow-y: auto; font-size: 0.8rem; }
+.toast-log-entry { padding: 0.4rem 0.5rem; border-top: 1px solid rgba(0,0,0,0.1); }
+.toast-log-entry:first-child { border-top: none; }
+.toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
 .tutorial-modal { background: linear-gradient(#fff, #f7f1e3); border: 4px solid #fbbf24; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
@@ -363,6 +372,9 @@ gameMode: 'Standard', // 'Standard' or 'Effed'
 effedUnlocked: false,
 tapoUnlocked: false, // Unlocked after first FU victory
 debugMode: false, // Debug mode toggle
+// Toast log
+toastHistory: [], // Recent toast messages
+toastLogExpanded: false, // Toast log expanded state
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -527,6 +539,11 @@ setTimeout(() => card.classList.remove('shield-flash'), 500);
 }
 
 function toast(msg, dur=1200) {
+// Add to history
+S.toastHistory.unshift(msg);
+if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20); // Keep last 20
+updateToastLog();
+// Show toast popup
 const t = document.createElement('div');
 t.className = 'toast';
 t.textContent = msg;
@@ -536,6 +553,48 @@ setTimeout(() => {
 t.classList.remove('show');
 setTimeout(() => t.remove(), 300);
 }, dur);
+}
+
+function initToastLog() {
+const existing = document.getElementById('toastLog');
+if(existing) return;
+const log = document.createElement('div');
+log.id = 'toastLog';
+log.className = 'toast-log minimized';
+log.onclick = (e) => {
+if(e.target.closest('.toast-log-header')) toggleToastLog();
+};
+document.body.appendChild(log);
+updateToastLog();
+}
+
+function toggleToastLog() {
+S.toastLogExpanded = !S.toastLogExpanded;
+updateToastLog();
+}
+
+function updateToastLog() {
+const log = document.getElementById('toastLog');
+if(!log) return;
+const mostRecent = S.toastHistory[0] || 'No messages yet';
+log.className = S.toastLogExpanded ? 'toast-log' : 'toast-log minimized';
+let html = `<div class="toast-log-header">
+<span>📜 Log</span>
+<span class="toast-log-toggle">${S.toastLogExpanded ? '▼' : '▲'}</span>
+</div>`;
+if(S.toastLogExpanded) {
+html += '<div class="toast-log-entries">';
+S.toastHistory.forEach((msg, idx) => {
+html += `<div class="toast-log-entry ${idx === 0 ? 'recent' : ''}">${msg}</div>`;
+});
+if(S.toastHistory.length === 0) {
+html += '<div class="toast-log-entry">No messages yet</div>';
+}
+html += '</div>';
+} else {
+html += `<div class="toast-log-entry recent">${mostRecent}</div>`;
+}
+log.innerHTML = html;
 }
 
 function showTutorialPop(flagName, message, onDismiss) {
@@ -5644,6 +5703,7 @@ window.onload = () => {
 console.log('[FROGGLE] window.onload fired');
 loadPermanent(); // Always load permanent data first
 console.log('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.tutorialsDisabled:', S.tutorialsDisabled);
+initToastLog(); // Initialize toast log UI
 mainTitlePage();
 console.log('[FROGGLE] mainTitlePage called');
 };
