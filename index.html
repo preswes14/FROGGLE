@@ -493,7 +493,141 @@ upd();
 return dmg; // Return actual damage dealt to HP (after shield)
 }
 
-// Tooltip system
+// ===== TUTORIAL SYSTEM =====
+// Centralized Tutorial Manager for Ribbleton combat tutorial
+const TutorialManager = {
+// Tutorial stage definitions
+stages: {
+'waiting_for_start': {allowedActions: []},
+'warrior_attack': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
+'targeting_wolf': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
+'healer_d20': {allowedActions: [{hero: 'Healer', sig: 'D20'}]},
+'d20_menu': {allowedActions: [{hero: 'Healer', sig: 'D20'}]},
+'enemy_turn_wait': {allowedActions: []},
+'enemy_turn_explained': {allowedActions: []},
+'healer_heal': {allowedActions: [{hero: 'Healer', sig: 'Heal'}]},
+'expand_targets': {allowedActions: [{hero: 'Healer', sig: 'Heal'}]},
+'finish_wolf': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
+'shield_sigil': {allowedActions: []},
+'free': {allowedActions: []} // Tutorial complete, allow all actions
+},
+
+// Check if an action is allowed in current tutorial stage
+canPerformAction(hero, sig) {
+if(!tutorialState || S.floor !== 0) return true; // Not in tutorial
+const stage = this.stages[tutorialState.stage];
+if(!stage) return true; // Unknown stage, allow
+if(tutorialState.stage === 'free') return true; // Tutorial complete
+
+const allowed = stage.allowedActions;
+if(allowed.length === 0) return false; // No actions allowed in this stage
+
+return allowed.some(a => a.hero === hero.n && a.sig === sig);
+},
+
+// Advance to next stage based on action completion
+advanceStage(context) {
+if(!tutorialState || S.floor !== 0) return;
+
+const {action, hero, round} = context;
+
+// Stage transitions based on completed actions
+if(tutorialState.stage === 'warrior_attack' && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
+tutorialState.stage = 'healer_d20';
+showTutorialPop('ribbleton_healer_d20', "Nice hit! Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
+S.activeIdx = 1;
+render();
+});
+}
+else if(tutorialState.stage === 'd20_menu' && hero === 'Healer') {
+tutorialState.stage = 'enemy_turn_wait';
+}
+else if(tutorialState.stage === 'expand_targets' && hero === 'Healer') {
+tutorialState.stage = 'finish_wolf';
+showTutorialPop('ribbleton_finish_wolf', "Now finish off that Wolf!", () => {
+S.activeIdx = 0;
+render();
+});
+}
+},
+
+// Handle round transitions during tutorial
+onRoundStart(round) {
+if(!tutorialState || S.floor !== 0) return;
+
+console.log('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
+
+// Round 2: Healer Heal prompt
+if(round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
+console.log('[TUTORIAL] Triggering PROMPT 6 - Healer Heal (stage:', tutorialState.stage, ')');
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+tutorialState.stage = 'healer_heal';
+upd();
+render();
+showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
+S.activeIdx = 1;
+render();
+});
+} else if(round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
+console.log('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+tutorialState.stage = 'healer_heal';
+upd();
+render();
+showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
+S.activeIdx = 1;
+render();
+});
+}
+// Round 3: Force Goblin to draw Shield, then PROMPT 9 + 10
+else if(round === 3 && tutorialState.stage === 'finish_wolf') {
+// Force Goblin to draw Shield
+const goblin = S.enemies.find(e => e.n === 'Goblin');
+if(goblin && !goblin.s.some(s => s.sig === 'Shield')) {
+goblin.s.push({sig:'Shield', level:1, perm:false});
+toast('Goblin drew Shield L1!');
+}
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+tutorialState.stage = 'shield_sigil';
+upd();
+render();
+// First show that enemies can get sigils
+showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! They draw from a pool specific to their type, and gain sigils over time.", () => {
+// Then explain this specific sigil
+showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies use their sigils AFTER they attack, then those sigils fall off. Try to finish him before he can Shield up!", () => {
+// PROMPT 10: Handoff
+showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
+tutorialState.stage = 'free';
+render();
+});
+});
+});
+}
+},
+
+// Handle enemy turn during tutorial
+onEnemyTurnStart() {
+if(!tutorialState || S.floor !== 0) return;
+if(tutorialState.stage === 'enemy_turn_wait') {
+S.locked = true;
+tutorialState.stage = 'enemy_turn_explained';
+showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack every turn, and they attack straight across from them!", () => {
+S.locked = false;
+});
+}
+}
+};
+
+// Tutorial system
 let tooltipTimeout = null;
 let currentTooltip = null;
 
@@ -812,7 +946,7 @@ log.innerHTML = html;
 
 function showTutorialPop(flagName, message, onDismiss) {
 console.log('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
-if(S.tutorialsDisabled || S.tutorialFlags[flagName]) {
+if(S.helpTipsDisabled || S.tutorialFlags[flagName]) {
 console.log('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
 if(onDismiss) onDismiss();
 return;
@@ -884,7 +1018,7 @@ effedUnlocked: S.effedUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
-tutorialsDisabled: S.tutorialsDisabled,
+helpTipsDisabled: S.helpTipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes
 }));
 }
@@ -905,7 +1039,7 @@ S.pedestal = j.pedestal || [];
 S.effedUnlocked = j.effedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
-S.tutorialsDisabled = j.tutorialsDisabled || false;
+S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
@@ -1047,8 +1181,8 @@ ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-
 }
 
 function newGame() {
-console.log('[FROGGLE] newGame called - runNumber:', S.runNumber, 'tutorialsDisabled:', S.tutorialsDisabled);
-if(S.runNumber === 1 && !S.tutorialsDisabled) {
+console.log('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
+if(S.runNumber === 1 && !S.helpTipsDisabled) {
 console.log('[FROGGLE] Showing tutorial story');
 showTutorialStory();
 } else {
@@ -1166,8 +1300,7 @@ showNarrativeSlide(slides, nextIndex);
 }
 
 function skipTutorialFromSlide() {
-S.tutorialsDisabled = true;
-savePermanent();
+// Skip to hero selection (Help/Tips remain ON by default)
 toast('Tutorial skipped! Going to hero selection...', 1200);
 setTimeout(() => title(), 500);
 }
@@ -1376,16 +1509,14 @@ render();
 function skipTutorialFromOverlay() {
 const overlay = document.querySelector('.tutorial-modal-backdrop');
 if(overlay) overlay.remove();
-S.tutorialsDisabled = true;
-savePermanent();
+// Skip to hero selection (Help/Tips remain ON by default)
 toast('Tutorial skipped! Going to hero selection...', 1200);
 setTimeout(() => title(), 500);
 }
 
 function skipTutorial() {
-S.tutorialsDisabled = true;
-savePermanent();
-toast('Tutorials disabled for all games');
+// This function is for legacy "skip tutorial" - just go to title
+toast('Going to hero selection...');
 title();
 }
 
@@ -1449,7 +1580,7 @@ function title() {
 console.log('[FROGGLE] title() called - Hero selection screen');
 // TUTORIAL: Run 1 selects Warrior + Healer after hero select screen
 const isRun1 = S.runNumber === 1;
-if(isRun1 && !S.tutorialsDisabled) {
+if(isRun1 && !S.helpTipsDisabled) {
 // Auto-select for tutorial but show the screen
 console.log('[FROGGLE] Auto-selecting Warrior + Healer for tutorial');
 sel = ['warrior', 'healer'];
@@ -1517,13 +1648,13 @@ ${S.tapoUnlocked ? `
 </div>`;
 
 console.log('[FROGGLE] title() innerHTML set successfully');
-if(!isRun1 || S.tutorialsDisabled) sel = [];
+if(!isRun1 || S.helpTipsDisabled) sel = [];
 
 // Update selection display
 updateSelectionDisplay();
 
 // If run 1 with tutorial, enable start button
-if(isRun1 && !S.tutorialsDisabled) {
+if(isRun1 && !S.helpTipsDisabled) {
 setTimeout(() => {
 const b = document.getElementById('start');
 if(b) { b.disabled = false; b.style.opacity = '1'; }
@@ -1767,7 +1898,7 @@ S.encampmentSelectedTargets = [];
 }
 render();
 // Tutorial: Explain tooltips on first combat
-if(f === 1 && !S.tutorialsDisabled && !S.tutorialFlags.ribbleton_tooltip_intro) {
+if(f === 1 && !S.helpTipsDisabled && !S.tutorialFlags.ribbleton_tooltip_intro) {
 showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile) any sigil to see what it does! This works on your heroes' sigils and enemies' sigils too.");
 }
 }
@@ -1821,41 +1952,11 @@ function act(sig, heroIdx) {
 // Hide any pending tooltips when action is selected
 hideTooltip();
 
-// RIBBLETON TUTORIAL: Check for scripted actions
-if(tutorialState && S.floor === 0) {
+// RIBBLETON TUTORIAL: Check for scripted actions using TutorialManager
 const h = S.heroes[heroIdx];
-// Stage: warrior_attack - Only allow Warrior to use Attack
-if(tutorialState.stage === 'warrior_attack') {
-if(h.n !== 'Warrior' || sig !== 'Attack') {
+if(!TutorialManager.canPerformAction(h, sig)) {
 toast("Follow the tutorial instructions!");
 return;
-}
-// Allow Attack, will transition in render when targeting
-}
-// Stage: healer_d20 - Only allow Healer to use D20
-else if(tutorialState.stage === 'healer_d20') {
-if(h.n !== 'Healer' || sig !== 'D20') {
-toast("Follow the tutorial instructions!");
-return;
-}
-// Will show D20 menu, PROMPT 4 will appear there
-}
-// Stage: healer_heal - Only allow Healer to use Heal
-else if(tutorialState.stage === 'healer_heal') {
-if(h.n !== 'Healer' || sig !== 'Heal') {
-toast("Follow the tutorial instructions!");
-return;
-}
-// Will transition to expand_targets when targeting
-}
-// Stage: finish_wolf - Only allow Warrior to Attack
-else if(tutorialState.stage === 'finish_wolf') {
-if(h.n !== 'Warrior' || sig !== 'Attack') {
-toast("Follow the tutorial instructions!");
-return;
-}
-// Let them finish the wolf
-}
 }
 
 if(S.locked) { toast('Wait for enemy turn!'); return; }
@@ -2507,37 +2608,9 @@ S.instancesRemaining = 0;
 S.totalInstances = 0;
 S.activeIdx = -1;
 
-// RIBBLETON TUTORIAL: Show prompts after actions
-if(tutorialState && S.floor === 0) {
+// RIBBLETON TUTORIAL: Check advancement after action using TutorialManager
 const h = S.heroes[heroIdx];
-console.log('[TUTORIAL] finishAction - stage:', tutorialState.stage, 'wolfDamaged:', tutorialState.wolfDamaged, 'hero:', h.n, 'round:', S.round);
-// After Warrior attacks Wolf and damages it -> PROMPT 3
-if((tutorialState.stage === 'targeting_wolf' || tutorialState.stage === 'warrior_attack') && tutorialState.wolfDamaged && h.n === 'Warrior' && S.round === 1) {
-console.log('[TUTORIAL] Triggering PROMPT 3 - Healer D20');
-tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Nice hit! Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
-S.activeIdx = 1; // Select Healer
-render();
-});
-checkTurnEnd();
-return;
-}
-// After D20 resolves and damages Wolf -> transition to enemy turn explanation
-else if(tutorialState.stage === 'd20_menu' && h.n === 'Healer') {
-tutorialState.stage = 'enemy_turn_wait';
-// PROMPT 5 will appear before enemy turn in checkTurnEnd
-}
-// After Healer heals -> PROMPT 8
-else if(tutorialState.stage === 'expand_targets' && h.n === 'Healer') {
-tutorialState.stage = 'finish_wolf';
-showTutorialPop('ribbleton_finish_wolf', "Now finish off that Wolf!", () => {
-S.activeIdx = 0; // Select Warrior
-render();
-});
-checkTurnEnd();
-return;
-}
-}
+TutorialManager.advanceStage({action: 'finish', hero: h.n, round: S.round});
 
 checkTurnEnd();
 render();
@@ -2551,17 +2624,9 @@ return S.acted.includes(actualIdx);
 if(allActedIncludingLS) {
 S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
-// RIBBLETON TUTORIAL: PROMPT 5 - Explain enemy turn before first enemy turn
-if(tutorialState && S.floor === 0 && tutorialState.stage === 'enemy_turn_wait') {
-console.log('[TUTORIAL] Triggering PROMPT 5 - Enemy Turn');
-tutorialState.stage = 'enemy_turn_explained';
-showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack every turn, and they attack straight across from them!", () => {
-console.log('[TUTORIAL] PROMPT 5 dismissed, starting enemy turn');
+// RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
+TutorialManager.onEnemyTurnStart();
 setTimeout(() => { S.locked = true; enemyTurn(); }, 500);
-});
-} else {
-setTimeout(() => { S.locked = true; enemyTurn(); }, 500);
-}
 }
 }
 
@@ -2956,68 +3021,12 @@ if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 if(checkCombatEnd()) return;
 S.round++;
 
-// RIBBLETON TUTORIAL: Handle round transitions
+// RIBBLETON TUTORIAL: Handle round transitions using TutorialManager
 if(tutorialState && S.floor === 0) {
 tutorialState.round = S.round;
-console.log('[TUTORIAL] Round transition - Round:', S.round, 'Stage:', tutorialState.stage);
-// Round 2: PROMPT 6 - Healer heal
-// Accept either 'enemy_turn_explained' or 'finish_wolf' stage (in case player killed wolf early)
-if(S.round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
-console.log('[TUTORIAL] Triggering PROMPT 6 - Healer Heal (stage:', tutorialState.stage, ')');
-S.turn = 'player';
-S.activeIdx = -1;
-S.acted = [];
-S.locked = false;
-tutorialState.stage = 'healer_heal';
-upd();
-render();
-showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
-S.activeIdx = 1; // Select Healer
-render();
-});
-return;
-} else if(S.round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
-console.log('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
-// Force the tutorial anyway to prevent it from being skipped
-S.turn = 'player';
-S.activeIdx = -1;
-S.acted = [];
-S.locked = false;
-tutorialState.stage = 'healer_heal';
-upd();
-render();
-showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Heal sigil! You can pick which order your heroes take their actions.", () => {
-S.activeIdx = 1; // Select Healer
-render();
-});
-return;
-}
-// Round 3: Force Goblin to draw Shield, then PROMPT 9 + 10
-else if(S.round === 3 && tutorialState.stage === 'finish_wolf') {
-// Force Goblin to draw Shield
-const goblin = S.enemies.find(e => e.n === 'Goblin');
-if(goblin && !goblin.s.some(s => s.sig === 'Shield')) {
-goblin.s.push({sig:'Shield', level:1, perm:false});
-toast('Goblin drew Shield L1!');
-}
-S.turn = 'player';
-S.activeIdx = -1;
-S.acted = [];
-S.locked = false;
-tutorialState.stage = 'shield_sigil';
-upd();
-render();
-// First show that enemies can get sigils
-showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! They draw from a pool specific to their type, and gain sigils over time.", () => {
-// Then explain this specific sigil
-showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies use their sigils AFTER they attack, then those sigils fall off. Try to finish him before he can Shield up!", () => {
-// PROMPT 10: Handoff
-showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
-tutorialState.stage = 'free';
-render();
-});
-});
-});
+TutorialManager.onRoundStart(S.round);
+// If onRoundStart handled the transition (showed a popup), return early
+if(S.turn === 'player') {
 return;
 }
 }
@@ -5493,6 +5502,10 @@ ${inGame ? `
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
 <span>Show Toast Log</span>
 </label>
+<label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
+<input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
+<span>💡 Show Help/Tips</span>
+</label>
 
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Reference</h3>
 <button class="btn" onclick="showSigilarium()" style="margin-bottom:0.5rem;background:#9333ea">📖 View Sigilarium</button>
@@ -5513,6 +5526,18 @@ function manualSave() {
 saveGame();
 toast('Game Saved!', 1200);
 closeSettingsMenu();
+}
+
+function toggleHelpTips(enabled) {
+S.helpTipsDisabled = !enabled;
+// If turning ON, reset all tutorial flags so they show again
+if(enabled) {
+S.tutorialFlags = {};
+toast('Help/Tips enabled! All tips reset and will show again.', 2000);
+} else {
+toast('Help/Tips disabled. No more popups!', 1200);
+}
+savePermanent();
 }
 
 function showSigilarium() {
@@ -5660,7 +5685,7 @@ render();
 window.onload = () => {
 console.log('[FROGGLE] window.onload fired');
 loadPermanent(); // Always load permanent data first
-console.log('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.tutorialsDisabled:', S.tutorialsDisabled);
+console.log('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
 initToastLog(); // Initialize toast log UI
 mainTitlePage();
 console.log('[FROGGLE] mainTitlePage called');
