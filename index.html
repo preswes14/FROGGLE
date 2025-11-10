@@ -70,8 +70,8 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 .card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
-.card.hero { background: #2c63c7; color: white; }
-.card.enemy { background: #b64141; color: white; }
+.card.hero { background: #2c63c7; color: white; width: 160px; }
+.card.enemy { background: #b64141; color: white; width: 160px; }
 .card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
 .card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
 .card.selectable:active { transform: scale(0.98); }
@@ -118,7 +118,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 }
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; max-width: 100%; }
 .sigil-row.compact { gap: 2px; }
-.sigil-row.compact .sigil { padding: 2px 6px; font-size: 0.75rem; min-height: 24px; }
+.sigil-row.compact .sigil { padding: 2px 5px; font-size: 0.7rem; min-height: 22px; border-width: 2px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .sigil.clickable { cursor: pointer; }
@@ -149,7 +149,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast-log { position: fixed; bottom: 80px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 0.5rem; max-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; transition: all 0.3s; }
+.toast-log { position: fixed; top: 10px; right: 60px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 0.5rem; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; transition: all 0.3s; }
 .toast-log.minimized { max-height: 40px; overflow: hidden; cursor: pointer; }
 .toast-log.minimized:hover { background: linear-gradient(#f7f1e3, #e7e1d3); }
 .toast-log-header { font-weight: bold; font-size: 0.85rem; margin-bottom: 0.25rem; padding: 0.25rem 0.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
@@ -192,11 +192,11 @@ console.log('%cIf you see a different version in the UI, clear your cache and re
 // ===== GAME DATA =====
 // Hero images (base64 encoded PNG)
 const HERO_IMAGES = {
-        warrior: 'warrior-pixel.png',
-        tank: 'tankpixel.png',
-        mage: 'magepixel.png',
-        healer: 'healerpixel.png',
-        tapo: 'tapopixel.png'
+        warrior: 'warriorfull.png',
+        tank: 'tankfull.png',
+        mage: 'magefull.png',
+        healer: 'healerfull.png',
+        tapo: 'tapofull.png'
     };
 
 // Hero portrait images for selection screen
@@ -375,6 +375,7 @@ debugMode: false, // Debug mode toggle
 // Toast log
 toastHistory: [], // Recent toast messages
 toastLogExpanded: false, // Toast log expanded state
+toastLogVisible: false, // Toast log visibility toggle
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -561,6 +562,7 @@ if(existing) return;
 const log = document.createElement('div');
 log.id = 'toastLog';
 log.className = 'toast-log minimized';
+log.style.display = S.toastLogVisible ? 'block' : 'none';
 log.onclick = (e) => {
 if(e.target.closest('.toast-log-header')) toggleToastLog();
 };
@@ -571,6 +573,14 @@ updateToastLog();
 function toggleToastLog() {
 S.toastLogExpanded = !S.toastLogExpanded;
 updateToastLog();
+}
+
+function toggleToastLogVisibility(visible) {
+S.toastLogVisible = visible;
+const log = document.getElementById('toastLog');
+if(log) {
+log.style.display = visible ? 'block' : 'none';
+}
 }
 
 function updateToastLog() {
@@ -807,9 +817,9 @@ console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:#1a1a1a;padding:1rem;padding-top:2rem;">
 <!-- Title image container -->
-<div style="position:relative;max-width:90%;max-height:70vh;width:auto;height:auto;margin-bottom:1rem">
+<div style="position:relative;max-width:90%;max-height:55vh;width:auto;height:auto;margin-bottom:1.5rem">
 <img src="assets/title-screen.png" style="width:100%;height:auto;object-fit:contain;border-radius:8px;border:3px solid #000;display:block">
 
 <!-- Version label overlaid on image -->
@@ -1363,7 +1373,7 @@ cardEl.innerHTML = `
 <div onclick="toggleHeroSelection('${h}')" style="cursor:pointer;background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3)">
 <div style="text-align:center">
 <div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;image-rendering:pixelated">` : ''}
+${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
 <div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
 <div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
 <div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
@@ -3030,7 +3040,7 @@ if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>` : ''}
+${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
 const activeSigils = [...h.s, ...(h.ts || [])];
@@ -3156,7 +3166,7 @@ S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes
 
 S.heroes.forEach((h,i) => {
 html += `<div class="combat-lane" data-lane="${i+1}">`;
-html += '<div style="display:flex;gap:0.75rem;justify-content:space-between;align-items:flex-start">';
+html += '<div style="display:flex;gap:0.3rem;justify-content:space-between;align-items:flex-start">';
 
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto">';
@@ -3181,19 +3191,19 @@ if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
-// Power at top
-html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}</div>`;
-// Hero image
-if(heroImage) html += `<div style="text-align:center;margin-bottom:0.25rem"><img src="${heroImage}" style="width:48px;height:48px;image-rendering:pixelated"></div>`;
-// HP below image
-html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${hp}</div>`;
+// Top row: POW - portrait - HP (horizontal)
+html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
+html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
+if(heroImage) html += `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">`;
+html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
+html += `</div>`;
 // Extra info
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils with smart wrapping
 const activeSigils = [...h.s, ...(h.ts || [])];
 const sigilCount = activeSigils.length;
-const compactClass = sigilCount >= 7 ? 'compact' : '';
+const compactClass = sigilCount >= 6 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">`;
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
@@ -3235,7 +3245,7 @@ if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margi
 html += '<div class="sigil-divider"></div>';
 // Sigils
 const recruitTotalSigils = recruit.s.length + 1;
-const compactClass = recruitTotalSigils >= 7 ? 'compact' : '';
+const compactClass = recruitTotalSigils >= 6 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
@@ -3249,7 +3259,7 @@ html += '</div></div>';
 html += '</div>'; // Close hero section
 
 // Enemy section (right side of lane)
-html += '<div style="flex:1;display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:flex-end;align-items:flex-start;min-height:80px">';
+html += '<div style="flex:1;display:flex;flex-wrap:wrap;gap:0.3rem;justify-content:flex-end;align-items:flex-start;min-height:80px">';
 const laneEnemies = enemyLanes[i] || [];
 if(laneEnemies.length === 0) {
 html += `<div style="flex:1;text-align:center;font-size:1.2rem;padding:1.5rem;background:rgba(0,0,0,0.1);border:3px dashed rgba(0,0,0,0.3);border-radius:8px;color:rgba(0,0,0,0.4);font-style:italic;display:flex;align-items:center;justify-content:center">No Enemies</div>`;
@@ -3281,7 +3291,7 @@ html += '<div class="sigil-divider"></div>';
 // Sigils with smart wrapping
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 const totalSigils = e.s.length + (hasAttackSigil ? 0 : 1);
-const compactClass = totalSigils >= 7 ? 'compact' : '';
+const compactClass = totalSigils >= 6 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">`;
 if(!hasAttackSigil) {
 html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
@@ -5535,6 +5545,12 @@ ${inGame ? `
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Game</h3>
 <button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
 ` : ''}
+
+<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Display</h3>
+<label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
+<input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
+<span>Show Toast Log</span>
+</label>
 
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Reference</h3>
 <button class="btn" onclick="showSigilarium()" style="margin-bottom:0.5rem;background:#9333ea">📖 View Sigilarium</button>
