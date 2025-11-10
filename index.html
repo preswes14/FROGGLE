@@ -190,17 +190,8 @@ console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size
 console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
 
 // ===== GAME DATA =====
-// Hero images (base64 encoded PNG)
+// Hero images
 const HERO_IMAGES = {
-        warrior: 'warriorfull.png',
-        tank: 'tankfull.png',
-        mage: 'magefull.png',
-        healer: 'healerfull.png',
-        tapo: 'tapofull.png'
-    };
-
-// Hero portrait images for selection screen
-const HERO_PORTRAITS = {
         warrior: 'warriorfull.png',
         tank: 'tankfull.png',
         mage: 'magefull.png',
@@ -289,6 +280,218 @@ const SIGIL_DESCRIPTIONS = {
 'Star': 'Multiply combat XP by (1 + Level×0.5). Stacks across heroes. L4 = 3× XP!',
 'Alpha': 'Grant target hero an extra action this turn. Can target self. Higher levels grant more actions.'
 };
+
+// ===== UTILITY FUNCTIONS =====
+// Unified dice rolling utility
+function rollDice(count, sides = 20) {
+const rolls = [];
+for(let i = 0; i < count; i++) {
+rolls.push(Math.ceil(Math.random() * sides));
+}
+const best = Math.max(...rolls);
+return {rolls, best};
+}
+
+// Helper for enemy attacks - handles targeting, damage, animations, and toast
+function executeEnemyAttackOnHeroes(enemy, targetCount, attackName = 'Base Attack') {
+const targets = selectEnemyTargets(enemy, targetCount);
+if(targets.length === 0) return 0;
+
+const damagedIds = [];
+const targetNames = [];
+targets.forEach(target => {
+if(target.h > 0) {
+targetNames.push(target.n);
+damagedIds.push(target.id);
+// Apply damage silently (we'll show one toast for all targets)
+applyDamageToTarget(target, enemy.p, {isHero: true, silent: true});
+}
+});
+
+// Trigger all animations simultaneously
+damagedIds.forEach(id => triggerHitAnimation(id));
+
+if(targetNames.length > 0) {
+toast(`${enemy.n}'s ${attackName} hit ${targetNames.join(', ')} for ${enemy.p} damage each!`);
+}
+
+return targets.length;
+}
+
+// ===== RENDER HELPERS =====
+// Render encampment enemy selection screen
+function renderEncampmentSelection() {
+const kills = S.encampmentEarlyKills;
+const selected = S.encampmentSelectedTargets.length;
+let html = '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
+html += `<div style="font-size:1.1rem;color:#dc2626">Encampment Early Kill</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Click ${kills} enem${kills>1?'ies':'y'} to remove before combat (${selected}/${kills} selected)</div>`;
+html += '</div>';
+html += '<div class="combat-grid">';
+html += '<div class="column heroes">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
+S.heroes.forEach((h,i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+html += `<div class="card hero">
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
+${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
+<div class="sigil-divider"></div>
+<div class="sigil-row">`;
+const activeSigils = [...h.s, ...(h.ts || [])];
+activeSigils.forEach(s => {
+const lvl = getLevel(s, i);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+});
+html += '</div>';
+html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
+html += '</div>';
+});
+html += '</div>';
+html += '<div class="column enemies">';
+html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
+const enemyLanes = {};
+S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
+S.heroes.forEach((hero, laneIdx) => {
+const laneEnemies = enemyLanes[laneIdx] || [];
+html += `<div class="combat-lane" data-lane="${laneIdx+1}">`;
+if(laneEnemies.length === 0) {
+html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
+} else {
+laneEnemies.forEach(e => {
+const isSelected = S.encampmentSelectedTargets.includes(e.id);
+let cardClasses = 'card enemy targetable';
+if(isSelected) cardClasses += ' targeted';
+const extra = [];
+if(e.sh > 0) extra.push(`${e.sh}🛡`);
+const encampmentGhostCharges = e.ghostCharges || 0;
+if(encampmentGhostCharges > 0) extra.push(`${encampmentGhostCharges}${sigilIconOnly('Ghost')}`);
+if(isSelected) extra.push('❌');
+const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
+html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
+<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
+<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">`;
+const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
+if(!hasAttackSigil) {
+html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+}
+e.s.forEach(sigil => {
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const permStyle = sigil.perm ? 'engraved' : cl;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+});
+html += '</div></div>';
+});
+}
+html += '</div>';
+});
+html += '</div></div>';
+if(selected >= kills) {
+html += '<button class="btn" style="background:#dc2626;margin-top:1rem" onclick="confirmEncampmentKills()">Confirm Removals</button>';
+}
+return html;
+}
+
+// Render combat status header
+function renderCombatStatusHeader() {
+let html = '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
+if(S.turn!=='player') {
+html += 'Enemy Turn…';
+} else if(S.pending === 'D20_TARGET') {
+const heroIdx = S.d20HeroIdx;
+const maxTargets = 1 + getLevel('Expand', heroIdx);
+const selected = S.targets.length;
+html += `<div style="color:#b64141;font-size:1.1rem">${S.d20Action} (DC ${S.d20DC})</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select target enemy (${selected}/${maxTargets})</div>`;
+} else if(S.pending) {
+const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
+const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
+if(isMultiInstance(S.pending)) {
+const targetsInInstance = S.currentInstanceTargets.length;
+html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${targetsInInstance}/${targetsPerInstance})</div>`;
+html += `<div style="font-size:0.75rem;opacity:0.8;margin-top:0.25rem">${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
+} else {
+const selected = S.targets.length;
+const max = targetsPerInstance;
+html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
+html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${selected}/${max})</div>`;
+}
+} else if(S.activeIdx === -1) {
+const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
+html += `<div style="font-size:1.1rem">Choose Hero to Act</div>`;
+html += `<div style="font-size:0.8rem;opacity:0.8;margin-top:0.25rem">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+} else {
+const h = S.heroes[S.activeIdx];
+if(h) {
+if(S.asteriskPrimed) html += `${h.n}'s Turn - Asterisk ×${S.asteriskMultiplier} PRIMED!`;
+else if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
+else html += `${h.n}'s Turn`;
+}
+}
+html += '</div>';
+return html;
+}
+
+// Unified damage application with shield/ghost/laststand handling
+function applyDamageToTarget(target, rawDamage, options = {}) {
+let dmg = rawDamage;
+
+// Handle shield absorption
+if(target.sh > 0) {
+if(target.sh >= rawDamage) {
+target.sh -= rawDamage;
+dmg = 0;
+} else {
+dmg = rawDamage - target.sh;
+target.sh = 0;
+}
+}
+
+// Apply damage to HP
+target.h -= dmg;
+
+// Handle lethal damage
+if(target.h <= 0) {
+if(target.g > 0) {
+// Ghost charge cancels death
+target.g--;
+target.h += dmg;
+if(!options.silent) {
+toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
+}
+} else {
+// Death/Last Stand
+target.h = 0;
+if(options.isHero) {
+// Heroes enter Last Stand
+target.ls = true;
+target.lst = 0;
+if(!options.silent) {
+toast(`${target.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
+}
+} else {
+// Enemies die - award gold/XP and schedule removal
+if(!options.skipRewards) {
+S.gold += target.g;
+S.combatGold += target.g;
+S.combatXP += target.x;
+upd();
+}
+}
+}
+}
+
+return dmg; // Return actual damage dealt to HP (after shield)
+}
 
 // Tooltip system
 let tooltipTimeout = null;
@@ -795,14 +998,9 @@ S.neutralDeck.push(`${base}2`);
 // ===== D20 ROLLS FOR NEUTRALS =====
 function rollD20Neutral() {
 const d20Level = S.sig.D20 || 1;
-const rolls = [];
-for(let i = 0; i < d20Level; i++) {
-rolls.push(Math.ceil(Math.random() * 20));
-}
-const best = Math.max(...rolls);
 // TUTORIAL: Explain D20 level affects neutral rolls
 showTutorialPop('neutral_d20_level', "This D20 roll uses the same Level as your D20 sigil in combat - so you can up your chances of success in neutral rooms by leveling up that Sigil!");
-return {rolls, best};
+return rollDice(d20Level, 20);
 }
 
 function showD20Result(rolls, best) {
@@ -1348,7 +1546,7 @@ tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal
 };
 
 const hero = heroData[heroType];
-const portrait = HERO_PORTRAITS[heroType] || '';
+const portrait = HERO_IMAGES[heroType] || '';
 
 // Toggle selection
 const isSelected = sel.includes(heroType);
@@ -1854,17 +2052,16 @@ const h = S.heroes[heroIdx];
 const dc = S.d20DC;
 const actionName = S.d20Action;
 const d20Level = getLevel('D20', heroIdx);
-const rolls = [];
+let rolls, best;
 
 // RIBBLETON TUTORIAL: Fudge roll to always succeed (17-18)
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu') {
 const fudgedRoll = 17 + Math.floor(Math.random() * 2); // 17 or 18
-rolls.push(fudgedRoll);
+rolls = [fudgedRoll];
+best = fudgedRoll;
 } else {
-for(let i = 0; i < d20Level; i++) rolls.push(Math.ceil(Math.random() * 20));
+({rolls, best} = rollDice(d20Level, 20));
 }
-
-const best = Math.max(...rolls);
 const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}`;
 
 if(best >= dc) {
@@ -2239,34 +2436,19 @@ toast('Prince Quest completed! Ring retrieved!', 1800);
 }
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
-h.h -= totalDmg;
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
 toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
-}
-if(h.h <= 0 && !h.ls) {
-if(h.g > 0) {
-h.g--;
-h.h += totalDmg;
-toast(`${h.n}'s Ghost charge cancelled the lethal hit!`);
-} else {
-h.h = 0;
-h.ls = true;
-h.lst = 0;
-toast(`${h.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
-}
+applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
 }
 }
 
 function dealDamageToEnemy(enemy, dmg) {
 triggerHitAnimation(enemy.id);
-if(enemy.sh > 0) {
-if(enemy.sh >= dmg) { enemy.sh -= dmg; return; }
-else { dmg -= enemy.sh; enemy.sh = 0; }
-}
-enemy.h -= dmg;
+
+// Apply damage using unified function
+applyDamageToTarget(enemy, dmg, {isHero: false, skipRewards: false});
 
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && enemy.n === 'Wolf') {
@@ -2274,29 +2456,18 @@ console.log('[TUTORIAL] Wolf took damage! HP now:', enemy.h, 'wolfDamaged was:',
 if(enemy.h > 0 && !tutorialState.wolfDamaged) {
 tutorialState.wolfDamaged = true;
 console.log('[TUTORIAL] Set wolfDamaged = true');
-// Show PROMPT 3 after this action finishes
 }
 }
 
-if(enemy.h <= 0) {
-if(enemy.g > 0) {
-enemy.g--;
-enemy.h += dmg;
-toast(`${enemy.n}'s Ghost charge cancelled the lethal hit!`, 1200);
-return;
-}
-enemy.h = 0;
-
+// Handle enemy death
+if(enemy.h <= 0 && enemy.g === 0) {
 // RIBBLETON TUTORIAL: Track Wolf/Goblin kills
 if(tutorialState && S.floor === 0) {
 if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
 }
 
-S.gold += enemy.g;
-S.combatGold += enemy.g;
-S.combatXP += enemy.x;
-upd();
+// Remove enemy after animation
 setTimeout(() => {
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 render();
@@ -2712,59 +2883,7 @@ return targets;
 function executeEnemyBaseAttack(enemy) {
 const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
-const targets = selectEnemyTargets(enemy, targetCount);
-
-if(targets.length === 0) return;
-
-const damagedIds = [];
-const targetNames = [];
-targets.forEach(target => {
-if(target.h > 0) {
-targetNames.push(target.n);
-damagedIds.push(target.id);
-// Apply damage without triggering animation yet
-if(target.sh > 0) {
-if(target.sh >= enemy.p) {
-target.sh -= enemy.p;
-} else {
-const dmg = enemy.p - target.sh;
-target.sh = 0;
-target.h -= dmg;
-// Check for ghost/last stand
-if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
-target.h += dmg;
-} else {
-target.h = 0;
-target.ls = true;
-target.lst = 0;
-}
-}
-}
-} else {
-target.h -= enemy.p;
-// Check for ghost/last stand
-if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
-target.h += enemy.p;
-} else {
-target.h = 0;
-target.ls = true;
-target.lst = 0;
-}
-}
-}
-}
-});
-
-// Trigger all animations simultaneously
-damagedIds.forEach(id => triggerHitAnimation(id));
-
-if(targetNames.length > 0) {
-toast(`${enemy.n}'s Base Attack hit ${targetNames.join(', ')} for ${enemy.p} damage each!`);
-}
+executeEnemyAttackOnHeroes(enemy, targetCount, 'Base Attack');
 }
 
 function executeEnemySigil(enemy, sigil) {
@@ -2774,58 +2893,7 @@ const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
 
 for(let i = 0; i < level; i++) {
-const targets = selectEnemyTargets(enemy, targetCount);
-if(targets.length === 0) continue;
-
-const damagedIds = [];
-const targetNames = [];
-targets.forEach(target => {
-if(target.h > 0) {
-targetNames.push(target.n);
-damagedIds.push(target.id);
-// Apply damage without triggering animation yet
-if(target.sh > 0) {
-if(target.sh >= enemy.p) {
-target.sh -= enemy.p;
-} else {
-const dmg = enemy.p - target.sh;
-target.sh = 0;
-target.h -= dmg;
-// Check for ghost/last stand
-if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
-target.h += dmg;
-} else {
-target.h = 0;
-target.ls = true;
-target.lst = 0;
-}
-}
-}
-} else {
-target.h -= enemy.p;
-// Check for ghost/last stand
-if(target.h <= 0) {
-if(target.g > 0) {
-target.g--;
-target.h += enemy.p;
-} else {
-target.h = 0;
-target.ls = true;
-target.lst = 0;
-}
-}
-}
-}
-});
-
-// Trigger all animations simultaneously
-damagedIds.forEach(id => triggerHitAnimation(id));
-
-if(targetNames.length > 0) {
-toast(`${enemy.n}'s Attack ${i+1}/${level} hit ${targetNames.join(', ')} for ${enemy.p} damage each!`);
-}
+executeEnemyAttackOnHeroes(enemy, targetCount, `Attack ${i+1}/${level}`);
 }
 } else if(sig === 'Shield') {
 const shieldAmt = 2 * enemy.p * level;
@@ -2870,24 +2938,11 @@ toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
 
 function dealDamageToHero(hero, dmg, source) {
 triggerHitAnimation(hero.id);
-if(hero.sh > 0) {
-if(hero.sh >= dmg) { hero.sh -= dmg; toast(`${hero.n}'s shield absorbed ${dmg} damage!`); return; }
-else { dmg -= hero.sh; hero.sh = 0; }
-}
-hero.h -= dmg;
-toast(`${source} dealt ${dmg} damage to ${hero.n}!`);
-if(hero.h <= 0) {
-if(hero.g > 0) {
-hero.g--;
-hero.h += dmg;
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+const actualDamage = applyDamageToTarget(hero, dmg, {isHero: true});
+if(actualDamage > 0) {
+toast(`${source} dealt ${actualDamage} damage to ${hero.n}!`);
 } else {
-hero.h = 0;
-hero.ls = true;
-hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
-}
+toast(`${hero.n}'s shield absorbed ${dmg} damage!`);
 }
 }
 
@@ -3020,87 +3075,9 @@ return false;
 
 function render() {
 const v = document.getElementById('gameView');
-let html = '';
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
-const kills = S.encampmentEarlyKills;
-const selected = S.encampmentSelectedTargets.length;
-html += '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
-html += `<div style="font-size:1.1rem;color:#dc2626">Encampment Early Kill</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Click ${kills} enem${kills>1?'ies':'y'} to remove before combat (${selected}/${kills} selected)</div>`;
-html += '</div>';
-html += '<div class="combat-grid">';
-html += '<div class="column heroes">';
-html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
-S.heroes.forEach((h,i) => {
-const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-const extra = [];
-if(h.sh > 0) extra.push(`${h.sh}🛡`);
-if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
-html += `<div class="card hero">
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
-<div class="sigil-divider"></div>
-<div class="sigil-row">`;
-const activeSigils = [...h.s, ...(h.ts || [])];
-activeSigils.forEach(s => {
-const lvl = getLevel(s, i);
-const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
-});
-html += '</div>';
-html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
-html += '</div>';
-});
-html += '</div>';
-html += '<div class="column enemies">';
-html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
-const enemyLanes = {};
-S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
-S.heroes.forEach((hero, laneIdx) => {
-const laneEnemies = enemyLanes[laneIdx] || [];
-html += `<div class="combat-lane" data-lane="${laneIdx+1}">`;
-if(laneEnemies.length === 0) {
-html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
-} else {
-laneEnemies.forEach(e => {
-const isSelected = S.encampmentSelectedTargets.includes(e.id);
-let cardClasses = 'card enemy targetable';
-if(isSelected) cardClasses += ' targeted';
-const extra = [];
-if(e.sh > 0) extra.push(`${e.sh}🛡`);
-// Only show ghost charges if enemy actually has them (not gold drops!)
-const encampmentGhostCharges = e.ghostCharges || 0;
-if(encampmentGhostCharges > 0) extra.push(`${encampmentGhostCharges}${sigilIconOnly('Ghost')}`);
-if(isSelected) extra.push('❌');
-const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
-<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
-<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
-<div class="sigil-divider"></div>
-<div class="sigil-row">`;
-// Show base Attack ONLY if enemy doesn't have Attack in their sigil list
-const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
-if(!hasAttackSigil) {
-html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
-}
-e.s.forEach(sigil => {
-const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),500)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
-});
-html += '</div></div>';
-});
-}
-html += '</div>'; // Close combat-lane
-});
-html += '</div></div>';
-if(selected >= kills) {
-html += '<button class="btn" style="background:#dc2626;margin-top:1rem" onclick="confirmEncampmentKills()">Confirm Removals</button>';
-}
-v.innerHTML = html;
+v.innerHTML = renderEncampmentSelection();
 return;
 }
 
@@ -3124,42 +3101,7 @@ return;
 }
 }
 
-html += '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
-if(S.turn!=='player') {
-html += 'Enemy Turn…';
-} else if(S.pending === 'D20_TARGET') {
-const heroIdx = S.d20HeroIdx;
-const maxTargets = 1 + getLevel('Expand', heroIdx);
-const selected = S.targets.length;
-html += `<div style="color:#b64141;font-size:1.1rem">${S.d20Action} (DC ${S.d20DC})</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select target enemy (${selected}/${maxTargets})</div>`;
-} else if(S.pending) {
-const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
-const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
-if(isMultiInstance(S.pending)) {
-const targetsInInstance = S.currentInstanceTargets.length;
-html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${targetsInInstance}/${targetsPerInstance})</div>`;
-html += `<div style="font-size:0.75rem;opacity:0.8;margin-top:0.25rem">${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
-} else {
-const selected = S.targets.length;
-const max = targetsPerInstance;
-html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${selected}/${max})</div>`;
-}
-} else if(S.activeIdx === -1) {
-const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
-html += `<div style="font-size:1.1rem">Choose Hero to Act</div>`;
-html += `<div style="font-size:0.8rem;opacity:0.8;margin-top:0.25rem">${remaining} hero${remaining>1?'es':''} remaining</div>`;
-} else {
-const h = S.heroes[S.activeIdx];
-if(h) {
-if(S.asteriskPrimed) html += `${h.n}'s Turn - Asterisk ×${S.asteriskMultiplier} PRIMED!`;
-else if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
-else html += `${h.n}'s Turn`;
-}
-}
-html += '</div>';
+let html = renderCombatStatusHeader();
 // New layout: Each hero and their enemies in a horizontal lane
 const enemyLanes = {};
 S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
