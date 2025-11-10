@@ -1507,14 +1507,20 @@ showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile)
 
 function getLevel(sig, heroIdx) {
 const h = S.heroes[heroIdx];
+// Star, Asterisk, and Expand are global passives - all heroes get them when upgraded
+if(sig === 'Star' || sig === 'Asterisk' || sig === 'Expand') {
+let base = S.sig[sig] || 0;
+// Special case: Mage and Healer get +1 to Expand
+if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return base + 1;
+return base;
+}
+// For other sigils, check if hero has it
 const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
 if(!hasSigil) return 0;
 let base = S.sig[sig] || 0;
 // Actives start at level 1 minimum, passives start at 0
 const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
 if(actives.includes(sig) && base === 0) base = 1;
-// Special case: Mage and Healer get +1 to Expand
-if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return base + 1;
 return base;
 }
 
@@ -4006,6 +4012,8 @@ v.innerHTML = `
 
 // ===== 5. ORACLE =====
 function showOracle1() {
+// Mark tutorial as seen so future runs have random neutrals
+S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
 let html = `
 <div class="neutral-container">
@@ -4454,7 +4462,7 @@ function showStatue5() {
 const v = document.getElementById('gameView');
 let html = `
 <div class="neutral-container">
-<img src="assets/neutrals/statue2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
+<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:600px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
 <div class="neutral-title">Statue Unfurls</div>
 <div class="neutral-desc">The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled.</div>
 <div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>
