@@ -1228,18 +1228,16 @@ console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:#1a1a1a;padding:1rem;padding-top:2rem;overflow-y:auto;">
-<!-- Title image container -->
-<div style="position:relative;max-width:90%;width:auto;margin-bottom:1rem;flex-shrink:0">
-<img src="assets/title-screen.png" style="width:100%;max-height:40vh;height:auto;object-fit:contain;border-radius:8px;border:3px solid #000;display:block">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:#1a1a1a;padding-bottom:2rem;overflow-y:auto;position:relative">
+<!-- Title image as background -->
+<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
-<!-- Version label overlaid on image -->
-<div style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5)">
+<!-- Version label -->
+<div style="position:absolute;top:1rem;right:1rem;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5);z-index:1">
 <p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.91 BETA</p>
 </div>
-</div>
 
-<!-- Buttons below Tapo -->
+<!-- Buttons -->
 <div style="display:flex;gap:0.5rem;width:90%;max-width:500px;flex-shrink:0">
 <!-- New Game: half width -->
 <button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.5);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
@@ -1390,16 +1388,18 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoFlip 3s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce 1s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 </p>
 </div>
 <style>
-@keyframes tapoFlip {
-0%, 49% { transform: scaleX(1); }
-50%, 100% { transform: scaleX(-1); }
+@keyframes tapoBounce {
+0%, 100% { transform: translateY(0) scaleX(1); }
+25% { transform: translateY(-20px) scaleX(1); }
+50% { transform: translateY(0) scaleX(-1); }
+75% { transform: translateY(-20px) scaleX(-1); }
 }
 </style>
 `
@@ -1776,7 +1776,8 @@ const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
 const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`).join('');
 cardEl.innerHTML = `
-<div onclick="toggleHeroSelection('${h}')" style="cursor:pointer;background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto">
+<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
+onclick="event.stopPropagation();toggleHeroSelection('${h}')"
 <div style="text-align:center">
 <div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
@@ -3196,7 +3197,47 @@ html += `<div class="combat-lane">`;
 html += '<div style="display:flex;gap:2rem;justify-content:center;align-items:stretch">';
 
 // Hero section (left side of lane)
-html += '<div style="flex:0 0 auto;display:flex;flex-direction:column">';
+html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
+
+// Show recruit BEHIND (before) hero if exists
+if(S.recruits) {
+const heroRecruits = S.recruits.filter(r => r.recruitedBy === i);
+if(heroRecruits.length > 0) {
+// Sort by POW descending, then by current HP descending
+heroRecruits.sort((a, b) => {
+if(b.p !== a.p) return b.p - a.p;
+return b.h - a.h;
+});
+const recruit = heroRecruits[0];
+const extra = [];
+if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
+const recruitGhostCharges = recruit.ghostCharges || 0;
+if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
+if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
+html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
+// Power at top
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
+// Recruited label with emoji
+html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">🤝</div>`;
+// HP
+html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
+// Extra info
+if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
+html += '<div class="sigil-divider"></div>';
+// Sigils
+const recruitTotalSigils = recruit.s.length + 1;
+const compactClass = recruitTotalSigils >= 6 ? 'compact' : '';
+html += `<div class="sigil-row ${compactClass}">
+<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+recruit.s.forEach(sigil => {
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+const permStyle = sigil.perm ? 'engraved' : cl;
+html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+});
+html += '</div></div>';
+}
+}
+
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const isActive = S.activeIdx === i;
 const isTargetable = S.pending && needsHeroTarget(S.pending);
@@ -3218,7 +3259,9 @@ if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
-// Top row: POW - portrait - HP (horizontal)
+// Name at top
+html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
+// POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
 if(heroImage) html += `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">`;
@@ -3252,39 +3295,6 @@ ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)"
 });
 html += '</div>';
 html += '</div>';
-// Show recruit for this hero if exists
-if(S.recruits) {
-const recruit = S.recruits.find(r => r.recruitedBy === i);
-if(recruit) {
-const extra = [];
-if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
-// Only show ghost charges if recruit actually has them (not gold drops!)
-const recruitGhostCharges = recruit.ghostCharges || 0;
-if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
-html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
-// Power at top
-html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
-// Recruited label with emoji
-html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">🤝</div>`;
-// HP
-html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
-// Extra info
-if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
-html += '<div class="sigil-divider"></div>';
-// Sigils
-const recruitTotalSigils = recruit.s.length + 1;
-const compactClass = recruitTotalSigils >= 6 ? 'compact' : '';
-html += `<div class="sigil-row ${compactClass}">
-<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
-recruit.s.forEach(sigil => {
-const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
-});
-html += '</div></div>';
-}
-}
 html += '</div>'; // Close hero section
 
 // Divider between heroes and enemies
