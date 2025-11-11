@@ -1240,9 +1240,9 @@ console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;background:#1a1a1a;padding:1rem;padding-top:2rem;">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;gap:1rem;">
 <!-- Title image container -->
-<div style="position:relative;max-width:90%;max-height:55vh;width:auto;height:auto;margin-bottom:1.5rem">
+<div style="position:relative;max-width:90%;max-height:45vh;width:auto;height:auto;flex-shrink:1">
 <img src="assets/title-screen.png" style="width:100%;height:auto;object-fit:contain;border-radius:8px;border:3px solid #000;display:block">
 
 <!-- Version label overlaid on image -->
@@ -1252,7 +1252,7 @@ v.innerHTML = `
 </div>
 
 <!-- Buttons below Tapo -->
-<div style="display:flex;gap:0.5rem;width:90%;max-width:500px">
+<div style="display:flex;gap:0.5rem;width:90%;max-width:500px;flex-shrink:0">
 <!-- New Game: half width -->
 <button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.5);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
 
@@ -1263,9 +1263,6 @@ ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-
 <button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(59,130,246,0.85);border:2px solid #3b82f6;font-weight:600;flex:1">📤</button>
 <button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(168,85,247,0.85);border:2px solid #a855f7;font-weight:600;flex:1">📥</button>
 </div>
-<label style="font-size:0.7rem;cursor:pointer;user-select:none;color:white;background:rgba(0,0,0,0.6);padding:0.3rem 0.5rem;border-radius:4px;text-align:center;border:1px solid rgba(255,255,255,0.3)">
-<input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)" style="margin-right:0.25rem"> Debug
-</label>
 </div>
 </div>
 </div>`;
@@ -1669,6 +1666,8 @@ let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
 console.log('[FROGGLE] title() called - Hero selection screen');
+// Reset selection first
+sel = [];
 // TUTORIAL: Run 1 selects Warrior + Healer after hero select screen
 const isRun1 = S.runNumber === 1;
 if(isRun1 && !S.helpTipsDisabled) {
@@ -1739,7 +1738,6 @@ ${S.tapoUnlocked ? `
 </div>`;
 
 console.log('[FROGGLE] title() innerHTML set successfully');
-if(!isRun1 || S.helpTipsDisabled) sel = [];
 
 // Update selection display
 updateSelectionDisplay();
@@ -3207,7 +3205,7 @@ S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes
 
 S.heroes.forEach((h,i) => {
 html += `<div class="combat-lane" data-lane="${i+1}">`;
-html += '<div style="display:flex;gap:0.3rem;justify-content:space-between;align-items:flex-start">';
+html += '<div style="display:flex;gap:1rem;justify-content:center;align-items:flex-start">';
 
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto">';
@@ -3255,7 +3253,9 @@ const usedInstances = S.totalInstances - S.instancesRemaining;
 visualLvl = Math.max(0, lvl - usedInstances);
 }
 const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
-const canClick = !S.acted.includes(i) && h.st === 0 && !S.pending && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk','Alpha'].includes(s);
+// Allow clicking sigils if: hero hasn't acted, not stunned, and either (no pending action OR pending but no instances committed yet)
+const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances);
+const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk','Alpha'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
@@ -3300,7 +3300,7 @@ html += '</div></div>';
 html += '</div>'; // Close hero section
 
 // Enemy section (right side of lane)
-html += '<div style="flex:1;display:flex;flex-wrap:wrap;gap:0.3rem;justify-content:flex-end;align-items:flex-start;min-height:80px">';
+html += '<div style="flex:0 0 auto;display:flex;flex-wrap:wrap;gap:0.3rem;justify-content:flex-start;align-items:flex-start;min-height:80px">';
 const laneEnemies = enemyLanes[i] || [];
 if(laneEnemies.length === 0) {
 html += `<div style="flex:1;text-align:center;font-size:1.2rem;padding:1.5rem;background:rgba(0,0,0,0.1);border:3px dashed rgba(0,0,0,0.3);border-radius:8px;color:rgba(0,0,0,0.4);font-style:italic;display:flex;align-items:center;justify-content:center">No Enemies</div>`;
@@ -5622,6 +5622,15 @@ v.innerHTML = html;
 function toggleDebugMode(enabled) {
 S.debugMode = enabled;
 toast(enabled ? 'Debug Mode ON' : 'Debug Mode OFF', 1200);
+// Update debug button visibility in header
+const debugBtn = document.getElementById('debugBtn');
+if(debugBtn) debugBtn.style.display = enabled ? 'block' : 'none';
+// Refresh settings menu if open to show/hide debug tools button
+const settingsMenu = document.querySelector('[style*="z-index:30000"]');
+if(settingsMenu) {
+closeSettingsMenu();
+showSettingsMenu();
+}
 }
 
 function showDebugMenu() {
@@ -5718,6 +5727,13 @@ ${inGame ? `
 
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Reference</h3>
 <button class="btn" onclick="showSigilarium()" style="margin-bottom:0.5rem;background:#9333ea">📖 View Sigilarium</button>
+
+<h3 style="color:#fbbf24;margin:1rem 0 0.5rem 0">Debug</h3>
+<label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
+<input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
+<span>🛠️ Enable Debug Mode</span>
+</label>
+${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#fbbf24">🛠️ Open Debug Tools</button>` : ''}
 
 <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
