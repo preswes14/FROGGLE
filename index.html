@@ -24,10 +24,59 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .btn.secondary { background: #6b7280; }
 .choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; }
 .choice:active { transform: scale(0.98); background: #f0f0f0; }
-.neutral-container { background: white; border: 3px solid #000; border-radius: 8px; padding: 1.5rem; margin: 1rem auto; max-width: 500px; }
-.neutral-title { font-size: 1.5rem; font-weight: bold; text-align: center; margin-bottom: 1rem; }
-.neutral-desc { font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem; }
-.neutral-outcome { font-size: 0.9rem; padding: 0.75rem; background: #f0f0f0; border-radius: 6px; margin-bottom: 1rem; }
+.neutral-container {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 4px solid #000;
+  border-radius: 12px;
+  margin: 0.5rem auto;
+  max-width: 800px;
+  min-height: 600px;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+}
+.neutral-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.neutral-stats {
+  background: rgba(255,255,255,0.95);
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.neutral-narrative {
+  background: rgba(255,255,255,0.95);
+  border: 2px solid #000;
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 400px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.neutral-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
+.neutral-desc { font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.75rem; }
+.neutral-outcome { font-size: 0.85rem; padding: 0.75rem; background: #f0f0f0; border: 1px solid #666; border-radius: 6px; margin-bottom: 0.75rem; }
+.neutral-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.neutral-footer {
+  background: rgba(255,255,255,0.95);
+  border-top: 3px solid #000;
+  padding: 1rem;
+  border-radius: 0 0 8px 8px;
+}
 .dice-roll { font-size: 1.2rem; font-weight: bold; text-align: center; padding: 1rem; background: #2c63c7; color: white; border-radius: 6px; margin: 1rem 0; }
 /* Combat layout */
 .combat-grid { display: flex; gap: 0.75rem; margin-bottom: 1rem; justify-content: center; }
@@ -1139,6 +1188,48 @@ return rollDice(d20Level, 20);
 
 function showD20Result(rolls, best) {
 return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+}
+
+function buildNeutralHTML(options) {
+const {
+bgImage,
+title,
+description,
+outcomes = [],
+diceRoll = '',
+buttons = '',
+heroCards = '',
+showStats = true
+} = options;
+
+let html = `<div class="neutral-container" style="background-image: url('${bgImage}')">`;
+
+// Header with stats and narrative
+html += '<div class="neutral-header">';
+if(showStats) {
+html += `<div class="neutral-stats">💰 ${S.gold}G | 🎯 Floor ${S.floor}</div>`;
+}
+html += '<div class="neutral-narrative">';
+if(title) html += `<div class="neutral-title">${title}</div>`;
+if(description) html += `<div class="neutral-desc">${description}</div>`;
+if(diceRoll) html += `<div class="dice-roll">${diceRoll}</div>`;
+outcomes.forEach(outcome => {
+if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
+});
+html += '</div></div>'; // close narrative and header
+
+// Content area (for hero cards or empty space)
+if(heroCards) {
+html += `<div class="neutral-content"><div style="max-width:500px;width:100%">${heroCards}</div></div>`;
+}
+
+// Footer with buttons
+if(buttons) {
+html += `<div class="neutral-footer">${buttons}</div>`;
+}
+
+html += '</div>';
+return html;
 }
 
 // ===== MAIN TITLE PAGE =====
@@ -3512,15 +3603,16 @@ v.innerHTML = `
 // ===== 1. SHOPKEEPER =====
 function showShopkeeper1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/shopkeeper1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Potions for Sale</div>
-<div class="neutral-desc">A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper1.png',
+title: 'Potions for Sale',
+description: 'A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."',
+buttons: `
 <div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>
 <div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>
 <button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
-</div>`;
+`
+});
 }
 
 let shopSmallBought = false;
@@ -3529,12 +3621,16 @@ let shopLargeBought = false;
 function buySmallPotion() {
 if(S.gold < 3) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div><div style="max-width:400px;margin:0 auto">';
+let heroCards = '';
 S.heroes.forEach((h, idx) => {
-html += renderHeroCard(h, idx, `applySmallPotion(${idx})`);
+heroCards += renderHeroCard(h, idx, `applySmallPotion(${idx})`);
 });
-html += '</div><button class="btn secondary" onclick="showShopkeeper1()">Back</button></div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper1.png',
+title: 'Choose Hero',
+heroCards,
+buttons: `<button class="btn secondary" onclick="showShopkeeper1()">Back</button>`
+});
 }
 
 function applySmallPotion(idx) {
@@ -3554,12 +3650,16 @@ showShopkeeper1();
 function buyLargePotion() {
 if(S.gold < 5) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let html = '<div class="neutral-container"><div class="neutral-title">Choose Hero</div><div style="max-width:400px;margin:0 auto">';
+let heroCards = '';
 S.heroes.forEach((h, idx) => {
-html += renderHeroCard(h, idx, `applyLargePotion(${idx})`);
+heroCards += renderHeroCard(h, idx, `applyLargePotion(${idx})`);
 });
-html += '</div><button class="btn secondary" onclick="showShopkeeper1()">Back</button></div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper1.png',
+title: 'Choose Hero',
+heroCards,
+buttons: `<button class="btn secondary" onclick="showShopkeeper1()">Back</button>`
+});
 }
 
 function applyLargePotion(idx) {
@@ -3587,30 +3687,34 @@ const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
 const cost = S.goingRate;
-let html = `
-<div class="neutral-container">
-<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Death's Bargain</div>
-<div class="neutral-desc">The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."</div>
-<p style="text-align:center;font-weight:bold;margin:1rem 0">Cost: ${cost} Gold</p>`;
+let description = `The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."<br><br><p style="text-align:center;font-weight:bold;margin:1rem 0">Cost: ${cost} Gold</p>`;
+let buttons = '';
+let outcomes = [];
+
 if(available.length === 0) {
-html += `<div class="neutral-outcome">All your sigils are already at maximum power. Death nods approvingly and fades away.</div>`;
-html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
+outcomes.push('All your sigils are already at maximum power. Death nods approvingly and fades away.');
+buttons = `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 } else if(S.gold < cost) {
-html += `<div class="neutral-outcome" style="color:#dc2626">You don't have enough Gold! Death shakes their head and fades away.</div>`;
-html += `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
+outcomes.push('<span style="color:#dc2626">You don\'t have enough Gold! Death shakes their head and fades away.</span>');
+buttons = `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 } else {
-html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
+description += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
 available.forEach(sig => {
 const level = S.sig[sig] || 0;
-html += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})">
+buttons += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})">
 <strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
 </div>`;
 });
-html += `<button class="btn risky" onclick="finishDeathsBargain()">Decline</button>`;
+buttons += `<button class="btn risky" onclick="finishDeathsBargain()">Decline</button>`;
 }
-html += `</div>`;
-v.innerHTML = html;
+
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper2.png',
+title: 'Death\'s Bargain',
+description,
+outcomes,
+buttons
+});
 }
 
 function acceptDeathsBargain(sig, cost) {
@@ -3647,15 +3751,17 @@ v.innerHTML = `
 // ===== 2. WISHING WELL =====
 function showWishingWell1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/wishingwell1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">The Old Wishing Well</div>
-<div class="neutral-desc">An ancient stone well sits in the center of the chamber. You hear the faint sound of trickling water far below. A glint of gold catches your eye at the bottom.</div>
+const buttons = `
 <button class="btn risky" onclick="climbWell()">Climb down and get coins</button>
 <button class="btn" onclick="tossWish()">Toss in a coin and make a wish</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wishingwell1.png',
+title: 'The Old Wishing Well',
+description: 'An ancient stone well sits in the center of the chamber. You hear the faint sound of trickling water far below. A glint of gold catches your eye at the bottom.',
+buttons
+});
 }
 
 function climbWell() {
@@ -3684,27 +3790,29 @@ replaceStage1WithStage2('wishingwell');
 }
 
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Climbing the Well</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${outcome}</div>
-<button class="btn" onclick="applyWellClimb(${hpLoss}, ${goldGain})">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wishingwell1.png',
+title: 'Climbing the Well',
+diceRoll: rollText,
+outcomes: [outcome],
+buttons: `<button class="btn" onclick="applyWellClimb(${hpLoss}, ${goldGain})">Continue</button>`
+});
 }
 
 function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
 // Show hero selection screen
 const v = document.getElementById('gameView');
-let html = '<div class="neutral-container"><div class="neutral-title">Choose Who Takes Damage</div>';
-html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose which hero takes ${hpLoss} damage from climbing the well:</div>`;
-html += '<div style="max-width:400px;margin:0 auto">';
+let heroCards = '';
 S.heroes.forEach((h, idx) => {
-html += renderHeroCard(h, idx, `applyWellDamage(${idx}, ${hpLoss}, ${goldGain})`);
+heroCards += renderHeroCard(h, idx, `applyWellDamage(${idx}, ${hpLoss}, ${goldGain})`);
 });
-html += '</div></div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wishingwell1.png',
+title: 'Choose Who Takes Damage',
+description: `Choose which hero takes ${hpLoss} damage from climbing the well:`,
+heroCards
+});
 } else {
 // No damage, just apply gold
 S.gold += goldGain;
@@ -3751,23 +3859,22 @@ S.gold -= cost;
 upd();
 replaceStage1WithStage2('wishingwell');
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">A Wish Made</div>
-<div class="neutral-outcome">You toss ${cost} gold coin${cost>1?'s':''} into the well and make a silent wish. The water begins to glow softly, then surges upward, overflowing the well's edge!</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wishingwell2.png',
+title: 'A Wish Made',
+outcomes: [`You toss ${cost} gold coin${cost>1?'s':''} into the well and make a silent wish. The water begins to glow softly, then surges upward, overflowing the well's edge!`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 function showWishingWell2() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/wishingwell2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Overflowing Crystal Waters</div>
-<div class="neutral-desc">The well now overflows with sparkling, crystal-clear water that pools around its base. The water seems to pulse with restorative energy.</div>
-<button class="btn safe" onclick="drinkCrystalWater()">Drink from the well</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wishingwell2.png',
+title: 'Overflowing Crystal Waters',
+description: 'The well now overflows with sparkling, crystal-clear water that pools around its base. The water seems to pulse with restorative energy.',
+buttons: `<button class="btn safe" onclick="drinkCrystalWater()">Drink from the well</button>`
+});
 }
 
 function drinkCrystalWater() {
@@ -3784,25 +3891,29 @@ h.h = h.m;
 toast('All heroes fully healed!', 1800);
 removeNeutralFromDeck('wishingwell');
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">The water tastes impossibly pure and refreshing. Warmth spreads through your body as all wounds close and exhaustion fades. You feel completely restored.</div>
-<div class="neutral-outcome">The well's glow fades as the water recedes to its normal level. Its magic has been spent.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wishingwell2.png',
+title: 'Fully Restored',
+outcomes: [
+'The water tastes impossibly pure and refreshing. Warmth spreads through your body as all wounds close and exhaustion fades. You feel completely restored.',
+'The well\'s glow fades as the water recedes to its normal level. Its magic has been spent.'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 3. TREASURE CHEST =====
 function showTreasureChest1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/treasurechest1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">A Mysterious Chest</div>
-<div class="neutral-desc">An ornate wooden chest sits against the far wall, its brass fittings gleaming in the torchlight. No lock is visible, but you sense this may not be as simple as it appears.</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest1.png',
+title: 'A Mysterious Chest',
+description: 'An ornate wooden chest sits against the far wall, its brass fittings gleaming in the torchlight. No lock is visible, but you sense this may not be as simple as it appears.',
+buttons: `
 <button class="btn risky" onclick="openChest()">Open the chest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+`
+});
 }
 
 function openChest() {
@@ -3853,32 +3964,27 @@ contentOutcome += ' Inside the secret compartment, you find a small silver key!'
 const v = document.getElementById('gameView');
 if(trapDmg > 0) {
 // Show hero selection for trap damage
-let html = '<div class="neutral-container">';
-html += '<div class="neutral-title">Opening the Chest</div>';
-html += `<div class="dice-roll">${trapText}</div>`;
-html += `<div class="neutral-outcome">${trapOutcome}</div>`;
-html += `<div class="dice-roll" style="margin-top:1rem">${contentText}</div>`;
-html += `<div class="neutral-outcome">${contentOutcome}</div>`;
-html += `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes ${trapDmg} damage:</div>`;
-html += '<div style="max-width:400px;margin:0 auto">';
+let heroCards = '';
 S.heroes.forEach((h, idx) => {
-html += renderHeroCard(h, idx, `finishChestOpen(${idx}, ${trapDmg}, ${goldGain})`);
+heroCards += renderHeroCard(h, idx, `finishChestOpen(${idx}, ${trapDmg}, ${goldGain})`);
 });
-html += '</div></div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest1.png',
+title: 'Opening the Chest',
+description: `Choose which hero takes ${trapDmg} damage:`,
+outcomes: [trapOutcome, `Dice roll: ${trapText}`, contentOutcome, `Dice roll: ${contentText}`],
+heroCards
+});
 } else {
 // No trap damage, just show results and continue
 S.gold += goldGain;
 upd();
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Opening the Chest</div>
-<div class="dice-roll">${trapText}</div>
-<div class="neutral-outcome">${trapOutcome}</div>
-<div class="dice-roll" style="margin-top:1rem">${contentText}</div>
-<div class="neutral-outcome">${contentOutcome}</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest1.png',
+title: 'Opening the Chest',
+outcomes: [trapOutcome, `Dice roll: ${trapText}`, contentOutcome, `Dice roll: ${contentText}`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 }, 500);
 }
@@ -3916,27 +4022,27 @@ S.silverKeyHeld = false;
 upd();
 removeNeutralFromDeck('treasurechest');
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/treasurechest2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Small Silver Chest</div>
-<div class="neutral-desc">A small silver chest sits on a stone pedestal, perfectly sized for the key you found earlier. You insert the key and it opens with a satisfying click.</div>
-<div class="neutral-outcome">Inside you find ${goldGain} gold coins, perfectly arranged!</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest2.png',
+title: 'Small Silver Chest',
+description: 'A small silver chest sits on a stone pedestal, perfectly sized for the key you found earlier. You insert the key and it opens with a satisfying click.',
+outcomes: [`Inside you find ${goldGain} gold coins, perfectly arranged!`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 4. MUMBLING WIZARD =====
 function showWizard1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/wizard1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Hieroglyphs on the Wall</div>
-<div class="neutral-desc">An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard1.png',
+title: 'Hieroglyphs on the Wall',
+description: 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."',
+buttons: `
 <button class="btn risky" onclick="approachWizard()">Approach the wizard</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+`
+});
 }
 
 function approachWizard() {
@@ -3947,15 +4053,16 @@ const sigilPool = ['Grapple', 'Heal', 'Ghost', 'Alpha', 'Star', 'Asterisk'];
 const randomSigil = sigilPool[Math.floor(Math.random() * sigilPool.length)];
 S.wizardSigil = randomSigil;
 
-if(best >= 1 && best <= 10) {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">The Hieroglyphs</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">You stare at the glowing symbols but can't make sense of them. The wizard sighs heavily: "You don't see it. How unfortunate. Please leave."</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+
+if(best >= 1 && best <= 10) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard1.png',
+title: 'The Hieroglyphs',
+diceRoll: rollText,
+outcomes: ['You stare at the glowing symbols but can\'t make sense of them. The wizard sighs heavily: "You don\'t see it. How unfortunate. Please leave."'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 } else {
 const heroesWithSigil = [];
 S.heroes.forEach((h, idx) => {
@@ -3965,32 +4072,34 @@ heroesWithSigil.push(idx);
 });
 
 if(heroesWithSigil.length === 0) {
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">The Hieroglyphs</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard beams with pride.</div>
-<div class="neutral-outcome">But when he realizes none of you possess this sigil, his face falls: "Useless! All of you, useless! Get out!"</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard1.png',
+title: 'The Hieroglyphs',
+diceRoll: rollText,
+outcomes: [
+`The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard beams with pride.`,
+'But when he realizes none of you possess this sigil, his face falls: "Useless! All of you, useless! Get out!"'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 } else {
-const v = document.getElementById('gameView');
-let html = `
-<div class="neutral-container">
-<div class="neutral-title">The Hieroglyphs</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard exclaims: "Yes! YES! You see it! One of you has this power already!"</div>
-<div style="font-size:0.9rem;margin:1rem 0">Choose which hero receives the upgrade:</div>`;
+let description = `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero receives the upgrade:</div>`;
+let buttons = '';
 heroesWithSigil.forEach(idx => {
 const h = S.heroes[idx];
 const currentLevel = getLevel(randomSigil, idx);
-html += `<div class="choice" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">
+buttons += `<div class="choice" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">
 <strong>${h.n}</strong> <span style="opacity:0.7">${sigilIcon(randomSigil)} L${currentLevel} → L${currentLevel+1}</span>
 </div>`;
 });
-html += `</div>`;
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard1.png',
+title: 'The Hieroglyphs',
+diceRoll: rollText,
+description,
+outcomes: [`The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard exclaims: "Yes! YES! You see it! One of you has this power already!"`],
+buttons
+});
 }
 }
 }
@@ -4007,12 +4116,14 @@ toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 1800);
 replaceStage1WithStage2('wizard');
 setTimeout(() => {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">The wizard places his hands on ${h.n}'s head. The hieroglyph glows brighter, and power flows into them!</div>
-<div class="neutral-outcome">"Good, good! Now leave me to my studies."</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard1.png',
+outcomes: [
+`The wizard places his hands on ${h.n}'s head. The hieroglyph glows brighter, and power flows into them!`,
+'"Good, good! Now leave me to my studies."'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }, 500);
 }
 
@@ -4036,16 +4147,15 @@ return;
 }
 
 const v = document.getElementById('gameView');
-let html = `
-<div class="neutral-container">
-<img src="assets/neutrals/wizard2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Sacrifice for Power</div>
-<div class="neutral-desc">The wizard channels arcane energy, his eyes glowing with power: "I can make this permanent... but all who carry ${sig} must sacrifice their current mastery. Do you accept?"</div>
-<div style="font-size:0.85rem;margin-bottom:1rem;color:#b64141">Cost: All heroes lose ${sig} for THIS RUN ONLY<br>Benefit: ${sig} permanently upgraded in Sigilarium</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: 'Sacrifice for Power',
+description: `The wizard channels arcane energy, his eyes glowing with power: "I can make this permanent... but all who carry ${sig} must sacrifice their current mastery. Do you accept?"<br><br><div style="font-size:0.85rem;margin-bottom:1rem;color:#b64141">Cost: All heroes lose ${sig} for THIS RUN ONLY<br>Benefit: ${sig} permanently upgraded in Sigilarium</div>`,
+buttons: `
 <button class="btn danger" onclick="acceptWizardSacrifice('${sig}')">Accept Sacrifice</button>
 <button class="btn" onclick="declineWizardSacrifice()">Decline</button>
-</div>`;
-v.innerHTML = html;
+`
+});
 }
 
 function acceptWizardSacrifice(sig) {
@@ -4059,22 +4169,24 @@ toast(`${sig} PERMANENTLY upgraded to L${S.sig[sig]}!`, 1800);
 removeNeutralFromDeck('wizard');
 
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">The wizard's ritual completes. All knowledge of ${sig} drains from those who held it, but you feel the power crystallize into something greater.</div>
-<div class="neutral-outcome">"The sacrifice strengthens the foundation. Now go."</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+outcomes: [
+`The wizard's ritual completes. All knowledge of ${sig} drains from those who held it, but you feel the power crystallize into something greater.`,
+'"The sacrifice strengthens the foundation. Now go."'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 function declineWizardSacrifice() {
 removeNeutralFromDeck('wizard');
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">The wizard's glow fades. He returns to mumbling at the wall, disappointed but unsurprised.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+outcomes: ['The wizard\'s glow fades. He returns to mumbling at the wall, disappointed but unsurprised.'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 5. ORACLE =====
@@ -4082,18 +4194,19 @@ function showOracle1() {
 // Mark tutorial as seen so future runs have random neutrals
 S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
-let html = `
-<div class="neutral-container">
-<img src="assets/neutrals/oracle1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Consult the Oracle</div>
-<div class="neutral-desc">A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?"</div>
-<div style="font-size:0.9rem;margin-bottom:1rem">Choose a hero and their desired fortune:</div>`;
+let description = `<div style="font-size:0.9rem;margin-bottom:1rem">Choose a hero and their desired fortune:</div>`;
+let buttons = '';
 S.heroes.forEach((h, idx) => {
-html += `<div class="choice" onclick="oracleChoose(${idx}, 'POW')"><strong>${h.n}</strong> - Power</div>`;
-html += `<div class="choice" onclick="oracleChoose(${idx}, 'HP')"><strong>${h.n}</strong> - Life</div>`;
+buttons += `<div class="choice" onclick="oracleChoose(${idx}, 'POW')"><strong>${h.n}</strong> - Power</div>`;
+buttons += `<div class="choice" onclick="oracleChoose(${idx}, 'HP')"><strong>${h.n}</strong> - Life</div>`;
 });
-html += `<button class="btn safe" onclick="nextFloor()">Do Not Engage</button></div>`;
-v.innerHTML = html;
+buttons += `<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/oracle1.png',
+title: 'Consult the Oracle',
+description: 'A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?"<br><br>' + description,
+buttons
+});
 }
 
 function oracleChoose(heroIdx, stat) {
@@ -4130,14 +4243,16 @@ replaceStage1WithStage2('oracle');
 }
 
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">The Oracle's Fortune</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${h.n} steps forward seeking ${stat === 'POW' ? 'Power' : 'Life'}.</div>
-<div class="neutral-outcome">The Oracle gazes into the crystal sphere, then speaks: ${fortune}</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/oracle1.png',
+title: 'The Oracle\'s Fortune',
+diceRoll: rollText,
+outcomes: [
+`${h.n} steps forward seeking ${stat === 'POW' ? 'Power' : 'Life'}.`,
+`The Oracle gazes into the crystal sphere, then speaks: ${fortune}`
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 function showOracle2() {
@@ -4198,42 +4313,46 @@ outcome = `${h.n} blazes with power! POW +2!`;
 removeNeutralFromDeck('oracle');
 
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/oracle2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Return to the Oracle</div>
-<div class="neutral-outcome">${h.n} returns to the Oracle. The crystal sphere flares brightly!</div>
-<div class="neutral-outcome">${outcome}</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/oracle2.png',
+title: 'Return to the Oracle',
+outcomes: [
+`${h.n} returns to the Oracle. The crystal sphere flares brightly!`,
+outcome
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 6. ENEMY ENCAMPMENT =====
 function showEncampment1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/encampment1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Enemies Assembling Ahead</div>
-<div class="neutral-desc">Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven't noticed you yet.</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Enemies Assembling Ahead',
+description: 'Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven\'t noticed you yet.',
+buttons: `
 <button class="btn risky" onclick="chooseEncampmentAction('sneak')">Sneak by?</button>
 <button class="btn risky" onclick="chooseEncampmentAction('engage')">Engage early</button>
-</div>`;
+`
+});
 }
 
 function chooseEncampmentAction(action) {
 const v = document.getElementById('gameView');
-let html = '<div class="neutral-container">';
-html += `<div class="neutral-title">${action === 'sneak' ? 'Choose Scout' : 'Choose Leader'}</div>`;
-html += `<div class="neutral-desc">Which hero will ${action === 'sneak' ? 'sneak past the encampment' : 'lead the charge'}?</div>`;
+let buttons = '';
 S.heroes.forEach((h, i) => {
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-html += `<div class="choice" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">
+buttons += `<div class="choice" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">
 <strong>${h.n}</strong> - ${h.p}⚡ | ${hp}
 </div>`;
 });
-html += '</div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: action === 'sneak' ? 'Choose Scout' : 'Choose Leader',
+description: `Which hero will ${action === 'sneak' ? 'sneak past the encampment' : 'lead the charge'}?`,
+buttons
+});
 }
 
 function sneakByEncampment(heroIdx) {
@@ -4294,13 +4413,13 @@ toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 1800);
 }
 
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Sneaking Past</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${outcome}</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Sneaking Past',
+diceRoll: rollText,
+outcomes: [outcome],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 function engageEarlyEncampment(heroIdx) {
@@ -4308,27 +4427,27 @@ const hero = S.heroes[heroIdx];
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
 
-if(best >= 1 && best <= 15) {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Engaging Early</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">A scout spots ${hero.n} before they can strike! The enemies prepare an ambush!</div>
-<button class="btn" onclick="finishEncampmentFail()">Continue</button>
-</div>`;
+
+if(best >= 1 && best <= 15) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Engaging Early',
+diceRoll: rollText,
+outcomes: [`A scout spots ${hero.n} before they can strike! The enemies prepare an ambush!`],
+buttons: `<button class="btn" onclick="finishEncampmentFail()">Continue</button>`
+});
 } else {
 const kills = best === 20 ? 2 : 1;
 S.encampmentEarlyKills = kills;
 replaceStage1WithStage2('encampment');
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Engaging Early</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${hero.n} succeeds at picking off ${kills} enem${kills>1?'ies':'y'}! They're scrambling to form ranks - you'll see the battlefield and pick your targets...</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Engaging Early',
+diceRoll: rollText,
+outcomes: [`${hero.n} succeeds at picking off ${kills} enem${kills>1?'ies':'y'}! They're scrambling to form ranks - you'll see the battlefield and pick your targets...`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 }
 
@@ -4343,8 +4462,8 @@ function startEncampmentCombat(kills) {
 const v = document.getElementById('gameView');
 const comp = getEnemyComp(S.floor + 1);
 
-let html = '<div class="neutral-container"><div class="neutral-title">Choose Enemies to Kill</div>';
-html += `<div style="font-size:0.9rem;margin-bottom:1rem">Select ${kills} enem${kills>1?'ies':'y'} to remove:</div>`;
+let description = `<div style="font-size:0.9rem;margin-bottom:1rem">Select ${kills} enem${kills>1?'ies':'y'} to remove:</div>`;
+let buttons = '';
 
 const enemyTypes = {};
 comp.forEach(type => {
@@ -4353,13 +4472,17 @@ enemyTypes[type] = (enemyTypes[type] || 0) + 1;
 
 Object.keys(enemyTypes).forEach(type => {
 const count = enemyTypes[type];
-html += `<div class="choice" onclick="killEncampmentEnemy('${type}', ${kills})">
+buttons += `<div class="choice" onclick="killEncampmentEnemy('${type}', ${kills})">
 <strong>${E[type].n}</strong> <span style="opacity:0.7">(${count} available, ${E[type].g}G + ${E[type].x}XP each)</span>
 </div>`;
 });
 
-html += '</div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Choose Enemies to Kill',
+description,
+buttons
+});
 }
 
 function killEncampmentEnemy(type, target) {
@@ -4403,69 +4526,75 @@ toast(`Gained ${goldGain} Gold!`, 1200);
 removeNeutralFromDeck('encampment');
 
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/encampment2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Abandoned Encampment</div>
-<div class="neutral-desc">The enemy got cocky and left their base undefended. You enter and rest safely.</div>
-<div class="neutral-outcome">All heroes restored ${healAmt} HP!</div>
-<div class="neutral-outcome">Found ${goldGain} Gold in supplies!</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment2.png',
+title: 'Abandoned Encampment',
+description: 'The enemy got cocky and left their base undefended. You enter and rest safely.',
+outcomes: [
+`All heroes restored ${healAmt} HP!`,
+`Found ${goldGain} Gold in supplies!`
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 7. ANCIENT STATUE =====
 function showStatue1() {
 const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">The Statue</div>
-<div class="neutral-desc">A massive stone statue dominates the chamber. As you watch, it seems to ${deactivated ? 'shift smoothly and gently' : 'grow larger, its surface rippling ominously'}.</div>
-${deactivated ? '<div class="neutral-outcome" style="color:#22c55e">The statue has been deactivated. It poses no threat.</div>' : ''}
+const outcomes = deactivated ? ['<span style="color:#22c55e">The statue has been deactivated. It poses no threat.</span>'] : [];
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'The Statue',
+description: `A massive stone statue dominates the chamber. As you watch, it seems to ${deactivated ? 'shift smoothly and gently' : 'grow larger, its surface rippling ominously'}.`,
+outcomes,
+buttons: `
 <button class="btn safe" onclick="nextFloor()">Leave now</button>
 <button class="btn risky" onclick="showStatue2()">Remain transfixed</button>
-</div>`;
+`
+});
 }
 
 function showStatue2() {
 const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:450px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Growing Larger</div>
-<div class="neutral-desc">The statue IS getting bigger! The room feels smaller. ${deactivated ? 'It moves smoothly and gently, non-threatening.' : 'Its stone surface creaks as it expands.'}</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Growing Larger',
+description: `The statue IS getting bigger! The room feels smaller. ${deactivated ? 'It moves smoothly and gently, non-threatening.' : 'Its stone surface creaks as it expands.'}`,
+buttons: `
 <button class="btn risky" onclick="statueEscape(2)">Make a break for exit</button>
 <button class="btn risky" onclick="showStatue3()">Remain transfixed</button>
-</div>`;
+`
+});
 }
 
 function showStatue3() {
 const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:500px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Consuming the Room</div>
-<div class="neutral-desc">The statue now fills most of the room! ${deactivated ? 'Despite its size, it moves with graceful precision.' : 'There\'s still a tight squeeze to the exit...'}</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Consuming the Room',
+description: `The statue now fills most of the room! ${deactivated ? 'Despite its size, it moves with graceful precision.' : 'There\'s still a tight squeeze to the exit...'}`,
+buttons: `
 <button class="btn risky" onclick="statueEscape(3)">Squeeze out to exit</button>
 <button class="btn danger" onclick="showStatue4()">Remain transfixed</button>
-</div>`;
+`
+});
 }
 
 function showStatue4() {
 const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:550px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Smooth Metal Pressing - LAST CHANCE</div>
-<div class="neutral-desc">${deactivated ? 'The statue\'s polished surface gleams as it gently fills the space.' : 'The statue\'s smooth metal presses against the walls and you! This is your last chance to escape!'}</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Smooth Metal Pressing - LAST CHANCE',
+description: `${deactivated ? 'The statue\'s polished surface gleams as it gently fills the space.' : 'The statue\'s smooth metal presses against the walls and you! This is your last chance to escape!'}`,
+buttons: `
 <button class="btn danger" onclick="statueEscape(4)">ESCAPE NOW</button>
 <button class="btn danger" onclick="showStatue5()">Remain transfixed</button>
-</div>`;
+`
+});
 }
 
 function statueEscape(stage) {
@@ -4488,12 +4617,12 @@ if(best >= 1 && best <= 15) damage = deactivated ? 0 : 3;
 else if(best >= 16 && best <= 19) outcome = 'You notice an archway as you escape!';
 else {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">The archway SWALLOWS you! You find yourself inside the statue!</div>
-<button class="btn" onclick="showStatue5()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+diceRoll: rollText,
+outcomes: ['The archway SWALLOWS you! You find yourself inside the statue!'],
+buttons: `<button class="btn" onclick="showStatue5()">Continue</button>`
+});
 return;
 }
 }
@@ -4501,26 +4630,27 @@ return;
 const v = document.getElementById('gameView');
 if(damage > 0 && !deactivated) {
 // Show hero selection for damage
-let html = '<div class="neutral-container">';
-html += '<div class="neutral-title">Escaping the Statue</div>';
-html += `<div class="dice-roll">${rollText}</div>`;
-html += '<div class="neutral-outcome">You escape but the statue crushes you on the way out!</div>';
-html += `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes ${damage} damage:</div>`;
-html += '<div style="max-width:400px;margin:0 auto">';
+let heroCards = '';
 S.heroes.forEach((h, idx) => {
-html += renderHeroCard(h, idx, `applyStatueEscapeDamage(${idx}, ${damage})`);
+heroCards += renderHeroCard(h, idx, `applyStatueEscapeDamage(${idx}, ${damage})`);
 });
-html += '</div></div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Escaping the Statue',
+diceRoll: rollText,
+description: `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes ${damage} damage:</div>`,
+outcomes: ['You escape but the statue crushes you on the way out!'],
+heroCards
+});
 } else {
 // No damage or deactivated - show result and continue
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Escaping the Statue</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${outcome || 'You escape safely!'}</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Escaping the Statue',
+diceRoll: rollText,
+outcomes: [outcome || 'You escape safely!'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 }
 
@@ -4545,18 +4675,16 @@ nextFloor();
 
 function showStatue5() {
 const v = document.getElementById('gameView');
-let html = `
-<div class="neutral-container">
-<img src="assets/neutrals/statue1.png" style="max-width:100%;height:auto;max-width:600px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Statue Unfurls</div>
-<div class="neutral-desc">The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled.</div>
-<div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>
-<div style="max-width:400px;margin:0 auto">`;
+let heroCards = '';
 S.heroes.forEach((h, idx) => {
-html += renderHeroCard(h, idx, `scaleStatue(${idx})`);
+heroCards += renderHeroCard(h, idx, `scaleStatue(${idx})`);
 });
-html += `</div></div>`;
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Statue Unfurls',
+description: 'The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled.<br><br><div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>',
+heroCards
+});
 }
 
 function scaleStatue(heroIdx) {
@@ -4600,27 +4728,31 @@ toast('Ancient Statuette obtained!', 1200);
 removeNeutralFromDeck('statue');
 
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Scaling the Statue</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${outcome}</div>
-${getStatuette ? '<div class="neutral-outcome" style="color:#fbbf24">The Ancient Statuette can be placed on a Pedestal to grant permanent stat upgrades!</div>' : ''}
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+const outcomes = [outcome];
+if(getStatuette) {
+outcomes.push('<span style="color:#fbbf24">The Ancient Statuette can be placed on a Pedestal to grant permanent stat upgrades!</span>');
+}
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Scaling the Statue',
+diceRoll: rollText,
+outcomes,
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 8. GHOST =====
 function showGhost1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/ghost1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Two Ghostly Boys Want to Play</div>
-<div class="neutral-desc">Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Two Ghostly Boys Want to Play',
+description: 'Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.',
+buttons: `
 <button class="btn danger" onclick="playWithGhostBoys()">Play with the ghost boys</button>
 <button class="btn risky" onclick="nextFloor()">Avoid?</button>
-</div>`;
+`
+});
 }
 
 let ghostEscapeDC = 18;
@@ -4636,31 +4768,32 @@ function attemptGhostEscape() {
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
 
-if(best >= ghostEscapeDC) {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Escaping the Ghost Boys</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">You break free from their grip! The boys pout but let you go. "Come back and play sometime..."</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+
+if(best >= ghostEscapeDC) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Escaping the Ghost Boys',
+diceRoll: rollText,
+outcomes: ['You break free from their grip! The boys pout but let you go. "Come back and play sometime..."'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 return;
 }
 
 // Failed - show hero selection
-const v = document.getElementById('gameView');
-let html = '<div class="neutral-container">';
-html += '<div class="neutral-title">Trapped with the Ghost Boys</div>';
-html += `<div class="dice-roll">${rollText}</div>`;
-html += '<div class="neutral-outcome">You remain trapped! Time slips away...</div>';
-html += '<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes 1 damage:</div>';
-html += '<div style="max-width:400px;margin:0 auto">';
+let heroCards = '';
 S.heroes.forEach((h, idx) => {
-html += renderHeroCard(h, idx, `applyGhostDamage(${idx})`);
+heroCards += renderHeroCard(h, idx, `applyGhostDamage(${idx})`);
 });
-html += '</div></div>';
-v.innerHTML = html;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Trapped with the Ghost Boys',
+diceRoll: rollText,
+description: '<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes 1 damage:</div>',
+outcomes: ['You remain trapped! Time slips away...'],
+heroCards
+});
 }
 
 function applyGhostDamage(heroIdx) {
@@ -4687,13 +4820,15 @@ hero.ls = true;
 hero.lst = 0;
 upd();
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Escaping the Ghost Boys</div>
-<div class="neutral-outcome">${hero.n} took 1 damage and entered Last Stand! The shock breaks the ghost boys' hold!</div>
-<div class="neutral-outcome">"Oops!" they say in unison, then fade away giggling.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Escaping the Ghost Boys',
+outcomes: [
+`${hero.n} took 1 damage and entered Last Stand! The shock breaks the ghost boys' hold!`,
+'"Oops!" they say in unison, then fade away giggling.'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 return;
 }
 }
@@ -4703,65 +4838,67 @@ ghostEscapeAttempts++;
 ghostEscapeDC -= 2;
 upd();
 
-if(ghostEscapeAttempts >= 9) {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Finally Free</div>
-<div class="neutral-outcome">After many attempts, the ghost boys grow bored and fade away.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+
+if(ghostEscapeAttempts >= 9) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Finally Free',
+outcomes: ['After many attempts, the ghost boys grow bored and fade away.'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 return;
 }
 
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Try Again</div>
-<div class="neutral-outcome">${hero.n} took 1 damage!</div>
-<div style="font-size:0.9rem;margin:1rem 0">Attempts: ${ghostEscapeAttempts}/9 | Next DC: ${ghostEscapeDC}</div>
-<button class="btn danger" onclick="attemptGhostEscape()">Try to Escape (DC ${ghostEscapeDC})</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Try Again',
+description: `<div style="font-size:0.9rem;margin:1rem 0">Attempts: ${ghostEscapeAttempts}/9 | Next DC: ${ghostEscapeDC}</div>`,
+outcomes: [`${hero.n} took 1 damage!`],
+buttons: `<button class="btn danger" onclick="attemptGhostEscape()">Try to Escape (DC ${ghostEscapeDC})</button>`
+});
 }
 
 function showGhost2() {
 S.ghostBoysConverted = true;
 toast('Ghost Boys permanently converted to Empty Playroom!', 1800);
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/ghost2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">The Boys Realize the Truth</div>
-<div class="neutral-desc">The ghost boys stare at each other, then at their translucent hands. "We're... we're dead. We're ghosts."</div>
-<div class="neutral-outcome">Tears form in their spectral eyes. "We want to go home. We want to see Mommy and Daddy."</div>
-<div class="neutral-outcome">They hold hands and walk toward a light that appears. "Thank you for showing us." They vanish peacefully.</div>
-<div class="neutral-outcome" style="color:#22c55e">This room is now an Empty Playroom - you can pass safely in future runs.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost2.png',
+title: 'The Boys Realize the Truth',
+description: 'The ghost boys stare at each other, then at their translucent hands. "We\'re... we\'re dead. We\'re ghosts."',
+outcomes: [
+'Tears form in their spectral eyes. "We want to go home. We want to see Mommy and Daddy."',
+'They hold hands and walk toward a light that appears. "Thank you for showing us." They vanish peacefully.',
+'<span style="color:#22c55e">This room is now an Empty Playroom - you can pass safely in future runs.</span>'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 function showEmptyPlayroom() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Empty Playroom</div>
-<div class="neutral-desc">An empty chamber, dust motes drifting in pale light. It might have been a playroom once, but whatever haunted it is long gone. The air feels peaceful.</div>
-<div class="neutral-outcome">Nothing stops you here. You pass through quietly.</div>
-<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor + 1}</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost2.png',
+title: 'Empty Playroom',
+description: 'An empty chamber, dust motes drifting in pale light. It might have been a playroom once, but whatever haunted it is long gone. The air feels peaceful.',
+outcomes: ['Nothing stops you here. You pass through quietly.'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor + 1}</button>`
+});
 }
 
 // ===== 9. FLUMMOXED PRINCE(SS) =====
 function showPrince1() {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/prince1.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">Help Recover the Ring</div>
-<div class="neutral-desc">A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"</div>
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/prince1.png',
+title: 'Help Recover the Ring',
+description: `A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
+buttons: `
 <button class="btn" onclick="acceptPrinceQuest()">Accept the quest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-</div>`;
+`
+});
 }
 
 function acceptPrinceQuest() {
@@ -4769,11 +4906,11 @@ toast('Stun any enemy Turn 1 of next combat!', 1800);
 S.princeQuestActive = true;
 S.princeQuestCompleted = false;
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">The ${S.princeGender} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/prince1.png',
+outcomes: [`The ${S.princeGender} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 function showPrince2() {
@@ -4782,13 +4919,13 @@ const v = document.getElementById('gameView');
 if(!S.princeQuestCompleted) {
 // Quest failed
 S.princeQuestActive = false;
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-title">Quest Failed</div>
-<div class="neutral-desc">The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."</div>
-<div class="neutral-outcome">The ${S.princeGender} departs sadly. No reward.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/prince1.png',
+title: 'Quest Failed',
+description: `The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
+outcomes: [`The ${S.princeGender} departs sadly. No reward.`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 return;
 }
 
@@ -4809,30 +4946,32 @@ removeNeutralFromDeck('prince');
 replaceStage1WithStage2('prince');
 S.princeQuestActive = false;
 
-v.innerHTML = `
-<div class="neutral-container">
-<img src="assets/neutrals/prince2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:2px solid #000">
-<div class="neutral-title">The Wedding</div>
-<div class="neutral-desc">The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!</div>
-<div class="neutral-outcome">Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:</div>
-<div class="choice" onclick="choosePrinceSigil('${sigil1}')">
+let buttons = '';
+buttons += `<div class="choice" onclick="choosePrinceSigil('${sigil1}')">
 <strong>${sigilIcon(sigil1)}</strong> <span style="opacity:0.7">L${S.sig[sigil1] || 0} → L${(S.sig[sigil1] || 0) + 1}</span>
-</div>
-<div class="choice" onclick="choosePrinceSigil('${sigil2}')">
-<strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
-</div>
 </div>`;
+buttons += `<div class="choice" onclick="choosePrinceSigil('${sigil2}')">
+<strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
+</div>`;
+
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/prince2.png',
+title: 'The Wedding',
+description: `The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!`,
+outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
+buttons
+});
 }
 
 function choosePrinceSigil(sig) {
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 1800);
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">The royal couple thanks you profusely. The ${sig} sigil glows and merges with your power!</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/prince2.png',
+outcomes: [`The royal couple thanks you profusely. The ${sig} sigil glows and merges with your power!`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== OLD TAPO ENCOUNTER (FLOOR 20) =====
