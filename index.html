@@ -3695,22 +3695,44 @@ v.innerHTML = `
 
 function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
-const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
-highestHPHero.h -= hpLoss;
-if(highestHPHero.h <= 0 && !highestHPHero.ls) {
-if(highestHPHero.g > 0) {
-highestHPHero.g--;
-highestHPHero.h += hpLoss;
-toast(`${highestHPHero.n}'s Ghost charge cancelled the lethal hit!`);
+// Show hero selection screen
+const v = document.getElementById('gameView');
+let html = '<div class="neutral-container"><div class="neutral-title">Choose Who Takes Damage</div>';
+html += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose which hero takes ${hpLoss} damage from climbing the well:</div>`;
+html += '<div style="max-width:400px;margin:0 auto">';
+S.heroes.forEach((h, idx) => {
+html += renderHeroCard(h, idx, `applyWellDamage(${idx}, ${hpLoss}, ${goldGain})`);
+});
+html += '</div></div>';
+v.innerHTML = html;
 } else {
-highestHPHero.h = 0;
-highestHPHero.ls = true;
-highestHPHero.lst = 0;
-toast(`${highestHPHero.n} entered Last Stand!`);
+// No damage, just apply gold
+S.gold += goldGain;
+if(S.gold < 0) S.gold = 0;
+upd();
+if(goldGain > 0) toast(`Gained ${goldGain} Gold!`);
+else if(goldGain < 0) toast(`Lost ${Math.abs(goldGain)} Gold!`);
+nextFloor();
 }
 }
-toast(`${highestHPHero.n} took ${hpLoss} damage!`);
+
+function applyWellDamage(heroIdx, hpLoss, goldGain) {
+const hero = S.heroes[heroIdx];
+hero.h -= hpLoss;
+if(hero.h <= 0 && !hero.ls) {
+if(hero.g > 0) {
+hero.g--;
+hero.h += hpLoss;
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+} else {
+hero.h = 0;
+hero.ls = true;
+hero.lst = 0;
+toast(`${hero.n} entered Last Stand!`);
 }
+}
+toast(`${hero.n} took ${hpLoss} damage!`);
+
 S.gold += goldGain;
 if(S.gold < 0) S.gold = 0;
 upd();
@@ -3806,24 +3828,6 @@ S.treasureSecretCompartment = true;
 }
 
 setTimeout(() => {
-if(trapDmg > 0) {
-const highestHPHero = S.heroes.reduce((max, h) => h.h > max.h ? h : max, S.heroes[0]);
-highestHPHero.h -= trapDmg;
-if(highestHPHero.h <= 0 && !highestHPHero.ls) {
-if(highestHPHero.g > 0) {
-highestHPHero.g--;
-highestHPHero.h += trapDmg;
-toast(`${highestHPHero.n}'s Ghost charge cancelled the lethal hit!`);
-} else {
-highestHPHero.h = 0;
-highestHPHero.ls = true;
-highestHPHero.lst = 0;
-toast(`${highestHPHero.n} entered Last Stand!`);
-}
-}
-toast(`${highestHPHero.n} took ${trapDmg} damage!`);
-}
-
 const {rolls: contentRolls, best: contentBest} = rollD20Neutral();
 const contentText = showD20Result(contentRolls, contentBest);
 
@@ -3846,10 +3850,26 @@ replaceStage1WithStage2('treasurechest');
 contentOutcome += ' Inside the secret compartment, you find a small silver key!';
 }
 
+const v = document.getElementById('gameView');
+if(trapDmg > 0) {
+// Show hero selection for trap damage
+let html = '<div class="neutral-container">';
+html += '<div class="neutral-title">Opening the Chest</div>';
+html += `<div class="dice-roll">${trapText}</div>`;
+html += `<div class="neutral-outcome">${trapOutcome}</div>`;
+html += `<div class="dice-roll" style="margin-top:1rem">${contentText}</div>`;
+html += `<div class="neutral-outcome">${contentOutcome}</div>`;
+html += `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes ${trapDmg} damage:</div>`;
+html += '<div style="max-width:400px;margin:0 auto">';
+S.heroes.forEach((h, idx) => {
+html += renderHeroCard(h, idx, `finishChestOpen(${idx}, ${trapDmg}, ${goldGain})`);
+});
+html += '</div></div>';
+v.innerHTML = html;
+} else {
+// No trap damage, just show results and continue
 S.gold += goldGain;
 upd();
-
-const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Opening the Chest</div>
@@ -3859,7 +3879,30 @@ v.innerHTML = `
 <div class="neutral-outcome">${contentOutcome}</div>
 <button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
+}
 }, 500);
+}
+
+function finishChestOpen(heroIdx, trapDmg, goldGain) {
+const hero = S.heroes[heroIdx];
+hero.h -= trapDmg;
+if(hero.h <= 0 && !hero.ls) {
+if(hero.g > 0) {
+hero.g--;
+hero.h += trapDmg;
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+} else {
+hero.h = 0;
+hero.ls = true;
+hero.lst = 0;
+toast(`${hero.n} entered Last Stand!`);
+}
+}
+toast(`${hero.n} took ${trapDmg} damage!`);
+
+S.gold += goldGain;
+upd();
+nextFloor();
 }
 
 function showTreasureChest2() {
@@ -4455,31 +4498,49 @@ return;
 }
 }
 
-if(damage > 0 && !deactivated) {
-S.heroes.forEach(h => {
-h.h -= damage;
-if(h.h < 0) h.h = 0;
-if(h.h === 0 && !h.ls && h.g > 0) {
-h.g--;
-h.h = h.m;
-} else if(h.h === 0 && !h.ls) {
-h.ls = true;
-h.lst = 0;
-toast(`${h.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
-}
-});
-toast(`All heroes took ${damage} damage!`);
-}
-
 const v = document.getElementById('gameView');
+if(damage > 0 && !deactivated) {
+// Show hero selection for damage
+let html = '<div class="neutral-container">';
+html += '<div class="neutral-title">Escaping the Statue</div>';
+html += `<div class="dice-roll">${rollText}</div>`;
+html += '<div class="neutral-outcome">You escape but the statue crushes you on the way out!</div>';
+html += `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes ${damage} damage:</div>`;
+html += '<div style="max-width:400px;margin:0 auto">';
+S.heroes.forEach((h, idx) => {
+html += renderHeroCard(h, idx, `applyStatueEscapeDamage(${idx}, ${damage})`);
+});
+html += '</div></div>';
+v.innerHTML = html;
+} else {
+// No damage or deactivated - show result and continue
 v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Escaping the Statue</div>
 <div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${outcome || `You escape${damage > 0 ? ' but take ' + damage + ' damage' : ' safely'}!`}</div>
+<div class="neutral-outcome">${outcome || 'You escape safely!'}</div>
 <button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
+}
+}
+
+function applyStatueEscapeDamage(heroIdx, damage) {
+const hero = S.heroes[heroIdx];
+hero.h -= damage;
+if(hero.h < 0) hero.h = 0;
+if(hero.h === 0 && !hero.ls && hero.g > 0) {
+hero.g--;
+hero.h = hero.m;
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+} else if(hero.h === 0 && !hero.ls) {
+hero.ls = true;
+hero.lst = 0;
+toast(`${hero.n} entered Last Stand!`);
+showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
+}
+toast(`${hero.n} took ${damage} damage!`);
+upd();
+nextFloor();
 }
 
 function showStatue5() {
@@ -4587,39 +4648,49 @@ v.innerHTML = `
 return;
 }
 
-// Failed - damage lowest HP hero
-const sortedHeroes = [...S.heroes].filter(h => h.h > 0 || !h.ls).sort((a, b) => a.h - b.h);
-if(sortedHeroes.length === 0) {
-nextFloor();
-return;
+// Failed - show hero selection
+const v = document.getElementById('gameView');
+let html = '<div class="neutral-container">';
+html += '<div class="neutral-title">Trapped with the Ghost Boys</div>';
+html += `<div class="dice-roll">${rollText}</div>`;
+html += '<div class="neutral-outcome">You remain trapped! Time slips away...</div>';
+html += '<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes 1 damage:</div>';
+html += '<div style="max-width:400px;margin:0 auto">';
+S.heroes.forEach((h, idx) => {
+html += renderHeroCard(h, idx, `applyGhostDamage(${idx})`);
+});
+html += '</div></div>';
+v.innerHTML = html;
 }
 
-const victim = sortedHeroes[0];
-const hadGhostCharge = victim.g > 0;
+function applyGhostDamage(heroIdx) {
+const hero = S.heroes[heroIdx];
+const hadGhostCharge = hero.g > 0;
 
-victim.h -= 1;
-if(victim.h <= 0) {
-victim.h = 0;
-if(victim.g > 0) {
-victim.g--;
-victim.h = victim.m;
+hero.h -= 1;
+if(hero.h <= 0) {
+hero.h = 0;
+if(hero.g > 0) {
+hero.g--;
+hero.h = hero.m;
 // EASTER EGG: Ghost charge consumed during Ghost encounter triggers conversion
 if(hadGhostCharge) {
 replaceStage1WithStage2('ghost');
-toast(`${victim.n} used Ghost charge! The boys realize the truth!`, 1800);
+toast(`${hero.n} used Ghost charge! The boys realize the truth!`, 1800);
+upd();
 // Trigger the full Ghost Boys conversion (showGhost2)
 showGhost2();
 return;
 }
 } else {
-victim.ls = true;
-victim.lst = 0;
+hero.ls = true;
+hero.lst = 0;
+upd();
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
 <div class="neutral-title">Escaping the Ghost Boys</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">${victim.n} took 1 damage and entered Last Stand! The shock breaks the ghost boys' hold!</div>
+<div class="neutral-outcome">${hero.n} took 1 damage and entered Last Stand! The shock breaks the ghost boys' hold!</div>
 <div class="neutral-outcome">"Oops!" they say in unison, then fade away giggling.</div>
 <button class="btn" onclick="nextFloor()">Continue</button>
 </div>`;
@@ -4627,9 +4698,10 @@ return;
 }
 }
 
-toast(`${victim.n} took 1 damage!`);
+toast(`${hero.n} took 1 damage!`);
 ghostEscapeAttempts++;
 ghostEscapeDC -= 2;
+upd();
 
 if(ghostEscapeAttempts >= 9) {
 const v = document.getElementById('gameView');
@@ -4645,9 +4717,8 @@ return;
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<div class="neutral-title">Trapped with the Ghost Boys</div>
-<div class="dice-roll">${rollText}</div>
-<div class="neutral-outcome">You remain trapped! Time slips away... ${victim.n} took 1 damage!</div>
+<div class="neutral-title">Try Again</div>
+<div class="neutral-outcome">${hero.n} took 1 damage!</div>
 <div style="font-size:0.9rem;margin:1rem 0">Attempts: ${ghostEscapeAttempts}/9 | Next DC: ${ghostEscapeDC}</div>
 <button class="btn danger" onclick="attemptGhostEscape()">Try to Escape (DC ${ghostEscapeDC})</button>
 </div>`;
