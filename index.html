@@ -811,7 +811,7 @@ first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false
 },
-tutorialsDisabled: false,
+helpTipsDisabled: false,
 usedDeathQuotes: [] // Track which death quotes have been shown
 };
 
@@ -1252,6 +1252,8 @@ ${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="flex:
 }
 
 function newGame() {
+// Reset runNumber to 1 for new game (allows tutorial to show)
+S.runNumber = 1;
 console.log('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
 if(S.runNumber === 1 && !S.helpTipsDisabled) {
 console.log('[FROGGLE] Showing tutorial story');
@@ -1665,12 +1667,6 @@ const v = document.getElementById('gameView');
 const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
 
-// TUTORIAL: Run 2 forces Tank + Mage
-const isRun2 = S.runNumber === 2;
-if(isRun2) {
-showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with extra health, and Mage starts with the ability to hit 2 targets at once!");
-}
-
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.97 BETA RELEASE</p>
@@ -1686,7 +1682,7 @@ ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <div style="position:relative;max-width:100%;margin:0 auto">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
-<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
+<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;"
 onclick="toggleHeroSelection('warrior')"
 title="Warrior"></div>
 <div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;"
@@ -1695,7 +1691,7 @@ title="Tank"></div>
 <div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;"
 onclick="toggleHeroSelection('mage')"
 title="Mage"></div>
-<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
+<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;"
 onclick="toggleHeroSelection('healer')"
 title="Healer"></div>
 
@@ -1738,10 +1734,6 @@ updateSelectionDisplay();
 }
 
 function toggleHeroSelection(heroType) {
-const isRun2 = S.runNumber === 2;
-const isLocked = isRun2 && (heroType === 'warrior' || heroType === 'healer');
-if(isLocked) return;
-
 const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
