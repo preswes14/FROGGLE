@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
 <link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
-<title>FROGGLE v9.91 - BETA RELEASE</title>
+<title>FROGGLE v9.97 - BETA RELEASE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -210,7 +210,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 </style>
 </head>
 <body>
-<div class="header">
+<div class="header" id="gameHeader">
 <div>Floor <span id="floor">1</span> | Round <span id="round">1</span></div>
 <div style="display:flex;gap:0.25rem">
 <button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">⚙️</button>
@@ -221,7 +221,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="game-area" id="gameView"></div>
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '9.91';
+const GAME_VERSION = '9.97';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
 
@@ -1219,35 +1219,33 @@ return html;
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
 console.log('[FROGGLE] mainTitlePage START');
+// Hide game header on title screen
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'none';
+
 const v = document.getElementById('gameView');
 console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
-<!-- Version label -->
-<div style="position:absolute;top:1rem;right:1rem;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5);z-index:1">
-<p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.91 BETA</p>
-</div>
-
 <!-- Green mat container -->
 <div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:90%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
-<!-- Title image -->
-<img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;margin-bottom:1.5rem;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
+<!-- Title image with version label -->
+<div style="position:relative;margin-bottom:1.5rem">
+<img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
+<div style="position:absolute;top:0.5rem;right:0.5rem;background:rgba(0,0,0,0.85);padding:0.4rem 0.8rem;border-radius:8px;border:2px solid rgba(251,191,36,0.7)">
+<p style="font-size:0.8rem;color:#fbbf24;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}<br>BETA</p>
+</div>
+</div>
 
 <!-- Buttons on green mat -->
 <div style="display:flex;gap:0.5rem;width:100%">
 <!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
+<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 New Game 🐸</button>
 
-<!-- Right side: smaller buttons stacked -->
-<div style="flex:1;display:flex;flex-direction:column;gap:0.5rem">
-${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;background:#2c63c7;border:2px solid #1e40af;font-weight:600">💾 Load</button>` : ''}
-<div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;background:#3b82f6;border:2px solid #2563eb;font-weight:600;flex:1">📤</button>
-<button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;background:#a855f7;border:2px solid #9333ea;font-weight:600;flex:1">📥</button>
-</div>
-</div>
+<!-- Right side: Load button -->
+${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="flex:1;font-size:0.9rem;padding:0.75rem;background:#2c63c7;border:3px solid #1e40af;font-weight:bold">💾 Load Game</button>` : ''}
 </div>
 </div>
 </div>`;
@@ -1675,7 +1673,7 @@ showTutorialPop('run2_hero_lock', "Try out the other 2 heroes! Tank starts with 
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.91 BETA RELEASE</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.97 BETA RELEASE</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
 ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -1689,7 +1687,7 @@ ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
 <div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun2?'':'toggleHeroSelection(\'warrior\')'}"
+onclick="toggleHeroSelection('warrior')"
 title="Warrior"></div>
 <div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;"
 onclick="toggleHeroSelection('tank')"
@@ -1698,7 +1696,7 @@ title="Tank"></div>
 onclick="toggleHeroSelection('mage')"
 title="Mage"></div>
 <div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;${isRun2?'opacity:0.5;cursor:not-allowed;':''}"
-onclick="${isRun2?'':'toggleHeroSelection(\'healer\')'}"
+onclick="toggleHeroSelection('healer')"
 title="Healer"></div>
 
 <!-- Hero card overlays -->
@@ -1848,6 +1846,10 @@ toggleHeroSelection(t);
 
 function start() {
 if(sel.length!==2) return;
+// Show game header when entering gameplay
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+
 S.floor=1; S.xp=0; S.levelUpCount=0;
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
