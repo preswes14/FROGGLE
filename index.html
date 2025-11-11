@@ -1224,26 +1224,29 @@ console.log('[FROGGLE] gameView element:', v);
 const hasSavedGame = localStorage.getItem('froggle8');
 console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:#1a1a1a;padding-bottom:2rem;overflow-y:auto;position:relative">
-<!-- Title image as background -->
-<img src="assets/title-screen.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
-
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
 <!-- Version label -->
 <div style="position:absolute;top:1rem;right:1rem;background:rgba(0,0,0,0.8);padding:0.5rem 1.5rem;border-radius:20px;border:2px solid rgba(251,191,36,0.6);box-shadow:0 4px 8px rgba(0,0,0,0.5);z-index:1">
 <p style="font-size:0.9rem;color:#fbbf24;font-weight:bold">v9.91 BETA</p>
 </div>
 
-<!-- Buttons -->
-<div style="display:flex;gap:0.5rem;width:90%;max-width:500px;flex-shrink:0">
+<!-- Green mat container -->
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:90%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
+<!-- Title image -->
+<img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;margin-bottom:1.5rem;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
+
+<!-- Buttons on green mat -->
+<div style="display:flex;gap:0.5rem;width:100%">
 <!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;box-shadow:0 4px 8px rgba(0,0,0,0.5);background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
+<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">▶️ New Game</button>
 
 <!-- Right side: smaller buttons stacked -->
 <div style="flex:1;display:flex;flex-direction:column;gap:0.5rem">
-${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:#22c55e;border:2px solid #16a34a;font-weight:600">💾 Load</button>` : ''}
+${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="font-size:0.85rem;padding:0.5rem;background:#2c63c7;border:2px solid #1e40af;font-weight:600">💾 Load</button>` : ''}
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(59,130,246,0.85);border:2px solid #3b82f6;font-weight:600;flex:1">📤</button>
-<button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;box-shadow:0 2px 4px rgba(0,0,0,0.4);background:rgba(168,85,247,0.85);border:2px solid #a855f7;font-weight:600;flex:1">📥</button>
+<button class="btn" onclick="exportSave()" style="font-size:0.75rem;padding:0.4rem;background:#3b82f6;border:2px solid #2563eb;font-weight:600;flex:1">📤</button>
+<button class="btn" onclick="importSave()" style="font-size:0.75rem;padding:0.4rem;background:#a855f7;border:2px solid #9333ea;font-weight:600;flex:1">📥</button>
+</div>
 </div>
 </div>
 </div>
@@ -5762,23 +5765,34 @@ savePermanent();
 function showSigilarium() {
 closeSettingsMenu();
 const v = document.getElementById('gameView');
-const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const passiveSigils = ['Star', 'Expand', 'Asterisk'];
+
+const getLevelColor = (level) => {
+if(level === 0) return '#666';
+if(level === 1) return '#1e40af';
+if(level === 2) return '#0d9488';
+if(level === 3) return '#9333ea';
+if(level === 4) return '#d97706';
+return '#ff0080'; // L5 gradient
+};
 
 let html = `
 <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(#fff,#f7f1e3);border:3px solid #9333ea;border-radius:12px;padding:2rem;z-index:30000;max-width:600px;width:90%;max-height:80vh;overflow-y:auto">
 <h2 style="text-align:center;color:#9333ea;margin-bottom:1rem">📖 SIGILARIUM 📖</h2>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-bottom:1.5rem">All Sigils and Their Permanent Upgrade Levels</p>
 
-<div style="display:grid;gap:0.75rem">
+<!-- Active Sigils -->
+<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">⚔️ Active Sigils</h3>
+<div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
-allSigils.forEach(sig => {
+activeSigils.forEach(sig => {
 const level = S.sig[sig] || 0;
-const isActive = actives.includes(sig);
-const effectiveLevel = isActive && level === 0 ? 1 : level;
+const effectiveLevel = level === 0 ? 1 : level;
 const cl = effectiveLevel===0?'l0':effectiveLevel===1?'l1':effectiveLevel===2?'l2':effectiveLevel===3?'l3':effectiveLevel===4?'l4':'l5';
 const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
+const levelColor = getLevelColor(effectiveLevel);
 
 html += `
 <div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
@@ -5786,8 +5800,36 @@ html += `
 <span class="sigil ${cl}" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
 <div>
 <div style="font-weight:bold;font-size:1.1rem">${sig}</div>
-<div style="font-size:0.85rem;opacity:0.8">${isActive ? 'Active' : 'Passive'} • Permanent Level: ${level}</div>
-${isActive && level === 0 ? '<div style="font-size:0.75rem;color:#22c55e;font-style:italic">Starts at Level 1 when equipped</div>' : ''}
+<div style="font-size:0.85rem;opacity:0.8">Permanent Level: <span style="color:${levelColor};font-weight:bold">L${level}</span></div>
+${level === 0 ? '<div style="font-size:0.75rem;color:#22c55e;font-style:italic">Starts at L1 when equipped</div>' : ''}
+</div>
+</div>
+<div style="font-size:0.9rem;line-height:1.4;color:#4b5563">${desc}</div>
+</div>
+`;
+});
+
+html += `
+</div>
+
+<!-- Passive Sigils -->
+<h3 style="color:#9333ea;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #9333ea;padding-bottom:0.25rem">✨ Passive Sigils</h3>
+<div style="display:grid;gap:0.75rem">
+`;
+
+passiveSigils.forEach(sig => {
+const level = S.sig[sig] || 0;
+const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
+const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
+const levelColor = getLevelColor(level);
+
+html += `
+<div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
+<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
+<span class="sigil ${cl}" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
+<div>
+<div style="font-weight:bold;font-size:1.1rem">${sig}</div>
+<div style="font-size:0.85rem;opacity:0.8">Permanent Level: <span style="color:${levelColor};font-weight:bold">L${level}</span></div>
 </div>
 </div>
 <div style="font-size:0.9rem;line-height:1.4;color:#4b5563">${desc}</div>
