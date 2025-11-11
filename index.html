@@ -2065,7 +2065,6 @@ S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
 S.totalInstances = 0;
 }
-const h = S.heroes[heroIdx];
 if(S.acted.includes(heroIdx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 if(h.ls && sig !== 'D20') { toast('Last Stand - D20 only!'); return; }
