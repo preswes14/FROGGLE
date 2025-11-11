@@ -24,58 +24,57 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .btn.secondary { background: #6b7280; }
 .choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; }
 .choice:active { transform: scale(0.98); background: #f0f0f0; }
+.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 6px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.neutral-btn:active { transform: scale(0.98); opacity: 0.9; }
+.neutral-btn.safe { background: #22c55e; color: white; }
+.neutral-btn.risky { background: #f59e0b; color: white; }
+.neutral-btn.danger { background: #dc2626; color: white; }
+.neutral-btn.secondary { background: #6b7280; color: white; }
 .neutral-container {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border: 4px solid #000;
-  border-radius: 12px;
-  margin: 0.5rem auto;
-  max-width: 800px;
-  min-height: 600px;
+  width: 100%;
+  height: 100vh;
   position: relative;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
 }
 .neutral-header {
   padding: 1rem;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 0.75rem;
   align-items: flex-start;
+  max-width: 450px;
 }
 .neutral-stats {
-  background: rgba(255,255,255,0.95);
-  border: 2px solid #000;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.9rem;
+  background: rgba(0,0,0,0.75);
+  color: white;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
   font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 .neutral-narrative {
-  background: rgba(255,255,255,0.95);
-  border: 2px solid #000;
+  background: rgba(0,0,0,0.8);
+  color: white;
   border-radius: 8px;
-  padding: 1rem;
-  max-width: 400px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  padding: 0.75rem;
 }
-.neutral-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
-.neutral-desc { font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.75rem; }
-.neutral-outcome { font-size: 0.85rem; padding: 0.75rem; background: #f0f0f0; border: 1px solid #666; border-radius: 6px; margin-bottom: 0.75rem; }
+.neutral-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: #fbbf24; }
+.neutral-desc { font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.5rem; }
+.neutral-outcome { font-size: 0.85rem; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px; margin-bottom: 0.5rem; }
 .neutral-content {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
 }
 .neutral-footer {
-  background: rgba(255,255,255,0.95);
-  border-top: 3px solid #000;
   padding: 1rem;
-  border-radius: 0 0 8px 8px;
+  max-width: 450px;
 }
 .dice-roll { font-size: 1.2rem; font-weight: bold; text-align: center; padding: 1rem; background: #2c63c7; color: white; border-radius: 6px; margin: 1rem 0; }
 /* Combat layout */
@@ -1186,7 +1185,6 @@ description,
 outcomes = [],
 diceRoll = '',
 buttons = '',
-heroCards = '',
 showStats = true
 } = options;
 
@@ -1206,10 +1204,8 @@ if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
 });
 html += '</div></div>'; // close narrative and header
 
-// Content area (for hero cards or empty space)
-if(heroCards) {
-html += `<div class="neutral-content"><div style="max-width:500px;width:100%">${heroCards}</div></div>`;
-}
+// Spacer for art
+html += '<div style="flex:1"></div>';
 
 // Footer with buttons
 if(buttons) {
@@ -3610,9 +3606,9 @@ bgImage: 'assets/neutrals/shopkeeper1.png',
 title: 'Potions for Sale',
 description: 'A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."',
 buttons: `
-<div class="choice" onclick="buySmallPotion()"><strong>Small Potion (3G)</strong><div style="font-size:0.85rem">Restore 3 HP to one hero</div></div>
-<div class="choice" onclick="buyLargePotion()"><strong>Large Potion (5G)</strong><div style="font-size:0.85rem">Restore 8 HP to one hero</div></div>
-<button class="btn safe" onclick="declineShopkeeper()">Do Not Engage</button>
+<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>
+<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>
+<button class="neutral-btn secondary" onclick="declineShopkeeper()">Do Not Engage</button>
 `
 });
 }
@@ -3623,15 +3619,15 @@ let shopLargeBought = false;
 function buySmallPotion() {
 if(S.gold < 3) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let heroCards = '';
+let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-heroCards += renderHeroCard(h, idx, `applySmallPotion(${idx})`);
+heroButtons += `<button class="neutral-btn" onclick="applySmallPotion(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
 title: 'Choose Hero',
-heroCards,
-buttons: `<button class="btn secondary" onclick="showShopkeeper1()">Back</button>`
+description: 'Select a hero to restore 3 HP.',
+buttons: heroButtons + `<button class="neutral-btn secondary" onclick="showShopkeeper1()">Back</button>`
 });
 }
 
@@ -3652,15 +3648,15 @@ showShopkeeper1();
 function buyLargePotion() {
 if(S.gold < 5) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let heroCards = '';
+let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-heroCards += renderHeroCard(h, idx, `applyLargePotion(${idx})`);
+heroButtons += `<button class="neutral-btn" onclick="applyLargePotion(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
 title: 'Choose Hero',
-heroCards,
-buttons: `<button class="btn secondary" onclick="showShopkeeper1()">Back</button>`
+description: 'Select a hero to restore 8 HP.',
+buttons: heroButtons + `<button class="neutral-btn secondary" onclick="showShopkeeper1()">Back</button>`
 });
 }
 
@@ -3805,15 +3801,15 @@ function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
 // Show hero selection screen
 const v = document.getElementById('gameView');
-let heroCards = '';
+let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-heroCards += renderHeroCard(h, idx, `applyWellDamage(${idx}, ${hpLoss}, ${goldGain})`);
+heroButtons += `<button class="neutral-btn danger" onclick="applyWellDamage(${idx}, ${hpLoss}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wishingwell1.png',
 title: 'Choose Who Takes Damage',
 description: `Choose which hero takes ${hpLoss} damage from climbing the well:`,
-heroCards
+buttons: heroButtons
 });
 } else {
 // No damage, just apply gold
@@ -3966,16 +3962,16 @@ contentOutcome += ' Inside the secret compartment, you find a small silver key!'
 const v = document.getElementById('gameView');
 if(trapDmg > 0) {
 // Show hero selection for trap damage
-let heroCards = '';
+let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-heroCards += renderHeroCard(h, idx, `finishChestOpen(${idx}, ${trapDmg}, ${goldGain})`);
+heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
 title: 'Opening the Chest',
 description: `Choose which hero takes ${trapDmg} damage:`,
 outcomes: [trapOutcome, `Dice roll: ${trapText}`, contentOutcome, `Dice roll: ${contentText}`],
-heroCards
+buttons: heroButtons
 });
 } else {
 // No trap damage, just show results and continue
@@ -4085,21 +4081,18 @@ outcomes: [
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 } else {
-let description = `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero receives the upgrade:</div>`;
+let description = `The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard exclaims: "Yes! YES! You see it! One of you has this power already!" Choose which hero receives the upgrade:`;
 let buttons = '';
 heroesWithSigil.forEach(idx => {
 const h = S.heroes[idx];
 const currentLevel = getLevel(randomSigil, idx);
-buttons += `<div class="choice" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">
-<strong>${h.n}</strong> <span style="opacity:0.7">${sigilIcon(randomSigil)} L${currentLevel} → L${currentLevel+1}</span>
-</div>`;
+buttons += `<button class="neutral-btn safe" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">${h.n} - ${sigilIcon(randomSigil)} L${currentLevel} → L${currentLevel+1}</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText,
 description,
-outcomes: [`The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard exclaims: "Yes! YES! You see it! One of you has this power already!"`],
 buttons
 });
 }
@@ -4196,17 +4189,17 @@ function showOracle1() {
 // Mark tutorial as seen so future runs have random neutrals
 S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
-let description = `<div style="font-size:0.9rem;margin-bottom:1rem">Choose a hero and their desired fortune:</div>`;
+let description = 'A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?" Choose a hero and their desired fortune:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
-buttons += `<div class="choice" onclick="oracleChoose(${idx}, 'POW')"><strong>${h.n}</strong> - Power</div>`;
-buttons += `<div class="choice" onclick="oracleChoose(${idx}, 'HP')"><strong>${h.n}</strong> - Life</div>`;
+buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (+1⚡)</button>`;
+buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (+2❤ max)</button>`;
 });
-buttons += `<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>`;
+buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/oracle1.png',
 title: 'Consult the Oracle',
-description: 'A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?"<br><br>' + description,
+description,
 buttons
 });
 }
@@ -4345,9 +4338,7 @@ const v = document.getElementById('gameView');
 let buttons = '';
 S.heroes.forEach((h, i) => {
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-buttons += `<div class="choice" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">
-<strong>${h.n}</strong> - ${h.p}⚡ | ${hp}
-</div>`;
+buttons += `<button class="neutral-btn ${action === 'sneak' ? '' : 'risky'}" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">${h.n} - ${h.p}⚡ | ${hp}</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
@@ -4632,17 +4623,17 @@ return;
 const v = document.getElementById('gameView');
 if(damage > 0 && !deactivated) {
 // Show hero selection for damage
-let heroCards = '';
+let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-heroCards += renderHeroCard(h, idx, `applyStatueEscapeDamage(${idx}, ${damage})`);
+heroButtons += `<button class="neutral-btn danger" onclick="applyStatueEscapeDamage(${idx}, ${damage})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/statue1.png',
 title: 'Escaping the Statue',
 diceRoll: rollText,
-description: `<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes ${damage} damage:</div>`,
+description: `Choose which hero takes ${damage} damage:`,
 outcomes: ['You escape but the statue crushes you on the way out!'],
-heroCards
+buttons: heroButtons
 });
 } else {
 // No damage or deactivated - show result and continue
@@ -4677,15 +4668,15 @@ nextFloor();
 
 function showStatue5() {
 const v = document.getElementById('gameView');
-let heroCards = '';
+let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-heroCards += renderHeroCard(h, idx, `scaleStatue(${idx})`);
+heroButtons += `<button class="neutral-btn" onclick="scaleStatue(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/statue1.png',
 title: 'Statue Unfurls',
-description: 'The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled.<br><br><div style="font-size:0.9rem;margin:1rem 0">Choose a hero to scale the statue:</div>',
-heroCards
+description: 'The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled. Choose a hero to scale the statue:',
+buttons: heroButtons
 });
 }
 
@@ -4784,17 +4775,17 @@ return;
 }
 
 // Failed - show hero selection
-let heroCards = '';
+let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-heroCards += renderHeroCard(h, idx, `applyGhostDamage(${idx})`);
+heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Trapped with the Ghost Boys',
 diceRoll: rollText,
-description: '<div style="font-size:0.9rem;margin:1rem 0">Choose which hero takes 1 damage:</div>',
+description: 'Choose which hero takes 1 damage:',
 outcomes: ['You remain trapped! Time slips away...'],
-heroCards
+buttons: heroButtons
 });
 }
 
