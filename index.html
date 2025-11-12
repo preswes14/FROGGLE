@@ -2337,12 +2337,6 @@ if(S.ambushed) h.st = 1;
 });
 let comp = getEnemyComp(f);
 
-// Ancient Statue deactivation reduces enemy count by 1
-if(S.ancientStatueDeactivated && comp.length > 1) {
-  comp.pop(); // Remove last enemy from composition
-  toast('Ancient Statue effect: -1 enemy!', 1500);
-}
-
 S.enemies = comp.map((t,i) => {
 const base = E[t];
 const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
