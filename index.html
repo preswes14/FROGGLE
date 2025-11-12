@@ -1388,7 +1388,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce 4s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
@@ -1396,10 +1396,17 @@ Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 </div>
 <style>
 @keyframes tapoBounce {
-0%, 100% { transform: translateY(0) scaleX(1); }
-25% { transform: translateY(-20px) scaleX(1); }
+0% { transform: translateY(0) scaleX(1); }
+10% { transform: translateY(-20px) scaleX(1); }
+15% { transform: translateY(-10px) scaleX(1); }
+20% { transform: translateY(-25px) scaleX(1); }
+30% { transform: translateY(0) scaleX(1); }
 50% { transform: translateY(0) scaleX(-1); }
-75% { transform: translateY(-20px) scaleX(-1); }
+60% { transform: translateY(-20px) scaleX(-1); }
+65% { transform: translateY(-10px) scaleX(-1); }
+70% { transform: translateY(-25px) scaleX(-1); }
+80% { transform: translateY(0) scaleX(-1); }
+100% { transform: translateY(0) scaleX(1); }
 }
 </style>
 `
@@ -1409,20 +1416,33 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Ribbleton's Defenders</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce2 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
 <strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
 </p>
 <div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
-<div style="animation:partyFlip 2.5s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 3s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 2s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 4s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 2s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 <div style="animation:partyFlip 3.5s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 </div>
 </div>
 <style>
+@keyframes tapoBounce2 {
+0% { transform: translateY(0) scaleX(1); }
+10% { transform: translateY(-20px) scaleX(1); }
+15% { transform: translateY(-10px) scaleX(1); }
+20% { transform: translateY(-25px) scaleX(1); }
+30% { transform: translateY(0) scaleX(1); }
+50% { transform: translateY(0) scaleX(-1); }
+60% { transform: translateY(-20px) scaleX(-1); }
+65% { transform: translateY(-10px) scaleX(-1); }
+70% { transform: translateY(-25px) scaleX(-1); }
+80% { transform: translateY(0) scaleX(-1); }
+100% { transform: translateY(0) scaleX(1); }
+}
 @keyframes bounce {
 0%, 100% { transform: translateY(0) scale(1); }
 50% { transform: translateY(-20px) scale(1.05); }
