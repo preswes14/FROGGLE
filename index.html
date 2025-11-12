@@ -1212,6 +1212,20 @@ S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
+starterActives.forEach(sig => {
+if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
+// Starter active at L1 with no upgrades = old save format, fix it
+S.sig[sig] = 0;
+needsFix = true;
+}
+});
+if(needsFix) {
+console.log('[SAVE] Fixed old save format: starter actives L1→L0');
+savePermanent(); // Save the fix
+}
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
@@ -1311,14 +1325,29 @@ try {
 const oldPerm = localStorage.getItem('froggle8_permanent');
 const oldRun = localStorage.getItem('froggle8');
 if(oldPerm) {
-localStorage.setItem('froggle8_permanent_slot1', oldPerm);
+// Parse and fix old save data before migrating
+const j = JSON.parse(oldPerm);
+// Fix starter actives that were incorrectly at L1 (should be L0 for storage)
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+if(j.sig) {
+starterActives.forEach(sig => {
+if(j.sig[sig] === 1) {
+j.sig[sig] = 0;
+// Also adjust sigUpgradeCounts if it exists
+if(j.sigUpgradeCounts && j.sigUpgradeCounts[sig] > 0) {
+j.sigUpgradeCounts[sig] = Math.max(0, j.sigUpgradeCounts[sig] - 1);
+}
+}
+});
+}
+localStorage.setItem('froggle8_permanent_slot1', JSON.stringify(j));
 localStorage.removeItem('froggle8_permanent');
+console.log('[SAVE] Migrated and fixed old save to slot 1');
 }
 if(oldRun) {
 localStorage.setItem('froggle8_slot1', oldRun);
 localStorage.removeItem('froggle8');
 }
-console.log('[SAVE] Migrated old save to slot 1');
 } catch(e) {
 console.warn('[SAVE] Migration failed:', e);
 }
@@ -1339,6 +1368,20 @@ S.runsAttempted = j.runsAttempted || j.runNumber || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
+starterActives.forEach(sig => {
+if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
+// Starter active at L1 with no upgrades = old save format, fix it
+S.sig[sig] = 0;
+needsFix = true;
+}
+});
+if(needsFix) {
+console.log('[SAVE] Fixed old save format: starter actives L1→L0');
+savePermanent(); // Save the fix
+}
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
