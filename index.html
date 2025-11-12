@@ -888,7 +888,6 @@ oracleRoll: null,
 oracleStat: null,
 wizardSigil: null,
 princeGender: 'Prince',
-treasureSecretCompartment: false,
 // Run tracking (permanent)
 runNumber: 1,
 // Tutorial flags (permanent - shown once ever)
@@ -1160,7 +1159,6 @@ sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
-hasAncientStatuette: S.hasAncientStatuette,
 pedestal: S.pedestal,
 effedUnlocked: S.effedUnlocked,
 tapoUnlocked: S.tapoUnlocked,
@@ -1187,7 +1185,6 @@ S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
-S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.pedestal = j.pedestal || [];
 S.effedUnlocked = j.effedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
@@ -1208,7 +1205,8 @@ try {
 localStorage.setItem('froggle8', JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
-neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
+hasAncientStatuette: S.hasAncientStatuette
 }));
 savePermanent();
 } catch(e) {
@@ -1227,6 +1225,7 @@ S.floor=j.f; S.xp=j.x; S.levelUpCount=j.luc || 0;
 S.heroes=j.h;
 S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
+S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -1310,7 +1309,6 @@ S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
-S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.pedestal = j.pedestal || [];
 S.effedUnlocked = j.effedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
@@ -1329,6 +1327,7 @@ S.levelUpCount = r.luc || 0;
 S.heroes = r.h;
 S.neutralDeck = r.neutralDeck || [];
 S.lastNeutral = r.lastNeutral || null;
+S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -1355,7 +1354,6 @@ sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
-hasAncientStatuette: S.hasAncientStatuette,
 pedestal: S.pedestal,
 effedUnlocked: S.effedUnlocked,
 tapoUnlocked: S.tapoUnlocked,
@@ -1377,7 +1375,8 @@ try {
 localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
-neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
+hasAncientStatuette: S.hasAncientStatuette
 }));
 savePermanent();
 } catch(e) {
@@ -4351,7 +4350,6 @@ trapOutcome = 'You carefully open the chest without triggering any traps.';
 } else {
 trapOutcome = 'Your keen eyes spot a hidden compartment in the chest\'s lid!';
 secretFound = true;
-S.treasureSecretCompartment = true;
 }
 
 setTimeout(() => {
@@ -4721,6 +4719,9 @@ outcome = `${h.n} surges with life force! Maximum HP +10!`;
 h.p += 2;
 outcome = `${h.n} blazes with power! POW +2!`;
 }
+} else {
+// Rolls 2-9 shouldn't reach Stage 2, but handle defensively
+outcome = 'The Oracle\'s fortune was unclear. The crystal sphere dims.';
 }
 
 removeNeutralFromDeck('oracle');
@@ -4869,56 +4870,7 @@ toast('Next combat will be AMBUSHED!', 1800);
 nextFloor();
 }
 
-function startEncampmentCombat(kills) {
-const v = document.getElementById('gameView');
-const comp = getEnemyComp(S.floor + 1);
-
-let description = `<div style="font-size:0.9rem;margin-bottom:1rem">Select ${kills} enem${kills>1?'ies':'y'} to remove:</div>`;
-let buttons = '';
-
-const enemyTypes = {};
-comp.forEach(type => {
-enemyTypes[type] = (enemyTypes[type] || 0) + 1;
-});
-
-Object.keys(enemyTypes).forEach(type => {
-const count = enemyTypes[type];
-buttons += `<div class="choice" onclick="killEncampmentEnemy('${type}', ${kills})">
-<strong>${E[type].n}</strong> <span style="opacity:0.7">(${count} available, ${E[type].g}G + ${E[type].x}XP each)</span>
-</div>`;
-});
-
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/encampment1.png',
-title: 'Choose Enemies to Kill',
-description,
-buttons
-});
-}
-
-function killEncampmentEnemy(type, target) {
-if(!S.encampmentKilledTypes) S.encampmentKilledTypes = [];
-if(!S.encampmentKillsRemaining) S.encampmentKillsRemaining = target;
-
-// Track which enemy type was killed
-S.encampmentKilledTypes.push(type);
-
-S.gold += E[type].g;
-S.xp += E[type].x;
-upd();
-toast(`Killed ${E[type].n}! +${E[type].g}G +${E[type].x}XP`);
-
-S.encampmentKillsRemaining--;
-
-if(S.encampmentKillsRemaining <= 0) {
-// Combat will be reduced on next floor
-replaceStage1WithStage2('encampment');
-nextFloor();
-} else {
-startEncampmentCombat(S.encampmentKillsRemaining);
-}
-}
-
+// ===== 6b. ENCAMPMENT STAGE 2 =====
 function showEncampment2() {
 const healAmt = Math.floor(S.heroes[0].m * 0.5);
 const goldGain = 2 * S.heroes.length;
