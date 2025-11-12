@@ -115,7 +115,13 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   flex-direction: column;
   gap: 0.75rem;
   align-items: flex-start;
-  max-width: 450px;
+  max-width: 600px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .neutral-header {
+    max-width: 700px;
+  }
 }
 .neutral-stats {
   background: rgba(0,0,0,0.75);
@@ -417,9 +423,9 @@ const SIGIL_DESCRIPTIONS = {
 'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
 'Grapple': 'Deal POW damage to target AND they deal POW damage back to you. L2+: Stun target for (Level-1) turns.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
-'Asterisk': 'PASSIVE: Always-on if unlocked. Must use as LAST action of turn. Next turn: First action hits ALL enemies. One use per combat.',
+'Asterisk': 'PASSIVE: Always-on if unlocked. Must use as LAST action of turn. Next turn: First action triggers (Level+1) times. One use per combat.',
 'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
-'Alpha': 'Grant target hero an extra action this turn. Can target self. Higher levels grant more actions.'
+'Alpha': 'Grant target hero an extra action this turn. Higher levels grant more actions.'
 };
 
 // ===== UTILITY FUNCTIONS =====
@@ -796,7 +802,7 @@ const descriptions = {
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
 'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Use as last action. Next turn: First action triggers ${boldNum(level + 1)} times. One use per combat`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
-'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn. Can target self`
+'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
 };
 
 return descriptions[sigilName] || 'No description available';
@@ -1193,6 +1199,7 @@ pedestal: S.pedestal,
 effedUnlocked: S.effedUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
+runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
@@ -1234,6 +1241,7 @@ S.pedestal = j.pedestal || [];
 S.effedUnlocked = j.effedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
+S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
@@ -1454,7 +1462,11 @@ toast('Warning: Progress could not be saved', 2000);
 
 const originalSaveGame = saveGame;
 saveGame = function() {
-if(!S.currentSlot) return;
+if(!S.currentSlot) {
+console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
+S.currentSlot = 1;
+localStorage.setItem('froggle8_current_slot', '1');
+}
 try {
 localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
@@ -1591,6 +1603,12 @@ const v = document.getElementById('gameView');
 console.log('[FROGGLE] gameView element:', v);
 // Check for old saves and migrate
 migrateOldSave();
+// If migration created slot 1 but currentSlot not set, set it
+if(!S.currentSlot && localStorage.getItem('froggle8_permanent_slot1')) {
+S.currentSlot = 1;
+localStorage.setItem('froggle8_current_slot', '1');
+console.log('[SAVE] Set currentSlot to 1 after migration');
+}
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
 <!-- Green mat container -->
@@ -4716,7 +4734,7 @@ buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'Consult the Oracle',
 description,
 buttons
@@ -4758,7 +4776,7 @@ replaceStage1WithStage2('oracle');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'The Oracle\'s Fortune',
 diceRoll: rollText,
 outcomes: [
@@ -4831,7 +4849,7 @@ removeNeutralFromDeck('oracle');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince2.png',
+bgImage: 'assets/neutrals/oracle2.png',
 title: 'Return to the Oracle',
 outcomes: [
 `${h.n} returns to the Oracle. The crystal sphere flares brightly!`,
@@ -5357,7 +5375,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor 
 function showPrince1() {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/prince1.png',
 title: 'Help Recover the Ring',
 description: `A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
 buttons: `
@@ -5373,7 +5391,7 @@ S.princeQuestActive = true;
 S.princeQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/prince1.png',
 outcomes: [`The ${S.princeGender} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -5386,7 +5404,7 @@ if(!S.princeQuestCompleted) {
 // Quest failed
 S.princeQuestActive = false;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/prince1.png',
 title: 'Quest Failed',
 description: `The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
 outcomes: [`The ${S.princeGender} departs sadly. No reward.`],
@@ -5421,7 +5439,7 @@ buttons += `<div class="choice" onclick="choosePrinceSigil('${sigil2}')">
 </div>`;
 
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle2.png',
+bgImage: 'assets/neutrals/prince2.png',
 title: 'The Wedding',
 description: `The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
@@ -5434,7 +5452,7 @@ S.sig[sig] = (S.sig[sig] || 0) + 1;
 toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle2.png',
+bgImage: 'assets/neutrals/prince2.png',
 outcomes: [`The royal couple thanks you profusely. The ${sig} sigil glows and merges with your power!`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
