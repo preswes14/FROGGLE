@@ -459,7 +459,7 @@ const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${lvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
 });
 html += '</div>';
 html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
@@ -746,10 +746,40 @@ S.locked = false;
 let tooltipTimeout = null;
 let currentTooltip = null;
 
-function showTooltip(sigilName, element) {
+// Get level-specific description with colored/bolded numbers
+function getLevelDescription(sigilName, level) {
+const levelColors = {
+0: '#666',
+1: '#000',
+2: '#0d9488',
+3: '#9333ea',
+4: '#d97706',
+5: '#ff0080'
+};
+const color = levelColors[level] || '#000';
+const boldNum = (num) => `<strong style="color:${color}">${num}</strong>`;
+
+// Level-specific descriptions
+const descriptions = {
+'Attack': level === 0 ? 'Not unlocked' : `Deal POW damage to target${level > 1 ? ` <strong style="color:${color}">${level}</strong> times` : ''}`,
+'Shield': level === 0 ? 'Not unlocked' : `Grant target ${boldNum(2 * level)}×POW shield. Shield persists between battles (capped at hero max HP)`,
+'Heal': level === 0 ? 'Not unlocked' : `Restore ${boldNum(2 * level)}×POW HP to target. Cannot exceed max HP`,
+'D20': `Roll ${boldNum(level)}d20 and choose: Damage enemy (DC varies) or Heal ally (no DC). Use best roll`,
+'Expand': level === 0 ? 'PASSIVE: Your Attack/Shield/Heal target +1 additional target per level. Works automatically. Mage/Healer get +1 built-in' : `Target ${boldNum(level)} extra target${level > 1 ? 's' : ''} with Attack/Shield/Heal. Can activate to boost one action further`,
+'Grapple': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target AND they deal POW damage back to you' : `Deal POW damage to target, they deal POW damage back, AND stun target for ${boldNum(level - 1)} turn${level > 2 ? 's' : ''}`,
+'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge cancels one lethal hit (max 9 charges)`,
+'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : level === 1 ? 'PASSIVE: Must use as LAST action of turn. Next turn: First action hits ALL enemies. One use per combat' : `PASSIVE: Use as last action. Next turn: First action hits ALL enemies ${boldNum(level)}× (one use per combat)`,
+'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Multiply combat XP by ${boldNum(1 + level * 0.5)}×. Works automatically. Stacks across heroes`,
+'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn. Can target self`
+};
+
+return descriptions[sigilName] || 'No description available';
+}
+
+function showTooltip(sigilName, element, level = 1) {
 // Tooltip display (tutorial explanation happens in Ribbleton combat)
 
-const desc = SIGIL_DESCRIPTIONS[sigilName];
+const desc = getLevelDescription(sigilName, level);
 if(!desc) return;
 
 hideTooltip();
@@ -3422,8 +3452,8 @@ const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Atta
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
-onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
+onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
+ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
 });
 html += '</div>';
 html += '</div>';
