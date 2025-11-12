@@ -283,29 +283,591 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
 
-/* Desktop improvements - larger buttons and text */
-@media (min-width: 1024px) {
-  .btn {
-    padding: 1.25rem 1.5rem;
-    font-size: 1.3rem;
-    min-height: 64px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-  }
-  .choice {
-    padding: 1.25rem 1.5rem;
-    font-size: 1.2rem;
-    min-height: 72px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-  }
-  .neutral-btn {
+/* Tablet improvements (768px-1023px) */
+@media (min-width: 768px) {
+  /* Base scaling for tablet */
+  .header {
+    font-size: 0.95rem;
     padding: 0.75rem 1rem;
+  }
+
+  .game-area {
+    padding: 1rem;
+    height: calc(100vh - 52px);
+  }
+
+  /* Cards medium scaling */
+  .card {
+    width: 180px !important;
+    max-width: 180px;
+    padding: 0.75rem;
+    min-height: 85px;
+    font-size: 0.95rem;
+  }
+  .card.hero { width: 180px; }
+  .card.enemy { width: 180px; }
+
+  /* Combat grid spacing */
+  .combat-grid {
+    gap: 1rem;
+  }
+  .column {
+    gap: 0.75rem;
+  }
+
+  /* Combat lane */
+  .combat-lane {
+    padding: 1.25rem;
+    max-width: 900px;
+  }
+
+  /* Sigils medium */
+  .sigil {
+    font-size: 0.95rem;
+    padding: 5px 10px;
+    min-height: 32px;
+  }
+  .sigil-row {
+    gap: 6px;
+  }
+
+  /* Buttons */
+  .btn {
+    font-size: 1.2rem;
+    padding: 1.1rem;
+    min-height: 60px;
+  }
+
+  .choice {
     font-size: 1.1rem;
+    padding: 1.1rem;
+    min-height: 65px;
+  }
+
+  .neutral-btn {
+    font-size: 1rem;
+    padding: 0.6rem 0.9rem;
+  }
+
+  /* Toast notifications */
+  .toast {
+    font-size: 1rem;
+    padding: 1.25rem 1.75rem;
+    max-width: 500px;
+  }
+
+  .toast-log {
+    max-width: 320px;
+    font-size: 0.9rem;
+  }
+
+  /* Tooltips */
+  .tooltip {
+    max-width: 380px;
+    padding: 1.25rem;
+  }
+  .tooltip-title {
+    font-size: 1.2rem;
+  }
+  .tooltip-desc {
+    font-size: 1rem;
+  }
+}
+
+/* Desktop improvements (1024px+) - Premium experience */
+@media (min-width: 1024px) {
+  /* Header scaling */
+  .header {
+    font-size: 1.1rem;
+    padding: 1rem 1.5rem;
+    height: 56px;
+  }
+
+  .header button {
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.75rem !important;
+  }
+
+  .game-area {
+    padding: 1.5rem;
+    height: calc(100vh - 56px);
+  }
+
+  /* Hero and Enemy Cards - Much larger on desktop */
+  .card {
+    width: 220px !important;
+    max-width: 220px;
+    padding: 1rem;
+    min-height: 110px;
+    font-size: 1.1rem;
+    border-width: 4px;
+  }
+  .card.hero { width: 220px; }
+  .card.enemy { width: 220px; }
+
+  /* Hero/enemy images larger */
+  .card img {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  /* Card text scaling */
+  .card > div {
+    font-size: 1rem !important;
+  }
+  .card > div:first-child {
+    font-size: 1.2rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Combat grid - More spacious */
+  .combat-grid {
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+
+  .column {
+    gap: 1rem;
+  }
+
+  /* Combat lane - Use more screen */
+  .combat-lane {
+    padding: 1.5rem 2rem;
+    max-width: 1200px;
+    margin-bottom: 3rem;
+  }
+
+  .combat-lane:not(:last-child)::after {
+    font-size: 1.5rem;
+    bottom: -2.5rem;
+  }
+
+  /* Sigils - Properly sized for desktop */
+  .sigil {
+    font-size: 1.1rem;
+    padding: 6px 12px;
+    min-height: 38px;
+    border-width: 3px;
+    margin: 3px;
+  }
+
+  .sigil img {
+    height: 1.4em !important;
+  }
+
+  .sigil-row {
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .sigil-row.compact {
+    gap: 4px;
+  }
+  .sigil-row.compact .sigil {
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    min-height: 28px;
+  }
+
+  .sigil-divider {
+    margin: 6px 0;
+  }
+
+  /* Buttons - Desktop appropriate */
+  .btn {
+    padding: 1.25rem 2rem;
+    font-size: 1.4rem;
+    min-height: 70px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+    display: block;
+    border-width: 4px;
+  }
+
+  .choice {
+    padding: 1.25rem 2rem;
+    font-size: 1.3rem;
+    min-height: 75px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1rem;
+    display: block;
+    border-width: 4px;
+  }
+
+  .neutral-btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 1.15rem;
+    border-width: 3px;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Neutral screens */
+  .neutral-header {
+    max-width: 800px;
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .neutral-stats {
+    font-size: 1.05rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .neutral-narrative {
+    padding: 1rem 1.25rem;
+  }
+
+  .neutral-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .neutral-desc {
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .neutral-outcome {
+    font-size: 1rem;
+    padding: 0.75rem;
+  }
+
+  .neutral-footer {
+    max-width: 600px;
+    padding: 1.5rem;
+  }
+
+  /* Dice roll */
+  .dice-roll {
+    font-size: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  /* Toast notifications */
+  .toast {
+    font-size: 1.15rem;
+    padding: 1.5rem 2rem;
+    max-width: 600px;
+    bottom: 40px;
+    right: 40px;
+    border-width: 3px;
+  }
+
+  .toast-log {
+    max-width: 380px;
+    padding: 0.75rem;
+    right: 80px;
+    top: 15px;
+  }
+
+  .toast-log-header {
+    font-size: 1rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .toast-log-toggle {
+    font-size: 1.2rem;
+  }
+
+  .toast-log-entries {
+    font-size: 0.95rem;
+    max-height: 280px;
+  }
+
+  .toast-log-entry {
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Tutorial modal */
+  .tutorial-modal {
+    padding: 2.5rem;
+    max-width: 750px;
+    border-width: 5px;
+  }
+
+  .tutorial-modal h2 {
+    font-size: 1.8rem;
+  }
+
+  .tutorial-modal p {
+    font-size: 1.25rem;
+    line-height: 1.7;
+  }
+
+  .tutorial-modal button {
+    padding: 1rem 2.5rem;
+    font-size: 1.25rem;
+    border-width: 3px;
+  }
+
+  /* Tooltips */
+  .tooltip {
+    max-width: 450px;
+    padding: 1.5rem;
+    border-width: 3px;
+  }
+
+  .tooltip-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tooltip-desc {
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+}
+
+/* Large Desktop improvements (1440px+) - Even more premium */
+@media (min-width: 1440px) {
+  /* Use even more screen real estate */
+  .combat-lane {
+    max-width: 1400px;
+    padding: 2rem 2.5rem;
+  }
+
+  /* Cards can be even larger */
+  .card {
+    width: 240px !important;
+    max-width: 240px;
+    padding: 1.25rem;
+    min-height: 120px;
+    font-size: 1.15rem;
+  }
+  .card.hero { width: 240px; }
+  .card.enemy { width: 240px; }
+
+  /* Images scale up */
+  .card img {
+    width: 72px !important;
+    height: 72px !important;
+  }
+
+  /* More generous spacing */
+  .combat-grid {
+    gap: 2rem;
+  }
+
+  .column {
+    gap: 1.25rem;
+  }
+
+  /* Buttons use more width */
+  .btn, .choice {
+    max-width: 800px;
+  }
+
+  /* Larger game area padding */
+  .game-area {
+    padding: 2rem;
+  }
+}
+
+/* Ultra-wide Desktop (1920px+) */
+@media (min-width: 1920px) {
+  .combat-lane {
+    max-width: 1600px;
+  }
+
+  /* Cards at maximum size */
+  .card {
+    width: 260px !important;
+    max-width: 260px;
+  }
+  .card.hero { width: 260px; }
+  .card.enemy { width: 260px; }
+
+  .btn, .choice {
+    max-width: 900px;
+  }
+}
+
+/* Dynamic element classes for inline styles */
+.card-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+}
+
+.card-emoji {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.card-stats {
+  text-align: center;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.combat-header {
+  text-align: center;
+  font-weight: bold;
+  padding: 0.75rem;
+  background: rgba(0,0,0,0.05);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.combat-header-title {
+  font-size: 1.1rem;
+  color: #dc2626;
+}
+
+.combat-header-subtitle {
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.combat-header-info {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
+}
+
+.section-label {
+  text-align: center;
+  font-weight: bold;
+  padding: 0.25rem;
+  background: rgba(0,0,0,0.1);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.empty-slot {
+  text-align: center;
+  font-size: 0.75rem;
+  padding: 0.5rem;
+  opacity: 0.5;
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+/* Tablet scaling for dynamic elements */
+@media (min-width: 768px) {
+  .card-image {
+    width: 56px;
+    height: 56px;
+  }
+
+  .card-emoji {
+    font-size: 2.25rem;
+  }
+
+  .card-stats {
+    font-size: 0.9rem;
+  }
+
+  .combat-header {
+    padding: 1rem;
+  }
+
+  .combat-header-title {
+    font-size: 1.25rem;
+  }
+
+  .combat-header-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .combat-header-info {
+    font-size: 0.85rem;
+  }
+
+  .section-label {
+    font-size: 0.95rem;
+    padding: 0.35rem;
+  }
+
+  .empty-slot {
+    font-size: 0.85rem;
+  }
+}
+
+/* Desktop scaling for dynamic elements */
+@media (min-width: 1024px) {
+  .card-image {
+    width: 64px;
+    height: 64px;
+  }
+
+  .card-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-stats {
+    font-size: 1rem;
+    margin-top: 0.35rem;
+  }
+
+  .combat-header {
+    padding: 1.25rem;
+  }
+
+  .combat-header-title {
+    font-size: 1.4rem;
+  }
+
+  .combat-header-subtitle {
+    font-size: 1.05rem;
+    margin-top: 0.35rem;
+  }
+
+  .combat-header-info {
+    font-size: 0.95rem;
+  }
+
+  .section-label {
+    font-size: 1.05rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .empty-slot {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+  }
+}
+
+/* Large desktop scaling */
+@media (min-width: 1440px) {
+  .card-image {
+    width: 72px;
+    height: 72px;
+  }
+
+  .card-emoji {
+    font-size: 2.75rem;
+  }
+
+  .card-stats {
+    font-size: 1.1rem;
+  }
+
+  .combat-header-title {
+    font-size: 1.5rem;
+  }
+
+  .combat-header-subtitle {
+    font-size: 1.15rem;
+  }
+}
+
+/* Ultra-wide desktop */
+@media (min-width: 1920px) {
+  .card-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .card-emoji {
+    font-size: 3rem;
   }
 }
 </style>
@@ -470,13 +1032,13 @@ return targets.length;
 function renderEncampmentSelection() {
 const kills = S.encampmentEarlyKills;
 const selected = S.encampmentSelectedTargets.length;
-let html = '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
-html += `<div style="font-size:1.1rem;color:#dc2626">Encampment Early Kill</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Click ${kills} enem${kills>1?'ies':'y'} to remove before combat (${selected}/${kills} selected)</div>`;
+let html = '<div class="combat-header">';
+html += `<div class="combat-header-title">Encampment Early Kill</div>`;
+html += `<div class="combat-header-subtitle">Click ${kills} enem${kills>1?'ies':'y'} to remove before combat (${selected}/${kills} selected)</div>`;
 html += '</div>';
 html += '<div class="combat-grid">';
 html += '<div class="column heroes">';
-html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">HEROES</div>';
+html += '<div class="section-label">HEROES</div>';
 S.heroes.forEach((h,i) => {
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const extra = [];
@@ -485,7 +1047,7 @@ if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">` : ''}
+${heroImage ? `<img src="${heroImage}" class="card-image">` : ''}
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
 const activeSigils = [...h.s, ...(h.ts || [])];
@@ -495,19 +1057,19 @@ const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5'
 html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${lvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
 });
 html += '</div>';
-html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
+html += `<div class="card-stats">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '</div>';
 });
 html += '</div>';
 html += '<div class="column enemies">';
-html += '<div style="text-align:center;font-weight:bold;padding:0.25rem;background:rgba(0,0,0,0.1);border-radius:6px;margin-bottom:0.5rem;font-size:0.85rem">ENEMIES</div>';
+html += '<div class="section-label">ENEMIES</div>';
 const enemyLanes = {};
 S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
 S.heroes.forEach((hero, laneIdx) => {
 const laneEnemies = enemyLanes[laneIdx] || [];
 html += `<div class="combat-lane" data-lane="${laneIdx+1}">`;
 if(laneEnemies.length === 0) {
-html += `<div style="text-align:center;font-size:0.75rem;padding:0.5rem;opacity:0.5;font-style:italic;margin-bottom:0.5rem">Empty</div>`;
+html += `<div class="empty-slot">Empty</div>`;
 } else {
 laneEnemies.forEach(e => {
 const isSelected = S.encampmentSelectedTargets.includes(e.id);
@@ -519,9 +1081,9 @@ if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
-<div style="text-align:center;font-size:2rem;margin-bottom:0.25rem">${enemyEmoji}</div>
+<div class="card-emoji">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
-<div style="text-align:center;font-size:0.8rem">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div class="card-stats">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
@@ -547,33 +1109,33 @@ return html;
 
 // Render combat status header
 function renderCombatStatusHeader() {
-let html = '<div style="text-align:center;font-weight:bold;padding:0.75rem;background:rgba(0,0,0,0.05);border-radius:6px;margin-bottom:0.75rem">';
+let html = '<div class="combat-header">';
 if(S.turn!=='player') {
 html += 'Enemy Turn…';
 } else if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
 const maxTargets = 1 + getLevel('Expand', heroIdx);
 const selected = S.targets.length;
-html += `<div style="color:#b64141;font-size:1.1rem">${S.d20Action} (DC ${S.d20DC})</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select target enemy (${selected}/${maxTargets})</div>`;
+html += `<div class="combat-header-title">${S.d20Action} (DC ${S.d20DC})</div>`;
+html += `<div class="combat-header-subtitle">Select target enemy (${selected}/${maxTargets})</div>`;
 } else if(S.pending) {
 const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
 const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
 if(isMultiInstance(S.pending)) {
 const targetsInInstance = S.currentInstanceTargets.length;
-html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${targetsInInstance}/${targetsPerInstance})</div>`;
-html += `<div style="font-size:0.75rem;opacity:0.8;margin-top:0.25rem">${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
+html += `<div class="combat-header-title">${S.pending}</div>`;
+html += `<div class="combat-header-subtitle">Select ${targetType} (${targetsInInstance}/${targetsPerInstance})</div>`;
+html += `<div class="combat-header-info">${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
 } else {
 const selected = S.targets.length;
 const max = targetsPerInstance;
-html += `<div style="color:#b64141;font-size:1.1rem">${S.pending}</div>`;
-html += `<div style="font-size:0.85rem;margin-top:0.25rem">Select ${targetType} (${selected}/${max})</div>`;
+html += `<div class="combat-header-title">${S.pending}</div>`;
+html += `<div class="combat-header-subtitle">Select ${targetType} (${selected}/${max})</div>`;
 }
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
-html += `<div style="font-size:1.1rem">Choose Hero to Act</div>`;
-html += `<div style="font-size:0.8rem;opacity:0.8;margin-top:0.25rem">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+html += `<div class="combat-header-title">Choose Hero to Act</div>`;
+html += `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
 } else {
 const h = S.heroes[S.activeIdx];
 if(h) {
@@ -995,7 +1557,7 @@ if(hero.sh > 0) extra.push(`${hero.sh}🛡`);
 if(hero.g > 0) extra.push(`${hero.g}${sigilIconOnly('Ghost')}`);
 return `<div class="card hero" onclick="${onclickHandler}" style="cursor:pointer;margin-bottom:0.75rem;transition:transform 0.1s,box-shadow 0.1s" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${hero.n}</div>
-<div style="text-align:center;font-size:0.8rem">${hero.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
+<div class="card-stats">${hero.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
 </div>`;
 }
 
