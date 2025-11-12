@@ -2069,7 +2069,7 @@ v.innerHTML = `
 
 setTimeout(() => {
 tutorialState = null;
-title(); // Go to hero select (which will auto-select Warrior + Healer for Run 1)
+title(); // Go to hero select
 }, 5500);
 }
 
@@ -2080,13 +2080,6 @@ function title() {
 console.log('[FROGGLE] title() called - Hero selection screen');
 // Reset selection first
 sel = [];
-// TUTORIAL: Run 1 selects Warrior + Healer after hero select screen
-const isRun1 = S.runNumber === 1;
-if(isRun1 && !S.helpTipsDisabled) {
-// Auto-select for tutorial but show the screen
-console.log('[FROGGLE] Auto-selecting Warrior + Healer for tutorial');
-sel = ['warrior', 'healer'];
-}
 
 const v = document.getElementById('gameView');
 const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
@@ -2133,17 +2126,6 @@ console.log('[FROGGLE] title() innerHTML set successfully');
 
 // Update selection display
 updateSelectionDisplay();
-
-// If run 1 with tutorial, enable start button and show pre-selected hero cards
-if(isRun1 && !S.helpTipsDisabled) {
-setTimeout(() => {
-const b = document.getElementById('start');
-if(b) { b.disabled = false; b.style.opacity = '1'; }
-updateSelectionDisplay();
-// Show cards for pre-selected heroes
-updateHeroCards();
-}, 0);
-}
 }
 
 function handleHeroImageClick(event, container) {
