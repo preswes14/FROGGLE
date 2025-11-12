@@ -847,6 +847,7 @@ recruits: [], // Recruited enemies fighting for player
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
+runsAttempted: 0, // Number of runs started in this save slot
 startingXP: 0, // Bonus XP at start of each run (from Death Boy 2 sacrifices)
 pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Effed'}
 hasAncientStatuette: false,
@@ -854,6 +855,7 @@ gameMode: 'Standard', // 'Standard' or 'Effed'
 effedUnlocked: false,
 tapoUnlocked: false, // Unlocked after first FU victory
 debugMode: false, // Debug mode toggle
+currentSlot: null, // Current save slot (1 or 2)
 // Toast log
 toastHistory: [], // Recent toast messages
 toastLogExpanded: false, // Toast log expanded state
@@ -1236,6 +1238,154 @@ setTimeout(() => title(), 2000);
 }
 }
 
+// ===== SAVE SLOT SYSTEM =====
+// Get metadata for a save slot (without loading it)
+function getSlotMetadata(slot) {
+try {
+// Try new slot system first
+let d = localStorage.getItem(`froggle8_permanent_slot${slot}`);
+if(d) {
+const j = JSON.parse(d);
+return {
+exists: true,
+runsAttempted: j.runsAttempted || j.runNumber || 1,
+goingRate: j.goingRate || 1,
+hasActiveRun: !!localStorage.getItem(`froggle8_slot${slot}`)
+};
+}
+// Check old system for migration
+if(slot === 1) {
+d = localStorage.getItem('froggle8_permanent');
+if(d) {
+const j = JSON.parse(d);
+return {
+exists: true,
+runsAttempted: j.runNumber || 1,
+goingRate: j.goingRate || 1,
+hasActiveRun: !!localStorage.getItem('froggle8'),
+needsMigration: true
+};
+}
+}
+return { exists: false };
+} catch(e) {
+console.warn(`[SAVE] Error reading slot ${slot}:`, e);
+return { exists: false };
+}
+}
+
+// Migrate old save to slot 1
+function migrateOldSave() {
+try {
+const oldPerm = localStorage.getItem('froggle8_permanent');
+const oldRun = localStorage.getItem('froggle8');
+if(oldPerm) {
+localStorage.setItem('froggle8_permanent_slot1', oldPerm);
+localStorage.removeItem('froggle8_permanent');
+}
+if(oldRun) {
+localStorage.setItem('froggle8_slot1', oldRun);
+localStorage.removeItem('froggle8');
+}
+console.log('[SAVE] Migrated old save to slot 1');
+} catch(e) {
+console.warn('[SAVE] Migration failed:', e);
+}
+}
+
+// Load a specific slot
+function loadSlot(slot) {
+S.currentSlot = slot;
+localStorage.setItem('froggle8_current_slot', slot.toString());
+// Load permanent data
+try {
+const d = localStorage.getItem(`froggle8_permanent_slot${slot}`);
+if(d) {
+const j = JSON.parse(d);
+S.gold = j.gold || 0;
+S.goingRate = j.goingRate || 1;
+S.runsAttempted = j.runsAttempted || j.runNumber || 1;
+S.startingXP = j.startingXP || 0;
+S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
+S.ghostBoysConverted = j.ghostBoysConverted || false;
+S.hasAncientStatuette = j.hasAncientStatuette || false;
+S.pedestal = j.pedestal || [];
+S.effedUnlocked = j.effedUnlocked || false;
+S.tapoUnlocked = j.tapoUnlocked || false;
+S.runNumber = j.runNumber || 1;
+S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.usedDeathQuotes = j.usedDeathQuotes || [];
+if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+}
+// Try to load active run
+const runData = localStorage.getItem(`froggle8_slot${slot}`);
+if(runData) {
+const r = JSON.parse(runData);
+S.floor = r.f;
+S.xp = r.x;
+S.levelUpCount = r.luc || 0;
+S.heroes = r.h;
+S.neutralDeck = r.neutralDeck || [];
+S.lastNeutral = r.lastNeutral || null;
+S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
+upd();
+startFloor(S.floor);
+toast('Slot loaded!');
+return true;
+}
+} catch(e) {
+console.warn('[SAVE] Failed to load slot:', e);
+}
+return false;
+}
+
+// Update save functions to use current slot
+const originalSavePermanent = savePermanent;
+savePermanent = function() {
+if(!S.currentSlot) return;
+try {
+localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}`, JSON.stringify({
+gold: S.gold,
+goingRate: S.goingRate,
+runsAttempted: S.runsAttempted,
+startingXP: S.startingXP,
+sig: S.sig,
+sigUpgradeCounts: S.sigUpgradeCounts,
+ancientStatueDeactivated: S.ancientStatueDeactivated,
+ghostBoysConverted: S.ghostBoysConverted,
+hasAncientStatuette: S.hasAncientStatuette,
+pedestal: S.pedestal,
+effedUnlocked: S.effedUnlocked,
+tapoUnlocked: S.tapoUnlocked,
+runNumber: S.runNumber,
+tutorialFlags: S.tutorialFlags,
+helpTipsDisabled: S.helpTipsDisabled,
+usedDeathQuotes: S.usedDeathQuotes
+}));
+} catch(e) {
+console.warn('[SAVE] Failed to save permanent data:', e);
+toast('Warning: Progress could not be saved', 2000);
+}
+};
+
+const originalSaveGame = saveGame;
+saveGame = function() {
+if(!S.currentSlot) return;
+try {
+localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
+f:S.floor, x:S.xp, luc:S.levelUpCount,
+h:S.heroes,
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral
+}));
+savePermanent();
+} catch(e) {
+console.warn('[SAVE] Failed to save game:', e);
+toast('Warning: Game could not be saved', 2000);
+}
+};
+
 // ===== NEUTRAL DECK SYSTEM =====
 function initNeutralDeck() {
 S.neutralDeck = [
@@ -1355,8 +1505,8 @@ if(header) header.style.display = 'none';
 
 const v = document.getElementById('gameView');
 console.log('[FROGGLE] gameView element:', v);
-const hasSavedGame = localStorage.getItem('froggle8');
-console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
+// Check for old saves and migrate
+migrateOldSave();
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
 <!-- Green mat container -->
@@ -1369,16 +1519,118 @@ v.innerHTML = `
 </div>
 </div>
 
-<!-- Buttons on green mat -->
-<div style="display:flex;gap:0.5rem;width:100%">
-<!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 New Game 🐸</button>
-
-<!-- Right side: Load button -->
-${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="flex:1;font-size:0.9rem;padding:0.75rem;background:#2c63c7;border:3px solid #1e40af;font-weight:bold">💾 Load Game</button>` : ''}
-</div>
+<!-- Single Play button -->
+<button class="btn" onclick="showSaveSlotSelection()" style="width:100%;font-size:1.2rem;padding:1rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 PLAY 🐸</button>
 </div>
 </div>`;
+}
+
+// Show save slot selection screen
+function showSaveSlotSelection() {
+const v = document.getElementById('gameView');
+const slot1 = getSlotMetadata(1);
+const slot2 = getSlotMetadata(2);
+
+v.innerHTML = `
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
+<h2 style="text-align:center;margin-bottom:1.5rem;font-size:1.5rem">Select Save Slot</h2>
+
+<!-- Slot 1 -->
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<h3 style="font-size:1.2rem;margin:0">Slot 1</h3>
+</div>
+${slot1.exists ? `
+<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs Attempted: <strong>${slot1.runsAttempted}</strong></div>
+<div>💰 Going Rate: <strong>${slot1.goingRate}G</strong></div>
+${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+</div>
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary" onclick="confirmDeleteSlot(1)" style="flex:0;padding:0.5rem 0.75rem">🗑️</button>
+</div>
+` : `
+<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🆕 New Game</button>
+`}
+</div>
+
+<!-- Slot 2 -->
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<h3 style="font-size:1.2rem;margin:0">Slot 2</h3>
+</div>
+${slot2.exists ? `
+<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs Attempted: <strong>${slot2.runsAttempted}</strong></div>
+<div>💰 Going Rate: <strong>${slot2.goingRate}G</strong></div>
+${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+</div>
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary" onclick="confirmDeleteSlot(2)" style="flex:0;padding:0.5rem 0.75rem">🗑️</button>
+</div>
+` : `
+<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🆕 New Game</button>
+`}
+</div>
+
+<button class="btn secondary" onclick="mainTitlePage()" style="width:100%">← Back</button>
+</div>
+</div>`;
+}
+
+// Continue/start a slot
+function continueSlot(slot) {
+const meta = getSlotMetadata(slot);
+if(meta.hasActiveRun) {
+// Load existing run
+if(loadSlot(slot)) {
+// Success - game already started
+} else {
+toast('Failed to load slot');
+}
+} else {
+// Start new run in existing slot
+S.runsAttempted = (meta.runsAttempted || 0) + 1;
+newGameInSlot(slot);
+}
+}
+
+// Create new game in empty slot
+function createNewSlot(slot) {
+S.currentSlot = slot;
+S.runsAttempted = 1;
+S.runNumber = 1;
+newGame();
+}
+
+// Start new game in existing slot
+function newGameInSlot(slot) {
+S.currentSlot = slot;
+S.runNumber = (S.runsAttempted || 1);
+if(S.runNumber === 1 && !S.helpTipsDisabled) {
+showTutorialStory();
+} else {
+title();
+}
+}
+
+// Delete slot with confirmation
+function confirmDeleteSlot(slot) {
+if(confirm(`Delete Save Slot ${slot}? This cannot be undone!`)) {
+try {
+localStorage.removeItem(`froggle8_slot${slot}`);
+localStorage.removeItem(`froggle8_permanent_slot${slot}`);
+toast(`Slot ${slot} deleted`);
+showSaveSlotSelection(); // Refresh
+} catch(e) {
+toast('Failed to delete slot');
+}
+}
 }
 
 function newGame() {
