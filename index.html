@@ -335,11 +335,11 @@ tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','D20','Expand','Grap
 };
 
 const E = {
-goblin: { n:'Goblin', p:1, h:5, m:5, g:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
-wolf: { n:'Wolf', p:2, h:5, m:5, g:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
-orc: { n:'Orc', p:2, h:7, m:7, g:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
-giant: { n:'Giant', p:3, h:15, m:15, g:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
-dragon: { n:'Dragon', p:10, h:25, m:25, g:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
+goblin: { n:'Goblin', p:1, h:5, m:5, goldDrop:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
+wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
+orc: { n:'Orc', p:2, h:7, m:7, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
+giant: { n:'Giant', p:3, h:15, m:15, goldDrop:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
+dragon: { n:'Dragon', p:10, h:25, m:25, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
 };
 
 // Enemy emoji icons
@@ -483,8 +483,7 @@ let cardClasses = 'card enemy targetable';
 if(isSelected) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-const encampmentGhostCharges = e.ghostCharges || 0;
-if(encampmentGhostCharges > 0) extra.push(`${encampmentGhostCharges}${sigilIconOnly('Ghost')}`);
+if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
@@ -597,8 +596,8 @@ showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last 
 // Enemies die - award gold/XP and schedule removal
 // Skip rewards for Floor 0 tutorial
 if(!options.skipRewards && S.floor !== 0) {
-S.gold += target.g;
-S.combatGold += target.g;
+S.gold += target.goldDrop || 0;
+S.combatGold += target.goldDrop || 0;
 S.combatXP += target.x;
 upd();
 }
@@ -2352,10 +2351,10 @@ id:`e${Date.now()}${i}`, n:base.n,
 p:base.p * effedMultiplier,
 h:base.h * effedMultiplier,
 m:base.m * effedMultiplier,
-g:base.g, x:base.x, s: [], pool: base.pool,
+goldDrop:base.goldDrop, x:base.x, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
-st:0, li: i % S.heroes.length, sh:0, alphaActed: false
+st:0, li: i % S.heroes.length, sh:0, g:0, alphaActed: false
 };
 if(base.permSigils) base.permSigils.forEach(ps => enemy.s.push({sig:ps.s, level:ps.l, perm:true}));
 if(base.startSigils) {
@@ -3624,8 +3623,7 @@ return b.h - a.h;
 const recruit = heroRecruits[0];
 const extra = [];
 if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
-const recruitGhostCharges = recruit.ghostCharges || 0;
-if(recruitGhostCharges > 0) extra.push(`${recruitGhostCharges}${sigilIconOnly('Ghost')}`);
+if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
 html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
 // Power at top
@@ -3727,9 +3725,8 @@ if(isTargetable) cardClasses += ' targetable';
 if(selectCount > 0) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
-// Only show ghost charges if enemy actually has them (not gold drops!)
-const ghostCharges = e.ghostCharges || 0;
-if(ghostCharges > 0) extra.push(`${ghostCharges}${sigilIconOnly('Ghost')}`);
+// Show ghost charges if enemy has them
+if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`😵${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
