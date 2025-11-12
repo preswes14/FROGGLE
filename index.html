@@ -273,6 +273,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .choice.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 .tooltip { position: fixed; z-index: 25000; background: rgba(0,0,0,0.95); color: #fff; padding: 1rem; border-radius: 8px; border: 2px solid #fbbf24; max-width: 320px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
 .tooltip.show { opacity: 1; }
+.tooltip-passive { background: rgba(34,197,94,0.85) !important; border-color: #22c55e !important; }
 .tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
 </style>
@@ -387,7 +388,7 @@ const SIGIL_DESCRIPTIONS = {
 'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield persists between battles (capped at hero max HP).',
 'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
 'D20': 'Roll 1d20 and choose: Damage enemy (DC varies) or Heal ally (no DC). Higher levels roll more dice, take best result.',
-'Expand': 'PASSIVE: Your Attack/Shield/Heal target +1 additional target per level. Mage/Healer get +1 Expand built-in. L0: Can\'t activate (works automatically). L1+: Can activate to boost one action further.',
+'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
 'Grapple': 'Deal POW damage to target AND they deal POW damage back to you. L2+: Stun target for (Level-1) turns.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
 'Asterisk': 'PASSIVE: Always-on if unlocked. Must use as LAST action of turn. Next turn: First action hits ALL enemies. One use per combat.',
@@ -765,7 +766,7 @@ const descriptions = {
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
 'D20': `Roll ${boldNum(level)}d20 and use best result. Choose: Damage enemy (DC varies) or Heal ally (no DC)`,
-'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `Add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Can activate for one-time boost`,
+'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Deal POW damage to target AND they deal their POW back. Stun for ${boldNum(level)} turn${level > 1 ? 's' : ''}`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
 'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Use as last action. Next turn: First action triggers ${boldNum(level + 1)} times. One use per combat`,
@@ -784,8 +785,12 @@ if(!desc) return;
 
 hideTooltip();
 
+// Check if this is a passive sigil for green background
+const passiveSigils = ['Expand', 'Star', 'Asterisk'];
+const isPassive = passiveSigils.includes(sigilName);
+
 const tooltip = document.createElement('div');
-tooltip.className = 'tooltip';
+tooltip.className = isPassive ? 'tooltip tooltip-passive' : 'tooltip';
 tooltip.innerHTML = `
 <div class="tooltip-title">${sigilIcon(sigilName)}</div>
 <div class="tooltip-desc">${desc}</div>`;
@@ -2125,6 +2130,12 @@ function handleHeroImageClick(event, container) {
 const rect = container.getBoundingClientRect();
 const x = event.clientX - rect.left;
 const percent = (x / rect.width) * 100;
+
+// Validate coordinates - if invalid, ignore the click
+if (isNaN(percent) || percent < 0 || percent > 100) {
+console.warn('Invalid click coordinates, ignoring');
+return;
+}
 
 // Determine hero based on position (4 equal 25% sections)
 let heroType;
