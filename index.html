@@ -673,7 +673,7 @@ if(!tutorialState || S.floor !== 0) return;
 const {action, hero, round} = context;
 
 // Stage transitions based on completed actions
-if(tutorialState.stage === 'warrior_attack' && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
+if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
 showTutorialPop('ribbleton_healer_d20', "Nice hit! Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the D20!", () => {
 S.activeIdx = 1;
@@ -925,6 +925,7 @@ ribbleton_warrior_attack: false,
 ribbleton_targeting: false,
 ribbleton_healer_d20: false,
 ribbleton_d20_menu: false,
+healer_expand_explain: false,
 ribbleton_enemy_turn: false,
 ribbleton_healer_heal: false,
 ribbleton_expand: false,
@@ -943,6 +944,7 @@ death_exit_warning: false,
 neutral_intro: false,
 neutral_d20_level: false,
 last_stand_intro: false,
+recruit_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
@@ -6246,20 +6248,38 @@ startFloor(S.floor);
 }
 
 function resetTutorialFlags() {
-if(confirm('Reset tutorial? This will show all tutorial pop-ups again on your next Floor 0 run.')) {
+if(confirm('Reset tutorial? This will show all tutorial pop-ups again.')) {
 S.tutorialFlags = {
 ribbleton_intro: false,
 ribbleton_warrior_attack: false,
 ribbleton_targeting: false,
 ribbleton_healer_d20: false,
 ribbleton_d20_menu: false,
+healer_expand_explain: false,
 ribbleton_enemy_turn: false,
 ribbleton_healer_heal: false,
-ribbleton_expand_targets: false,
+ribbleton_expand: false,
 ribbleton_finish_wolf: false,
-ribbleton_shield_explanation: false,
+enemies_get_sigils: false,
+ribbleton_shield_sigil: false,
+ribbleton_handoff: false,
+ribbleton_tooltip_intro: false,
+levelup_intro: false,
+levelup_stat_upgrade: false,
+levelup_add_active: false,
+levelup_upgrade_active: false,
+levelup_upgrade_passive: false,
+death_intro: false,
+death_exit_warning: false,
+neutral_intro: false,
+neutral_d20_level: false,
 last_stand_intro: false,
-neutral_intro: false
+recruit_intro: false,
+run2_hero_lock: false,
+first_victory_sequence: false,
+first_fu_victory: false,
+pedestal_first_placement: false,
+tapo_victory_message: false
 };
 savePermanent();
 toast('Tutorial reset! Will show again next run.', 2000);
