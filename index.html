@@ -522,12 +522,6 @@ S.combatGold += target.g;
 S.combatXP += target.x;
 upd();
 }
-// Schedule enemy removal after death animation
-setTimeout(() => {
-S.enemies = S.enemies.filter(e => e.h > 0);
-render();
-checkCombatEnd();
-}, 300);
 }
 }
 }
@@ -987,15 +981,12 @@ log.innerHTML = html;
 }
 
 function showTutorialPop(flagName, message, onDismiss) {
-console.log('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName], 'Floor:', S.floor);
-// Ribbleton tutorial (Floor 0) always shows pops, ignoring permanent flags
-const isRibbletonTutorial = S.floor === 0 && flagName.startsWith('ribbleton_');
-if(!isRibbletonTutorial && (S.helpTipsDisabled || S.tutorialFlags[flagName])) {
+console.log('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
+if(S.helpTipsDisabled || S.tutorialFlags[flagName]) {
 console.log('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
 if(onDismiss) onDismiss();
 return;
 }
-console.log('[TUTORIAL] Showing tutorial pop - isRibbletonTutorial:', isRibbletonTutorial);
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
@@ -1014,12 +1005,8 @@ window.tutorialCallback = onDismiss;
 function dismissTutorialPop(flagName) {
 console.log('[TUTORIAL] dismissTutorialPop called:', flagName);
 console.log('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.tutorial-modal-backdrop').length);
-// Don't permanently save Ribbleton tutorial flags (they're per-run, not permanent)
-const isRibbletonTutorial = S.floor === 0 && flagName.startsWith('ribbleton_');
-if(!isRibbletonTutorial) {
 S.tutorialFlags[flagName] = true;
 savePermanent();
-}
 
 // Remove ALL backdrops aggressively
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
