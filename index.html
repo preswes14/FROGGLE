@@ -865,7 +865,7 @@ levelUpCount: 0,
 heroes: [],
 enemies: [],
 recruits: [], // Recruited enemies fighting for player
-sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}, // Permanent upgrades only
+sig: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}, // Permanent upgrades only
 tempSigUpgrades: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}, // Temporary XP upgrades (reset on death/restart)
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
@@ -1203,7 +1203,7 @@ const j = JSON.parse(d);
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
-S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
@@ -1329,7 +1329,7 @@ S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.runsAttempted = j.runsAttempted || j.runNumber || 1;
 S.startingXP = j.startingXP || 0;
-S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
@@ -1368,7 +1368,10 @@ return false;
 // Update save functions to use current slot
 const originalSavePermanent = savePermanent;
 savePermanent = function() {
-if(!S.currentSlot) return;
+if(!S.currentSlot) {
+console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
+S.currentSlot = 1;
+}
 try {
 localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}`, JSON.stringify({
 gold: S.gold,
