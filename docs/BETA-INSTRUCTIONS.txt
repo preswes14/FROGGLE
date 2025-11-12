@@ -5,23 +5,20 @@ Thank you for beta testing FROGGLE!
 HOW TO PLAY:
 
 DESKTOP (Windows/Mac/Linux):
-1. Unzip the FROGGLE-Beta.zip file
-2. Open the "Froggle8.0.html" file in any web browser
-   (Chrome, Firefox, Safari, Edge - all work!)
+1. Visit https://preswes14.github.io/FROGGLE/
+2. Click "Play FROGGLE" to start
 3. Play and enjoy!
 
 MOBILE (iPhone/iPad):
-1. Transfer the ZIP file to your device (AirDrop, email, etc.)
-2. Use the Files app to unzip it
-3. Tap on "Froggle8.0.html" to open in Safari
-4. For best experience: tap the Share button and "Add to Home Screen"
+1. Visit https://preswes14.github.io/FROGGLE/ in Safari
+2. Tap "Play FROGGLE" to start
+3. For best experience: tap the Share button and "Add to Home Screen"
    This makes it feel like a native app!
 
 MOBILE (Android):
-1. Transfer the ZIP file to your device
-2. Use a file manager to extract/unzip it
-3. Open "Froggle8.0.html" in Chrome or your browser
-4. For best experience: tap the menu (⋮) and "Add to Home screen"
+1. Visit https://preswes14.github.io/FROGGLE/ in Chrome
+2. Tap "Play FROGGLE" to start
+3. For best experience: tap the menu (⋮) and "Add to Home screen"
 
 WHAT TO TEST:
 - Does the title screen image display correctly?
@@ -37,6 +34,8 @@ WHAT TO TEST:
 FEEDBACK:
 Please share any issues, bugs, or suggestions with Preston!
 
-NOTE: The game saves automatically to your browser. Your progress persists between sessions.
+NOTE: Use the Settings menu (⚙️) in-game to manually save your progress.
+Your permanent upgrades (gold, sigil levels, unlocks) are saved automatically,
+but you should save during runs to preserve your current progress.
 
 Have fun! 🎮
