@@ -1,6 +1,6 @@
 # FROGGLE Testing Checklist
 
-**Version:** 9.97
+**Version:** 9.98
 **Date:** 2025-11-12
 **Test URL:** http://localhost:8080 or https://preswes14.github.io/FROGGLE/
 
