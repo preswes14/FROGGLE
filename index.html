@@ -381,14 +381,14 @@ return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:
 // Sigil descriptions for tooltips
 const SIGIL_DESCRIPTIONS = {
 'Attack': 'Deal POW damage to target. L2: Attack twice. L3: Attack 3 times. L4: Attack 4 times. Stacks with Asterisk.',
-'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield blocks damage before HP.',
+'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield persists between battles (capped at hero max HP).',
 'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
 'D20': 'Roll 1d20 and choose: Damage enemy (DC varies) or Heal ally (no DC). Higher levels roll more dice, take best result.',
-'Expand': 'Your Attack/Shield/Heal target +1 additional target per level. Mage/Healer get +1 Expand level built-in.',
+'Expand': 'PASSIVE: Your Attack/Shield/Heal target +1 additional target per level. Mage/Healer get +1 Expand built-in. L0: Can\'t activate (works automatically). L1+: Can activate to boost one action further.',
 'Grapple': 'Deal POW damage to target AND they deal POW damage back to you. L2+: Stun target for (Level-1) turns.',
-'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card.',
-'Asterisk': 'Prime by using last action. Next turn: First action hits ALL enemies in lane. One use per combat.',
-'Star': 'Multiply combat XP by (1 + Level×0.5). Stacks across heroes. L4 = 3× XP!',
+'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
+'Asterisk': 'PASSIVE: Always-on if unlocked. Must use as LAST action of turn. Next turn: First action hits ALL enemies. One use per combat.',
+'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
 'Alpha': 'Grant target hero an extra action this turn. Can target self. Higher levels grant more actions.'
 };
 
@@ -587,7 +587,7 @@ target.ls = true;
 target.lst = 0;
 if(!options.silent) {
 toast(`${target.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
+showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can still use their D20 action, but success gets harder and harder as they slip into the void…");
 }
 } else {
 // Enemies die - award gold/XP and schedule removal
@@ -1852,11 +1852,11 @@ updateSelectionDisplay();
 
 function toggleHeroSelection(heroType) {
 const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks'},
-tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP'},
-mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets'},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies'},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!'}
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks', callouts: ['Starts with 2 POW', 'Starts with Attack and D20']},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Starts with 10 HP', 'Starts with Shield and D20']},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Attack, D20, and Expand']},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Heal, D20, and Expand']},
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!', callouts: ['Starts with ALL 10 sigils', 'Only 1 HP - high risk, high reward!']}
 };
 
 const hero = heroData[heroType];
@@ -1881,6 +1881,7 @@ if(sel.includes(h)) {
 const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
 const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`).join('');
+const calloutsHTML = hData.callouts ? hData.callouts.map(c => `<div style="font-size:0.45rem;text-align:left;opacity:0.9;margin:1px 0">• ${c}</div>`).join('') : '';
 cardEl.innerHTML = `
 <div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
 onclick="event.stopPropagation();toggleHeroSelection('${h}')"
@@ -1889,6 +1890,7 @@ onclick="event.stopPropagation();toggleHeroSelection('${h}')"
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
 <div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
 <div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
+${calloutsHTML ? `<div style="margin-top:0.25rem;padding:0.25rem;background:rgba(251,191,36,0.1);border-radius:4px">${calloutsHTML}</div>` : ''}
 <div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
 </div>
 </div>`;
@@ -2040,7 +2042,8 @@ S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
-h.sh=0;
+// Shields now persist between battles, but cap at max HP
+if(h.sh > h.m) h.sh = h.m;
 h.st=0;
 if(!h.ts) h.ts=[];
 // If ambushed, stun all heroes turn 1
@@ -2122,7 +2125,8 @@ function isMultiInstance(action) { return ['Attack', 'Shield', 'Heal'].includes(
 function getD20DC(baseDC, heroIdx) {
 const h = S.heroes[heroIdx];
 if(!h.ls) return baseDC;
-return baseDC + h.lst;
+// Cap Last Stand DC increase at +4 (so CONFUSE maxes at DC 20)
+return baseDC + Math.min(h.lst, 4);
 }
 
 function selectHero(idx) {
@@ -2321,6 +2325,16 @@ S.d20HeroIdx = heroIdx;
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
 showTutorialPop('healer_expand_explain', "Healer starts with the Expand passive - that means she gets to choose 1 extra target for each action!", () => {
+S.pending = 'D20_TARGET';
+S.targets = [];
+render();
+});
+return;
+}
+
+// RECRUIT TUTORIAL: Show explanation when first selecting Recruit
+if(actionName === 'RECRUIT') {
+showTutorialPop('recruit_intro', "Recruited enemies will stand behind the hero who recruited them and fight til death! Limit 1 recruit per hero.", () => {
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
