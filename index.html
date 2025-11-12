@@ -1371,6 +1371,7 @@ savePermanent = function() {
 if(!S.currentSlot) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
 S.currentSlot = 1;
+localStorage.setItem('froggle8_current_slot', '1');
 }
 try {
 localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}`, JSON.stringify({
@@ -1631,6 +1632,7 @@ newGameInSlot(slot);
 // Create new game in empty slot
 function createNewSlot(slot) {
 S.currentSlot = slot;
+localStorage.setItem('froggle8_current_slot', slot.toString());
 S.runsAttempted = 1;
 S.runNumber = 1;
 newGame();
@@ -1639,6 +1641,7 @@ newGame();
 // Start new game in existing slot
 function newGameInSlot(slot) {
 S.currentSlot = slot;
+localStorage.setItem('froggle8_current_slot', slot.toString());
 S.runNumber = (S.runsAttempted || 1);
 if(S.runNumber === 1 && !S.helpTipsDisabled) {
 showTutorialStory();
@@ -6388,7 +6391,43 @@ render();
 // ===== INIT =====
 window.onload = () => {
 console.log('[FROGGLE] window.onload fired');
-loadPermanent(); // Always load permanent data first
+// Check for last used slot
+const lastSlot = localStorage.getItem('froggle8_current_slot');
+if(lastSlot) {
+const slot = parseInt(lastSlot);
+console.log('[FROGGLE] Found last used slot:', slot);
+// Try to load slot-specific permanent data
+const permData = localStorage.getItem(`froggle8_permanent_slot${slot}`);
+if(permData) {
+try {
+const j = JSON.parse(permData);
+S.gold = j.gold || 0;
+S.goingRate = j.goingRate || 1;
+S.startingXP = j.startingXP || 0;
+S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
+S.ghostBoysConverted = j.ghostBoysConverted || false;
+S.pedestal = j.pedestal || [];
+S.effedUnlocked = j.effedUnlocked || false;
+S.tapoUnlocked = j.tapoUnlocked || false;
+S.runNumber = j.runNumber || 1;
+S.runsAttempted = j.runsAttempted || 0;
+S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.usedDeathQuotes = j.usedDeathQuotes || [];
+if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+S.currentSlot = slot;
+console.log('[FROGGLE] Loaded slot-specific permanent data');
+} catch(e) {
+console.warn('[FROGGLE] Failed to parse slot permanent data:', e);
+loadPermanent(); // Fallback to old format
+}
+} else {
+loadPermanent(); // No slot data, use old format
+}
+} else {
+loadPermanent(); // No last slot, use old format
+}
 console.log('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
 initToastLog(); // Initialize toast log UI
 mainTitlePage();
