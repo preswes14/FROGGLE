@@ -1799,22 +1799,8 @@ ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <div style="max-width:600px;margin:0 auto">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-<div style="position:relative;max-width:100%;margin:0 auto">
-<img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
-<!-- Clickable overlay regions for each hero (4 equal sections) -->
-<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('warrior')"
-title="Warrior"></div>
-<div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('tank')"
-title="Tank"></div>
-<div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('mage')"
-title="Mage"></div>
-<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('healer')"
-title="Healer"></div>
-
+<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
+<img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
 <!-- Hero card overlays -->
 <div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
 <div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
@@ -1851,6 +1837,22 @@ if(b) { b.disabled = false; b.style.opacity = '1'; }
 updateSelectionDisplay();
 }, 0);
 }
+}
+
+function handleHeroImageClick(event, container) {
+// Calculate which hero was clicked based on X position
+const rect = container.getBoundingClientRect();
+const x = event.clientX - rect.left;
+const percent = (x / rect.width) * 100;
+
+// Determine hero based on position (4 equal 25% sections)
+let heroType;
+if (percent < 25) heroType = 'warrior';
+else if (percent < 50) heroType = 'tank';
+else if (percent < 75) heroType = 'mage';
+else heroType = 'healer';
+
+toggleHeroSelection(heroType);
 }
 
 function toggleHeroSelection(heroType) {
