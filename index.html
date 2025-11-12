@@ -516,7 +516,8 @@ showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead ye
 }
 } else {
 // Enemies die - award gold/XP and schedule removal
-if(!options.skipRewards) {
+// Skip rewards for Floor 0 tutorial
+if(!options.skipRewards && S.floor !== 0) {
 S.gold += target.g;
 S.combatGold += target.g;
 S.combatXP += target.x;
