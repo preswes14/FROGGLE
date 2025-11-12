@@ -276,6 +276,30 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tooltip-green { background: rgba(34,197,94,0.85) !important; border-color: #22c55e !important; }
 .tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
+
+/* Desktop improvements - larger buttons and text */
+@media (min-width: 1024px) {
+  .btn {
+    padding: 1.25rem 1.5rem;
+    font-size: 1.3rem;
+    min-height: 64px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .choice {
+    padding: 1.25rem 1.5rem;
+    font-size: 1.2rem;
+    min-height: 72px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .neutral-btn {
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -841,7 +865,8 @@ levelUpCount: 0,
 heroes: [],
 enemies: [],
 recruits: [], // Recruited enemies fighting for player
-sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
+sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}, // Permanent upgrades only
+tempSigUpgrades: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}, // Temporary XP upgrades (reset on death/restart)
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
 runsAttempted: 0, // Number of runs started in this save slot
@@ -1203,7 +1228,8 @@ localStorage.setItem('froggle8', JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-hasAncientStatuette: S.hasAncientStatuette
+hasAncientStatuette: S.hasAncientStatuette,
+tempSigUpgrades: S.tempSigUpgrades
 }));
 savePermanent();
 } catch(e) {
@@ -1223,6 +1249,7 @@ S.heroes=j.h;
 S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
 S.hasAncientStatuette = j.hasAncientStatuette || false;
+S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -2107,12 +2134,14 @@ console.log('[FROGGLE] title() innerHTML set successfully');
 // Update selection display
 updateSelectionDisplay();
 
-// If run 1 with tutorial, enable start button
+// If run 1 with tutorial, enable start button and show pre-selected hero cards
 if(isRun1 && !S.helpTipsDisabled) {
 setTimeout(() => {
 const b = document.getElementById('start');
 if(b) { b.disabled = false; b.style.opacity = '1'; }
 updateSelectionDisplay();
+// Show cards for pre-selected heroes
+updateHeroCards();
 }, 0);
 }
 }
@@ -2139,7 +2168,7 @@ else heroType = 'healer';
 toggleHeroSelection(heroType);
 }
 
-function toggleHeroSelection(heroType) {
+function updateHeroCards() {
 const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks', callouts: ['Starts with 2 POW', 'Starts with Attack and D20']},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Starts with 10 HP', 'Starts with Shield and D20']},
@@ -2147,19 +2176,6 @@ mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'
 healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Heal, D20, and Expand']},
 tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!', callouts: ['Starts with ALL 10 sigils', 'Only 1 HP - high risk, high reward!']}
 };
-
-const hero = heroData[heroType];
-const portrait = HERO_IMAGES[heroType] || '';
-
-// Toggle selection
-const isSelected = sel.includes(heroType);
-if(isSelected) {
-sel = sel.filter(h => h !== heroType);
-} else {
-if(sel.length < 2) {
-sel.push(heroType);
-}
-}
 
 // Update all card displays
 ['warrior', 'tank', 'mage', 'healer'].forEach(h => {
@@ -2188,12 +2204,21 @@ cardEl.style.display = 'block';
 cardEl.style.display = 'none';
 }
 });
-
-// Handle tapo specially if it exists
-if(heroType === 'tapo' || sel.includes('tapo')) {
-// Tapo button will be updated by title() re-render
 }
 
+function toggleHeroSelection(heroType) {
+// Toggle selection
+const isSelected = sel.includes(heroType);
+if(isSelected) {
+sel = sel.filter(h => h !== heroType);
+} else {
+if(sel.length < 2) {
+sel.push(heroType);
+}
+}
+
+// Update card displays and selection display
+updateHeroCards();
 updateSelectionDisplay();
 }
 
@@ -2251,6 +2276,8 @@ const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 
 S.floor=1; S.xp=0; S.levelUpCount=0;
+// Reset temporary XP sigil upgrades (these don't persist between runs)
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
 id:`h${Date.now()}${i}`,
@@ -2385,21 +2412,21 @@ showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile)
 
 function getLevel(sig, heroIdx) {
 const h = S.heroes[heroIdx];
+// Calculate total level (permanent + temporary XP upgrades)
+const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 // Star, Asterisk, and Expand are global passives - all heroes get them when upgraded
 if(sig === 'Star' || sig === 'Asterisk' || sig === 'Expand') {
-let base = S.sig[sig] || 0;
 // Special case: Mage and Healer get +1 to Expand
-if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return base + 1;
-return base;
+if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return totalLevel + 1;
+return totalLevel;
 }
 // For other sigils, check if hero has it
 const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
 if(!hasSigil) return 0;
-let base = S.sig[sig] || 0;
 // Actives start at level 1 minimum, passives start at 0
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
-if(actives.includes(sig) && base === 0) base = 1;
-return base;
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+if(actives.includes(sig) && totalLevel === 0) return 1;
+return totalLevel;
 }
 
 function getTargetsPerInstance(action, heroIdx) {
@@ -3873,11 +3900,14 @@ if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
-const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
+const available = allSigils.filter(s => {
+const totalLevel = (S.sig[s] || 0) + (S.tempSigUpgrades[s] || 0);
+return totalLevel < 4;
+});
 if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">All sigils maxed!</p>`;
 else {
 available.forEach(sig => {
-const level = S.sig[sig] || 0;
+const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong></div>`;
 });
 }
@@ -3918,7 +3948,7 @@ if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1r
 else {
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
 available.forEach(sig => {
-const level = S.sig[sig] || 0;
+const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 <strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
@@ -3939,9 +3969,9 @@ S.levelUpCount++;
 if(!h.ts) h.ts = [];
 h.ts.push(sig);
 // Calculate effective level for display (actives show as level 1 minimum)
-const permLevel = S.sig[sig] || 0;
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
-const displayLevel = (actives.includes(sig) && permLevel === 0) ? 1 : permLevel;
+const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const displayLevel = (actives.includes(sig) && totalLevel === 0) ? 1 : totalLevel;
 toast(`${sig} added to ${h.n} at L${displayLevel}!`);
 upd();
 saveGame();
@@ -3954,15 +3984,16 @@ if(S.xp < cost) return;
 
 // Show passive sigil tutorial when upgrading Expand or Asterisk from L0 to L1
 const isPassive = ['Expand', 'Asterisk'].includes(sig);
-const currentLevel = S.sig[sig] || 0;
+const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(isPassive && currentLevel === 0) {
 showTutorialPop('levelup_upgrade_passive', "Expand and Asterisk start as PASSIVE sigils - they work automatically but can't be used as actions. Upgrade them to L1 to use them actively!");
 }
 
 S.xp -= cost;
 S.levelUpCount++;
-S.sig[sig] = (S.sig[sig] || 0) + 1;
-toast(`${sig} upgraded to L${S.sig[sig]}!`);
+S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+toast(`${sig} upgraded to L${newLevel}!`);
 upd();
 saveGame();
 levelUpMenu();
@@ -4607,7 +4638,7 @@ buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/prince1.png',
 title: 'Consult the Oracle',
 description,
 buttons
@@ -4649,7 +4680,7 @@ replaceStage1WithStage2('oracle');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/prince1.png',
 title: 'The Oracle\'s Fortune',
 diceRoll: rollText,
 outcomes: [
@@ -4722,7 +4753,7 @@ removeNeutralFromDeck('oracle');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle2.png',
+bgImage: 'assets/neutrals/prince2.png',
 title: 'Return to the Oracle',
 outcomes: [
 `${h.n} returns to the Oracle. The crystal sphere flares brightly!`,
@@ -5248,7 +5279,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor 
 function showPrince1() {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'Help Recover the Ring',
 description: `A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
 buttons: `
@@ -5264,7 +5295,7 @@ S.princeQuestActive = true;
 S.princeQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 outcomes: [`The ${S.princeGender} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -5277,7 +5308,7 @@ if(!S.princeQuestCompleted) {
 // Quest failed
 S.princeQuestActive = false;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'Quest Failed',
 description: `The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
 outcomes: [`The ${S.princeGender} departs sadly. No reward.`],
@@ -5312,7 +5343,7 @@ buttons += `<div class="choice" onclick="choosePrinceSigil('${sigil2}')">
 </div>`;
 
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince2.png',
+bgImage: 'assets/neutrals/oracle2.png',
 title: 'The Wedding',
 description: `The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
@@ -5325,7 +5356,7 @@ S.sig[sig] = (S.sig[sig] || 0) + 1;
 toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince2.png',
+bgImage: 'assets/neutrals/oracle2.png',
 outcomes: [`The royal couple thanks you profusely. The ${sig} sigil glows and merges with your power!`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -5411,6 +5442,7 @@ savePermanent(); // Save the updated usedDeathQuotes
 
 let html = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:0 auto;color:#e8dcc4">
+<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#999;font-style:italic">"${deathQuote}"</p>` : ''}
 <p style="text-align:center;margin-bottom:1.5rem;font-size:1.1rem">Gold: <strong>${S.gold}</strong> | Going Rate: <strong>${S.goingRate}G</strong></p>`;
@@ -5424,7 +5456,7 @@ html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(
 allSigils.forEach(sig => {
 const permLevel = S.sig[sig] || 0;
 // Actives show their effective level (perm + 1 for display)
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const isActive = actives.includes(sig);
 const currentLevel = isActive ? permLevel + 1 : permLevel;
 const nextLevel = currentLevel + 1;
@@ -5470,7 +5502,7 @@ html += `
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
 
 // List all sigils that can be sold back
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 allSigils.forEach(sig => {
 const permLevel = S.sig[sig] || 0;
 const isActive = actives.includes(sig);
@@ -5495,7 +5527,7 @@ html += `</div>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G → ${Math.max(1, S.goingRate - 5)}G</div>`;
 
 // List all sigils that can be sacrificed
-const actives2 = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const actives2 = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 allSigils.forEach(sig => {
 const permLevel = S.sig[sig] || 0;
 const isActive = actives2.includes(sig);
@@ -5542,7 +5574,7 @@ toast("Whoa, something's weird. I can't do that", 1800);
 return;
 }
 // Sell back: get gold, lower sigil level, no going rate change
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const isActive = actives.includes(sig);
 const oldLevel = isActive ? permLevel + 1 : permLevel;
 S.gold += S.goingRate;
@@ -5566,7 +5598,7 @@ toast("Whoa, something's weird. I can't do that", 1800);
 return;
 }
 // Sacrifice: get starting XP, lower sigil level, decrease going rate
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Asterisk', 'Alpha'];
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const isActive = actives.includes(sig);
 const oldLevel = isActive ? permLevel + 1 : permLevel;
 const xpGained = S.goingRate;
