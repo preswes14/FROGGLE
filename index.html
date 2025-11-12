@@ -229,7 +229,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
 .sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
-.sigil.l1 { color: #1e40af; border-color: #1e40af; }
+.sigil.l1 { color: #000; border-color: #000; }
 .sigil.l2 { color: #0d9488; border-color: #0d9488; }
 .sigil.l3 { color: #9333ea; border-color: #9333ea; }
 .sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
@@ -372,10 +372,13 @@ return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:in
 }
 
 // Helper function to display just the icon
-function sigilIconOnly(name) {
+function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
 if (!imgPath) return name;
-return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;filter:brightness(0);" alt="${name}">`;
+// Only apply black filter for level 0 or when level not specified
+// For L1-L4, show colored icon so border colors are visible
+const filter = (level === null || level === 0) ? 'filter:brightness(0);' : '';
+return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;${filter}" alt="${name}">`;
 }
 
 // Sigil descriptions for tooltips
@@ -456,7 +459,7 @@ const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
 });
 html += '</div>';
 html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
@@ -3418,7 +3421,7 @@ const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
 onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
 });
 html += '</div>';
 html += '</div>';
