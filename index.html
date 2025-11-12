@@ -761,15 +761,15 @@ const boldNum = (num) => `<strong style="color:${color}">${num}</strong>`;
 
 // Level-specific descriptions
 const descriptions = {
-'Attack': level === 0 ? 'Not unlocked' : `Deal POW damage to target${level > 1 ? ` <strong style="color:${color}">${level}</strong> times` : ''}`,
-'Shield': level === 0 ? 'Not unlocked' : `Grant target ${boldNum(2 * level)}×POW shield. Shield persists between battles (capped at hero max HP)`,
-'Heal': level === 0 ? 'Not unlocked' : `Restore ${boldNum(2 * level)}×POW HP to target. Cannot exceed max HP`,
-'D20': `Roll ${boldNum(level)}d20 and choose: Damage enemy (DC varies) or Heal ally (no DC). Use best roll`,
-'Expand': level === 0 ? 'PASSIVE: Your Attack/Shield/Heal target +1 additional target per level. Works automatically. Mage/Healer get +1 built-in' : `Target ${boldNum(level)} extra target${level > 1 ? 's' : ''} with Attack/Shield/Heal. Can activate to boost one action further`,
-'Grapple': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target AND they deal POW damage back to you' : `Deal POW damage to target, they deal POW damage back, AND stun target for ${boldNum(level - 1)} turn${level > 2 ? 's' : ''}`,
-'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge cancels one lethal hit (max 9 charges)`,
-'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : level === 1 ? 'PASSIVE: Must use as LAST action of turn. Next turn: First action hits ALL enemies. One use per combat' : `PASSIVE: Use as last action. Next turn: First action hits ALL enemies ${boldNum(level)}× (one use per combat)`,
-'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Multiply combat XP by ${boldNum(1 + level * 0.5)}×. Works automatically. Stacks across heroes`,
+'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
+'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
+'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
+'D20': `Roll ${boldNum(level)}d20 and use best result. Choose: Damage enemy (DC varies) or Heal ally (no DC)`,
+'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `Add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Can activate for one-time boost`,
+'Grapple': level === 0 ? 'Not unlocked' : `Deal POW damage to target AND they deal their POW back. Stun for ${boldNum(level)} turn${level > 1 ? 's' : ''}`,
+'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
+'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Use as last action. Next turn: First action triggers ${boldNum(level + 1)} times. One use per combat`,
+'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
 'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn. Can target self`
 };
 
