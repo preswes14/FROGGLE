@@ -5547,7 +5547,7 @@ html += `</div>
 
 html += `
 <div style="text-align:center;margin-top:2rem">
-<button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">I AM DONE DYING</button>
+<button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">Return to Ribbleton</button>
 </div>
 </div>`;
 
@@ -5631,9 +5631,13 @@ function actuallyRestartAfterDeath() {
 // Increment run number
 S.runNumber++;
 savePermanent();
-// Clear run-specific save
+// Clear run-specific save (slot-specific)
+if(S.currentSlot) {
+localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
+}
+// Also clear old save format for backwards compatibility
 localStorage.removeItem('froggle8');
-// Reload page to start fresh
+// Reload page to start fresh - will show save slot selection screen
 location.reload();
 }
 
