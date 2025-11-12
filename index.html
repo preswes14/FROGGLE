@@ -90,7 +90,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .btn.risky { background: #f59e0b; }
 .btn.danger { background: #dc2626; }
 .btn.secondary { background: #6b7280; }
-.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; }
+.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; width: 100%; }
 .choice:active { transform: scale(0.98); background: #f0f0f0; }
 .neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 6px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 .neutral-btn:active { transform: scale(0.98); opacity: 0.9; }
@@ -881,7 +881,7 @@ currentSlot: null, // Current save slot (1 or 2)
 // Toast log
 toastHistory: [], // Recent toast messages
 toastLogExpanded: false, // Toast log expanded state
-toastLogVisible: false, // Toast log visibility toggle
+toastLogVisible: true, // Toast log visibility toggle (visible by default)
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -3931,7 +3931,11 @@ else {
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const isActive = actives.includes(sig);
+// Actives at L0 show as L1 (minimum level when equipped), passives show as L0
+const displayLevel = (isActive && level === 0) ? 1 : level;
+const levelText = (level === 0 && !isActive) ? `L${displayLevel} (Passive only)` : `L${displayLevel}`;
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 <strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
 </div>`;
