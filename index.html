@@ -72,6 +72,16 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
+/* Z-INDEX LAYERING REFERENCE:
+ * 999999 - Rotate device prompt
+ * 30000 - Settings/Debug menus
+ * 29999 - Settings/Debug backdrops
+ * 25000 - Tooltips
+ * 20000 - Tutorial modal backdrops
+ * 20 - Hero selection click regions
+ * 10 - Hero selection cards
+ * Base (0-1) - Normal game elements
+ */
 .header { padding: 0.5rem; background: linear-gradient(#fff, #f7f1e3); border-bottom: 2px solid #bda; display: flex; justify-content: space-between; font-size: 0.8rem; }
 .game-area { height: calc(100vh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
 .btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
@@ -1106,6 +1116,7 @@ console.warn('[TUTORIAL] No callback found!');
 }
 
 function savePermanent() {
+try {
 localStorage.setItem('froggle8_permanent', JSON.stringify({
 gold: S.gold,
 goingRate: S.goingRate,
@@ -1123,9 +1134,14 @@ tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes
 }));
+} catch(e) {
+console.warn('[SAVE] Failed to save permanent data:', e);
+toast('Warning: Progress could not be saved', 2000);
+}
 }
 
 function loadPermanent() {
+try {
 const d = localStorage.getItem('froggle8_permanent');
 if(!d) return;
 const j = JSON.parse(d);
@@ -1146,19 +1162,29 @@ S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
+} catch(e) {
+console.warn('[SAVE] Failed to load permanent data:', e);
+// Continue with defaults if load fails
+}
 }
 
 function saveGame() {
+try {
 localStorage.setItem('froggle8', JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral
 }));
 savePermanent();
+} catch(e) {
+console.warn('[SAVE] Failed to save game:', e);
+toast('Warning: Game could not be saved', 2000);
+}
 }
 
 function loadGame() {
 loadPermanent(); // Load persistent data first
+try {
 const d = localStorage.getItem('froggle8');
 if(!d) return;
 const j = JSON.parse(d);
@@ -1170,6 +1196,11 @@ S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
 toast('Loaded!');
+} catch(e) {
+console.warn('[SAVE] Failed to load game:', e);
+toast('Error loading saved game. Starting new game...', 2000);
+setTimeout(() => title(), 2000);
+}
 }
 
 // ===== NEUTRAL DECK SYSTEM =====
@@ -2394,10 +2425,15 @@ return;
 }
 // Remove enemy from enemies array
 S.enemies = S.enemies.filter(e => e.id !== enemyId);
-// Add to recruits array
+// Add to recruits array (max 10 recruits for performance)
+const MAX_RECRUITS = 10;
+if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
 toast(`${enemy.n} recruited by ${hero.n}!`, 1500);
+} else {
+toast(`${enemy.n} recruited but recruits are full! (Max ${MAX_RECRUITS})`, 2000);
+}
 setTimeout(() => {
 render();
 checkCombatEnd();
@@ -5790,6 +5826,7 @@ let html = `
 ${inGame ? `
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Game</h3>
 <button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
+<button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f59e0b">🔄 Reset Tutorial</button>
 ` : ''}
 
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Display</h3>
@@ -5828,6 +5865,28 @@ function manualSave() {
 saveGame();
 toast('Game Saved!', 1200);
 closeSettingsMenu();
+}
+
+function resetTutorialFlags() {
+if(confirm('Reset tutorial? This will show all tutorial pop-ups again on your next Floor 0 run.')) {
+S.tutorialFlags = {
+ribbleton_intro: false,
+ribbleton_warrior_attack: false,
+ribbleton_targeting: false,
+ribbleton_healer_d20: false,
+ribbleton_d20_menu: false,
+ribbleton_enemy_turn: false,
+ribbleton_healer_heal: false,
+ribbleton_expand_targets: false,
+ribbleton_finish_wolf: false,
+ribbleton_shield_explanation: false,
+last_stand_intro: false,
+neutral_intro: false
+};
+savePermanent();
+toast('Tutorial reset! Will show again next run.', 2000);
+closeSettingsMenu();
+}
 }
 
 function toggleHelpTips(enabled) {
