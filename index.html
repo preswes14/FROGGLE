@@ -90,7 +90,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .btn.risky { background: #f59e0b; }
 .btn.danger { background: #dc2626; }
 .btn.secondary { background: #6b7280; }
-.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; }
+.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; width: 100%; }
 .choice:active { transform: scale(0.98); background: #f0f0f0; }
 .neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 6px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 .neutral-btn:active { transform: scale(0.98); opacity: 0.9; }
@@ -881,7 +881,7 @@ currentSlot: null, // Current save slot (1 or 2)
 // Toast log
 toastHistory: [], // Recent toast messages
 toastLogExpanded: false, // Toast log expanded state
-toastLogVisible: false, // Toast log visibility toggle
+toastLogVisible: true, // Toast log visibility toggle (visible by default)
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -1352,6 +1352,7 @@ S.heroes = r.h;
 S.neutralDeck = r.neutralDeck || [];
 S.lastNeutral = r.lastNeutral || null;
 S.hasAncientStatuette = r.hasAncientStatuette || false;
+S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -1400,7 +1401,8 @@ localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-hasAncientStatuette: S.hasAncientStatuette
+hasAncientStatuette: S.hasAncientStatuette,
+tempSigUpgrades: S.tempSigUpgrades
 }));
 savePermanent();
 } catch(e) {
@@ -2069,7 +2071,7 @@ v.innerHTML = `
 
 setTimeout(() => {
 tutorialState = null;
-title(); // Go to hero select (which will auto-select Warrior + Healer for Run 1)
+title(); // Go to hero select
 }, 5500);
 }
 
@@ -2080,13 +2082,6 @@ function title() {
 console.log('[FROGGLE] title() called - Hero selection screen');
 // Reset selection first
 sel = [];
-// TUTORIAL: Run 1 selects Warrior + Healer after hero select screen
-const isRun1 = S.runNumber === 1;
-if(isRun1 && !S.helpTipsDisabled) {
-// Auto-select for tutorial but show the screen
-console.log('[FROGGLE] Auto-selecting Warrior + Healer for tutorial');
-sel = ['warrior', 'healer'];
-}
 
 const v = document.getElementById('gameView');
 const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
@@ -2133,17 +2128,6 @@ console.log('[FROGGLE] title() innerHTML set successfully');
 
 // Update selection display
 updateSelectionDisplay();
-
-// If run 1 with tutorial, enable start button and show pre-selected hero cards
-if(isRun1 && !S.helpTipsDisabled) {
-setTimeout(() => {
-const b = document.getElementById('start');
-if(b) { b.disabled = false; b.style.opacity = '1'; }
-updateSelectionDisplay();
-// Show cards for pre-selected heroes
-updateHeroCards();
-}, 0);
-}
 }
 
 function handleHeroImageClick(event, container) {
@@ -3549,6 +3533,14 @@ S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
 upd();
+// Auto-skip stunned heroes
+S.heroes.forEach((h, idx) => {
+if(h.st > 0 && !S.acted.includes(idx)) {
+S.acted.push(idx);
+toast(`${h.n} is stunned and skips their turn!`);
+}
+});
+checkTurnEnd();
 render();
 }
 
@@ -3586,6 +3578,8 @@ return true;
 }
 const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
+// Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 setTimeout(() => {
 toast('Defeated!');
 setTimeout(() => showDeathScreen(), 1000);
@@ -3949,7 +3943,11 @@ else {
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const levelText = level === 0 ? 'L0 (Passive only)' : `L${level}`;
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const isActive = actives.includes(sig);
+// Actives at L0 show as L1 (minimum level when equipped), passives show as L0
+const displayLevel = (isActive && level === 0) ? 1 : level;
+const levelText = (level === 0 && !isActive) ? `L${displayLevel} (Passive only)` : `L${displayLevel}`;
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 <strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
 </div>`;
@@ -5549,7 +5547,7 @@ html += `</div>
 
 html += `
 <div style="text-align:center;margin-top:2rem">
-<button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">I AM DONE DYING</button>
+<button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">Return to Ribbleton</button>
 </div>
 </div>`;
 
@@ -5633,9 +5631,13 @@ function actuallyRestartAfterDeath() {
 // Increment run number
 S.runNumber++;
 savePermanent();
-// Clear run-specific save
+// Clear run-specific save (slot-specific)
+if(S.currentSlot) {
+localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
+}
+// Also clear old save format for backwards compatibility
 localStorage.removeItem('froggle8');
-// Reload page to start fresh
+// Reload page to start fresh - will show save slot selection screen
 location.reload();
 }
 
@@ -6103,6 +6105,7 @@ let html = `
 ${inGame ? `
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Game</h3>
 <button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
+<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#dc2626">🔄 Restart Level</button>
 <button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f59e0b">🔄 Reset Tutorial</button>
 ` : ''}
 
@@ -6142,6 +6145,22 @@ function manualSave() {
 saveGame();
 toast('Game Saved!', 1200);
 closeSettingsMenu();
+}
+
+function restartLevel() {
+if(confirm('Restart this floor? All progress on this floor will be lost.')) {
+closeSettingsMenu();
+toast('Restarting floor...', 1200);
+setTimeout(() => {
+if(S.floor % 2 === 1) {
+// Odd floor = combat
+combat(S.floor);
+} else {
+// Even floor = neutral
+startFloor(S.floor);
+}
+}, 500);
+}
 }
 
 function resetTutorialFlags() {
