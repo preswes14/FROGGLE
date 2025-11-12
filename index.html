@@ -286,6 +286,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    display: block;
   }
   .choice {
     padding: 1.25rem 1.5rem;
@@ -294,6 +295,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    display: block;
   }
   .neutral-btn {
     padding: 0.75rem 1rem;
@@ -801,6 +803,9 @@ return descriptions[sigilName] || 'No description available';
 }
 
 function showTooltip(sigilName, element, level = 1) {
+// Check if tooltips are disabled
+if(S.tooltipsDisabled) return;
+
 // Tooltip display (tutorial explanation happens in Ribbleton combat)
 
 const desc = getLevelDescription(sigilName, level);
@@ -882,6 +887,7 @@ currentSlot: null, // Current save slot (1 or 2)
 toastHistory: [], // Recent toast messages
 toastLogExpanded: false, // Toast log expanded state
 toastLogVisible: true, // Toast log visibility toggle (visible by default)
+tooltipsDisabled: false, // Sigil tooltip visibility toggle
 // Turn management
 activeIdx: -1,
 acted: [],
@@ -1187,6 +1193,7 @@ tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
+tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes
 }));
 } catch(e) {
@@ -1212,6 +1219,7 @@ S.effedUnlocked = j.effedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
@@ -1338,6 +1346,7 @@ S.effedUnlocked = j.effedUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -1389,6 +1398,7 @@ tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
+tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes
 }));
 } catch(e) {
@@ -4386,6 +4396,18 @@ trapOutcome = 'Your keen eyes spot a hidden compartment in the chest\'s lid!';
 secretFound = true;
 }
 
+// Show trap result with Continue button
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest1.png',
+title: 'Opening the Chest',
+diceRoll: trapText,
+outcomes: [trapOutcome],
+buttons: `<button class="btn" onclick="openChestPart2(${trapDmg}, ${secretFound})">Continue</button>`
+});
+}
+
+function openChestPart2(trapDmg, secretFound) {
 setTimeout(() => {
 const {rolls: contentRolls, best: contentBest} = rollD20Neutral();
 const contentText = showD20Result(contentRolls, contentBest);
@@ -4418,9 +4440,10 @@ heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${id
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
-title: 'Opening the Chest',
+title: 'Chest Contents',
 description: `Choose which hero takes ${trapDmg} damage:`,
-outcomes: [trapOutcome, `Dice roll: ${trapText}`, contentOutcome, `Dice roll: ${contentText}`],
+diceRoll: contentText,
+outcomes: [contentOutcome],
 buttons: heroButtons
 });
 } else {
@@ -4429,12 +4452,13 @@ S.gold += goldGain;
 upd();
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
-title: 'Opening the Chest',
-outcomes: [trapOutcome, `Dice roll: ${trapText}`, contentOutcome, `Dice roll: ${contentText}`],
+title: 'Chest Contents',
+diceRoll: contentText,
+outcomes: [contentOutcome],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
-}, 500);
+}, 0);
 }
 
 function finishChestOpen(heroIdx, trapDmg, goldGain) {
@@ -6129,6 +6153,10 @@ ${inGame ? `
 <input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
 <span>💡 Show Help/Tips</span>
 </label>
+<label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
+<input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
+<span>🔍 Show Sigil Tooltips</span>
+</label>
 
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Reference</h3>
 <button class="btn" onclick="showSigilarium()" style="margin-bottom:0.5rem;background:#9333ea">📖 View Sigilarium</button>
@@ -6204,6 +6232,16 @@ S.tutorialFlags = {};
 toast('Help/Tips enabled! All tips reset and will show again.', 2000);
 } else {
 toast('Help/Tips disabled. No more popups!', 1200);
+}
+savePermanent();
+}
+
+function toggleTooltips(enabled) {
+S.tooltipsDisabled = !enabled;
+if(enabled) {
+toast('Sigil tooltips enabled!', 1200);
+} else {
+toast('Sigil tooltips disabled!', 1200);
 }
 savePermanent();
 }
@@ -6414,6 +6452,7 @@ S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 S.currentSlot = slot;
