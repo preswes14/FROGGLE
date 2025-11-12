@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
 <link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
-<title>FROGGLE v9.97 - BETA RELEASE</title>
+<title>FROGGLE v9.97</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -516,7 +516,8 @@ showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead ye
 }
 } else {
 // Enemies die - award gold/XP and schedule removal
-if(!options.skipRewards) {
+// Skip rewards for Floor 0 tutorial
+if(!options.skipRewards && S.floor !== 0) {
 S.gold += target.g;
 S.combatGold += target.g;
 S.combatXP += target.x;
@@ -1234,8 +1235,8 @@ v.innerHTML = `
 <!-- Title image with version label -->
 <div style="position:relative;margin-bottom:1.5rem">
 <img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
-<div style="position:absolute;top:0.5rem;right:0.5rem;background:rgba(0,0,0,0.85);padding:0.4rem 0.8rem;border-radius:8px;border:2px solid rgba(251,191,36,0.7)">
-<p style="font-size:0.8rem;color:#fbbf24;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}<br>BETA</p>
+<div style="position:absolute;top:0.3rem;right:0.3rem;background:rgba(0,0,0,0.85);padding:0.25rem 0.5rem;border-radius:6px;border:2px solid rgba(251,191,36,0.7)">
+<p style="font-size:0.7rem;color:#fbbf24;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}</p>
 </div>
 </div>
 
@@ -1355,7 +1356,7 @@ console.log('[FROGGLE] Setting innerHTML for slide', currentIndex);
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:1rem">
 ${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
-<div style="text-align:center">
+<div style="text-align:center;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
 <button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
@@ -1387,7 +1388,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce 1s ease-in-out infinite">
+<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce 4s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
@@ -1415,10 +1416,10 @@ Ribbletonians gathered around little Tapo as he blew out the candles on his birt
 <strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
 </p>
 <div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
-<div style="animation:partyFlip 1s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 1.2s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 0.8s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 1.4s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 2.5s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 3s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 2s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
+<div style="animation:partyFlip 3.5s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
 </div>
 </div>
 <style>
@@ -1669,7 +1670,7 @@ const maxSlots = 8;
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.97 BETA RELEASE</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.97</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
 ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
@@ -1682,16 +1683,16 @@ ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <div style="position:relative;max-width:100%;margin:0 auto">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
 <!-- Clickable overlay regions for each hero (4 equal sections) -->
-<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;"
+<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;z-index:20;"
 onclick="toggleHeroSelection('warrior')"
 title="Warrior"></div>
-<div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;"
+<div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;z-index:20;"
 onclick="toggleHeroSelection('tank')"
 title="Tank"></div>
-<div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;"
+<div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;z-index:20;"
 onclick="toggleHeroSelection('mage')"
 title="Mage"></div>
-<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;"
+<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;z-index:20;"
 onclick="toggleHeroSelection('healer')"
 title="Healer"></div>
 
