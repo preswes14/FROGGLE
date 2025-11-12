@@ -229,7 +229,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
 .sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
-.sigil.l1 { color: #1e40af; border-color: #1e40af; }
+.sigil.l1 { color: #000; border-color: #000; }
 .sigil.l2 { color: #0d9488; border-color: #0d9488; }
 .sigil.l3 { color: #9333ea; border-color: #9333ea; }
 .sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
@@ -372,10 +372,13 @@ return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:in
 }
 
 // Helper function to display just the icon
-function sigilIconOnly(name) {
+function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
 if (!imgPath) return name;
-return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;filter:brightness(0);" alt="${name}">`;
+// Only apply black filter for level 0 or when level not specified
+// For L1-L4, show colored icon so border colors are visible
+const filter = (level === null || level === 0) ? 'filter:brightness(0);' : '';
+return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;${filter}" alt="${name}">`;
 }
 
 // Sigil descriptions for tooltips
@@ -456,7 +459,7 @@ const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${lvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
 });
 html += '</div>';
 html += `<div style="text-align:center;font-size:0.8rem;margin-top:0.25rem">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
@@ -743,10 +746,40 @@ S.locked = false;
 let tooltipTimeout = null;
 let currentTooltip = null;
 
-function showTooltip(sigilName, element) {
+// Get level-specific description with colored/bolded numbers
+function getLevelDescription(sigilName, level) {
+const levelColors = {
+0: '#666',
+1: '#000',
+2: '#0d9488',
+3: '#9333ea',
+4: '#d97706',
+5: '#ff0080'
+};
+const color = levelColors[level] || '#000';
+const boldNum = (num) => `<strong style="color:${color}">${num}</strong>`;
+
+// Level-specific descriptions
+const descriptions = {
+'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
+'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
+'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
+'D20': `Roll ${boldNum(level)}d20 and use best result. Choose: Damage enemy (DC varies) or Heal ally (no DC)`,
+'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `Add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Can activate for one-time boost`,
+'Grapple': level === 0 ? 'Not unlocked' : `Deal POW damage to target AND they deal their POW back. Stun for ${boldNum(level)} turn${level > 1 ? 's' : ''}`,
+'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
+'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Use as last action. Next turn: First action triggers ${boldNum(level + 1)} times. One use per combat`,
+'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
+'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn. Can target self`
+};
+
+return descriptions[sigilName] || 'No description available';
+}
+
+function showTooltip(sigilName, element, level = 1) {
 // Tooltip display (tutorial explanation happens in Ribbleton combat)
 
-const desc = SIGIL_DESCRIPTIONS[sigilName];
+const desc = getLevelDescription(sigilName, level);
 if(!desc) return;
 
 hideTooltip();
@@ -814,6 +847,7 @@ recruits: [], // Recruited enemies fighting for player
 sig: {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0},
 goingRate: 1,
+runsAttempted: 0, // Number of runs started in this save slot
 startingXP: 0, // Bonus XP at start of each run (from Death Boy 2 sacrifices)
 pedestal: [], // Array of {hero:'Warrior', stat:'POW'|'HP', mode:'Standard'|'Effed'}
 hasAncientStatuette: false,
@@ -821,6 +855,7 @@ gameMode: 'Standard', // 'Standard' or 'Effed'
 effedUnlocked: false,
 tapoUnlocked: false, // Unlocked after first FU victory
 debugMode: false, // Debug mode toggle
+currentSlot: null, // Current save slot (1 or 2)
 // Toast log
 toastHistory: [], // Recent toast messages
 toastLogExpanded: false, // Toast log expanded state
@@ -1203,6 +1238,154 @@ setTimeout(() => title(), 2000);
 }
 }
 
+// ===== SAVE SLOT SYSTEM =====
+// Get metadata for a save slot (without loading it)
+function getSlotMetadata(slot) {
+try {
+// Try new slot system first
+let d = localStorage.getItem(`froggle8_permanent_slot${slot}`);
+if(d) {
+const j = JSON.parse(d);
+return {
+exists: true,
+runsAttempted: j.runsAttempted || j.runNumber || 1,
+goingRate: j.goingRate || 1,
+hasActiveRun: !!localStorage.getItem(`froggle8_slot${slot}`)
+};
+}
+// Check old system for migration
+if(slot === 1) {
+d = localStorage.getItem('froggle8_permanent');
+if(d) {
+const j = JSON.parse(d);
+return {
+exists: true,
+runsAttempted: j.runNumber || 1,
+goingRate: j.goingRate || 1,
+hasActiveRun: !!localStorage.getItem('froggle8'),
+needsMigration: true
+};
+}
+}
+return { exists: false };
+} catch(e) {
+console.warn(`[SAVE] Error reading slot ${slot}:`, e);
+return { exists: false };
+}
+}
+
+// Migrate old save to slot 1
+function migrateOldSave() {
+try {
+const oldPerm = localStorage.getItem('froggle8_permanent');
+const oldRun = localStorage.getItem('froggle8');
+if(oldPerm) {
+localStorage.setItem('froggle8_permanent_slot1', oldPerm);
+localStorage.removeItem('froggle8_permanent');
+}
+if(oldRun) {
+localStorage.setItem('froggle8_slot1', oldRun);
+localStorage.removeItem('froggle8');
+}
+console.log('[SAVE] Migrated old save to slot 1');
+} catch(e) {
+console.warn('[SAVE] Migration failed:', e);
+}
+}
+
+// Load a specific slot
+function loadSlot(slot) {
+S.currentSlot = slot;
+localStorage.setItem('froggle8_current_slot', slot.toString());
+// Load permanent data
+try {
+const d = localStorage.getItem(`froggle8_permanent_slot${slot}`);
+if(d) {
+const j = JSON.parse(d);
+S.gold = j.gold || 0;
+S.goingRate = j.goingRate || 1;
+S.runsAttempted = j.runsAttempted || j.runNumber || 1;
+S.startingXP = j.startingXP || 0;
+S.sig = j.sig || {Attack:1, Shield:1, Heal:1, D20:1, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
+S.ghostBoysConverted = j.ghostBoysConverted || false;
+S.hasAncientStatuette = j.hasAncientStatuette || false;
+S.pedestal = j.pedestal || [];
+S.effedUnlocked = j.effedUnlocked || false;
+S.tapoUnlocked = j.tapoUnlocked || false;
+S.runNumber = j.runNumber || 1;
+S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.usedDeathQuotes = j.usedDeathQuotes || [];
+if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+}
+// Try to load active run
+const runData = localStorage.getItem(`froggle8_slot${slot}`);
+if(runData) {
+const r = JSON.parse(runData);
+S.floor = r.f;
+S.xp = r.x;
+S.levelUpCount = r.luc || 0;
+S.heroes = r.h;
+S.neutralDeck = r.neutralDeck || [];
+S.lastNeutral = r.lastNeutral || null;
+S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
+upd();
+startFloor(S.floor);
+toast('Slot loaded!');
+return true;
+}
+} catch(e) {
+console.warn('[SAVE] Failed to load slot:', e);
+}
+return false;
+}
+
+// Update save functions to use current slot
+const originalSavePermanent = savePermanent;
+savePermanent = function() {
+if(!S.currentSlot) return;
+try {
+localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}`, JSON.stringify({
+gold: S.gold,
+goingRate: S.goingRate,
+runsAttempted: S.runsAttempted,
+startingXP: S.startingXP,
+sig: S.sig,
+sigUpgradeCounts: S.sigUpgradeCounts,
+ancientStatueDeactivated: S.ancientStatueDeactivated,
+ghostBoysConverted: S.ghostBoysConverted,
+hasAncientStatuette: S.hasAncientStatuette,
+pedestal: S.pedestal,
+effedUnlocked: S.effedUnlocked,
+tapoUnlocked: S.tapoUnlocked,
+runNumber: S.runNumber,
+tutorialFlags: S.tutorialFlags,
+helpTipsDisabled: S.helpTipsDisabled,
+usedDeathQuotes: S.usedDeathQuotes
+}));
+} catch(e) {
+console.warn('[SAVE] Failed to save permanent data:', e);
+toast('Warning: Progress could not be saved', 2000);
+}
+};
+
+const originalSaveGame = saveGame;
+saveGame = function() {
+if(!S.currentSlot) return;
+try {
+localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
+f:S.floor, x:S.xp, luc:S.levelUpCount,
+h:S.heroes,
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral
+}));
+savePermanent();
+} catch(e) {
+console.warn('[SAVE] Failed to save game:', e);
+toast('Warning: Game could not be saved', 2000);
+}
+};
+
 // ===== NEUTRAL DECK SYSTEM =====
 function initNeutralDeck() {
 S.neutralDeck = [
@@ -1322,8 +1505,8 @@ if(header) header.style.display = 'none';
 
 const v = document.getElementById('gameView');
 console.log('[FROGGLE] gameView element:', v);
-const hasSavedGame = localStorage.getItem('froggle8');
-console.log('[FROGGLE] hasSavedGame:', hasSavedGame ? 'YES' : 'NO');
+// Check for old saves and migrate
+migrateOldSave();
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
 <!-- Green mat container -->
@@ -1336,16 +1519,118 @@ v.innerHTML = `
 </div>
 </div>
 
-<!-- Buttons on green mat -->
-<div style="display:flex;gap:0.5rem;width:100%">
-<!-- New Game: half width -->
-<button class="btn" onclick="newGame()" style="flex:1;font-size:1rem;padding:0.75rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 New Game 🐸</button>
-
-<!-- Right side: Load button -->
-${hasSavedGame ? `<button class="btn" onclick="loadGameFromTitle()" style="flex:1;font-size:0.9rem;padding:0.75rem;background:#2c63c7;border:3px solid #1e40af;font-weight:bold">💾 Load Game</button>` : ''}
-</div>
+<!-- Single Play button -->
+<button class="btn" onclick="showSaveSlotSelection()" style="width:100%;font-size:1.2rem;padding:1rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 PLAY 🐸</button>
 </div>
 </div>`;
+}
+
+// Show save slot selection screen
+function showSaveSlotSelection() {
+const v = document.getElementById('gameView');
+const slot1 = getSlotMetadata(1);
+const slot2 = getSlotMetadata(2);
+
+v.innerHTML = `
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
+<h2 style="text-align:center;margin-bottom:1.5rem;font-size:1.5rem">Select Save Slot</h2>
+
+<!-- Slot 1 -->
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<h3 style="font-size:1.2rem;margin:0">Slot 1</h3>
+</div>
+${slot1.exists ? `
+<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs Attempted: <strong>${slot1.runsAttempted}</strong></div>
+<div>💰 Going Rate: <strong>${slot1.goingRate}G</strong></div>
+${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+</div>
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary" onclick="confirmDeleteSlot(1)" style="flex:0;padding:0.5rem 0.75rem">🗑️</button>
+</div>
+` : `
+<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🆕 New Game</button>
+`}
+</div>
+
+<!-- Slot 2 -->
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<h3 style="font-size:1.2rem;margin:0">Slot 2</h3>
+</div>
+${slot2.exists ? `
+<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs Attempted: <strong>${slot2.runsAttempted}</strong></div>
+<div>💰 Going Rate: <strong>${slot2.goingRate}G</strong></div>
+${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+</div>
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary" onclick="confirmDeleteSlot(2)" style="flex:0;padding:0.5rem 0.75rem">🗑️</button>
+</div>
+` : `
+<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🆕 New Game</button>
+`}
+</div>
+
+<button class="btn secondary" onclick="mainTitlePage()" style="width:100%">← Back</button>
+</div>
+</div>`;
+}
+
+// Continue/start a slot
+function continueSlot(slot) {
+const meta = getSlotMetadata(slot);
+if(meta.hasActiveRun) {
+// Load existing run
+if(loadSlot(slot)) {
+// Success - game already started
+} else {
+toast('Failed to load slot');
+}
+} else {
+// Start new run in existing slot
+S.runsAttempted = (meta.runsAttempted || 0) + 1;
+newGameInSlot(slot);
+}
+}
+
+// Create new game in empty slot
+function createNewSlot(slot) {
+S.currentSlot = slot;
+S.runsAttempted = 1;
+S.runNumber = 1;
+newGame();
+}
+
+// Start new game in existing slot
+function newGameInSlot(slot) {
+S.currentSlot = slot;
+S.runNumber = (S.runsAttempted || 1);
+if(S.runNumber === 1 && !S.helpTipsDisabled) {
+showTutorialStory();
+} else {
+title();
+}
+}
+
+// Delete slot with confirmation
+function confirmDeleteSlot(slot) {
+if(confirm(`Delete Save Slot ${slot}? This cannot be undone!`)) {
+try {
+localStorage.removeItem(`froggle8_slot${slot}`);
+localStorage.removeItem(`froggle8_permanent_slot${slot}`);
+toast(`Slot ${slot} deleted`);
+showSaveSlotSelection(); // Refresh
+} catch(e) {
+toast('Failed to delete slot');
+}
+}
 }
 
 function newGame() {
@@ -1484,7 +1769,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
@@ -1512,7 +1797,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Ribbleton's Defenders</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce2 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:200px;height:auto;animation:tapoBounce2 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
@@ -1796,22 +2081,8 @@ ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <div style="max-width:600px;margin:0 auto">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose 2 Heroes</h2>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-<div style="position:relative;max-width:100%;margin:0 auto">
-<img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000">
-<!-- Clickable overlay regions for each hero (4 equal sections) -->
-<div style="position:absolute;top:0;left:0;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('warrior')"
-title="Warrior"></div>
-<div style="position:absolute;top:0;left:25%;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('tank')"
-title="Tank"></div>
-<div style="position:absolute;top:0;left:50%;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('mage')"
-title="Mage"></div>
-<div style="position:absolute;top:0;left:75%;width:25%;height:100%;cursor:pointer;z-index:20;"
-onclick="toggleHeroSelection('healer')"
-title="Healer"></div>
-
+<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
+<img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
 <!-- Hero card overlays -->
 <div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
 <div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
@@ -1848,6 +2119,22 @@ if(b) { b.disabled = false; b.style.opacity = '1'; }
 updateSelectionDisplay();
 }, 0);
 }
+}
+
+function handleHeroImageClick(event, container) {
+// Calculate which hero was clicked based on X position
+const rect = container.getBoundingClientRect();
+const x = event.clientX - rect.left;
+const percent = (x / rect.width) * 100;
+
+// Determine hero based on position (4 equal 25% sections)
+let heroType;
+if (percent < 25) heroType = 'warrior';
+else if (percent < 50) heroType = 'tank';
+else if (percent < 75) heroType = 'mage';
+else heroType = 'healer';
+
+toggleHeroSelection(heroType);
 }
 
 function toggleHeroSelection(heroType) {
@@ -2774,12 +3061,10 @@ if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
 }
 
-// Remove enemy after animation
-setTimeout(() => {
+// Remove enemy immediately
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 render();
 checkCombatEnd();
-}, 300);
 }
 }
 
@@ -3419,8 +3704,8 @@ const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Atta
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
-onmouseenter="showTooltip('${s}', this)" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s)}</span>`;
+onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
+ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
 });
 html += '</div>';
 html += '</div>';
@@ -5120,7 +5405,7 @@ v.innerHTML = `
 <div class="neutral-container">
 <div style="text-align:center;margin:2rem 0">
 <div style="font-size:3rem;animation:clap 0.5s ease-in-out 3;margin-bottom:2rem">👏</div>
-<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #fbbf24;animation:bounce 1s ease-in-out 3">
+<img src="assets/tapo-nobg.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
 <div style="font-size:2.5rem;font-weight:bold;color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
 ✨ Tapo Unlocked! ✨
 </div>
@@ -5677,7 +5962,7 @@ v.innerHTML = `
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
 
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;animation:bounce 2s ease-in-out infinite">
 </div>
 
 <div style="background:rgba(0,0,0,0.2);padding:2rem;border-radius:12px;margin:2rem 0;border:2px solid rgba(251,191,36,0.5)">
