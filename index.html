@@ -2956,16 +2956,9 @@ const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 targetNames.push(e.n);
 damagedEnemyIds.push(e.id);
-// Apply damage without triggering animation yet
-if(e.sh > 0) {
-if(e.sh >= pow) { e.sh -= pow; }
-else { const dmg = pow - e.sh; e.sh = 0; e.h -= dmg; }
-} else {
-e.h -= pow;
-}
+// Apply damage and trigger tutorial flags
+dealDamageToEnemy(e, pow);
 });
-// Trigger all damage animations simultaneously
-damagedEnemyIds.forEach(id => triggerHitAnimation(id));
 if(targetNames.length > 0) toast(`${h.n} attacked ${targetNames.join(', ')} for ${pow} damage each!`);
 } else if(action === 'Shield') {
 const targetNames = [];
