@@ -273,7 +273,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .choice.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 .tooltip { position: fixed; z-index: 25000; background: rgba(0,0,0,0.95); color: #fff; padding: 1rem; border-radius: 8px; border: 2px solid #fbbf24; max-width: 320px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
 .tooltip.show { opacity: 1; }
-.tooltip-passive { background: rgba(34,197,94,0.85) !important; border-color: #22c55e !important; }
+.tooltip-green { background: rgba(34,197,94,0.85) !important; border-color: #22c55e !important; }
 .tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
 </style>
@@ -785,12 +785,8 @@ if(!desc) return;
 
 hideTooltip();
 
-// Check if this is a passive sigil for green background
-const passiveSigils = ['Expand', 'Star', 'Asterisk'];
-const isPassive = passiveSigils.includes(sigilName);
-
 const tooltip = document.createElement('div');
-tooltip.className = isPassive ? 'tooltip tooltip-passive' : 'tooltip';
+tooltip.className = 'tooltip tooltip-green';
 tooltip.innerHTML = `
 <div class="tooltip-title">${sigilIcon(sigilName)}</div>
 <div class="tooltip-desc">${desc}</div>`;
