@@ -1484,7 +1484,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
@@ -1512,7 +1512,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Ribbleton's Defenders</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo.png" style="max-width:200px;height:auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 8px 16px rgba(0,0,0,0.2);animation:tapoBounce2 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:200px;height:auto;animation:tapoBounce2 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
@@ -2774,12 +2774,10 @@ if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
 }
 
-// Remove enemy after animation
-setTimeout(() => {
+// Remove enemy immediately
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 render();
 checkCombatEnd();
-}, 300);
 }
 }
 
@@ -5120,7 +5118,7 @@ v.innerHTML = `
 <div class="neutral-container">
 <div style="text-align:center;margin:2rem 0">
 <div style="font-size:3rem;animation:clap 0.5s ease-in-out 3;margin-bottom:2rem">👏</div>
-<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #fbbf24;animation:bounce 1s ease-in-out 3">
+<img src="assets/tapo-nobg.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
 <div style="font-size:2.5rem;font-weight:bold;color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
 ✨ Tapo Unlocked! ✨
 </div>
@@ -5677,7 +5675,7 @@ v.innerHTML = `
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
 
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;border-radius:12px;border:3px solid #fbbf24;box-shadow:0 4px 16px rgba(0,0,0,0.3);animation:bounce 2s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;animation:bounce 2s ease-in-out infinite">
 </div>
 
 <div style="background:rgba(0,0,0,0.2);padding:2rem;border-radius:12px;margin:2rem 0;border:2px solid rgba(251,191,36,0.5)">
