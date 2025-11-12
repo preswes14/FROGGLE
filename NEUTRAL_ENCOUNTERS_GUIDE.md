@@ -47,12 +47,10 @@ Neutral Encounters appear on even levels: 2, 4, 6, 8, 10, 12, 14, 16, 18
 - Example: D20 L3 on Treasure Chest = 3d20 for trap check, then 3d20 for contents check
 
 ### Hero Selection for Neutral Rolls:
-- Some neutrals specify "choose one hero" for narrative purposes (Oracle, Ancient Statue scaling)
+- **Player always chooses which hero** for narrative purposes and damage targeting
 - Choice matters for who takes damage/receives buffs
 - D20 level still shared (doesn't matter who's chosen for roll purposes)
-
-### Tiebreakers (when "highest/lowest HP hero" has ties):
-Highest POW → Most sigils → Random
+- Player agency and tactical HP management preferred over auto-targeting
 
 ---
 
@@ -92,13 +90,10 @@ Highest POW → Most sigils → Random
 **Option A: "Climb down and get coins"**
 - Choose one hero to climb (player's choice)
 - D20 roll (uses hero's shared D20 level):
-  * 1: Highest HP hero takes 3 damage, party loses 5 Gold
-  * 2-10: Highest HP hero takes 1 damage, party gains 1 Gold
+  * 1: **Player chooses a hero** to take 3 damage, party loses 5 Gold
+  * 2-10: **Player chooses a hero** to take 1 damage, party gains 1 Gold
   * 11-19: Party gains 3 Gold
   * 20: Party gains 2 Gold per hero + unlock Stage 2
-- Tiebreaker for "highest HP hero":
-  * Highest POW → Most sigils → Random
-  * Must have HP > 0 (Last Stand heroes at 0 HP don't count)
 
 **Option B: "Toss in a coin and make a wish"** (No roll)
 - Cost: 1 Gold per hero
@@ -121,8 +116,8 @@ Highest POW → Most sigils → Random
 **Engage:** Automatic 2-roll sequence (cannot avoid once engaged)
 
 **Roll 1 - Trap Check:**
-- 1: Highest HP hero takes 3 damage (poison trap)
-- 2-9: Highest HP hero takes 1 damage (dart trap)
+- 1: **Player chooses a hero** to take 3 damage (poison trap)
+- 2-9: **Player chooses a hero** to take 1 damage (dart trap)
 - 10-18: Open safely
 - **19-20: Find secret compartment + open safely**
 
@@ -334,9 +329,7 @@ Highest POW → Most sigils → Random
 **Engage: "Play with the ghost boys"**
 - Trapped! Time slips away as ghost boys play. Heroes must escape through escalating DC checks.
 - Escape sequence:
-  * Each failed check: Lowest HP hero takes 1 damage
-  * Tiebreaker: Any hero with Ghost sigil charges → Fewest sigils → Random
-  * Must have HP > 0 to be targeted (Last Stand heroes at 0 HP don't take damage, stay at 0)
+  * Each failed check: **Player chooses a hero** to take 1 damage
   * DCs: 18, 16, 14, 12, 10, 8, 6, 4, 2 (progressively easier)
   * Continue until hero succeeds OR hero enters Last Stand
   * Auto-escape after 9 failed checks
