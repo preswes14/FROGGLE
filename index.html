@@ -3902,7 +3902,12 @@ if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1r
 else {
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${level} → L${level+1}</strong></div>`;
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const isActive = actives.includes(sig);
+// Actives display with minimum level of 1 (since they start at L1 when equipped)
+const displayLevel = (isActive && level === 0) ? 1 : level;
+const nextDisplayLevel = displayLevel + 1;
+html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong></div>`;
 });
 }
 }
