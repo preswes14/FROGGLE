@@ -811,18 +811,15 @@ setTimeout(() => tooltip.classList.add('show'), 10);
 }
 
 function hideTooltip() {
-if(currentTooltip) {
-currentTooltip.classList.remove('show');
-setTimeout(() => {
-if(currentTooltip) {
-currentTooltip.remove();
-currentTooltip = null;
-}
-}, 200);
-}
+// Clear any pending tooltip timers
 if(tooltipTimeout) {
 clearTimeout(tooltipTimeout);
 tooltipTimeout = null;
+}
+// Immediately remove current tooltip
+if(currentTooltip) {
+currentTooltip.remove();
+currentTooltip = null;
 }
 }
 
