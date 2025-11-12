@@ -1352,6 +1352,7 @@ S.heroes = r.h;
 S.neutralDeck = r.neutralDeck || [];
 S.lastNeutral = r.lastNeutral || null;
 S.hasAncientStatuette = r.hasAncientStatuette || false;
+S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -1400,7 +1401,8 @@ localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-hasAncientStatuette: S.hasAncientStatuette
+hasAncientStatuette: S.hasAncientStatuette,
+tempSigUpgrades: S.tempSigUpgrades
 }));
 savePermanent();
 } catch(e) {
@@ -3531,6 +3533,14 @@ S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
 upd();
+// Auto-skip stunned heroes
+S.heroes.forEach((h, idx) => {
+if(h.st > 0 && !S.acted.includes(idx)) {
+S.acted.push(idx);
+toast(`${h.n} is stunned and skips their turn!`);
+}
+});
+checkTurnEnd();
 render();
 }
 
@@ -3568,6 +3578,8 @@ return true;
 }
 const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
+// Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 setTimeout(() => {
 toast('Defeated!');
 setTimeout(() => showDeathScreen(), 1000);
@@ -6089,6 +6101,7 @@ let html = `
 ${inGame ? `
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Game</h3>
 <button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
+<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#dc2626">🔄 Restart Level</button>
 <button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f59e0b">🔄 Reset Tutorial</button>
 ` : ''}
 
@@ -6128,6 +6141,22 @@ function manualSave() {
 saveGame();
 toast('Game Saved!', 1200);
 closeSettingsMenu();
+}
+
+function restartLevel() {
+if(confirm('Restart this floor? All progress on this floor will be lost.')) {
+closeSettingsMenu();
+toast('Restarting floor...', 1200);
+setTimeout(() => {
+if(S.floor % 2 === 1) {
+// Odd floor = combat
+combat(S.floor);
+} else {
+// Even floor = neutral
+startFloor(S.floor);
+}
+}, 500);
+}
 }
 
 function resetTutorialFlags() {
