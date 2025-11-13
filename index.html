@@ -884,6 +884,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="header" id="gameHeader">
 <div>Floor <span id="floor">1</span> | Round <span id="round">1</span></div>
 <div style="display:flex;gap:0.25rem">
+<button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">📖</button>
 <button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">⚙️</button>
 <div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#fbbf24;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🛠️</button></div>
 </div>
@@ -6925,9 +6926,6 @@ ${inGame ? `
 <input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
 <span>🔍 Show Sigil Tooltips</span>
 </label>
-
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Reference</h3>
-<button class="btn" onclick="showSigilarium()" style="margin-bottom:0.5rem;background:#9333ea">📖 View Sigilarium</button>
 
 <h3 style="color:#fbbf24;margin:1rem 0 0.5rem 0">Debug</h3>
 <label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
