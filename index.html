@@ -1265,7 +1265,7 @@ tutorialState.stage = 'enemy_turn_wait';
 }
 else if(tutorialState.stage === 'expand_targets' && hero === 'Healer') {
 tutorialState.stage = 'finish_wolf';
-showTutorialPop('ribbleton_finish_wolf', "Now finish off that Wolf! Click the Warrior's Attack sigil to target it!", () => {
+showTutorialPop('ribbleton_finish_wolf', "Now finish off that Wolf with the Warrior's Attack sigil!", () => {
 S.activeIdx = 0;
 render();
 });
@@ -2660,7 +2660,7 @@ remaining.forEach(r => r.remove());
 }
 
 // PROMPT 1: Warrior Attack
-showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Quick, attack an enemy - click on the Warrior's Attack sigil to begin.", () => {
+showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Attack an enemy - click the Warrior's Attack sigil.", () => {
 console.log('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -3267,7 +3267,7 @@ if(S.locked) return;
 // RIBBLETON TUTORIAL: PROMPT 4 - Explain D20 gambit
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'healer_d20') {
 tutorialState.stage = 'd20_menu';
-showTutorialPop('ribbleton_d20_menu', "All heroes can use their D20 sigil to attempt powerful gambits! Try to hurt the Wolf with the DC 16 'Damage' check!", () => {
+showTutorialPop('ribbleton_d20_menu', "Heroes start with different Active abilities, but they all can try to turn the tides of battle with a gambit! Click the Healer's D20 sigil!", () => {
 // After prompt, show the d20 menu
 renderD20MenuAfterTutorial(heroIdx);
 });
