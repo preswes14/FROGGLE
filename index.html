@@ -231,6 +231,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil-row.compact .sigil { padding: 2px 5px; font-size: 0.7rem; min-height: 22px; border-width: 2px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.sigil.passive { border: none; opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
@@ -259,7 +260,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast-log { position: fixed; top: 10px; right: 60px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 0.5rem; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; transition: all 0.3s; }
+.toast-log { position: fixed; top: 10px; right: 180px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 0.5rem; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; transition: all 0.3s; }
 .toast-log.minimized { max-height: 40px; overflow: hidden; cursor: pointer; }
 .toast-log.minimized:hover { background: linear-gradient(#f7f1e3, #e7e1d3); }
 .toast-log-header { font-weight: bold; font-size: 0.85rem; margin-bottom: 0.25rem; padding: 0.25rem 0.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
@@ -1151,19 +1152,24 @@ return html;
 // Unified damage application with shield/ghost/laststand handling
 function applyDamageToTarget(target, rawDamage, options = {}) {
 let dmg = rawDamage;
+let shieldLost = 0;
+let hpLost = 0;
 
 // Handle shield absorption
 if(target.sh > 0) {
 if(target.sh >= rawDamage) {
+shieldLost = rawDamage;
 target.sh -= rawDamage;
 dmg = 0;
 } else {
+shieldLost = target.sh;
 dmg = rawDamage - target.sh;
 target.sh = 0;
 }
 }
 
 // Apply damage to HP
+hpLost = dmg;
 target.h -= dmg;
 
 // Handle lethal damage
@@ -1172,6 +1178,7 @@ if(target.g > 0) {
 // Ghost charge cancels death
 target.g--;
 target.h += dmg;
+hpLost = 0; // Ghost prevented the HP loss
 if(!options.silent) {
 toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 }
@@ -1199,7 +1206,7 @@ upd();
 }
 }
 
-return dmg; // Return actual damage dealt to HP (after shield)
+return {hpLost, shieldLost, totalDamage: rawDamage}; // Return detailed breakdown
 }
 
 // ===== TUTORIAL SYSTEM =====
@@ -1695,6 +1702,10 @@ console.log('[TUTORIAL] Skipping pop (disabled or already shown), calling callba
 if(onDismiss) onDismiss();
 return;
 }
+// Add tutorial message to toast log for reference
+S.toastHistory.unshift(`📖 ${message}`);
+if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
+updateToastLog();
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
@@ -3452,8 +3463,13 @@ toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) finishAction(heroIdx);
-else render();
+if(S.instancesRemaining <= 0) {
+// Delay finishAction to allow attack animation to complete
+setTimeout(() => finishAction(heroIdx), 300);
+} else {
+// Delay render to allow attack animation to complete
+setTimeout(() => render(), 300);
+}
 } else render();
 } else if(S.pending === 'Grapple') {
 if(S.targets.includes(id)) { toast('Already targeted!'); return; }
@@ -3493,8 +3509,11 @@ toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) finishAction(heroIdx);
-else render();
+if(S.instancesRemaining <= 0) {
+setTimeout(() => finishAction(heroIdx), 300);
+} else {
+setTimeout(() => render(), 300);
+}
 } else render();
 } else if(S.pending === 'Heal') {
 if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
@@ -3510,8 +3529,11 @@ toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) finishAction(heroIdx);
-else render();
+if(S.instancesRemaining <= 0) {
+setTimeout(() => finishAction(heroIdx), 300);
+} else {
+setTimeout(() => render(), 300);
+}
 } else render();
 } else if(S.pending === 'Alpha') {
 // Alpha: can't target self or already-acted heroes
@@ -3680,8 +3702,16 @@ if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - st
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
-toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
-applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
+const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
+let msg = `${h.n} took Grapple recoil:`;
+if(damage.shieldLost > 0 && damage.hpLost > 0) {
+msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+} else if(damage.shieldLost > 0) {
+msg += ` -${damage.shieldLost}🛡️`;
+} else if(damage.hpLost > 0) {
+msg += ` -${damage.hpLost}❤️`;
+}
+toast(msg);
 }
 }
 
@@ -4141,12 +4171,17 @@ toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
 
 function dealDamageToHero(hero, dmg, source) {
 triggerHitAnimation(hero.id);
-const actualDamage = applyDamageToTarget(hero, dmg, {isHero: true});
-if(actualDamage > 0) {
-toast(`${source} dealt ${actualDamage} damage to ${hero.n}!`);
-} else {
-toast(`${hero.n}'s shield absorbed ${dmg} damage!`);
+const damage = applyDamageToTarget(hero, dmg, {isHero: true});
+// Build detailed damage message
+let msg = `${source} hit ${hero.n}:`;
+if(damage.shieldLost > 0 && damage.hpLost > 0) {
+msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+} else if(damage.shieldLost > 0) {
+msg += ` -${damage.shieldLost}🛡️ (shield absorbed all damage)`;
+} else if(damage.hpLost > 0) {
+msg += ` -${damage.hpLost}❤️`;
 }
+toast(msg);
 }
 
 function endEnemyTurn() {
@@ -4359,7 +4394,8 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk','Alpha'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
-html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
+const isPassive = ['Expand', 'Star'].includes(s) || (s === 'Asterisk' && !isPrimed);
+html += `<span class="sigil ${cl} ${isPassive?'passive':''} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
 });
@@ -5292,7 +5328,7 @@ let description = 'A figure shrouded in mist sits cross-legged before a crystal 
 let buttons = '';
 S.heroes.forEach((h, idx) => {
 buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (+1⚡)</button>`;
-buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (+2❤ max)</button>`;
+buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (+5❤ max)</button>`;
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
