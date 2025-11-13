@@ -3454,21 +3454,23 @@ checkCombatEnd();
 } else if(action === 'RECRUIT') {
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
-// Check if hero already has a recruit
+// Check if hero already has a recruit - if so, replace it
 if(!S.recruits) S.recruits = [];
-const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
-if(existingRecruit) {
-toast(`${hero.n} already has a recruit!`);
-return;
+const existingRecruitIdx = S.recruits.findIndex(r => r.recruitedBy === heroIdx);
+if(existingRecruitIdx >= 0) {
+const oldRecruit = S.recruits[existingRecruitIdx];
+S.recruits.splice(existingRecruitIdx, 1);
+toast(`${enemy.n} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
+} else {
+toast(`${enemy.n} recruited by ${hero.n}!`, 1500);
 }
 // Remove enemy from enemies array
 S.enemies = S.enemies.filter(e => e.id !== enemyId);
-// Add to recruits array (max 10 recruits for performance)
+// Add new recruit to recruits array (max 10 recruits for performance)
 const MAX_RECRUITS = 10;
 if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
-toast(`${enemy.n} recruited by ${hero.n}!`, 1500);
 } else {
 toast(`${enemy.n} recruited but recruits are full! (Max ${MAX_RECRUITS})`, 2000);
 }
