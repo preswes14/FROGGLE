@@ -236,10 +236,15 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
 .sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
+.sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.4); }
 .sigil.l1 { color: #000; border-color: #000; }
+.sigil.l1 img { filter: brightness(0) saturate(100%); }
 .sigil.l2 { color: #0d9488; border-color: #0d9488; }
+.sigil.l2 img { filter: sepia(100%) saturate(300%) hue-rotate(140deg) brightness(0.8); }
 .sigil.l3 { color: #9333ea; border-color: #9333ea; }
+.sigil.l3 img { filter: sepia(100%) saturate(500%) hue-rotate(260deg) brightness(0.7); }
 .sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
+.sigil.l4 img { filter: sepia(100%) saturate(300%) hue-rotate(10deg) brightness(1.1); }
 .sigil.l5 {
   background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
   background-size: 300% 100%;
@@ -250,6 +255,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,0,128,0.6);
   font-weight: bold;
 }
+.sigil.l5 img { filter: brightness(0) invert(1) drop-shadow(0 0 4px rgba(255,0,128,0.8)); }
 @keyframes rainbow-shift {
   0% { background-position: 0% 50%; }
   100% { background-position: 300% 50%; }
@@ -972,10 +978,8 @@ return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:in
 function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
 if (!imgPath) return name;
-// Only apply black filter for level 0 or when level not specified
-// For L1-L4, show colored icon so border colors are visible
-const filter = (level === null || level === 0) ? 'filter:brightness(0);' : '';
-return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;${filter}" alt="${name}">`;
+// CSS handles coloring via .sigil.l0 img, .sigil.l1 img, etc.
+return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;" alt="${name}">`;
 }
 
 // Sigil descriptions for tooltips
