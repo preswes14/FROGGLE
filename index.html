@@ -1427,6 +1427,11 @@ currentTooltip = null;
 }
 }
 
+// Helper to create sigil with tooltip (for death screen with longer hover time)
+function sigilIconWithTooltip(sig, level = 1, hoverDelay = 500) {
+return `<span onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sig}', this, ${level}), ${hoverDelay})" ontouchend="hideTooltip()">${sigilIcon(sig)}</span>`;
+}
+
 function generateFibonacci(n) {
 const fib = [1, 1];
 for(let i = 2; i < n; i++) fib.push(fib[i-1] + fib[i-2]);
@@ -4065,7 +4070,24 @@ return;
 }
 executeEnemyBaseAttack(enemy);
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
-drawnSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+
+// Filter out suicidal grapples - enemies should never kill themselves
+const safeSigils = drawnSigils.filter(sigil => {
+if(sigil.sig === 'Grapple') {
+const target = S.heroes[enemy.li];
+if(target && target.h > 0) {
+const recoilDamage = target.p;
+// Skip grapple if it would kill the enemy
+if(enemy.h <= recoilDamage) {
+toast(`${enemy.n} considered Grapple but chose to survive instead!`);
+return false;
+}
+}
+}
+return true;
+});
+
+safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
 enemy.s = enemy.s.filter(s => s.perm);
 render();
 }
@@ -5031,7 +5053,7 @@ upd();
 replaceStage1WithStage2('wishingwell');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/wishingwell2.png',
+bgImage: 'assets/neutrals/wishingwell1.png',
 title: 'A Wish Made',
 outcomes: [`You toss ${cost} gold coin${cost>1?'s':''} into the well and make a silent wish. The water begins to glow softly, then surges upward, overflowing the well's edge!`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -6218,7 +6240,7 @@ const nextColorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff
 
 html += `
 <div style="background:rgba(255,255,255,0.05);padding:0.75rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
-<div style="font-weight:bold;margin-bottom:0.5rem">${sigilIcon(sig)}</div>
+<div style="font-weight:bold;margin-bottom:0.5rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:0.9rem;margin-bottom:0.5rem">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
@@ -6255,7 +6277,7 @@ const currentLevel = isActive ? permLevel + 1 : permLevel;
 const canSellBack = permLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
-<span>${sigilIcon(sig)} L${currentLevel}</span>
+<span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
 <button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
 </button>
@@ -6280,7 +6302,7 @@ const currentLevel = isActive ? permLevel + 1 : permLevel;
 const canSacrifice = permLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
-<span>${sigilIcon(sig)} L${currentLevel}</span>
+<span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
 <button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
 </button>
