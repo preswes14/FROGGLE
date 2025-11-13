@@ -986,7 +986,7 @@ const SIGIL_DESCRIPTIONS = {
 'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
 'Grapple': 'Deal POW damage to target AND they deal POW damage back to you. L2+: Stun target for (Level-1) turns.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
-'Asterisk': 'PASSIVE: Always-on if unlocked. Must use as LAST action of turn. Next turn: First action triggers (Level+1) times. One use per combat.',
+'Asterisk': 'Click to activate, then your next action triggers (Level+1) times. Use once per combat. Enemies with Asterisk get extra attacks.',
 'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
 'Alpha': 'Grant target hero an extra action this turn. Higher levels grant more actions.'
 };
@@ -1369,7 +1369,7 @@ const descriptions = {
 'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Deal POW damage to target AND they deal their POW back. Stun for ${boldNum(level)} turn${level > 1 ? 's' : ''}`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
-'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Use as last action. Next turn: First action triggers ${boldNum(level + 1)} times. One use per combat`,
+'Asterisk': level === 0 ? 'Not unlocked' : `Click to activate. Your next action triggers ${boldNum(level + 1)} times. Use once per combat`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
 'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
 };
@@ -4238,7 +4238,14 @@ toast(`${enemy.n} gained ${level} Ghost charge!`);
 } else if(sig === 'Expand') {
 toast(`${enemy.n} used Expand (affects their attacks)`);
 } else if(sig === 'Asterisk') {
-toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
+// Asterisk for enemies: Multiply attacks by (level + 1)
+const expandLevel = getEnemyExpandLevel(enemy);
+const targetCount = 1 + expandLevel;
+const multiplier = level + 1;
+toast(`${enemy.n} used Asterisk: ×${multiplier} attacks!`);
+for(let i = 0; i < multiplier; i++) {
+executeEnemyAttackOnHeroes(enemy, targetCount, `Asterisk Attack ${i+1}/${multiplier}`);
+}
 }
 }
 
@@ -4494,7 +4501,7 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk','Alpha'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
-const isPassive = ['Expand', 'Star'].includes(s) || (s === 'Asterisk' && !isPrimed);
+const isPassive = ['Expand', 'Star'].includes(s);
 html += `<span class="sigil ${cl} ${isPassive?'passive':''} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
@@ -4762,11 +4769,11 @@ function upSigil(sig) {
 const cost = FIB[S.levelUpCount] || 999;
 if(S.xp < cost) return;
 
-// Show passive sigil tutorial when upgrading Expand or Asterisk from L0 to L1
-const isPassive = ['Expand', 'Asterisk'].includes(sig);
+// Show passive sigil tutorial when upgrading Expand or Star from L0 to L1
+const isPassive = ['Expand', 'Star'].includes(sig);
 const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(isPassive && currentLevel === 0) {
-showTutorialPop('levelup_upgrade_passive', "Expand and Asterisk start as PASSIVE sigils - they work automatically but can't be used as actions. Upgrade them to L1 to use them actively!");
+showTutorialPop('levelup_upgrade_passive', "Expand and Star are PASSIVE sigils - they work automatically without needing to click them!");
 }
 
 S.xp -= cost;
@@ -7028,8 +7035,8 @@ savePermanent();
 function showSigilarium() {
 closeSettingsMenu();
 const v = document.getElementById('gameView');
-const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-const passiveSigils = ['Star', 'Expand', 'Asterisk'];
+const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha', 'Asterisk'];
+const passiveSigils = ['Star', 'Expand'];
 
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
