@@ -1196,7 +1196,7 @@ target.ls = true;
 target.lst = 0;
 if(!options.silent) {
 toast(`${target.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can still use their D20 sigil, but success gets harder and harder as they slip into the void…");
+showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can still use their D20 sigil for one last desperate gambit, but each failed attempt brings them closer to the void…");
 }
 } else {
 // Enemies die - award gold/XP and schedule removal
@@ -1322,9 +1322,9 @@ tutorialState.stage = 'shield_sigil';
 upd();
 render();
 // First show that enemies can get sigils
-showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! They draw from a pool specific to their type, and gain sigils over time.", () => {
+showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! Each enemy type has their own unique sigil pool and gains sigils as the battle continues.", () => {
 // Then explain this specific sigil
-showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies use their sigils AFTER they attack, then those sigils fall off. Try to finish him before he can Shield up!", () => {
+showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies activate their sigils AFTER they attack, then the sigils disappear. Take him down before he can use it!", () => {
 // PROMPT 10: Handoff
 showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
@@ -2128,7 +2128,7 @@ S.neutralDeck.push(`${base}2`);
 function rollD20Neutral() {
 const d20Level = S.sig.D20 || 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
-showTutorialPop('neutral_d20_level', "This D20 roll uses the same Level as your D20 sigil in combat - so you can up your chances of success in neutral rooms by leveling up that Sigil!");
+showTutorialPop('neutral_d20_level', "These D20 checks use the same Level as your D20 sigil from combat - leveling it up improves your odds everywhere!");
 return rollDice(d20Level, 20);
 }
 
@@ -3119,7 +3119,7 @@ S.encampmentSelectedTargets = [];
 render();
 // Tutorial: Explain tooltips on first combat
 if(f === 1 && !S.helpTipsDisabled && !S.tutorialFlags.ribbleton_tooltip_intro) {
-showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile) any sigil to see what it does! This works on your heroes' sigils and enemies' sigils too.");
+showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile) any sigil icon to see detailed information about what it does! This works for both your heroes' and enemies' sigils.");
 }
 }
 
@@ -3363,7 +3363,7 @@ return;
 
 // RECRUIT TUTORIAL: Show explanation when first selecting Recruit
 if(actionName === 'RECRUIT') {
-showTutorialPop('recruit_intro', "Recruited enemies will stand behind the hero who recruited them and fight til death! Limit 1 recruit per hero.", () => {
+showTutorialPop('recruit_intro', "Recruited enemies will stand behind the hero who recruited them and fight alongside you until death! Each hero can have 1 recruit.", () => {
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
@@ -4778,7 +4778,7 @@ if(S.xp < cost) return;
 const isPassive = ['Expand', 'Star'].includes(sig);
 const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(isPassive && currentLevel === 0) {
-showTutorialPop('levelup_upgrade_passive', "Expand and Star are PASSIVE sigils - they work automatically without needing to click them!");
+showTutorialPop('levelup_upgrade_passive', "Expand and Star are PASSIVE sigils - they're always active and work automatically! No need to click them in battle.");
 }
 
 S.xp -= cost;
@@ -4795,7 +4795,7 @@ levelUpMenu();
 function neutral(f) {
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
-showTutorialPop('neutral_intro', "You can usually walk straight through these floors, but most can offer a benefit if you play it right!");
+showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities! You can walk straight through, or take a risk for potential rewards.");
 }
 
 const enc = getNeutralEncounter();
@@ -5860,7 +5860,7 @@ toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 hero.ls = true;
 hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "Ouch, that stinks. Well, you're not dead yet! While your ally lives, you live - but it looks like your actions are somewhat limited. Be careful though! If you don't get healing soon, you'll slip further and further away...");
+showTutorialPop('last_stand_intro', "Ouch! You're not dead yet though! While your ally lives, you live - but your options are limited to D20 gambits. Get healing soon, or you'll slip further into the void...");
 }
 toast(`${hero.n} took ${damage} damage!`);
 upd();
@@ -6222,11 +6222,67 @@ savePermanent();
 win();
 }
 
+// ===== DEATH DIALOGUE SEQUENCE =====
+function showDeathIntroDialogue() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
+<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+"Oh hey, it's you! I'm the one who's been giving you tips along the way."
+</p>
+<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+"I'm supposed to take you to the next life… but you're not from this realm, are you?"
+</p>
+<div class="choice" onclick="showDeathResponseDialogue(true)" style="cursor:pointer">
+<strong>Yes, I'm from a place called Ribbleton!</strong>
+</div>
+<div class="choice" onclick="showDeathResponseDialogue(false)" style="cursor:pointer">
+<strong>No, I sure am from this realm!</strong>
+</div>
+</div>`;
+}
+
+function showDeathResponseDialogue(fromRibbleton) {
+const v = document.getElementById('gameView');
+const responseText = fromRibbleton
+? "Ribbleton! I thought so. Not many travelers make it here from other realms."
+: "Is that so? Well, regardless of where you're from...";
+
+v.innerHTML = `
+<div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
+<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+"${responseText}"
+</p>
+<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+"Well, it might be more profitable for <em>both</em> of us if I don't, you know… kill you. I have another arrangement in mind."
+</p>
+<button class="btn" onclick="completeDeathIntro()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem;margin:0 auto;display:block">Continue...</button>
+</div>`;
+}
+
+function completeDeathIntro() {
+// Mark the intro as seen
+S.tutorialFlags.death_intro = true;
+savePermanent();
+// Show the actual death screen with upgrades
+showDeathScreen();
+}
+
 // ===== DEATH SCREEN =====
 function showDeathScreen() {
-showTutorialPop('death_intro', "First time, huh? Doesn't seem like it's quite your time yet, and I think keeping you alive could be profitable for me. Cash in Gold now for PERMANENT upgrades.");
 savePermanent(); // Save gold, goingRate, sig upgrades
 // Recruits persist until killed - don't clear here
+
+// Check if this is the first time meeting Death
+if(!S.tutorialFlags.death_intro) {
+showDeathIntroDialogue();
+return;
+}
+
 const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 
@@ -6247,17 +6303,34 @@ savePermanent(); // Save the updated usedDeathQuotes
 }
 
 let html = `
-<div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:0 auto;color:#e8dcc4">
+<style>
+@keyframes marquee-flash {
+  0%, 100% { border-color: #dc2626; box-shadow: 0 0 10px rgba(220,38,38,0.8), 0 0 20px rgba(220,38,38,0.5); }
+  50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
+}
+.going-rate-marquee {
+  animation: marquee-flash 1.5s ease-in-out infinite;
+  border: 4px solid #dc2626;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1));
+  margin: 1.5rem 0;
+}
+</style>
+<div style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
 <img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
-${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#999;font-style:italic">"${deathQuote}"</p>` : ''}
-<p style="text-align:center;margin-bottom:1.5rem;font-size:1.1rem">Gold: <strong>${S.gold}</strong> | Going Rate: <strong>${S.goingRate}G</strong></p>`;
+${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#666;font-style:italic">"${deathQuote}"</p>` : ''}
+<div class="going-rate-marquee">
+<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#d97706">${S.gold}</strong></p>
+<p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
+</div>`;
 
 if(S.gold === 0) {
 html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc2626;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
 } else {
-html += `<h3 style="margin-bottom:1rem">Upgrade Sigilarium:</h3>`;
-html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.75rem;margin-bottom:1.5rem">`;
+html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#2c2416">Upgrade Sigilarium:</h3>`;
+html += `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 
 allSigils.forEach(sig => {
 const permLevel = S.sig[sig] || 0;
@@ -6278,13 +6351,13 @@ const colorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff
 const nextColorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'][nextLevel];
 
 html += `
-<div style="background:rgba(255,255,255,0.05);padding:0.75rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
-<div style="font-weight:bold;margin-bottom:0.5rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
-<div style="font-size:0.9rem;margin-bottom:0.5rem">
+<div style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+<div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
+<div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
-<div style="font-size:0.85rem;margin-bottom:0.5rem;color:#999">Cost: ${cost}G</div>
-<button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.4rem 0.8rem;font-size:0.85rem">
+<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${cost}G</div>
+<button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
 </div>`;
@@ -6783,7 +6856,7 @@ ${window.earnedFigurines && window.earnedFigurines.length > 0 ?
 
 function showStatueRoom() {
 // This redirects to the existing Pedestal UI
-showTutorialPop('pedestal_first_placement', "Welcome to the Pedestal! Place figurines to permanently boost your heroes. Each hero can have 2 figurines (one POW, one HP) per mode.", () => {
+showTutorialPop('pedestal_first_placement', "Welcome to the Pedestal! Place figurines here to permanently boost your heroes' stats. Each hero can have up to 2 figurines (one for POW, one for HP) per game mode.", () => {
 showPedestal();
 });
 }
