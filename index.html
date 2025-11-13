@@ -3136,9 +3136,9 @@ return totalLevel;
 // For other sigils, check if hero has it
 const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
 if(!hasSigil) return 0;
-// Actives start at level 1 minimum, passives start at 0
+// Actives always display +1 higher (perm 0 = L1, perm 1 = L2, etc.)
 const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-if(actives.includes(sig) && totalLevel === 0) return 1;
+if(actives.includes(sig)) return totalLevel + 1;
 return totalLevel;
 }
 
