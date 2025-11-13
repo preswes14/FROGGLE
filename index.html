@@ -4778,7 +4778,7 @@ if(S.xp < cost) return;
 const isPassive = ['Expand', 'Star'].includes(sig);
 const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(isPassive && currentLevel === 0) {
-showTutorialPop('levelup_upgrade_passive', "Expand and Star are PASSIVE sigils - they're always active and work automatically! No need to click them in battle.");
+showTutorialPop('levelup_upgrade_passive', "Expand and Star are PASSIVE sigils - they're always active and work automatically! No need to click them in battle (except Asterisk, which must be primed).");
 }
 
 S.xp -= cost;
