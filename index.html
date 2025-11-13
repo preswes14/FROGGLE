@@ -933,7 +933,7 @@ warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Shield','D20']},
 mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
 healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']},
-tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','D20','Expand','Grapple','Ghost','Asterisk','Star','Alpha']}
+tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alpha','Ghost','Expand','Star','Asterisk']}
 };
 
 const E = {
@@ -995,6 +995,27 @@ const SIGIL_DESCRIPTIONS = {
 'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
 'Alpha': 'Grant target hero an extra action this turn. Higher levels grant more actions.'
 };
+
+// ===== SIGIL ORDERING =====
+// Define consistent sigil order for hero cards and displays
+// Top row (actives): Attack, Shield, Heal, Grapple, D20 (D20 always top right)
+// Bottom row: Alpha (bottom left), Ghost, Expand, Star, Asterisk (bottom right, passive)
+const SIGIL_ORDER = ['Attack', 'Shield', 'Heal', 'Grapple', 'D20', 'Alpha', 'Ghost', 'Expand', 'Star', 'Asterisk'];
+
+function sortSigils(sigils) {
+if (!Array.isArray(sigils)) return sigils;
+return [...sigils].sort((a, b) => {
+const aName = typeof a === 'string' ? a : a.sig;
+const bName = typeof b === 'string' ? b : b.sig;
+const aIndex = SIGIL_ORDER.indexOf(aName);
+const bIndex = SIGIL_ORDER.indexOf(bName);
+// If not in order array, put at end
+if (aIndex === -1 && bIndex === -1) return 0;
+if (aIndex === -1) return 1;
+if (bIndex === -1) return -1;
+return aIndex - bIndex;
+});
+}
 
 // ===== UTILITY FUNCTIONS =====
 // Unified dice rolling utility
@@ -4488,7 +4509,7 @@ html += `</div>`;
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils with smart wrapping
-const activeSigils = [...h.s, ...(h.ts || [])];
+const activeSigils = sortSigils([...h.s, ...(h.ts || [])]);
 const sigilCount = activeSigils.length;
 const compactClass = sigilCount >= 6 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">`;
@@ -4760,6 +4781,8 @@ S.xp -= cost;
 S.levelUpCount++;
 if(!h.ts) h.ts = [];
 h.ts.push(sig);
+// Sort sigils to maintain consistent order
+h.ts = sortSigils(h.ts);
 // Calculate effective level for display (actives show as level 1 minimum)
 const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
