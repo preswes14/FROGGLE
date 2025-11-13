@@ -2691,6 +2691,18 @@ S.heroes = [
 {id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
+// Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
 // Initialize tutorial state
 tutorialState = {
 stage: 'waiting_for_start', // Will transition to 'warrior_attack' after overlay dismissal
@@ -2925,6 +2937,19 @@ id:`h${Date.now()}${i}`,
 n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
 }));
+
+// Add permanently upgraded passives (Expand, Asterisk, Star) to all heroes
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
 // Apply pedestal buffs
 S.pedestal.forEach(slot => {
 if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
