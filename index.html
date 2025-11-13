@@ -2944,6 +2944,45 @@ startFloor(1);
 }
 
 // ===== FLOOR MANAGEMENT =====
+function getFloorName(f) {
+const floorNames = {
+1: 'Goblin Horde',
+3: 'Wolf Pack',
+5: 'Orc Wall',
+7: 'Giant\'s Descent',
+9: 'Dragon Lair',
+11: 'Goblin Army',
+13: 'Wolf Swarm',
+15: 'Dragon\'s Nest',
+17: 'Chaos Legion',
+19: 'Dragon Apocalypse'
+};
+return floorNames[f] || null;
+}
+
+function showFloorInterstitial(f, callback) {
+const floorName = getFloorName(f);
+if(!floorName) {
+callback();
+return;
+}
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
+<div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem">Floor ${f}</div>
+<div style="font-size:1.8rem;font-style:italic">${floorName}</div>
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>`;
+setTimeout(callback, 2000);
+}
+
 function startFloor(f) {
 S.floor=f;
 upd();
@@ -2956,10 +2995,13 @@ if(f >= 20) { win(); return; }
 // Floor 11 is always ambushed (Goblin Army)
 if(f === 11) {
 S.ambushed = true;
-toast('WARNING: Floor 11 - Goblin Army lies in ambush!', 1800);
 }
-if(f%2===1) combat(f);
-else neutral(f);
+// Show interstitial for combat floors
+if(f % 2 === 1) {
+showFloorInterstitial(f, () => combat(f));
+} else {
+neutral(f);
+}
 }
 
 function getEnemyComp(f) {
@@ -3806,32 +3848,14 @@ render();
 S.enemies.forEach(e => {
 if(e.st > 0) e.st--;
 e.turnsSinceGain++;
-// RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
-const isTutorial = tutorialState && S.floor === 0;
-const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
-if(e.turnsSinceGain >= e.gainRate && !isTutorial) {
-e.turnsSinceGain = 0;
-// Draw multiple sigils per turn if specified (Dragons draw 2)
-const draws = e.drawsPerTurn || 1;
-for(let i = 0; i < draws; i++) {
-drawEnemySigil(e);
-}
-}
 e.alphaActed = false;
 });
-// Process recruits - stun decrement and sigil drawing
+// Process recruits - stun decrement
 if(S.recruits) {
 S.recruits.forEach(r => {
 if(r.st > 0) r.st--;
 if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
-if(r.turnsSinceGain >= r.gainRate) {
-r.turnsSinceGain = 0;
-const draws = r.drawsPerTurn || 1;
-for(let i = 0; i < draws; i++) {
-drawEnemySigil(r);
-}
-}
 });
 }
 setTimeout(() => executeAlphaPhase(), 800);
@@ -4193,6 +4217,33 @@ if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 });
 if(checkCombatEnd()) return;
 S.round++;
+
+// Enemies draw sigils at start of player turn (so player can strategize)
+S.enemies.forEach(e => {
+// RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
+const isTutorial = tutorialState && S.floor === 0;
+const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
+if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+e.turnsSinceGain = 0;
+// Draw multiple sigils per turn if specified (Dragons draw 2)
+const draws = e.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
+drawEnemySigil(e);
+}
+}
+});
+// Process recruit sigil drawing
+if(S.recruits) {
+S.recruits.forEach(r => {
+if(r.turnsSinceGain >= r.gainRate) {
+r.turnsSinceGain = 0;
+const draws = r.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
+drawEnemySigil(r);
+}
+}
+});
+}
 
 // RIBBLETON TUTORIAL: Handle round transitions using TutorialManager
 if(tutorialState && S.floor === 0) {
