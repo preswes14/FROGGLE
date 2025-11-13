@@ -231,14 +231,20 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil-row.compact .sigil { padding: 2px 5px; font-size: 0.7rem; min-height: 22px; border-width: 2px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+.sigil.passive { border: none; opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
 .sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
+.sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.4); }
 .sigil.l1 { color: #000; border-color: #000; }
+.sigil.l1 img { filter: brightness(0) saturate(100%); }
 .sigil.l2 { color: #0d9488; border-color: #0d9488; }
+.sigil.l2 img { filter: sepia(100%) saturate(300%) hue-rotate(140deg) brightness(0.8); }
 .sigil.l3 { color: #9333ea; border-color: #9333ea; }
+.sigil.l3 img { filter: sepia(100%) saturate(500%) hue-rotate(260deg) brightness(0.7); }
 .sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
+.sigil.l4 img { filter: sepia(100%) saturate(300%) hue-rotate(10deg) brightness(1.1); }
 .sigil.l5 {
   background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
   background-size: 300% 100%;
@@ -249,6 +255,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,0,128,0.6);
   font-weight: bold;
 }
+.sigil.l5 img { filter: brightness(0) invert(1) drop-shadow(0 0 4px rgba(255,0,128,0.8)); }
 @keyframes rainbow-shift {
   0% { background-position: 0% 50%; }
   100% { background-position: 300% 50%; }
@@ -259,7 +266,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast-log { position: fixed; top: 10px; right: 60px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 0.5rem; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; transition: all 0.3s; }
+.toast-log { position: fixed; top: 10px; right: 180px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 0.5rem; max-width: 280px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 9999; transition: all 0.3s; }
 .toast-log.minimized { max-height: 40px; overflow: hidden; cursor: pointer; }
 .toast-log.minimized:hover { background: linear-gradient(#f7f1e3, #e7e1d3); }
 .toast-log-header { font-weight: bold; font-size: 0.85rem; margin-bottom: 0.25rem; padding: 0.25rem 0.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
@@ -883,6 +890,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="header" id="gameHeader">
 <div>Floor <span id="floor">1</span> | Round <span id="round">1</span></div>
 <div style="display:flex;gap:0.25rem">
+<button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">📖</button>
 <button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">⚙️</button>
 <div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#fbbf24;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🛠️</button></div>
 </div>
@@ -970,10 +978,8 @@ return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:in
 function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
 if (!imgPath) return name;
-// Only apply black filter for level 0 or when level not specified
-// For L1-L4, show colored icon so border colors are visible
-const filter = (level === null || level === 0) ? 'filter:brightness(0);' : '';
-return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;${filter}" alt="${name}">`;
+// CSS handles coloring via .sigil.l0 img, .sigil.l1 img, etc.
+return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;" alt="${name}">`;
 }
 
 // Sigil descriptions for tooltips
@@ -985,7 +991,7 @@ const SIGIL_DESCRIPTIONS = {
 'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
 'Grapple': 'Deal POW damage to target AND they deal POW damage back to you. L2+: Stun target for (Level-1) turns.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
-'Asterisk': 'PASSIVE: Always-on if unlocked. Must use as LAST action of turn. Next turn: First action triggers (Level+1) times. One use per combat.',
+'Asterisk': 'Click to activate, then your next action triggers (Level+1) times. Use once per combat. Enemies with Asterisk get extra attacks.',
 'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
 'Alpha': 'Grant target hero an extra action this turn. Higher levels grant more actions.'
 };
@@ -1151,19 +1157,24 @@ return html;
 // Unified damage application with shield/ghost/laststand handling
 function applyDamageToTarget(target, rawDamage, options = {}) {
 let dmg = rawDamage;
+let shieldLost = 0;
+let hpLost = 0;
 
 // Handle shield absorption
 if(target.sh > 0) {
 if(target.sh >= rawDamage) {
+shieldLost = rawDamage;
 target.sh -= rawDamage;
 dmg = 0;
 } else {
+shieldLost = target.sh;
 dmg = rawDamage - target.sh;
 target.sh = 0;
 }
 }
 
 // Apply damage to HP
+hpLost = dmg;
 target.h -= dmg;
 
 // Handle lethal damage
@@ -1172,6 +1183,7 @@ if(target.g > 0) {
 // Ghost charge cancels death
 target.g--;
 target.h += dmg;
+hpLost = 0; // Ghost prevented the HP loss
 if(!options.silent) {
 toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 }
@@ -1199,7 +1211,7 @@ upd();
 }
 }
 
-return dmg; // Return actual damage dealt to HP (after shield)
+return {hpLost, shieldLost, totalDamage: rawDamage}; // Return detailed breakdown
 }
 
 // ===== TUTORIAL SYSTEM =====
@@ -1362,7 +1374,7 @@ const descriptions = {
 'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Deal POW damage to target AND they deal their POW back. Stun for ${boldNum(level)} turn${level > 1 ? 's' : ''}`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
-'Asterisk': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Use as last action. Next turn: First action triggers ${boldNum(level + 1)} times. One use per combat`,
+'Asterisk': level === 0 ? 'Not unlocked' : `Click to activate. Your next action triggers ${boldNum(level + 1)} times. Use once per combat`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
 'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
 };
@@ -1418,6 +1430,11 @@ if(currentTooltip) {
 currentTooltip.remove();
 currentTooltip = null;
 }
+}
+
+// Helper to create sigil with tooltip (for death screen with longer hover time)
+function sigilIconWithTooltip(sig, level = 1, hoverDelay = 500) {
+return `<span onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sig}', this, ${level}), ${hoverDelay})" ontouchend="hideTooltip()">${sigilIcon(sig)}</span>`;
 }
 
 function generateFibonacci(n) {
@@ -1695,6 +1712,10 @@ console.log('[TUTORIAL] Skipping pop (disabled or already shown), calling callba
 if(onDismiss) onDismiss();
 return;
 }
+// Add tutorial message to toast log for reference
+S.toastHistory.unshift(`📖 ${message}`);
+if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
+updateToastLog();
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
@@ -2675,6 +2696,18 @@ S.heroes = [
 {id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
+// Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
 // Initialize tutorial state
 tutorialState = {
 stage: 'waiting_for_start', // Will transition to 'warrior_attack' after overlay dismissal
@@ -2909,6 +2942,19 @@ id:`h${Date.now()}${i}`,
 n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
 }));
+
+// Add permanently upgraded passives (Expand, Asterisk, Star) to all heroes
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
 // Apply pedestal buffs
 S.pedestal.forEach(slot => {
 if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
@@ -2933,6 +2979,45 @@ startFloor(1);
 }
 
 // ===== FLOOR MANAGEMENT =====
+function getFloorName(f) {
+const floorNames = {
+1: 'Goblin Horde',
+3: 'Wolf Pack',
+5: 'Orc Wall',
+7: 'Giant\'s Descent',
+9: 'Dragon Lair',
+11: 'Goblin Army',
+13: 'Wolf Swarm',
+15: 'Dragon\'s Nest',
+17: 'Chaos Legion',
+19: 'Dragon Apocalypse'
+};
+return floorNames[f] || null;
+}
+
+function showFloorInterstitial(f, callback) {
+const floorName = getFloorName(f);
+if(!floorName) {
+callback();
+return;
+}
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
+<div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem">Floor ${f}</div>
+<div style="font-size:1.8rem;font-style:italic">${floorName}</div>
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>`;
+setTimeout(callback, 2000);
+}
+
 function startFloor(f) {
 S.floor=f;
 upd();
@@ -2945,10 +3030,13 @@ if(f >= 20) { win(); return; }
 // Floor 11 is always ambushed (Goblin Army)
 if(f === 11) {
 S.ambushed = true;
-toast('WARNING: Floor 11 - Goblin Army lies in ambush!', 1800);
 }
-if(f%2===1) combat(f);
-else neutral(f);
+// Show interstitial for combat floors
+if(f % 2 === 1) {
+showFloorInterstitial(f, () => combat(f));
+} else {
+neutral(f);
+}
 }
 
 function getEnemyComp(f) {
@@ -3048,9 +3136,9 @@ return totalLevel;
 // For other sigils, check if hero has it
 const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
 if(!hasSigil) return 0;
-// Actives start at level 1 minimum, passives start at 0
+// Actives always display +1 higher (perm 0 = L1, perm 1 = L2, etc.)
 const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-if(actives.includes(sig) && totalLevel === 0) return 1;
+if(actives.includes(sig)) return totalLevel + 1;
 return totalLevel;
 }
 
@@ -3371,21 +3459,23 @@ checkCombatEnd();
 } else if(action === 'RECRUIT') {
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
-// Check if hero already has a recruit
+// Check if hero already has a recruit - if so, replace it
 if(!S.recruits) S.recruits = [];
-const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
-if(existingRecruit) {
-toast(`${hero.n} already has a recruit!`);
-return;
+const existingRecruitIdx = S.recruits.findIndex(r => r.recruitedBy === heroIdx);
+if(existingRecruitIdx >= 0) {
+const oldRecruit = S.recruits[existingRecruitIdx];
+S.recruits.splice(existingRecruitIdx, 1);
+toast(`${enemy.n} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
+} else {
+toast(`${enemy.n} recruited by ${hero.n}!`, 1500);
 }
 // Remove enemy from enemies array
 S.enemies = S.enemies.filter(e => e.id !== enemyId);
-// Add to recruits array (max 10 recruits for performance)
+// Add new recruit to recruits array (max 10 recruits for performance)
 const MAX_RECRUITS = 10;
 if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
-toast(`${enemy.n} recruited by ${hero.n}!`, 1500);
 } else {
 toast(`${enemy.n} recruited but recruits are full! (Max ${MAX_RECRUITS})`, 2000);
 }
@@ -3452,8 +3542,13 @@ toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) finishAction(heroIdx);
-else render();
+if(S.instancesRemaining <= 0) {
+// Delay finishAction to allow attack animation to complete
+setTimeout(() => finishAction(heroIdx), 300);
+} else {
+// Delay render to allow attack animation to complete
+setTimeout(() => render(), 300);
+}
 } else render();
 } else if(S.pending === 'Grapple') {
 if(S.targets.includes(id)) { toast('Already targeted!'); return; }
@@ -3493,8 +3588,11 @@ toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) finishAction(heroIdx);
-else render();
+if(S.instancesRemaining <= 0) {
+setTimeout(() => finishAction(heroIdx), 300);
+} else {
+setTimeout(() => render(), 300);
+}
 } else render();
 } else if(S.pending === 'Heal') {
 if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
@@ -3510,8 +3608,11 @@ toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) finishAction(heroIdx);
-else render();
+if(S.instancesRemaining <= 0) {
+setTimeout(() => finishAction(heroIdx), 300);
+} else {
+setTimeout(() => render(), 300);
+}
 } else render();
 } else if(S.pending === 'Alpha') {
 // Alpha: can't target self or already-acted heroes
@@ -3680,8 +3781,16 @@ if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - st
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
-toast(`${h.n} took ${totalDmg} damage from Grapple recoil!`);
-applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
+const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
+let msg = `${h.n} took Grapple recoil:`;
+if(damage.shieldLost > 0 && damage.hpLost > 0) {
+msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+} else if(damage.shieldLost > 0) {
+msg += ` -${damage.shieldLost}🛡️`;
+} else if(damage.hpLost > 0) {
+msg += ` -${damage.hpLost}❤️`;
+}
+toast(msg);
 }
 }
 
@@ -3776,32 +3885,14 @@ render();
 S.enemies.forEach(e => {
 if(e.st > 0) e.st--;
 e.turnsSinceGain++;
-// RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
-const isTutorial = tutorialState && S.floor === 0;
-const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
-if(e.turnsSinceGain >= e.gainRate && !isTutorial) {
-e.turnsSinceGain = 0;
-// Draw multiple sigils per turn if specified (Dragons draw 2)
-const draws = e.drawsPerTurn || 1;
-for(let i = 0; i < draws; i++) {
-drawEnemySigil(e);
-}
-}
 e.alphaActed = false;
 });
-// Process recruits - stun decrement and sigil drawing
+// Process recruits - stun decrement
 if(S.recruits) {
 S.recruits.forEach(r => {
 if(r.st > 0) r.st--;
 if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
-if(r.turnsSinceGain >= r.gainRate) {
-r.turnsSinceGain = 0;
-const draws = r.drawsPerTurn || 1;
-for(let i = 0; i < draws; i++) {
-drawEnemySigil(r);
-}
-}
 });
 }
 setTimeout(() => executeAlphaPhase(), 800);
@@ -4011,7 +4102,24 @@ return;
 }
 executeEnemyBaseAttack(enemy);
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
-drawnSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+
+// Filter out suicidal grapples - enemies should never kill themselves
+const safeSigils = drawnSigils.filter(sigil => {
+if(sigil.sig === 'Grapple') {
+const target = S.heroes[enemy.li];
+if(target && target.h > 0) {
+const recoilDamage = target.p;
+// Skip grapple if it would kill the enemy
+if(enemy.h <= recoilDamage) {
+toast(`${enemy.n} considered Grapple but chose to survive instead!`);
+return false;
+}
+}
+}
+return true;
+});
+
+safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
 enemy.s = enemy.s.filter(s => s.perm);
 render();
 }
@@ -4135,18 +4243,30 @@ toast(`${enemy.n} gained ${level} Ghost charge!`);
 } else if(sig === 'Expand') {
 toast(`${enemy.n} used Expand (affects their attacks)`);
 } else if(sig === 'Asterisk') {
-toast(`${enemy.n} used Asterisk (not yet implemented for enemies)`);
+// Asterisk for enemies: Multiply attacks by (level + 1)
+const expandLevel = getEnemyExpandLevel(enemy);
+const targetCount = 1 + expandLevel;
+const multiplier = level + 1;
+toast(`${enemy.n} used Asterisk: ×${multiplier} attacks!`);
+for(let i = 0; i < multiplier; i++) {
+executeEnemyAttackOnHeroes(enemy, targetCount, `Asterisk Attack ${i+1}/${multiplier}`);
+}
 }
 }
 
 function dealDamageToHero(hero, dmg, source) {
 triggerHitAnimation(hero.id);
-const actualDamage = applyDamageToTarget(hero, dmg, {isHero: true});
-if(actualDamage > 0) {
-toast(`${source} dealt ${actualDamage} damage to ${hero.n}!`);
-} else {
-toast(`${hero.n}'s shield absorbed ${dmg} damage!`);
+const damage = applyDamageToTarget(hero, dmg, {isHero: true});
+// Build detailed damage message
+let msg = `${source} hit ${hero.n}:`;
+if(damage.shieldLost > 0 && damage.hpLost > 0) {
+msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+} else if(damage.shieldLost > 0) {
+msg += ` -${damage.shieldLost}🛡️ (shield absorbed all damage)`;
+} else if(damage.hpLost > 0) {
+msg += ` -${damage.hpLost}❤️`;
 }
+toast(msg);
 }
 
 function endEnemyTurn() {
@@ -4158,6 +4278,33 @@ if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 });
 if(checkCombatEnd()) return;
 S.round++;
+
+// Enemies draw sigils at start of player turn (so player can strategize)
+S.enemies.forEach(e => {
+// RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
+const isTutorial = tutorialState && S.floor === 0;
+const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
+if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+e.turnsSinceGain = 0;
+// Draw multiple sigils per turn if specified (Dragons draw 2)
+const draws = e.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
+drawEnemySigil(e);
+}
+}
+});
+// Process recruit sigil drawing
+if(S.recruits) {
+S.recruits.forEach(r => {
+if(r.turnsSinceGain >= r.gainRate) {
+r.turnsSinceGain = 0;
+const draws = r.drawsPerTurn || 1;
+for(let i = 0; i < draws; i++) {
+drawEnemySigil(r);
+}
+}
+});
+}
 
 // RIBBLETON TUTORIAL: Handle round transitions using TutorialManager
 if(tutorialState && S.floor === 0) {
@@ -4359,7 +4506,8 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk','Alpha'].includes(s);
 const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
-html += `<span class="sigil ${cl} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
+const isPassive = ['Expand', 'Star'].includes(s);
+html += `<span class="sigil ${cl} ${isPassive?'passive':''} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
 });
@@ -4626,11 +4774,11 @@ function upSigil(sig) {
 const cost = FIB[S.levelUpCount] || 999;
 if(S.xp < cost) return;
 
-// Show passive sigil tutorial when upgrading Expand or Asterisk from L0 to L1
-const isPassive = ['Expand', 'Asterisk'].includes(sig);
+// Show passive sigil tutorial when upgrading Expand or Star from L0 to L1
+const isPassive = ['Expand', 'Star'].includes(sig);
 const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(isPassive && currentLevel === 0) {
-showTutorialPop('levelup_upgrade_passive', "Expand and Asterisk start as PASSIVE sigils - they work automatically but can't be used as actions. Upgrade them to L1 to use them actively!");
+showTutorialPop('levelup_upgrade_passive', "Expand and Star are PASSIVE sigils - they work automatically without needing to click them!");
 }
 
 S.xp -= cost;
@@ -4944,7 +5092,7 @@ upd();
 replaceStage1WithStage2('wishingwell');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/wishingwell2.png',
+bgImage: 'assets/neutrals/wishingwell1.png',
 title: 'A Wish Made',
 outcomes: [`You toss ${cost} gold coin${cost>1?'s':''} into the well and make a silent wish. The water begins to glow softly, then surges upward, overflowing the well's edge!`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -5292,7 +5440,7 @@ let description = 'A figure shrouded in mist sits cross-legged before a crystal 
 let buttons = '';
 S.heroes.forEach((h, idx) => {
 buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (+1⚡)</button>`;
-buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (+2❤ max)</button>`;
+buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (+5❤ max)</button>`;
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
@@ -6131,7 +6279,7 @@ const nextColorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff
 
 html += `
 <div style="background:rgba(255,255,255,0.05);padding:0.75rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1)">
-<div style="font-weight:bold;margin-bottom:0.5rem">${sigilIcon(sig)}</div>
+<div style="font-weight:bold;margin-bottom:0.5rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:0.9rem;margin-bottom:0.5rem">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
@@ -6168,7 +6316,7 @@ const currentLevel = isActive ? permLevel + 1 : permLevel;
 const canSellBack = permLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
-<span>${sigilIcon(sig)} L${currentLevel}</span>
+<span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
 <button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
 </button>
@@ -6193,7 +6341,7 @@ const currentLevel = isActive ? permLevel + 1 : permLevel;
 const canSacrifice = permLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
-<span>${sigilIcon(sig)} L${currentLevel}</span>
+<span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
 <button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
 </button>
@@ -6783,9 +6931,6 @@ ${inGame ? `
 <span>🔍 Show Sigil Tooltips</span>
 </label>
 
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Reference</h3>
-<button class="btn" onclick="showSigilarium()" style="margin-bottom:0.5rem;background:#9333ea">📖 View Sigilarium</button>
-
 <h3 style="color:#fbbf24;margin:1rem 0 0.5rem 0">Debug</h3>
 <label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
 <input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
@@ -6892,8 +7037,8 @@ savePermanent();
 function showSigilarium() {
 closeSettingsMenu();
 const v = document.getElementById('gameView');
-const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-const passiveSigils = ['Star', 'Expand', 'Asterisk'];
+const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha', 'Asterisk'];
+const passiveSigils = ['Star', 'Expand'];
 
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
