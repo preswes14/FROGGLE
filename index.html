@@ -1061,6 +1061,11 @@ return aIndex - bIndex;
 // ===== UTILITY FUNCTIONS =====
 // Unified dice rolling utility
 function rollDice(count, sides = 20) {
+// Debug mode: Oops All 20s
+if(S.oopsAll20s && sides === 20) {
+const rolls = Array(count).fill(20);
+return {rolls, best: 20};
+}
 const rolls = [];
 for(let i = 0; i < count; i++) {
 rolls.push(Math.ceil(Math.random() * sides));
@@ -1529,6 +1534,7 @@ gameMode: 'Standard', // 'Standard' or 'Effed'
 effedUnlocked: false,
 tapoUnlocked: false, // Unlocked after first FU victory
 debugMode: false, // Debug mode toggle
+oopsAll20s: false, // Debug cheat: all d20 rolls = 20
 currentSlot: null, // Current save slot (1 or 2)
 // Toast log
 toastHistory: [], // Recent toast messages
@@ -7095,6 +7101,17 @@ showSettingsMenu();
 }
 }
 
+function toggleOopsAll20s(enabled) {
+S.oopsAll20s = enabled;
+toast(enabled ? '🎲 Oops All 20s: ON (All D20 rolls = 20!)' : '🎲 Oops All 20s: OFF', 1500);
+// Refresh debug menu to update checkbox
+const debugMenu = document.querySelector('[style*="z-index:30000"]');
+if(debugMenu && debugMenu.textContent.includes('DEBUG MENU')) {
+closeDebugMenu();
+showDebugMenu();
+}
+}
+
 function showDebugMenu() {
 const inCombat = S.enemies && S.enemies.length > 0;
 const v = document.getElementById('gameView');
@@ -7149,6 +7166,12 @@ ${inCombat ? `
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Combat</h3>
 <button class="btn" onclick="debugDealDamage()" style="background:#dc2626">Deal 50 DMG to Enemy</button>
 ` : ''}
+
+<h3 style="color:#fbbf24;margin:1rem 0 0.5rem 0">Cheats</h3>
+<label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(251,191,36,0.2);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
+<input type="checkbox" ${S.oopsAll20s ? 'checked' : ''} onchange="toggleOopsAll20s(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
+<span>🎲 Oops All 20s (Auto-succeed D20 rolls)</span>
+</label>
 
 <button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
