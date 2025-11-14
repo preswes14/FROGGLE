@@ -179,7 +179,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   width: 100%;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-.card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; transition: transform 0.1s ease; }
+.card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; }
 .card.hero { background: #2c63c7; color: white; width: 160px; }
 .card.enemy { background: #b64141; color: white; width: 160px; }
 .card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
@@ -194,37 +194,76 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card.enemy.targetable { box-shadow: 0 0 0 3px #dc2626; }
 .card.hero.targeted { box-shadow: 0 0 0 4px #60a5fa; }
 .card.enemy.targeted { box-shadow: 0 0 0 4px #ef4444; }
-.card.hit-flash { animation: damage-stagger 0.4s ease; }
-.card.attack-slide { animation: attack-slide 0.5s ease; }
-.card.heal-flash { animation: heal-flash 0.5s ease; position: relative; }
-.card.shield-flash { animation: shield-flash 0.5s ease; position: relative; }
+.card.hit-flash { animation: damage-stagger 0.5s ease !important; }
+.card.attack-slide { animation: attack-slide 0.6s ease !important; }
+.card.heal-flash { animation: heal-flash 0.6s ease !important; }
+.card.shield-flash { animation: shield-flash 0.6s ease !important; }
 @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px gold; } 50% { box-shadow: 0 0 0 8px gold; } }
 @keyframes damage-stagger {
-  0% { transform: translateX(0); filter: brightness(1); }
-  15% { transform: translateX(-12px); filter: brightness(2) saturate(2); background-color: rgba(220, 38, 38, 0.4); }
-  30% { transform: translateX(6px); filter: brightness(1.8) saturate(2); background-color: rgba(220, 38, 38, 0.3); }
-  50% { transform: translateX(-6px); filter: brightness(1.5); background-color: rgba(220, 38, 38, 0.2); }
-  70% { transform: translateX(3px); filter: brightness(1.2); }
-  100% { transform: translateX(0); filter: brightness(1); background-color: transparent; }
+  0% { transform: translateX(0) scale(1); filter: brightness(1); }
+  15% { transform: translateX(-15px) scale(0.95); filter: brightness(2) saturate(2); background-color: rgba(220, 38, 38, 0.5); }
+  30% { transform: translateX(8px) scale(0.97); filter: brightness(1.8) saturate(2); background-color: rgba(220, 38, 38, 0.4); }
+  50% { transform: translateX(-5px) scale(0.98); filter: brightness(1.5) saturate(1.5); background-color: rgba(220, 38, 38, 0.2); }
+  70% { transform: translateX(2px) scale(0.99); filter: brightness(1.2); background-color: rgba(220, 38, 38, 0.1); }
+  100% { transform: translateX(0) scale(1); filter: brightness(1); background-color: transparent; }
 }
 @keyframes attack-slide {
-  0% { transform: translateX(0); }
-  30% { transform: translateX(20px); }
-  70% { transform: translateX(20px); }
-  100% { transform: translateX(0); }
+  0% { transform: translateX(0) scale(1); }
+  15% { transform: translateX(5px) scale(1.08); }
+  40% { transform: translateX(25px) scale(1.1); }
+  60% { transform: translateX(25px) scale(1.1); }
+  80% { transform: translateX(5px) scale(1.02); }
+  100% { transform: translateX(0) scale(1); }
 }
 @keyframes heal-flash {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.8) hue-rotate(90deg); box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+  0% { filter: brightness(1); transform: scale(1); }
+  15% { filter: brightness(1.5) saturate(1.5); transform: scale(1.03); background-color: rgba(34, 197, 94, 0.3); }
+  30% { filter: brightness(2) saturate(2) hue-rotate(20deg); transform: scale(1.05); background-color: rgba(34, 197, 94, 0.4); box-shadow: 0 0 25px rgba(34, 197, 94, 0.9); }
+  50% { filter: brightness(1.8) saturate(2) hue-rotate(15deg); transform: scale(1.05); background-color: rgba(34, 197, 94, 0.3); box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+  70% { filter: brightness(1.4) saturate(1.3); transform: scale(1.02); background-color: rgba(34, 197, 94, 0.2); }
+  100% { filter: brightness(1); transform: scale(1); background-color: transparent; box-shadow: none; }
 }
 @keyframes shield-flash {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.5) grayscale(0.3); box-shadow: 0 0 20px rgba(156, 163, 175, 0.8); }
+  0% { filter: brightness(1); transform: scale(1); }
+  15% { filter: brightness(1.3) grayscale(0.2); transform: scale(1.02); background-color: rgba(156, 163, 175, 0.3); }
+  30% { filter: brightness(1.6) grayscale(0.4); transform: scale(1.04); background-color: rgba(156, 163, 175, 0.45); box-shadow: 0 0 25px rgba(156, 163, 175, 0.9); }
+  50% { filter: brightness(1.5) grayscale(0.3); transform: scale(1.04); background-color: rgba(156, 163, 175, 0.4); box-shadow: 0 0 20px rgba(156, 163, 175, 0.8); }
+  70% { filter: brightness(1.2) grayscale(0.1); transform: scale(1.01); background-color: rgba(156, 163, 175, 0.2); }
+  100% { filter: brightness(1); transform: scale(1); background-color: transparent; box-shadow: none; }
 }
 @keyframes heal-cross-fade {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
   50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
+/* Bonus turn stack visuals for Asterisk/Alpha */
+.bonus-turn-stack {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+.bonus-turn-card {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: #fbbf24;
+  border: 3px solid #f59e0b;
+  border-radius: 8px;
+  opacity: 0.7;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.bonus-turn-card.sliding-out {
+  animation: stack-slide-out 0.3s ease forwards;
+}
+@keyframes stack-slide-out {
+  0% { transform: translate(0, 0); opacity: 0.7; }
+  100% { transform: translate(50px, -20px); opacity: 0; }
 }
 .sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; max-width: 100%; }
 .sigil-row.compact { gap: 2px; }
@@ -1621,7 +1660,7 @@ function triggerHitAnimation(targetId) {
 const card = document.getElementById(targetId);
 if(card) {
 card.classList.add('hit-flash');
-setTimeout(() => card.classList.remove('hit-flash'), 400);
+setTimeout(() => card.classList.remove('hit-flash'), 500);
 }
 }
 
@@ -1629,7 +1668,7 @@ function triggerAttackAnimation(attackerId) {
 const card = document.getElementById(attackerId);
 if(card) {
 card.classList.add('attack-slide');
-setTimeout(() => card.classList.remove('attack-slide'), 500);
+setTimeout(() => card.classList.remove('attack-slide'), 600);
 }
 }
 
@@ -1639,14 +1678,14 @@ if(card) {
 card.classList.add('heal-flash');
 // Add healing cross overlay
 const cross = document.createElement('div');
-cross.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3rem;color:#22c55e;text-shadow:0 0 10px #22c55e;pointer-events:none;z-index:1000;animation:heal-cross-fade 0.5s ease';
+cross.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3rem;color:#22c55e;text-shadow:0 0 10px #22c55e;pointer-events:none;z-index:1000;animation:heal-cross-fade 0.6s ease';
 cross.textContent = '✚';
 card.style.position = 'relative';
 card.appendChild(cross);
 setTimeout(() => {
 card.classList.remove('heal-flash');
 if(cross.parentNode) cross.remove();
-}, 500);
+}, 600);
 }
 }
 
@@ -1654,7 +1693,68 @@ function triggerShieldAnimation(targetId) {
 const card = document.getElementById(targetId);
 if(card) {
 card.classList.add('shield-flash');
-setTimeout(() => card.classList.remove('shield-flash'), 500);
+setTimeout(() => card.classList.remove('shield-flash'), 600);
+}
+}
+
+function addBonusTurnStack(cardId, count) {
+const card = document.getElementById(cardId);
+if(!card || count <= 0) return;
+// Remove existing stack if any
+removeBonusTurnStack(cardId);
+// Create stack container
+const stackContainer = document.createElement('div');
+stackContainer.className = 'bonus-turn-stack';
+stackContainer.id = `stack-${cardId}`;
+// Add stacked cards (show just the corners)
+for(let i = 0; i < Math.min(count, 5); i++) {
+const stackCard = document.createElement('div');
+stackCard.className = 'bonus-turn-card';
+stackCard.style.transform = `translate(${-3 - i*3}px, ${-3 - i*3}px)`;
+stackCard.style.zIndex = -1 - i;
+stackContainer.appendChild(stackCard);
+}
+card.appendChild(stackContainer);
+}
+
+function removeBonusTurnStack(cardId, animated = false) {
+const stack = document.getElementById(`stack-${cardId}`);
+if(!stack) return;
+if(animated && stack.children.length > 0) {
+// Animate the top card sliding out
+const topCard = stack.children[0];
+topCard.classList.add('sliding-out');
+setTimeout(() => {
+topCard.remove();
+// If no more cards, remove the whole stack
+if(stack.children.length === 0) {
+stack.remove();
+}
+}, 300);
+} else {
+stack.remove();
+}
+}
+
+function updateBonusTurnStack(cardId, count) {
+if(count <= 0) {
+removeBonusTurnStack(cardId, true);
+} else {
+const stack = document.getElementById(`stack-${cardId}`);
+if(!stack) {
+addBonusTurnStack(cardId, count);
+} else {
+// Adjust stack size
+const currentCount = stack.children.length;
+if(currentCount > count) {
+// Remove excess cards with animation
+removeBonusTurnStack(cardId, true);
+setTimeout(() => addBonusTurnStack(cardId, count), 300);
+} else if(currentCount < count) {
+// Add more cards
+addBonusTurnStack(cardId, count);
+}
+}
 }
 }
 
@@ -3236,6 +3336,9 @@ const repeats = S.asteriskPrimed ? S.asteriskMultiplier : 1;
 if(S.asteriskPrimed) {
 S.asteriskUsedThisCombat = true;
 S.asteriskPrimed = false;
+// Remove bonus turn stack
+const hero = S.heroes[heroIdx];
+if(hero) removeBonusTurnStack(hero.id, true);
 toast(`Asterisk: ${sig} ×${repeats}!`);
 }
 
@@ -3849,6 +3952,11 @@ function finishAction(heroIdx) {
 // Check if this is an Alpha-granted action
 if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
 S.alphaCurrentAction++;
+// Remove one bonus turn stack from the current hero
+const currentHero = S.heroes[heroIdx];
+if(currentHero) {
+removeBonusTurnStack(currentHero.id, true);
+}
 if(S.alphaCurrentAction < S.alphaGrantedActions.length) {
 // More Alpha-granted actions remain
 const nextHeroIdx = S.alphaGrantedActions[S.alphaCurrentAction];
@@ -4591,6 +4699,33 @@ html += '</div>'; // Close flex container
 html += '</div>'; // Close combat-lane
 });
 v.innerHTML = html;
+
+// Apply bonus turn stacks after DOM is updated
+setTimeout(() => {
+// Show Asterisk bonus turn stacks
+if(S.asteriskPrimed && S.activeIdx >= 0) {
+const activeHero = S.heroes[S.activeIdx];
+if(activeHero) {
+addBonusTurnStack(activeHero.id, S.asteriskMultiplier);
+}
+}
+// Show Alpha-granted action stacks
+if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
+// Count remaining actions for each hero
+const actionCounts = {};
+for(let i = S.alphaCurrentAction || 0; i < S.alphaGrantedActions.length; i++) {
+const heroIdx = S.alphaGrantedActions[i];
+actionCounts[heroIdx] = (actionCounts[heroIdx] || 0) + 1;
+}
+// Apply stacks to heroes
+Object.keys(actionCounts).forEach(heroIdx => {
+const hero = S.heroes[heroIdx];
+if(hero) {
+addBonusTurnStack(hero.id, actionCounts[heroIdx]);
+}
+});
+}
+}, 0);
 }
 
 // ===== LEVEL UP =====
