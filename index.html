@@ -194,6 +194,8 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card.enemy.targetable { box-shadow: 0 0 0 3px #dc2626; }
 .card.hero.targeted { box-shadow: 0 0 0 4px #60a5fa; }
 .card.enemy.targeted { box-shadow: 0 0 0 4px #ef4444; }
+.card.hero-selectable { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.card.hero-selectable:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .card.hit-flash { animation: damage-stagger 0.5s ease !important; }
 .card.attack-slide { animation: attack-slide 0.6s ease !important; }
 .card.heal-flash { animation: heal-flash 0.6s ease !important; }
@@ -1632,7 +1634,7 @@ const hp = hero.ls ? `Last Stand (T${hero.lst+1})` : `${hero.h}/${hero.m}❤`;
 const extra = [];
 if(hero.sh > 0) extra.push(`${hero.sh}🛡`);
 if(hero.g > 0) extra.push(`${hero.g}${sigilIconOnly('Ghost')}`);
-return `<div class="card hero" onclick="${onclickHandler}" style="cursor:pointer;margin-bottom:0.75rem;transition:transform 0.1s,box-shadow 0.1s" onmouseover="this.style.transform='scale(1.02)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+return `<div class="card hero hero-selectable" onclick="${onclickHandler}" style="cursor:pointer;margin-bottom:0.75rem">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${hero.n}</div>
 <div class="card-stats">${hero.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
 </div>`;
@@ -1680,7 +1682,6 @@ card.classList.add('heal-flash');
 const cross = document.createElement('div');
 cross.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:3rem;color:#22c55e;text-shadow:0 0 10px #22c55e;pointer-events:none;z-index:1000;animation:heal-cross-fade 0.6s ease';
 cross.textContent = '✚';
-card.style.position = 'relative';
 card.appendChild(cross);
 setTimeout(() => {
 card.classList.remove('heal-flash');
