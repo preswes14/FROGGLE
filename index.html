@@ -4809,7 +4809,7 @@ saveGame();
 // Show FAQ intro after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
 S.tutorialFlags.faq_intro = true;
-showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! If you have questions about game mechanics, check out the FAQ in the settings menu (⚙️ button in the top right)!", () => {
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! If you have questions about game mechanics, check out the FAQ in the settings menu (⚙️ button)!", () => {
 startFloor(S.floor + 1);
 });
 return;
