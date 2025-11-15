@@ -1011,14 +1011,14 @@ const SIGIL_IMAGES = {
 // Helper function to display sigil with icon
 function sigilIcon(name) {
 const imgPath = SIGIL_IMAGES[name];
-if (!imgPath) return name;
+if (!imgPath) return `<span>${name}</span>`;
 return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:inline-block;margin-right:0.25em;filter:brightness(0);" alt="${name}">${name}`;
 }
 
 // Helper function to display just the icon
 function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
-if (!imgPath) return name;
+if (!imgPath) return `<span>${name}</span>`;
 // CSS handles coloring via .sigil.l0 img, .sigil.l1 img, etc.
 return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;" alt="${name}">`;
 }
@@ -4046,9 +4046,9 @@ render();
 }
 
 function checkTurnEnd() {
-const allActedIncludingLS = S.heroes.filter(h => h.st === 0).every((h, i) => {
-const actualIdx = S.heroes.findIndex(hero => hero.id === h.id);
-return S.acted.includes(actualIdx);
+// Check if all non-stunned heroes have acted (optimized single-pass)
+const allActedIncludingLS = S.heroes.every((h, idx) => {
+return h.st > 0 || S.acted.includes(idx);
 });
 if(allActedIncludingLS) {
 S.heroes.forEach(h => { if(h.ls) h.lst++; });
