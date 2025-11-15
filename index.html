@@ -4806,6 +4806,14 @@ v.innerHTML = `
 
 function nextFloor() {
 saveGame();
+// Show FAQ intro after first neutral encounter (Floor 2 complete)
+if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
+S.tutorialFlags.faq_intro = true;
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! If you have questions about game mechanics, check out the FAQ in the settings menu (⚙️ button in the top right)!", () => {
+startFloor(S.floor + 1);
+});
+return;
+}
 startFloor(S.floor + 1);
 }
 
@@ -7325,6 +7333,7 @@ death_intro: false,
 death_exit_warning: false,
 neutral_intro: false,
 neutral_d20_level: false,
+faq_intro: false,
 last_stand_intro: false,
 recruit_intro: false,
 run2_hero_lock: false,
