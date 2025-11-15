@@ -84,16 +84,16 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
  */
 .header { padding: 0.5rem; background: linear-gradient(#fff, #f7f1e3); border-bottom: 2px solid #bda; display: flex; justify-content: space-between; font-size: 0.8rem; }
 .game-area { height: calc(100vh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
-.btn { padding: 1rem; border: 3px solid #000; border-radius: 8px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; }
-.btn:active { transform: scale(0.98); opacity: 0.9; }
+.btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; }
+.btn:active { transform: translateY(4px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15); }
 .btn.safe { background: #22c55e; }
 .btn.risky { background: #f59e0b; }
 .btn.danger { background: #dc2626; }
 .btn.secondary { background: #6b7280; }
-.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 8px; background: white; min-height: 60px; width: 100%; }
-.choice:active { transform: scale(0.98); background: #f0f0f0; }
-.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 6px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-.neutral-btn:active { transform: scale(0.98); opacity: 0.9; }
+.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; }
+.choice:active { transform: translateY(4px) scale(0.98); background: #f0f0f0; box-shadow: 0 0 0 rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.1); }
+.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 14px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15); transition: all 0.15s ease; }
+.neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15); }
 .neutral-btn.safe { background: #22c55e; color: white; }
 .neutral-btn.risky { background: #f59e0b; color: white; }
 .neutral-btn.danger { background: #dc2626; color: white; }
@@ -180,7 +180,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 .card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; }
-.card.hero { background: #2c63c7; color: white; width: 160px; }
+.card.hero { background: #2c63c7; color: white; width: 160px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 .card.enemy { background: #b64141; color: white; width: 160px; }
 .card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
 .card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
@@ -1510,6 +1510,17 @@ for(let i = 2; i < n; i++) fib.push(fib[i-1] + fib[i-2]);
 return fib;
 }
 const FIB = generateFibonacci(50);
+
+// Get XP cost for level up - Fibonacci up to 89, then 100, 200, 300, etc.
+function getXPCost(levelUpCount) {
+// Find the index where Fibonacci reaches 89 (FIB[10] = 89)
+if (levelUpCount >= 10) {
+// After Fibonacci 89, increment by 100 each time
+// levelUpCount 10 = 100, levelUpCount 11 = 200, levelUpCount 12 = 300, etc.
+return (levelUpCount - 9) * 100;
+}
+return FIB[levelUpCount] || 100;
+}
 
 // ===== GAME STATE =====
 let S = {
@@ -4784,7 +4795,7 @@ addBonusTurnStack(hero.id, actionCounts[heroIdx]);
 // ===== LEVEL UP =====
 function levelUp() {
 const v = document.getElementById('gameView');
-const nextCost = FIB[S.levelUpCount] || 999;
+const nextCost = getXPCost(S.levelUpCount);
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
@@ -4795,12 +4806,20 @@ v.innerHTML = `
 
 function nextFloor() {
 saveGame();
+// Show FAQ intro after first neutral encounter (Floor 2 complete)
+if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
+S.tutorialFlags.faq_intro = true;
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! If you have questions about game mechanics, check out the FAQ in the settings menu (⚙️ button)!", () => {
+startFloor(S.floor + 1);
+});
+return;
+}
 startFloor(S.floor + 1);
 }
 
 function showStartingXPScreen() {
 const v = document.getElementById('gameView');
-const nextCost = FIB[S.levelUpCount] || 999;
+const nextCost = getXPCost(S.levelUpCount);
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem;color:#a855f7">Starting XP Bonus!</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
@@ -4811,7 +4830,7 @@ v.innerHTML = `
 
 function startingXPMenu() {
 const v = document.getElementById('gameView');
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Spend Starting XP</h2>
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
@@ -4824,7 +4843,7 @@ v.innerHTML = `
 function levelUpMenu() {
 showTutorialPop('levelup_intro', "Nice! You got enough XP for your first Level-Up! Your team shares XP. Let's check out your options - click on each card to learn more about what it does.");
 const v = document.getElementById('gameView');
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Spend XP</h2>
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
@@ -4836,7 +4855,7 @@ v.innerHTML = `
 
 function heroStats() {
 showTutorialPop('levelup_stat_upgrade', "This one is pretty straightforward - add +1 POW or +5 HP to a hero of your choice.");
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Hero Stats</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
@@ -4853,7 +4872,7 @@ v.innerHTML = html;
 }
 
 function upPow(idx) {
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
@@ -4865,7 +4884,7 @@ levelUpMenu();
 }
 
 function upHP(idx) {
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
@@ -4884,7 +4903,7 @@ levelUpMenu();
 
 function upgradeSigil() {
 showTutorialPop('levelup_upgrade_active', "Each active sigil works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack can attack twice with 1 action! Passive sigils (Expand, Ghost, Asterisk, Star) work differently - they apply globally to all heroes and enhance your existing actions!");
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
@@ -4915,7 +4934,7 @@ v.innerHTML = html;
 
 function addSigilToHero() {
 showTutorialPop('levelup_add_active', "Heroes only get 1 action per turn. Learning new active sigils gives you more choices - in addition to Attack/Heal/D20, you can grant a hero a new ability like Shield or Grapple!");
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
@@ -4934,7 +4953,7 @@ v.innerHTML = html;
 }
 
 function selectHeroForSigil(heroIdx) {
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Alpha', 'Asterisk', 'Star'];
@@ -4961,7 +4980,7 @@ v.innerHTML = html;
 }
 
 function addSigilConfirm(heroIdx, sig) {
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 const h = S.heroes[heroIdx];
 if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) { toast(`${h.n} already has ${sig}!`); return; }
@@ -4982,7 +5001,7 @@ levelUpMenu();
 }
 
 function upSigil(sig) {
-const cost = FIB[S.levelUpCount] || 999;
+const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 
 // Show passive sigil tutorial when upgrading Expand or Star from L0 to L1
@@ -7230,6 +7249,9 @@ ${inGame ? `
 <button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f59e0b">🔄 Reset Tutorial</button>
 ` : ''}
 
+<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Help</h3>
+<button class="btn" onclick="closeSettingsMenu();showFAQ()" style="margin-bottom:0.5rem;background:#9333ea">❓ Frequently Asked Questions</button>
+
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Display</h3>
 <label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
@@ -7311,6 +7333,7 @@ death_intro: false,
 death_exit_warning: false,
 neutral_intro: false,
 neutral_d20_level: false,
+faq_intro: false,
 last_stand_intro: false,
 recruit_intro: false,
 run2_hero_lock: false,
@@ -7345,6 +7368,162 @@ toast('Sigil tooltips enabled!', 1200);
 toast('Sigil tooltips disabled!', 1200);
 }
 savePermanent();
+}
+
+function showFAQ() {
+const v = document.getElementById('gameView');
+
+const faqItems = [
+{
+q: "Why does Attack show as L1 when I haven't upgraded it?",
+a: `Active sigils (Attack, Shield, Heal, Grapple, Ghost, D20, Alpha) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
+<strong>Example:</strong> Attack storage level 0 = displays as L1 (1 attack per action)<br>
+Attack storage level 1 = displays as L2 (2 attacks per action)<br><br>
+The upgrade cost is based on <em>storage level</em>, not display level. So upgrading from display L1 to L2 costs the price for storage level 0→1.`
+},
+{
+q: "What happens if I run out of enemies before using all my Expand targets?",
+a: `If you have Expand and select targets for multi-instance actions (Attack, Shield, Heal), you might run out of valid targets mid-instance. When this happens, you'll see a "wasted targets" message.<br><br>
+<strong>Example:</strong> You have Attack L2 with Expand L1 (3 total targets). There are only 2 enemies left. You can attack both enemies, but the 3rd target slot is wasted - you still get both attacks, but you can't use the extra Expand slot.<br><br>
+This is intentional! Plan your actions carefully.`
+},
+{
+q: "How does Last Stand work and how long does it last?",
+a: `When a hero reaches 0 HP (and has no Ghost charges), they enter <strong>Last Stand</strong> instead of dying immediately. In Last Stand:<br><br>
+• They can ONLY use D20 gambits (no other actions)<br>
+• Each turn in Last Stand increases D20 difficulty by +1 DC (caps at +4)<br>
+• If healed, they revive with the healed HP amount<br>
+• After ~5 turns, DC penalties make success nearly impossible<br><br>
+<strong>Last Stand Turn counter:</strong><br>
+Turn 1: DC +0 (CONFUSE is DC 16)<br>
+Turn 2: DC +1 (CONFUSE is DC 17)<br>
+Turn 5: DC +4 (CONFUSE is DC 20 - nat 20 required!)<br><br>
+You have a few turns to heal your Last Stand heroes before they become useless!`
+},
+{
+q: "How many recruits can I have? What happens to them?",
+a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<br><br>
+• Each hero can have <strong>1 recruit</strong> (recruiting another replaces the first)<br>
+• Maximum <strong>10 total recruits</strong> across all heroes<br>
+• Recruits persist between battles until killed<br>
+• Recruits fight in their hero's lane and attack enemies<br>
+• Recruits can gain sigils and act during enemy turns<br><br>
+<strong>How they work:</strong> Recruits stand behind their hero and attack enemies during the "Recruit Phase" of the enemy turn. They're powerful allies but can die permanently!`
+},
+{
+q: "Do shields carry over between battles?",
+a: `<strong>Yes!</strong> Shields persist between battles and cap at max HP.<br><br>
+This means you can "shield farm" by using Shield sigils on the last enemy of a floor to enter the next floor with full shields. Combined with Asterisk or Alpha, this can make you nearly invincible!<br><br>
+<strong>Strategy tip:</strong> Before finishing a floor, use any remaining actions to shield up your team. The shields will carry over!`
+},
+{
+q: "What's the difference between XP upgrades and Gold upgrades?",
+a: `There are TWO types of sigil upgrades:<br><br>
+<strong>1. Permanent (Gold) Upgrades</strong><br>
+• Purchased in the Shop (even floors)<br>
+• Persist through death and across all runs<br>
+• Stored in S.sig[sigilName]<br>
+• These are your permanent progression!<br><br>
+<strong>2. Temporary (XP) Upgrades</strong><br>
+• Purchased during Level Ups (odd floors)<br>
+• Reset when you die or start a new run<br>
+• Stored in S.tempSigUpgrades[sigilName]<br>
+• These boost you during a single run only<br><br>
+<strong>Display level = Permanent level + Temporary level</strong>`
+},
+{
+q: "Why is Mage/Healer better than Warrior/Tank?",
+a: `Mage and Healer get +1 Expand for free, which means their actions hit 1 extra target from the start. This is incredibly powerful early game!<br><br>
+<strong>Example Floor 1 (2 Goblins):</strong><br>
+• Warrior Attack L1: Hits 1 enemy (takes 2 turns to clear)<br>
+• Mage Attack L1 + free Expand: Hits 2 enemies (takes 1 turn to clear!)<br><br>
+This built-in advantage makes Mage/Healer objectively stronger early game. However, Warrior/Tank can scale well with the right upgrades!`
+},
+{
+q: "What are Star and Asterisk sigils?",
+a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5× XP bonus per Star level.<br>
+• 2 heroes with Star L1 = +1.0× bonus = 2× total XP<br>
+• Star is extremely powerful for long-term scaling!<br><br>
+<strong>Asterisk:</strong> Once per combat, prime Asterisk to multiply your next action.<br>
+• Asterisk L1: ×2 your next action<br>
+• Asterisk L4: ×5 your next action<br>
+• After priming, your next action (Attack, Shield, Heal, etc.) repeats multiple times<br>
+• Can be combined with Alpha for devastating combos!`
+},
+{
+q: "How does enemy difficulty scale?",
+a: `Enemies scale based on floor number and game mode:<br><br>
+<strong>Standard Mode:</strong><br>
+• Floor 1-5: Goblins (1 POW), Wolves (2 POW), Orcs (3 POW)<br>
+• Floor 9: First Dragon (10 POW, 25 HP, draws 2 sigils/turn)<br>
+• Floor 15: Three Dragons (brutal difficulty spike!)<br>
+• Floor 11: Goblin Ambush (stunned Turn 1)<br><br>
+<strong>Effed Mode:</strong><br>
+• All enemy stats ×5!<br>
+• Floor 1 Goblins have 5 POW and 25 HP<br>
+• Designed for masochists only 🐸`
+},
+{
+q: "What's the best strategy for surviving Dragon floors?",
+a: `Dragons (Floors 9, 15, 19) are massive difficulty spikes. Here's how to survive:<br><br>
+<strong>1. Stack Grapple:</strong> Dragons have high HP but Grapple stuns them for multiple turns<br>
+<strong>2. Shield Early:</strong> Dragons deal 10+ damage per attack - shields save lives<br>
+<strong>3. Recruit Help:</strong> Recruited enemies can tank hits and deal damage<br>
+<strong>4. Use D20 SCARE:</strong> Dragons are immune to SCARE, but other enemies aren't<br>
+<strong>5. Asterisk + Attack:</strong> Burst damage before they gain too many sigils<br><br>
+Dragons gain 2 sigils per turn and have permanent Attack L2 + Expand L5. Don't let combat drag on!`
+}
+];
+
+let html = `
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(#fff,#f7f1e3);border:3px solid #9333ea;border-radius:16px;padding:2rem;z-index:30000;max-width:700px;width:90%;max-height:85vh;overflow-y:auto">
+<h2 style="text-align:center;color:#9333ea;margin-bottom:0.5rem">❓ Frequently Asked Questions ❓</h2>
+<p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Tap a question to expand/collapse the answer</p>
+<div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem">
+`;
+
+faqItems.forEach((item, index) => {
+html += `
+<div style="background:white;border:3px solid #000;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.15)">
+<div onclick="toggleFAQItem(${index})" style="padding:1rem;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg, #f0f9ff, #e0f2fe);transition:background 0.2s">
+<strong style="font-size:0.95rem;color:#1e40af">${item.q}</strong>
+<span id="faq-arrow-${index}" style="font-size:1.2rem;transition:transform 0.3s;color:#1e40af">▼</span>
+</div>
+<div id="faq-answer-${index}" style="display:none;padding:1rem;font-size:0.9rem;line-height:1.6;border-top:2px solid #ddd;background:rgba(0,0,0,0.02)">
+${item.a}
+</div>
+</div>
+`;
+});
+
+html += `
+</div>
+<button class="btn secondary" onclick="closeFAQ()" style="margin-top:0.5rem">Close</button>
+</div>
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:29999" onclick="closeFAQ()"></div>
+`;
+
+v.insertAdjacentHTML('beforeend', html);
+}
+
+function toggleFAQItem(index) {
+const answer = document.getElementById(`faq-answer-${index}`);
+const arrow = document.getElementById(`faq-arrow-${index}`);
+
+if (answer.style.display === 'none') {
+answer.style.display = 'block';
+arrow.style.transform = 'rotate(180deg)';
+arrow.textContent = '▲';
+} else {
+answer.style.display = 'none';
+arrow.style.transform = 'rotate(0deg)';
+arrow.textContent = '▼';
+}
+}
+
+function closeFAQ() {
+const overlays = document.querySelectorAll('[style*="z-index:30000"], [style*="z-index:29999"]');
+overlays.forEach(el => el.remove());
 }
 
 function showSigilarium() {
