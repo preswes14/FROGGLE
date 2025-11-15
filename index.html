@@ -2204,10 +2204,6 @@ S.lastNeutral = null;
 }
 
 function getNeutralEncounter() {
-if(S.neutralDeck.length === 0) {
-initNeutralDeck();
-}
-
 // TUTORIAL: Floor 2 always gets Oracle Stage 1
 if(S.floor === 2 && !S.tutorialFlags.neutral_intro) {
 return 'oracle1';
@@ -6332,7 +6328,6 @@ const sigil1 = eligible[0] || 'Attack';
 const sigil2 = eligible[1] || 'Shield';
 
 removeNeutralFromDeck('prince');
-replaceStage1WithStage2('prince');
 S.princeQuestActive = false;
 
 let buttons = '';
