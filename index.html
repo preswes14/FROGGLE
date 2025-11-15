@@ -1558,6 +1558,7 @@ lastActions: {},
 // Neutral encounter state
 neutralDeck: [],
 lastNeutral: null,
+completedNeutrals: [], // Track encounters with both stages completed (removed for run)
 ambushed: false,
 // Persistent neutral state (survives death - saved in savePermanent/loadPermanent)
 ancientStatueDeactivated: false,
@@ -1991,6 +1992,7 @@ S.floor=j.f; S.xp=j.x; S.levelUpCount=j.luc || 0;
 S.heroes=j.h;
 S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
+S.completedNeutrals=j.completedNeutrals || [];
 S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
@@ -2124,6 +2126,7 @@ S.levelUpCount = r.luc || 0;
 S.heroes = r.h;
 S.neutralDeck = r.neutralDeck || [];
 S.lastNeutral = r.lastNeutral || null;
+S.completedNeutrals = r.completedNeutrals || [];
 S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
@@ -2182,7 +2185,7 @@ try {
 localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
-neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
+neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral, completedNeutrals:S.completedNeutrals,
 hasAncientStatuette: S.hasAncientStatuette,
 tempSigUpgrades: S.tempSigUpgrades
 }));
@@ -2195,11 +2198,16 @@ toast('Warning: Game could not be saved', 2000);
 
 // ===== NEUTRAL DECK SYSTEM =====
 function initNeutralDeck() {
-S.neutralDeck = [
-'shopkeeper1', 'wishingwell1', 'treasurechest1',
-'wizard1', 'oracle1', 'encampment1',
-'statue1', 'ghost1', 'prince1'
-];
+// Preserve any existing Stage 2 cards that haven't been encountered yet
+const existingStage2s = S.neutralDeck.filter(n => n.endsWith('2'));
+
+// Re-add Stage 1 encounters that haven't been completed (both stages dead)
+const allEncounters = ['shopkeeper', 'wishingwell', 'treasurechest', 'wizard', 'oracle', 'encampment', 'statue', 'ghost', 'prince'];
+const stage1Cards = allEncounters
+.filter(base => !S.completedNeutrals.includes(base))
+.map(base => base + '1');
+
+S.neutralDeck = [...stage1Cards, ...existingStage2s];
 S.lastNeutral = null;
 }
 
@@ -2245,6 +2253,10 @@ return pick;
 
 function removeNeutralFromDeck(base) {
 S.neutralDeck = S.neutralDeck.filter(n => !n.startsWith(base));
+// Track this encounter as completed for the rest of the run
+if(!S.completedNeutrals.includes(base)) {
+S.completedNeutrals.push(base);
+}
 }
 
 function replaceStage1WithStage2(base) {
@@ -6332,7 +6344,6 @@ const sigil1 = eligible[0] || 'Attack';
 const sigil2 = eligible[1] || 'Shield';
 
 removeNeutralFromDeck('prince');
-replaceStage1WithStage2('prince');
 S.princeQuestActive = false;
 
 let buttons = '';
