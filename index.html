@@ -1011,14 +1011,14 @@ const SIGIL_IMAGES = {
 // Helper function to display sigil with icon
 function sigilIcon(name) {
 const imgPath = SIGIL_IMAGES[name];
-if (!imgPath) return name;
+if (!imgPath) return `<span>${name}</span>`;
 return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:inline-block;margin-right:0.25em;filter:brightness(0);" alt="${name}">${name}`;
 }
 
 // Helper function to display just the icon
 function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
-if (!imgPath) return name;
+if (!imgPath) return `<span>${name}</span>`;
 // CSS handles coloring via .sigil.l0 img, .sigil.l1 img, etc.
 return `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;" alt="${name}">`;
 }
@@ -1030,7 +1030,7 @@ const SIGIL_DESCRIPTIONS = {
 'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
 'D20': 'Roll for crazy gambits: Confuse (damage), Startle (stun), Steal (gold), Scare (remove), Recruit (join team). Higher levels roll more dice, take best result.',
 'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
-'Grapple': 'Deal POW damage to target AND they deal POW damage back to you. L2+: Stun target for (Level-1) turns.',
+'Grapple': 'Stun target for (Level) turns. You take damage equal to target\'s POW.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
 'Asterisk': 'Click to activate, then your next action triggers (Level+1) times. Use once per combat. Enemies with Asterisk get extra attacks.',
 'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
@@ -1439,7 +1439,7 @@ const descriptions = {
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
 'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (damage), Startle (stun), Steal (gold), Scare (remove), Recruit (join team)`,
 'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
-'Grapple': level === 0 ? 'Not unlocked' : `Deal POW damage to target AND they deal their POW back. Stun for ${boldNum(level)} turn${level > 1 ? 's' : ''}`,
+'Grapple': level === 0 ? 'Not unlocked' : `Stun target for ${boldNum(level)} turn${level > 1 ? 's' : ''}. You take damage equal to target's POW`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
 'Asterisk': level === 0 ? 'Not unlocked' : `Click to activate. Your next action triggers ${boldNum(level + 1)} times. Use once per combat`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
@@ -2929,13 +2929,24 @@ updateSelectionDisplay();
 }
 
 function handleHeroImageClick(event, container) {
+// Validate inputs
+if (!event || !container) {
+console.warn('Invalid event or container, ignoring click');
+return;
+}
+
 // Calculate which hero was clicked based on X position
 const rect = container.getBoundingClientRect();
+if (!rect) {
+console.warn('Could not get container bounds, ignoring click');
+return;
+}
+
 const x = event.clientX - rect.left;
 const percent = (x / rect.width) * 100;
 
 // Validate coordinates - if invalid, ignore the click
-if (isNaN(percent) || percent < 0 || percent > 100) {
+if (Number.isNaN(percent) || percent < 0 || percent > 100) {
 console.warn('Invalid click coordinates, ignoring');
 return;
 }
@@ -2971,7 +2982,7 @@ const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-siz
 const calloutsHTML = hData.callouts ? hData.callouts.map(c => `<div style="font-size:0.45rem;text-align:left;opacity:0.9;margin:1px 0">• ${c}</div>`).join('') : '';
 cardEl.innerHTML = `
 <div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
-onclick="event.stopPropagation();toggleHeroSelection('${h}')"
+onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
 <div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
@@ -3044,11 +3055,6 @@ return;
 
 // Update selection display
 updateSelectionDisplay();
-
-// Refresh the hero card to show updated selection state
-if(selectedHeroView === t) {
-toggleHeroSelection(t);
-}
 }
 
 function start() {
@@ -3192,6 +3198,7 @@ function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
+S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -3308,7 +3315,7 @@ if(S.locked) { toast('Wait for enemy turn!'); return; }
 // Allow switching actions only if no instances have been completed yet
 if(S.pending) {
 // Check if any instances have been completed
-if(S.instancesRemaining > 0 && S.instancesRemaining < S.totalInstances) {
+if(S.instancesRemaining > 0 && S.totalInstances && S.instancesRemaining < S.totalInstances) {
 toast('Must complete remaining instances!');
 return;
 }
@@ -3687,6 +3694,19 @@ if(allEnemiesSelected && S.targets.length < targetsPerInstance) {
 const wasted = targetsPerInstance - S.targets.length;
 toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 }
+// Safety check: prevent suicidal grapple (heroes cannot grapple if it would kill them)
+const hero = S.heroes[heroIdx];
+const totalRecoil = S.targets.reduce((sum, tgtId) => {
+const enemy = S.enemies.find(e => e.id === tgtId);
+return sum + (enemy ? enemy.p : 0);
+}, 0) * S.grappleRepeats;
+const effectiveHP = (hero.h || 0) + (hero.sh || 0);
+if(totalRecoil >= effectiveHP && !hero.g && !hero.ls) {
+toast('Grapple would be lethal! Choose fewer/weaker targets or cancel.', 2000);
+S.targets = [];
+render();
+return;
+}
 for(let i = 0; i < S.grappleRepeats; i++) executeGrapple(heroIdx, [...S.targets], S.grappleLevel);
 finishAction(heroIdx);
 } else render();
@@ -4026,9 +4046,9 @@ render();
 }
 
 function checkTurnEnd() {
-const allActedIncludingLS = S.heroes.filter(h => h.st === 0).every((h, i) => {
-const actualIdx = S.heroes.findIndex(hero => hero.id === h.id);
-return S.acted.includes(actualIdx);
+// Check if all non-stunned heroes have acted (optimized single-pass)
+const allActedIncludingLS = S.heroes.every((h, idx) => {
+return h.st > 0 || S.acted.includes(idx);
 });
 if(allActedIncludingLS) {
 S.heroes.forEach(h => { if(h.ls) h.lst++; });
@@ -6537,8 +6557,9 @@ const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'][currentLevel];
-const nextColorClass = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'][nextLevel];
+const colors = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colorClass = colors[currentLevel] || '#666';
+const nextColorClass = colors[nextLevel] || '#ff00ff';
 
 html += `
 <div style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
@@ -6627,6 +6648,18 @@ v.innerHTML = html;
 
 function purchaseSigilUpgrade(sig, cost) {
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
+
+// Check max level: actives max at perm L4 (displays as L5), passives max at perm L5
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const isActive = actives.includes(sig);
+const permLevel = S.sig[sig] || 0;
+const maxLevel = isActive ? 4 : 5;
+
+if(permLevel >= maxLevel) {
+toast('Already at maximum level!', 1800);
+return;
+}
+
 S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
@@ -7444,7 +7477,7 @@ upd();
 toast(`Dealt 50 damage to ${enemy.n}!`, 1200);
 closeDebugMenu();
 // Check if combat is over
-setTimeout(() => checkCombatOver(), 100);
+setTimeout(() => checkCombatEnd(), 100);
 }
 
 function debugSetSigilLevel() {
