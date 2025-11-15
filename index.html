@@ -267,9 +267,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   0% { transform: translate(0, 0); opacity: 0.7; }
   100% { transform: translate(50px, -20px); opacity: 0; }
 }
-.sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; max-width: 100%; }
-.sigil-row.compact { gap: 2px; }
-.sigil-row.compact .sigil { padding: 2px 5px; font-size: 0.7rem; min-height: 22px; border-width: 2px; }
+.sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; max-width: 100%; max-height: 70px; overflow: hidden; }
+.sigil-row.compact { gap: 2px; max-height: 60px; }
+.sigil-row.compact .sigil { padding: 2px 4px; font-size: 0.65rem; min-height: 20px; border-width: 2px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .sigil.passive { border: none; opacity: 0.85; }
@@ -506,14 +506,16 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   .sigil-row {
     gap: 8px;
     margin-top: 8px;
+    max-height: 100px;
   }
 
   .sigil-row.compact {
     gap: 4px;
+    max-height: 90px;
   }
   .sigil-row.compact .sigil {
-    font-size: 0.9rem;
-    padding: 4px 8px;
+    font-size: 0.85rem;
+    padding: 4px 6px;
     min-height: 28px;
   }
 
@@ -1860,7 +1862,7 @@ const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
 backdrop.innerHTML = `
 <div class="tutorial-modal">
-<h2>Tutorial</h2>
+<h2>Tip!</h2>
 <p>${message}</p>
 <button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
 </div>`;
@@ -4636,7 +4638,7 @@ if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margi
 html += '<div class="sigil-divider"></div>';
 // Sigils
 const recruitTotalSigils = recruit.s.length + 1;
-const compactClass = recruitTotalSigils >= 6 ? 'compact' : '';
+const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">
 <span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
@@ -4683,7 +4685,7 @@ html += '<div class="sigil-divider"></div>';
 // Sigils with smart wrapping
 const activeSigils = sortSigils([...h.s, ...(h.ts || [])]);
 const sigilCount = activeSigils.length;
-const compactClass = sigilCount >= 6 ? 'compact' : '';
+const compactClass = sigilCount >= 4 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">`;
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
@@ -4745,7 +4747,7 @@ html += '<div class="sigil-divider"></div>';
 // Sigils with smart wrapping
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 const totalSigils = e.s.length + (hasAttackSigil ? 0 : 1);
-const compactClass = totalSigils >= 6 ? 'compact' : '';
+const compactClass = totalSigils >= 4 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">`;
 if(!hasAttackSigil) {
 html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
