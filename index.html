@@ -3694,6 +3694,19 @@ if(allEnemiesSelected && S.targets.length < targetsPerInstance) {
 const wasted = targetsPerInstance - S.targets.length;
 toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 }
+// Safety check: prevent suicidal grapple (heroes cannot grapple if it would kill them)
+const hero = S.heroes[heroIdx];
+const totalRecoil = S.targets.reduce((sum, tgtId) => {
+const enemy = S.enemies.find(e => e.id === tgtId);
+return sum + (enemy ? enemy.p : 0);
+}, 0) * S.grappleRepeats;
+const effectiveHP = (hero.h || 0) + (hero.sh || 0);
+if(totalRecoil >= effectiveHP && !hero.g && !hero.ls) {
+toast('Grapple would be lethal! Choose fewer/weaker targets or cancel.', 2000);
+S.targets = [];
+render();
+return;
+}
 for(let i = 0; i < S.grappleRepeats; i++) executeGrapple(heroIdx, [...S.targets], S.grappleLevel);
 finishAction(heroIdx);
 } else render();
