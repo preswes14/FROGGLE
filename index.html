@@ -980,19 +980,23 @@ tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alp
 };
 
 const E = {
+fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:1, pool:[], gainRate:999 },
 goblin: { n:'Goblin', p:1, h:5, m:5, goldDrop:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
 wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
-orc: { n:'Orc', p:2, h:7, m:7, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
-giant: { n:'Giant', p:3, h:15, m:15, goldDrop:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
-dragon: { n:'Dragon', p:10, h:25, m:25, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
+orc: { n:'Orc', p:3, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
+giant: { n:'Giant', p:4, h:12, m:12, goldDrop:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
+caveTroll: { n:'Cave Troll', p:5, h:15, m:15, goldDrop:5, x:15, pool:'ANY', gainRate:1, startSigils:1 },
+dragon: { n:'Dragon', p:5, h:25, m:25, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
 };
 
 // Enemy emoji icons
 const ENEMY_EMOJI = {
+'Fly': '🪰',
 'Goblin': '👺',
 'Wolf': '🐺',
 'Orc': '👹',
 'Giant': '🗿',
+'Cave Troll': '👹',
 'Dragon': '🐉'
 };
 
@@ -1030,7 +1034,7 @@ const SIGIL_DESCRIPTIONS = {
 'Attack': 'Deal POW damage to target. L2: Attack twice. L3: Attack 3 times. L4: Attack 4 times. Stacks with Asterisk.',
 'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield persists between battles (capped at hero max HP).',
 'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
-'D20': 'Roll for crazy gambits: Confuse (damage), Startle (stun), Steal (gold), Scare (remove), Recruit (join team). Higher levels roll more dice, take best result.',
+'D20': 'Roll for crazy gambits: Confuse (damage), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team). Higher levels roll more dice, take best result.',
 'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
 'Grapple': 'Stun target for (Level) turns. You take damage equal to target\'s POW.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
@@ -1439,7 +1443,7 @@ const descriptions = {
 'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
-'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (damage), Startle (stun), Steal (gold), Scare (remove), Recruit (join team)`,
+'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (damage), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
 'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Stun target for ${boldNum(level)} turn${level > 1 ? 's' : ''}. You take damage equal to target's POW`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
@@ -3295,11 +3299,16 @@ function needsEnemyTarget(action) { return ['Attack', 'Grapple'].includes(action
 function needsHeroTarget(action) { return ['Heal', 'Shield', 'Alpha'].includes(action); }
 function isMultiInstance(action) { return ['Attack', 'Shield', 'Heal'].includes(action); }
 
-function getD20DC(baseDC, heroIdx) {
+function getD20DC(baseDC, heroIdx, gambitName) {
 const h = S.heroes[heroIdx];
 if(!h.ls) return baseDC;
-// Cap Last Stand DC increase at +4 (so CONFUSE maxes at DC 20)
-return baseDC + Math.min(h.lst, 4);
+// Last Stand: +2 immediately, then +2 each turn (h.lst counts turns in Last Stand)
+const lastStandBonus = (h.lst + 1) * 2;
+// Confuse caps at DC 20, all other gambits continue increasing
+if(gambitName === 'CONFUSE') {
+return Math.min(baseDC + lastStandBonus, 20);
+}
+return baseDC + lastStandBonus;
 }
 
 function selectHero(idx) {
@@ -3436,15 +3445,15 @@ if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #fbbf24;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 16, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
-<strong style="font-size:1.2rem">✅ DC 16: CONFUSE</strong><br>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 12, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
+<strong style="font-size:1.2rem">✅ DC 12: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal damage = enemy POW</span>
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:17, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:14, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:16, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
-{dc:19, name:'SCARE', desc:'Remove from battle'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
 lockedOptions.forEach(opt => {
@@ -3469,16 +3478,19 @@ if(S.asteriskD20Repeats > 1) {
 html += `<p style="margin-bottom:0.5rem;color:#f59e0b">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
 html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
 }
-if(h.ls && h.lst > 0) html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${h.lst}</p>`;
+if(h.ls && h.lst >= 0) {
+const lsBonus = (h.lst + 1) * 2;
+html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
+}
 const options = [
-{dc:16, name:'CONFUSE', desc:'Deal damage = enemy POW'},
-{dc:17, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:12, name:'CONFUSE', desc:'Deal damage = enemy POW'},
+{dc:14, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:16, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
-{dc:19, name:'SCARE', desc:'Remove from battle'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
 options.forEach(opt => {
-const adjustedDC = getD20DC(opt.dc, heroIdx);
+const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.5rem">
 <strong>${dcText}: ${opt.name}</strong><br>
@@ -3518,6 +3530,25 @@ render();
 return;
 }
 
+// MEND is self-targeting, execute immediately
+if(actionName === 'MEND') {
+const d20Level = getLevel('D20', heroIdx);
+const {rolls, best} = rollDice(d20Level, 20);
+const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+const h = S.heroes[heroIdx];
+if(best >= dc) {
+const healAmount = h.p;
+h.h = Math.min(h.h + healAmount, h.m);
+toast(`${rollText} - SUCCESS! ${h.n} healed for ${healAmount} HP!`, 2000);
+} else {
+toast(`${rollText} - FAILED!`, 1800);
+}
+S.pending = null;
+render();
+checkTurnEnd();
+return;
+}
+
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
@@ -3550,7 +3581,7 @@ return e ? e.n : null;
 }).filter(n => n);
 S.targets.forEach(targetId => executeD20ActionOnTarget(targetId, actionName));
 if(targetNames.length > 0) {
-const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed', 'SCARE': 'scared away', 'RECRUIT': 'recruited'};
+const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed', 'RECRUIT': 'recruited'};
 if(actionName !== 'STEAL') toast(`${targetNames.join(', ')} ${actionDesc[actionName]}!`, 2500);
 }
 if(S.asteriskD20Repeats > 1) {
@@ -3596,13 +3627,6 @@ const gold = enemy.p;
 S.gold += gold;
 upd();
 toast(`Stole ${gold} Gold from ${enemy.n}!`);
-} else if(action === 'SCARE') {
-if(enemy.n.includes('Dragon')) { toast(`${enemy.n} immune to SCARE!`); return; }
-setTimeout(() => {
-S.enemies = S.enemies.filter(e => e.id !== enemyId);
-render();
-checkCombatEnd();
-}, 300);
 } else if(action === 'RECRUIT') {
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
@@ -7457,7 +7481,7 @@ q: "How does enemy difficulty scale?",
 a: `Enemies scale based on floor number and game mode:<br><br>
 <strong>Standard Mode:</strong><br>
 • Floor 1-5: Goblins (1 POW), Wolves (2 POW), Orcs (3 POW)<br>
-• Floor 9: First Dragon (10 POW, 25 HP, draws 2 sigils/turn)<br>
+• Floor 9: First Dragon (5 POW, 25 HP, draws 2 sigils/turn)<br>
 • Floor 15: Three Dragons (brutal difficulty spike!)<br>
 • Floor 11: Goblin Ambush (stunned Turn 1)<br><br>
 <strong>Effed Mode:</strong><br>
@@ -7469,10 +7493,10 @@ a: `Enemies scale based on floor number and game mode:<br><br>
 q: "What's the best strategy for surviving Dragon floors?",
 a: `Dragons (Floors 9, 15, 19) are massive difficulty spikes. Here's how to survive:<br><br>
 <strong>1. Stack Grapple:</strong> Dragons have high HP but Grapple stuns them for multiple turns<br>
-<strong>2. Shield Early:</strong> Dragons deal 10+ damage per attack - shields save lives<br>
+<strong>2. Shield Early:</strong> Dragons deal 5 base damage (more with Attack sigils) - shields save lives<br>
 <strong>3. Recruit Help:</strong> Recruited enemies can tank hits and deal damage<br>
-<strong>4. Use D20 SCARE:</strong> Dragons are immune to SCARE, but other enemies aren't<br>
-<strong>5. Asterisk + Attack:</strong> Burst damage before they gain too many sigils<br><br>
+<strong>4. Asterisk + Attack:</strong> Burst damage before they gain too many sigils<br>
+<strong>5. Use Mend:</strong> D20 Mend can heal your heroes mid-combat to survive longer<br><br>
 Dragons gain 2 sigils per turn and have permanent Attack L2 + Expand L5. Don't let combat drag on!`
 }
 ];
