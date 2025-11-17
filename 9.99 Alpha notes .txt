@@ -1,0 +1,465 @@
+Claude	
+
+# 9.99 Content Edit Summary
+
+**For: Opal (AI Coder)**
+
+-----
+
+## Between the 20’s (Formerly Ancient Statue)
+
+### Complete Coding Specification
+
+#### Overview
+
+A gambling minigame with two stages. Players wager gold to roll dice and try to hit a target range.
+
+-----
+
+### STAGE 1
+
+#### Entry Requirements
+
+- Player must have at least 2 Gold to play
+- If player has 0 or 1 Gold, they cannot access this game
+- **Player chooses whether to engage** (can walk by)
+
+#### Wager System
+
+- **Default/Maximum wager:** 10 Gold
+- **Scaling:** If player has less than 10 Gold, wager = highest even number they possess
+  - Examples: 9G → wager 8G, 7G → wager 6G, 5G → wager 4G, 3G → wager 2G
+- **Payout if won:** 2x wager (10G bet → 20G win)
+
+#### Phase 1: Establish Range
+
+**Number of dice rolled = (d20 sigil level + 1)**
+
+Examples:
+
+- Level 1 d20: Roll **2 dice** for bounds
+- Level 2 d20: Roll **3 dice** for bounds
+- Level 3 d20: Roll **4 dice** for bounds
+
+**Process:**
+
+1. Roll the dice (quantity = sigil level + 1)
+1. **System selects optimal results to maximize range:**
+- Pick the LOWEST roll as lower bound
+- Pick the HIGHEST roll as upper bound
+- Remaining dice are discarded
+1. **Special Case - Instant Loss:** If the selected lower bound equals the selected upper bound (impossible if multiple different results exist, but could happen if all dice show same number), player **immediately LOSES their full wager** (no refund)
+
+#### Phase 2: Decision Point
+
+Player chooses one of two options:
+
+- **Back Out:** Receive half their wager back (5G if wagered 10G), game ends
+- **Continue:** Proceed to Phase 3
+
+#### Phase 3: Target Roll
+
+**Number of dice rolled = d20 sigil level**
+
+Examples:
+
+- Level 1 d20: Roll **1 die** for target
+- Level 2 d20: Roll **2 dice** for target
+- Level 3 d20: Roll **3 dice** for target
+
+**Process:**
+
+1. Roll the dice (quantity = sigil level)
+1. **System picks optimal result:** Any die that successfully lands between bounds (inclusive)
+1. **Win Condition:** At least one die is between lower bound and upper bound (inclusive)
+- Matching either bound exactly = WIN
+- Any number between bounds = WIN
+1. **Success:** Player receives 2x their wager
+1. **Failure:** Player loses their wager
+
+-----
+
+### STAGE 2
+
+#### Entry Requirements
+
+- Same as Stage 1: minimum 2 Gold
+- **Player chooses whether to engage** (can walk by without playing)
+
+#### Wager System
+
+- Same scaling as Stage 1 (up to 10G, or highest even number)
+- **Payout if won:** 4x wager, **CAPPED at 40G maximum**
+  - 10G bet → 40G win
+  - 5G bet → 20G win
+  - Etc.
+
+#### Phase 1: Establish Range
+
+**Number of dice rolled = 2 (BASE ONLY, NO SIGIL UPGRADES)**
+
+**Process:**
+
+1. Roll exactly 2 dice (one for each bound)
+1. System auto-sorts: lower becomes min bound, higher becomes max bound
+1. **Special Case - Instant Loss:** If both dice show the same number, player **immediately LOSES their full wager** (no refund)
+
+#### Phase 2: NO Decision Point
+
+- **NO partial refund option** (cannot back out after seeing bounds)
+- Player is automatically committed to Phase 3
+
+#### Phase 3: Target Roll
+
+**Number of dice rolled = d20 sigil level**
+
+Same as Stage 1 Phase 3:
+
+- Level 1: 1 die
+- Level 2: 2 dice
+- Level 3: 3 dice
+
+**Process:**
+
+1. Roll the dice (quantity = sigil level)
+1. **System picks optimal roll:** Any die that successfully hits between the bounds
+1. **Win Condition:** At least one die is between bounds (inclusive)
+1. **Success:** Player receives 4x wager (capped at 40G)
+1. **Failure:** Player loses wager
+
+-----
+
+#### Critical Implementation Notes
+
+1. **D20 Sigil Level Formula:**
+- **Stage 1 bound rolls:** (sigil level + 1) dice
+- **Stage 1 target roll:** (sigil level) dice
+- **Stage 2 bound rolls:** Always 2 dice (no upgrades)
+- **Stage 2 target roll:** (sigil level) dice
+1. **Optimization Strategy:**
+- Bound establishment: Pick lowest and highest from available dice
+- Target rolls: Pick any die that lands between bounds
+1. **Inclusive Range:**
+- If bounds are [5, 17], valid winning rolls are: 5, 6, 7… 16, 17
+1. **Tie on Bounds = Instant Loss:**
+- If selected/sorted bounds are identical = impossible to succeed
+- Player loses full wager immediately, no target roll occurs
+1. **Gold Requirements:**
+- All wagers are even numbers
+- Round down to nearest even if needed
+1. **Stage 2 Differences:**
+- No sigil upgrades for bound rolls
+- No backing out after bounds revealed
+- Higher payout but higher risk
+1. **Stage 2 payout cap:**
+- Maximum payout is 40G regardless of wager amount
+
+-----
+
+## Enemy Stat Changes
+
+### Rat (New - Tutorial Enemy)
+
+- **POW:** 1
+- **HP:** 3
+- **Sigils:** None
+- **Purpose:** Teaches pure combat fundamentals in tutorial
+- **Note:** Rat was considered for tutorial but ultimately replaced with Fly for Phase 1
+
+### Fly (New - Tutorial Enemy)
+
+- **POW:** 1
+- **HP:** 2
+- **Sigils:** None
+- **Quantity:** 3 flies appear in tutorial opening
+- **Purpose:** Tapo’s birthday tutorial - teaches sigils, attack, expand
+
+### Goblin
+
+- **Stats:** Unchanged from current implementation
+- **Sigils:** Present (unchanged)
+- **Purpose:** First enemy that teaches sigil mechanics (in context of post-tutorial gameplay)
+
+### Orc
+
+- **POW:** 3
+- **HP:** 10
+- **Change:** Updated from previous values
+
+### Giant
+
+- **POW:** 4
+- **HP:** 12
+- **Change:** Updated from previous values
+
+### Cave Troll (New)
+
+- **POW:** 5
+- **HP:** 15
+- **Purpose:** Mid-tier enemy between Giant and Dragon
+
+### Dragon
+
+- **POW:** 5
+- **HP:** 25
+- **Attack Level Cap:** 3 (NOT 4)
+- **Critical:** Ensure attack level cannot exceed 3 for Dragon
+
+-----
+
+## Gambit System Overhaul
+
+### New DC Structure
+
+|Gambit  |DC    |Effect               |Notes                |
+|--------|------|---------------------|---------------------|
+|Confuse |12    |Current effect       |Lowered from previous|
+|Startle |14    |Current effect       |Lowered from previous|
+|**Mend**|**16**|**Heal self for POW**|**NEW GAMBIT**       |
+|~Scare~ |~N/A~ |~N/A~                |**REMOVED**          |
+|Steal   |18    |Current effect       |Unchanged            |
+|Recruit |20    |Current effect       |Unchanged            |
+
+### Last Stand Mechanic Changes
+
+#### Activation
+
+- When Last Stand is triggered, **immediately** increase ALL gambit DCs by +2
+
+#### Progressive Difficulty
+
+- Each turn after activation: increase ALL DCs by an additional +2
+- **Cap Logic:** All DCs continue increasing by +2 each turn
+- **When Confuse reaches DC 20, it stops increasing** (this is the cap)
+- **All other gambits continue increasing** beyond DC 20, becoming progressively impossible
+
+#### Turn-by-Turn Progression Example
+
+|Turn                 |Confuse    |Startle|Mend|Steal|Recruit|
+|---------------------|-----------|-------|----|-----|-------|
+|Last Stand Activation|14         |16     |18  |20   |22     |
+|Turn 2               |16         |18     |20  |22   |24     |
+|Turn 3               |18         |20     |22  |24   |26     |
+|Turn 4               |20 (CAPPED)|22     |24  |26   |28     |
+|Turn 5+              |20 (CAPPED)|24     |26  |28   |30     |
+
+#### Implementation Notes
+
+- Confuse caps at DC 20 because it is the easiest/lowest DC gambit
+- The cap represents “the easiest option maxing out at the highest practical difficulty”
+- All harder gambits become increasingly impossible as intended design
+- Last Stand +2 is applied immediately upon entering Last Stand state
+
+-----
+
+## Wizard Redesign
+
+### Core Changes
+
+- **Remove:** Permanent sigil modifications
+- **New System:** Temporary, run-based upgrades with gamble mechanics
+
+### Sigil Categories
+
+**Starter Sigils (5):**
+
+- Attack
+- Shield
+- Heal
+- Expand
+- D20
+
+**Non-Starter Sigils (5):**
+
+- Alpha
+- Asterisk
+- Star
+- Grapple
+- Ghost
+
+### Stage 1: Sigil Upgrade
+
+**Display:**
+
+- Wizard wall shows sigils from **non-starter pool only**
+
+**Hero Selection:**
+
+- Player chooses which hero examines the wall
+
+**Outcome Check:**
+
+- **If chosen hero HAS the displayed sigil:**
+  - Hero receives +1 level to that sigil
+  - Stage 2 unlocks
+- **If chosen hero DOES NOT have the displayed sigil:**
+  - No effect (Stage 2 does not unlock)
+
+### Stage 2: Universal Sigil Distribution
+
+**Trigger:** Only accessible if Stage 1 succeeded
+
+**Primary Logic:**
+
+- System identifies all sigils that **NO hero currently possesses**
+- Randomly selects one sigil from this pool
+- Grants selected sigil to **ALL heroes** at level 1
+- **Duration:** Temporary (this run only)
+
+**Fallback Logic (All Sigils Owned):**
+
+- If every sigil is owned by at least one hero:
+  - System identifies all sigils at the **lowest level** across all heroes
+  - Randomly selects one sigil from this lowest-level pool
+  - **Prioritize passive sigils** in selection
+  - Upgrades selected sigil by +1 level
+  - Applies upgrade to **ALL hero cards** for this run
+
+**Implementation Notes:**
+
+- Stage 2 bonuses do not persist between runs
+- “Prioritize passives” = if multiple sigils tied for lowest level, choose passive over active
+- ALL heroes receive the benefit, even if only one hero triggered Stage 1
+
+-----
+
+## Asterisk Redesign
+
+### Core Change
+
+- **Remove:** Active ability with combo complexity
+- **New System:** Passive automatic amplification
+
+### New Mechanic
+
+**Trigger:** Automatically activates on the hero’s **first action** each combat
+
+**Effect:**
+
+- Multiplies the first action taken by the hero
+- **Multiplier = (Asterisk Sigil Level + 1)**
+  - Level 1 Asterisk: 2x multiplier (one “extra time”)
+  - Level 2 Asterisk: 3x multiplier
+  - Level 3 Asterisk: 4x multiplier
+  - Etc.
+- Applies to whatever the hero does first (attack, gambit, ability, etc.)
+
+**Benefits:**
+
+- No decision paralysis for players
+- No weird sequencing with Alpha
+- Clean, automatic power boost
+- Alpha interactions eliminated entirely
+
+**Scope:**
+
+- **One-time effect per combat**
+- Resets when hero enters new combat
+
+**Implementation Notes:**
+
+- Asterisk represents doing something an “extra time” so base = 2x at level 1
+- Ensure it triggers on ANY first action type
+- Does not require player input
+- Consumed after first action, then has no further effect that combat
+
+-----
+
+## Tutorial Complete Redesign
+
+### Phase 1: Tapo’s Birthday - Fly Catching
+
+**Narrative Setup:**
+
+- It’s Tapo’s birthday
+- Mage has promised to teach Tapo how to catch flies as a gift
+- Celebratory, fun tone
+
+**Combat Setup:**
+
+- **Combatant:** Mage only (no other heroes)
+- **Enemies:** 3 Flies (1 POW / 2 HP each)
+- **Fly Sigils:** None
+- **Special Rule:** Mage does **NOT** have D20 sigil for this battle only
+
+**Teaching Focus:**
+
+- Sigils (basic concept)
+- Attack action
+- Expand action
+- Basic combat flow
+
+**Outcome:**
+
+- Victory = Tapo and Mage eat the flies together (happy moment)
+- **Do NOT teach:** D20 mechanics, enemy sigils, advanced tactics
+
+**UI Consideration:**
+
+- Minimal pop-ups (basics only)
+- Keep it light and fun
+
+-----
+
+### Phase 2: Portal Invasion (Modified)
+
+**Narrative Transition:**
+
+- Portal suddenly opens
+- Enemies burst through
+- Tank immediately moves to defend Tapo
+- Warrior and Healer spring into action
+
+**Combat Setup:**
+
+- Multiple heroes (Tank, Warrior, Healer present)
+- **Mage now HAS D20** (reintroduced here)
+- Enemy: Wolf (use existing implementation stats)
+
+**Teaching Focus:**
+
+- **D20 mechanics** (now the primary focus since basics covered in Phase 1)
+- Enemy sigils
+- Multi-hero coordination
+
+**Scripted Events:**
+
+- **Turn 2:** Wolf gains Shield sigil
+- **Turn 2:** Confuse roll is fudged (guaranteed success)
+- **Turn 2:** Wolf dies from the fudged Confuse
+
+**Content Redistribution:**
+
+- Phase 1 already taught attack/expand/sigils
+- Phase 2 can now focus entirely on D20 and enemy mechanics
+- **Pop-up audit and relocation will be handled by Opus**
+- Make information “optimally placed” based on two-phase structure
+
+**Implementation Notes:**
+
+- Phase 2 proceeds as currently written after the above changes
+- Information that was previously crammed into original tutorial should now be split
+- **Opus will review and determine which pop-ups to remove/relocate**
+- Ensure smooth narrative flow from Phase 1 to Phase 2
+
+-----
+
+## Summary of All Changes
+
+1. **Between the 20’s** - Complete gambling game replacement for Ancient Statue
+1. **Enemy Stats** - Rat (deprecated), Fly, Orc, Giant, Cave Troll, Dragon updates
+1. **Gambits** - New DCs, Mend added, Scare removed, Last Stand rework with cap logic
+1. **Wizard** - Temporary run-based system, no permanence
+1. **Asterisk** - Passive auto-multiplier on first action based on sigil level (level + 1)
+1. **Tutorial** - Two-phase structure, better information flow, Opus handling pop-up audit
+
+-----
+
+## All Issues Resolved
+
+All previously identified problems have solutions:
+
+- ✓ Ancient Statue → Between the 20’s gambling game
+- ✓ Wizard → Temporary run-based system
+- ✓ Asterisk & Alpha → Asterisk now passive, no combo complexity
+- ✓ Tutorial → Two-phase redesign with better information distribution
