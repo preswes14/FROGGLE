@@ -3294,7 +3294,11 @@ if(f===9) return Array(heroCount).fill('caveTroll');
 if(f===11) return Array(heroCount * 5).fill('goblin');
 if(f===13) return Array(heroCount * 5).fill('wolf');
 if(f===15) return Array(heroCount).fill('dragon');
-if(f===17) return ['caveTroll', 'giant', 'orc', 'wolf', 'goblin'];
+if(f===17) {
+const comp = [];
+for(let i = 0; i < heroCount; i++) comp.push('caveTroll', 'giant', 'orc', 'wolf', 'goblin');
+return comp;
+}
 if(f===19) return Array(heroCount * 3).fill('dragon');
 return ['goblin'];
 }
