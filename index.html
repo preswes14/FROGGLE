@@ -3325,13 +3325,13 @@ let comp = getEnemyComp(f);
 
 S.enemies = comp.map((t,i) => {
 const base = E[t];
-const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
+const effedMultiplier = S.gameMode === 'Effed' ? 3 : 1;
 const enemy = {
 id:`e${Date.now()}${i}`, n:base.n,
 p:base.p * effedMultiplier,
 h:base.h * effedMultiplier,
 m:base.m * effedMultiplier,
-goldDrop:base.goldDrop, x:base.x, s: [], pool: base.pool,
+goldDrop:(base.goldDrop || 0) * effedMultiplier, x:(base.x || 0) * effedMultiplier, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
 st:0, li: i % S.heroes.length, sh:0, g:0, alphaActed: false
