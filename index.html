@@ -2717,6 +2717,73 @@ round: 1
 combat(0);
 }
 
+function finishTaposBirthdayPhase() {
+// Phase 1 victory celebration
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="text-align:center;padding:2rem">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Mage and Tapo catch all the flies!<br>
+Tapo squeals with delight as they share the tasty treats together. 🎉
+</p>
+<button onclick="transitionToPortalInvasion()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1rem">Continue</button>
+</div>`;
+}
+
+function transitionToPortalInvasion() {
+// Show portal opening narrative
+const slides = [
+{
+html: `
+<div style="text-align:center">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
+<div style="margin:1.5rem 0;position:relative">
+<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:portalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
+</div>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Suddenly, <strong>a dark portal</strong> tears open in the square!<br>
+Tank, Warrior, and Healer rush to defend Tapo and Mage!
+</p>
+<div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
+<div style="animation:enemyAppear 1s ease-out">👺</div>
+<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
+</div>
+</div>
+<style>
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-5px); }
+75% { transform: translateX(5px); }
+}
+@keyframes portalPulse {
+0%, 100% { transform: scale(1); opacity: 0.8; }
+50% { transform: scale(1.1); opacity: 1; }
+}
+@keyframes spin {
+from { transform: translate(-50%, -50%) rotate(0deg); }
+to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes enemyAppear {
+from { transform: scale(0) rotate(-180deg); opacity: 0; }
+to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+</style>
+`
+}
+];
+slides.onComplete = () => {
+// Start Phase 2: Portal Invasion
+startRibbletonTutorial();
+
+setTimeout(() => {
+showTutorialStoryOverlay();
+}, 100);
+};
+showNarrativeSlide(slides, 0);
+}
+
 function showTutorialStoryOverlay() {
 // Show narrative on TOP of combat screen
 const overlay = document.createElement('div');
@@ -2724,7 +2791,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-A Goblin and a Wolf have appeared from the portal!
+A Goblin and a Wolf appear from the portal!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -2825,15 +2892,16 @@ toast('Going to hero selection...');
 title();
 }
 
-// ===== RIBBLETON TUTORIAL =====
+// ===== RIBBLETON TUTORIAL (PHASE 2) =====
 function startRibbletonTutorial() {
-// Set up tutorial heroes
-S.floor = 0; // Special floor 0 for tutorial
-// NOTE: Gold persists! Don't reset it here
+// Phase 2: Portal Invasion - All 4 heroes, Mage now has D20
+S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
+{id:'h_tutorial_tank', n:'Tank', p:1, h:10, m:10, s:['Shield','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
 {id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
@@ -2842,16 +2910,16 @@ const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 S.heroes.forEach(hero => {
 passiveSigils.forEach(passive => {
 const permLevel = S.sig[passive] || 0;
-// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
 if(permLevel > 0 && !hero.s.includes(passive)) {
 hero.s.push(passive);
 }
 });
 });
 
-// Initialize tutorial state
+// Initialize Phase 2 tutorial state
 tutorialState = {
-stage: 'waiting_for_start', // Will transition to 'warrior_attack' after overlay dismissal
+stage: 'waiting_for_start',
+phase: 2, // Phase 2: Portal Invasion
 wolfDamaged: false,
 wolfKilled: false,
 goblinKilled: false,
@@ -2866,9 +2934,9 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative
 const slides = [
-{text: "The few enemies remaining around Ribbleton scampered back into the portal from whence they came. Relieved, and sheathing their weapons, the frog heroes assembled to try to pick up the string of their failed party - but Tapo was missing!!"},
-{text: "As the Ribbletonians looked high and low, our heroes realized there was only one possibility - the poor tadpole had squiggled his way through!"},
-{text: "Without a thought for their lives, the brave heroes dove into the swirling darkness..."}
+{text: "The few enemies remaining around Ribbleton scamper back into the portal. Relieved, the frog heroes sheathe their weapons and look for Tapo - but he's missing!!"},
+{text: "As the Ribbletonians search high and low, the heroes realize there's only one possibility - the poor tadpole has squiggled his way through the portal!"},
+{text: "Without a thought for their lives, the brave heroes dive into the swirling darkness..."}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -3188,7 +3256,14 @@ neutral(f);
 
 function getEnemyComp(f) {
 const heroCount = S.heroes.length;
-if(f===0) return ['goblin', 'wolf']; // Tutorial floor
+if(f===0) {
+// Tutorial floor - check phase
+if(tutorialState && tutorialState.phase === 1) {
+return ['fly', 'fly', 'fly']; // Phase 1: Tapo's Birthday
+} else {
+return ['goblin', 'wolf']; // Phase 2: Portal Invasion
+}
+}
 if(f===1) return Array(heroCount).fill('goblin');
 if(f===3) return Array(heroCount).fill('wolf');
 if(f===5) return Array(heroCount * 2).fill('orc');
@@ -4552,7 +4627,13 @@ S.combatXP = 0;
 S.combatGold = 0;
 setTimeout(() => {
 toast('Victory!');
+if(tutorialState && tutorialState.phase === 1) {
+// Phase 1 complete: Transition to Phase 2
+setTimeout(finishTaposBirthdayPhase, 1000);
+} else {
+// Phase 2 complete: Finish tutorial
 setTimeout(finishRibbletonTutorial, 1000);
+}
 }, 500);
 return true;
 }
