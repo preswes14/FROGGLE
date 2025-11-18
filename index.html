@@ -6167,206 +6167,223 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
 
-// ===== 7. ANCIENT STATUE =====
+// ===== 7. BETWEEN THE 20s =====
 function showStatue1() {
-const deactivated = S.ancientStatueDeactivated;
 const v = document.getElementById('gameView');
-const outcomes = deactivated ? ['<span style="color:#22c55e">The statue has been deactivated. It poses no threat.</span>'] : [];
+// Entry requirement: minimum 2 gold
+if(S.gold < 2) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/statue1.png',
-title: 'The Statue',
-description: `A massive stone statue dominates the chamber. As you watch, it seems to ${deactivated ? 'shift smoothly and gently' : 'grow larger, its surface rippling ominously'}.`,
-outcomes,
-buttons: `
-<button class="btn safe" onclick="nextFloor()">Leave now</button>
-<button class="btn risky" onclick="showStatue2()">Remain transfixed</button>
-`
-});
-}
-
-function showStatue2() {
-const deactivated = S.ancientStatueDeactivated;
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-title: 'Growing Larger',
-description: `The statue IS getting bigger! The room feels smaller. ${deactivated ? 'It moves smoothly and gently, non-threatening.' : 'Its stone surface creaks as it expands.'}`,
-buttons: `
-<button class="btn risky" onclick="statueEscape(2)">Make a break for exit</button>
-<button class="btn risky" onclick="showStatue3()">Remain transfixed</button>
-`
-});
-}
-
-function showStatue3() {
-const deactivated = S.ancientStatueDeactivated;
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-title: 'Consuming the Room',
-description: `The statue now fills most of the room! ${deactivated ? 'Despite its size, it moves with graceful precision.' : 'There\'s still a tight squeeze to the exit...'}`,
-buttons: `
-<button class="btn risky" onclick="statueEscape(3)">Squeeze out to exit</button>
-<button class="btn danger" onclick="showStatue4()">Remain transfixed</button>
-`
-});
-}
-
-function showStatue4() {
-const deactivated = S.ancientStatueDeactivated;
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-title: 'Smooth Metal Pressing - LAST CHANCE',
-description: `${deactivated ? 'The statue\'s polished surface gleams as it gently fills the space.' : 'The statue\'s smooth metal presses against the walls and you! This is your last chance to escape!'}`,
-buttons: `
-<button class="btn danger" onclick="statueEscape(4)">ESCAPE NOW</button>
-<button class="btn danger" onclick="showStatue5()">Remain transfixed</button>
-`
-});
-}
-
-function statueEscape(stage) {
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
-const deactivated = S.ancientStatueDeactivated;
-
-let outcome = '';
-let damage = 0;
-
-if(stage === 2) {
-if(best >= 1 && best <= 5) damage = deactivated ? 0 : 1;
-else if(best === 20) outcome = 'You can\'t shake the feeling you missed something...';
-} else if(stage === 3) {
-if(best >= 1 && best <= 9) damage = deactivated ? 0 : 2;
-else if(best >= 10 && best <= 19) outcome = 'You escape safely.';
-else outcome = 'As you squeeze out, you notice a small black arch in the statue.';
-} else if(stage === 4) {
-if(best >= 1 && best <= 15) damage = deactivated ? 0 : 3;
-else if(best >= 16 && best <= 19) outcome = 'You notice an archway as you escape!';
-else {
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-diceRoll: rollText,
-outcomes: ['The archway SWALLOWS you! You find yourself inside the statue!'],
-buttons: `<button class="btn" onclick="showStatue5()">Continue</button>`
+title: 'Between the 20s',
+description: 'A mysterious gambling den with glowing dice floating in the air. A sign reads: "Minimum 2 Gold to play."',
+outcomes: ['<span style="color:#ef4444">You don\'t have enough gold to play.</span>'],
+buttons: `<button class="btn safe" onclick="nextFloor()">Leave</button>`
 });
 return;
 }
+
+// Calculate wager: max 10, or highest even number player has
+const maxWager = 10;
+let wager = Math.min(maxWager, Math.floor(S.gold / 2) * 2);
+if(wager < 2) wager = 2;
+
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Between the 20s',
+description: `A mysterious gambling den beckons. Roll dice to set your range, then try to land between them. Wager: ${wager}G for a ${wager * 2}G payout.`,
+outcomes: [],
+buttons: `
+<button class="btn safe" onclick="nextFloor()">Walk away</button>
+<button class="btn risky" onclick="playBetween20s(1, ${wager})">Play (${wager}G)</button>
+`
+});
 }
 
+function playBetween20s(stage, wager) {
 const v = document.getElementById('gameView');
-if(damage > 0 && !deactivated) {
-// Show hero selection for damage
-let heroButtons = '';
-S.heroes.forEach((h, idx) => {
-heroButtons += `<button class="neutral-btn danger" onclick="applyStatueEscapeDamage(${idx}, ${damage})">${h.n} (${h.h}/${h.m}❤)</button>`;
-});
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-title: 'Escaping the Statue',
-diceRoll: rollText,
-description: `Choose which hero takes ${damage} damage:`,
-outcomes: ['You escape but the statue crushes you on the way out!'],
-buttons: heroButtons
-});
-} else {
-// No damage or deactivated - show result and continue
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-title: 'Escaping the Statue',
-diceRoll: rollText,
-outcomes: [outcome || 'You escape safely!'],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
-});
-}
-}
+const d20Level = S.sig.D20 || 1;
 
-function applyStatueEscapeDamage(heroIdx, damage) {
-const hero = S.heroes[heroIdx];
-hero.h -= damage;
-if(hero.h < 0) hero.h = 0;
-if(hero.h === 0 && !hero.ls && hero.g > 0) {
-hero.g--;
-hero.h = hero.m;
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
-} else if(hero.h === 0 && !hero.ls) {
-hero.ls = true;
-hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "Ouch! You're not dead yet though! While your ally lives, you live - but your options are limited to D20 gambits. Get healing soon, or you'll slip further into the void...");
+// PHASE 1: Establish Range
+const boundsCount = stage === 1 ? (d20Level + 1) : 2; // Stage 1: level+1, Stage 2: always 2
+const boundsRolls = [];
+for(let i = 0; i < boundsCount; i++) {
+boundsRolls.push(Math.floor(Math.random() * 20) + 1);
 }
-toast(`${hero.n} took ${damage} damage!`);
+const minBound = Math.min(...boundsRolls);
+const maxBound = Math.max(...boundsRolls);
+
+// Format dice display
+const diceDisplay = formatDiceRolls(boundsRolls);
+
+// Check instant loss (bounds are equal)
+if(minBound === maxBound) {
+S.gold -= wager;
 upd();
-nextFloor();
-}
-
-function showStatue5() {
-const v = document.getElementById('gameView');
-let heroButtons = '';
-S.heroes.forEach((h, idx) => {
-heroButtons += `<button class="neutral-btn" onclick="scaleStatue(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
-});
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-title: 'Statue Unfurls',
-description: 'The statue stops growing and unfurls like a smooth metal flower. At its center sits a small replica statuette. The smooth metal walls can be scaled. Choose a hero to scale the statue:',
-buttons: heroButtons
-});
-}
-
-function scaleStatue(heroIdx) {
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
-const deactivated = S.ancientStatueDeactivated;
-
-const h = S.heroes[heroIdx];
-let outcome = '';
-let damage = 0;
-let getStatuette = false;
-
-if(best === 1) {
-outcome = 'TRAP! You trigger a mechanism and plummet!';
-damage = deactivated ? 0 : (h.h - 1);
-} else if(best >= 2 && best <= 15) {
-damage = deactivated ? 0 : 4;
-getStatuette = true;
-outcome = `You ${damage > 0 ? 'struggle up, taking ' + damage + ' damage, but ' : ''}reach the statuette!`;
-} else if(best >= 16 && best <= 19) {
-getStatuette = true;
-outcome = 'You scale effortlessly and claim the statuette!';
-} else {
-getStatuette = true;
-outcome = 'You scale perfectly AND find the deactivation switch!';
-S.ancientStatueDeactivated = true;
-toast('Ancient Statue PERMANENTLY deactivated!', 1800);
-}
-
-if(damage > 0) {
-h.h -= damage;
-if(h.h < 1) h.h = 1;
-}
-
-if(getStatuette) {
-S.hasAncientStatuette = true;
-savePermanent();
-toast('Ancient Statuette obtained!', 1200);
-}
-
-removeNeutralFromDeck('statue');
-
-const v = document.getElementById('gameView');
-const outcomes = [outcome];
-if(getStatuette) {
-outcomes.push('<span style="color:#fbbf24">The Ancient Statuette can be placed on a Pedestal to grant permanent stat upgrades!</span>');
-}
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
-title: 'Scaling the Statue',
-diceRoll: rollText,
-outcomes,
+bgImage: stage === 1 ? 'assets/neutrals/statue1.png' : 'assets/neutrals/statue2.png',
+title: stage === 1 ? 'Between the 20s' : 'Between the 20s Extreme',
+description: `Rolling ${boundsCount} dice to set bounds...`,
+outcomes: [
+`${diceDisplay}`,
+`<span style="color:#ef4444">INSTANT LOSS! Both bounds are ${minBound}!</span>`,
+`Lost ${wager}G.`
+],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+return;
+}
+
+// Store game state for phase 2/3
+window.between20sState = { stage, wager, minBound, maxBound, boundsRolls };
+
+// PHASE 2: Decision Point (Stage 1 only)
+if(stage === 1) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Between the 20s',
+description: `Rolling ${boundsCount} dice to set bounds...`,
+outcomes: [
+`${diceDisplay}`,
+`Range set: <span style="color:#22c55e">${minBound}</span> to <span style="color:#22c55e">${maxBound}</span>`,
+'You can back out for half your wager, or continue for a chance at double.'
+],
+buttons: `
+<button class="btn risky" onclick="backOutBetween20s()">Back out (get ${Math.floor(wager / 2)}G back)</button>
+<button class="btn danger" onclick="targetRollBetween20s()">Continue to target roll</button>
+`
+});
+} else {
+// Stage 2: No backing out, go straight to target roll
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue2.png',
+title: 'Between the 20s Extreme',
+description: `Rolling ${boundsCount} dice to set bounds...`,
+outcomes: [
+`${diceDisplay}`,
+`Range set: <span style="color:#22c55e">${minBound}</span> to <span style="color:#22c55e">${maxBound}</span>`,
+'<span style="color:#fbbf24">NO BACKING OUT! Rolling for target...</span>'
+],
+buttons: `<button class="btn danger" onclick="targetRollBetween20s()">Roll target dice</button>`
+});
+}
+}
+
+function formatDiceRolls(rolls) {
+return rolls.map(r => `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:#1e293b;border:2px solid #475569;border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:#f1f5f9;font-size:1.2rem;">${r}</span>`).join(' ');
+}
+
+function backOutBetween20s() {
+const state = window.between20sState;
+const refund = Math.floor(state.wager / 2);
+S.gold -= state.wager;
+S.gold += refund;
+upd();
+
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue1.png',
+title: 'Between the 20s',
+outcomes: [
+'You decide to play it safe and back out.',
+`Net loss: ${state.wager - refund}G`
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+}
+
+function targetRollBetween20s() {
+const state = window.between20sState;
+const v = document.getElementById('gameView');
+const d20Level = S.sig.D20 || 1;
+
+// PHASE 3: Target Roll
+const targetRolls = [];
+for(let i = 0; i < d20Level; i++) {
+targetRolls.push(Math.floor(Math.random() * 20) + 1);
+}
+
+// Check if ANY die lands between bounds (inclusive)
+const winners = targetRolls.filter(r => r >= state.minBound && r <= state.maxBound);
+const won = winners.length > 0;
+
+const targetDisplay = formatDiceRolls(targetRolls);
+
+if(won) {
+// Calculate payout
+let payout = state.wager * (state.stage === 1 ? 2 : 4);
+if(state.stage === 2) {
+payout = Math.min(payout, 40); // Cap at 40G for Stage 2
+}
+const netGain = payout - state.wager;
+S.gold += payout;
+upd();
+
+// Unlock Stage 2 after Stage 1 win
+if(state.stage === 1) {
+replaceStage1WithStage2('statue');
+toast('Between the 20s Extreme unlocked!', 1800);
+}
+
+v.innerHTML = buildNeutralHTML({
+bgImage: state.stage === 1 ? 'assets/neutrals/statue1.png' : 'assets/neutrals/statue2.png',
+title: state.stage === 1 ? 'Between the 20s - WIN!' : 'Between the 20s Extreme - WIN!',
+description: `Rolling ${d20Level} target ${d20Level === 1 ? 'die' : 'dice'}...`,
+outcomes: [
+`${targetDisplay}`,
+`<span style="color:#22c55e">SUCCESS! ${winners.map(w => `[${w}]`).join(' ')} landed in range [${state.minBound}-${state.maxBound}]!</span>`,
+`Won ${payout}G! (Net: +${netGain}G)`
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+} else {
+S.gold -= state.wager;
+upd();
+
+v.innerHTML = buildNeutralHTML({
+bgImage: state.stage === 1 ? 'assets/neutrals/statue1.png' : 'assets/neutrals/statue2.png',
+title: state.stage === 1 ? 'Between the 20s - Loss' : 'Between the 20s Extreme - Loss',
+description: `Rolling ${d20Level} target ${d20Level === 1 ? 'die' : 'dice'}...`,
+outcomes: [
+`${targetDisplay}`,
+`<span style="color:#ef4444">MISS! No dice landed in range [${state.minBound}-${state.maxBound}].</span>`,
+`Lost ${state.wager}G.`
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+}
+}
+
+function showStatue2() {
+const v = document.getElementById('gameView');
+// Entry requirement: minimum 2 gold
+if(S.gold < 2) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue2.png',
+title: 'Between the 20s Extreme',
+description: 'The high-stakes gambling den glows with intense energy. A sign reads: "Minimum 2 Gold to play - 4x payout, capped at 40G."',
+outcomes: ['<span style="color:#ef4444">You don\'t have enough gold to play.</span>'],
+buttons: `<button class="btn safe" onclick="nextFloor()">Leave</button>`
+});
+return;
+}
+
+// Calculate wager: max 10, or highest even number player has
+const maxWager = 10;
+let wager = Math.min(maxWager, Math.floor(S.gold / 2) * 2);
+if(wager < 2) wager = 2;
+
+// Calculate potential payout (capped at 40)
+const potentialPayout = Math.min(wager * 4, 40);
+
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/statue2.png',
+title: 'Between the 20s Extreme',
+description: `The EXTREME version! Only 2 dice for bounds, NO backing out, but ${potentialPayout}G payout! High risk, high reward.`,
+outcomes: ['<span style="color:#fbbf24">WARNING: No safety net here. You\'re all in once you start.</span>'],
+buttons: `
+<button class="btn safe" onclick="nextFloor()">Walk away</button>
+<button class="btn danger" onclick="playBetween20s(2, ${wager})">Play EXTREME (${wager}G for ${potentialPayout}G)</button>
+`
 });
 }
 
