@@ -1291,7 +1291,10 @@ return {hpLost, shieldLost, totalDamage: rawDamage}; // Return detailed breakdow
 const TutorialManager = {
 // Tutorial stage definitions
 stages: {
+// Phase 1 stages
 'waiting_for_start': {allowedActions: []},
+'catching_flies': {allowedActions: 'ALL'}, // Phase 1: Free-form fly catching
+// Phase 2 stages
 'warrior_attack': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
 'targeting_wolf': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
 'healer_d20': {allowedActions: [{hero: 'Healer', sig: 'D20'}]},
@@ -1302,7 +1305,7 @@ stages: {
 'expand_targets': {allowedActions: [{hero: 'Healer', sig: 'Heal'}]},
 'finish_wolf': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
 'shield_sigil': {allowedActions: []},
-'free': {allowedActions: []} // Tutorial complete, allow all actions
+'free': {allowedActions: 'ALL'} // Tutorial complete, allow all actions
 },
 
 // Check if an action is allowed in current tutorial stage
@@ -1310,7 +1313,7 @@ canPerformAction(hero, sig) {
 if(!tutorialState || S.floor !== 0) return true; // Not in tutorial
 const stage = this.stages[tutorialState.stage];
 if(!stage) return true; // Unknown stage, allow
-if(tutorialState.stage === 'free') return true; // Tutorial complete
+if(stage.allowedActions === 'ALL') return true; // Free-form stage
 
 const allowed = stage.allowedActions;
 if(allowed.length === 0) return false; // No actions allowed in this stage
