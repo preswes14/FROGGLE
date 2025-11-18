@@ -1057,11 +1057,11 @@ console.log('%cIf you see a different version in the UI, clear your cache and re
 // ===== GAME DATA =====
 // Hero images
 const HERO_IMAGES = {
-        warrior: 'warriorfull.png',
-        tank: 'tankfull.png',
-        mage: 'magefull.png',
-        healer: 'healerfull.png',
-        tapo: 'tapofull.png'
+        warrior: 'assets/characters/warriorfull.png',
+        tank: 'assets/characters/tankfull.png',
+        mage: 'assets/characters/magefull.png',
+        healer: 'assets/characters/healerfull.png',
+        tapo: 'assets/characters/tapofull.png'
     };
 
 // Death's dialogue lines (cycles through without repeating until all used)
@@ -1786,7 +1786,6 @@ first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false
 },
-helpTipsDisabled: false,
 usedDeathQuotes: [] // Track which death quotes have been shown
 };
 
@@ -2811,7 +2810,7 @@ html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#fbbf24">A Special Gift</h2>
 <div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
 <div>
-<img src="magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<img src="assets/characters/magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
 <div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
 </div>
 <div style="font-size:3rem">🎁</div>
@@ -2986,7 +2985,7 @@ A Goblin and a Wolf appear from the portal!
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
-<img src="tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
+<img src="assets/characters/tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">🛡 On Guard!</div>
 </div>
 <div style="text-align:center">
@@ -2994,7 +2993,7 @@ A Goblin and a Wolf appear from the portal!
 <div style="font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Protected!</div>
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
-<img src="magefull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
+<img src="assets/characters/magefull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">📖 On Guard!</div>
 </div>
 </div>
@@ -3004,11 +3003,11 @@ A Goblin and a Wolf appear from the portal!
 </div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
-<img src="warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
+<img src="assets/characters/warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">⚔️ Attacking!</div>
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
-<img src="healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
+<img src="assets/characters/healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">✚ Attacking!</div>
 </div>
 </div>
