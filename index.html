@@ -2618,98 +2618,103 @@ Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Ribbleton's Defenders</h2>
-<div style="margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:200px;height:auto;animation:tapoBounce2 3s ease-in-out infinite">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#fbbf24">A Special Gift</h2>
+<div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
+<div>
+<img src="magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
+</div>
+<div style="font-size:3rem">🎁</div>
+<div style="animation:tapoBounceSmall 2s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="width:120px;height:auto">
+<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Tapo</div>
+</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
-<strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
+Mage promised to teach Tapo how to catch flies as a birthday present!<br>
+<strong>"Let's go find some flies together!"</strong> Mage said cheerfully.
 </p>
-<div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
-<div style="animation:partyFlip 2s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 5s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 3s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 4s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-</div>
 </div>
 <style>
-@keyframes tapoBounce2 {
-0% { transform: translateY(0) scaleX(1); }
-10% { transform: translateY(-20px) scaleX(1); }
-15% { transform: translateY(-10px) scaleX(1); }
-20% { transform: translateY(-25px) scaleX(1); }
-30% { transform: translateY(0) scaleX(1); }
-50% { transform: translateY(0) scaleX(-1); }
-60% { transform: translateY(-20px) scaleX(-1); }
-65% { transform: translateY(-10px) scaleX(-1); }
-70% { transform: translateY(-25px) scaleX(-1); }
-80% { transform: translateY(0) scaleX(-1); }
-100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes bounce {
-0%, 100% { transform: translateY(0) scale(1); }
-50% { transform: translateY(-20px) scale(1.05); }
-}
-@keyframes partyFlip {
-0%, 100% { transform: scaleX(1) rotate(0deg); }
-50% { transform: scaleX(-1) rotate(10deg); }
-}
-</style>
-`
-},
-{
-html: `
-<div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
-<div style="margin:1.5rem 0;position:relative">
-<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:portalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
-</div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Suddenly, <strong>a dark portal</strong> tore open in Ribbleton's square!<br>
-Strange, dangerous enemies began to emerge...
-</p>
-<div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
-<div style="animation:enemyAppear 1s ease-out">👺</div>
-<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
-</div>
-</div>
-<style>
-@keyframes shake {
-0%, 100% { transform: translateX(0); }
-25% { transform: translateX(-5px); }
-75% { transform: translateX(5px); }
-}
-@keyframes portalPulse {
-0%, 100% { transform: scale(1); opacity: 0.8; }
-50% { transform: scale(1.1); opacity: 1; }
-}
-@keyframes spin {
-from { transform: translate(-50%, -50%) rotate(0deg); }
-to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-@keyframes enemyAppear {
-from { transform: scale(0) rotate(-180deg); opacity: 0; }
-to { transform: scale(1) rotate(0deg); opacity: 1; }
+@keyframes tapoBounceSmall {
+0%, 100% { transform: translateY(0); }
+50% { transform: translateY(-15px); }
 }
 </style>
 `
 }
 ];
-slides.skippable = true; // Make tutorial skippable
+slides.skippable = true;
 slides.onComplete = () => {
-// Start combat FIRST so enemies are visible
-startRibbletonTutorial();
+// Start Phase 1: Tapo's Birthday tutorial
+startTaposBirthdayTutorial();
 
-// Then show narrative overlay describing what's happening
 setTimeout(() => {
-showTutorialStoryOverlay();
+showTaposBirthdayOverlay();
 }, 100);
 };
 console.log('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
 showNarrativeSlide(slides, 0);
 console.log('[FROGGLE] showNarrativeSlide called');
+}
+
+function showTaposBirthdayOverlay() {
+// Show Phase 1 narrative overlay
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:550px">
+<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+🪰 <strong>Three flies</strong> are buzzing around! 🪰
+</p>
+<p style="font-size:1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
+Help Mage catch them for Tapo's birthday!
+</p>
+<button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
+</div>`;
+document.body.appendChild(overlay);
+}
+
+function dismissTaposBirthdayOverlay() {
+const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+allBackdrops.forEach(backdrop => backdrop.remove());
+// Show first tutorial popup
+showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to catch a fly!", () => {
+tutorialState.stage = 'catching_flies';
+render();
+});
+}
+
+function startTaposBirthdayTutorial() {
+// Phase 1: Mage vs 3 Flies (no D20)
+S.floor = 0;
+S.xp = 0;
+S.levelUpCount = 0;
+S.heroes = [
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+];
+
+// Add permanent passives
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
+// Initialize Phase 1 tutorial state
+tutorialState = {
+stage: 'waiting_for_start',
+phase: 1, // Track which phase we're in
+fliesKilled: 0,
+round: 1
+};
+
+// Start combat with 3 Flies
+combat(0);
 }
 
 function showTutorialStoryOverlay() {
