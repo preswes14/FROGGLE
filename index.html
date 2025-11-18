@@ -3005,6 +3005,13 @@ v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.98</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'EFFED UP 🔥'}</span></p>
+
+<div style="text-align:center;margin-bottom:1rem">
+<button class="btn secondary" onclick="showFAQ()" style="padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold">
+❓ Help/FAQ
+</button>
+</div>
+
 ${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
 🏆 Champions of Floor 20 🏆
@@ -3483,7 +3490,7 @@ toast(`Asterisk activated! ${sig} ×${repeats}!`, 1500);
 
 if(sig === 'Ghost') {
 const level = getLevel('Ghost', heroIdx);
-if(level === 0) { toast('Ghost not unlocked!'); return; }
+if(level === 0) { toast(`${h.n} doesn't have Ghost! Add it in Level-Up menu (costs XP).`); return; }
 const totalCharges = level * repeats;
 h.g = Math.min((h.g || 0) + totalCharges, 9);
 toast(`${h.n} gained ${totalCharges} Ghost charge${totalCharges>1?'s':''}!`);
@@ -3495,7 +3502,7 @@ S.asteriskD20Count = 0;
 d20Menu(heroIdx);
 } else if(isMultiInstance(sig)) {
 const level = getLevel(sig, heroIdx);
-if(level === 0) { toast(`${sig} not unlocked!`); return; }
+if(level === 0) { toast(`${h.n} doesn't have ${sig}! Add it in Level-Up menu (costs XP).`); return; }
 S.pending = sig;
 S.instancesRemaining = level * repeats;
 S.totalInstances = level * repeats; // Track for color roll-down
@@ -3504,7 +3511,7 @@ S.currentInstanceTargets = [];
 render();
 } else if(sig === 'Grapple') {
 const level = getLevel('Grapple', heroIdx);
-if(level === 0) { toast('Grapple not unlocked!'); return; }
+if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
 S.pending = 'Grapple';
 S.grappleRepeats = repeats;
 S.grappleLevel = level;
@@ -3512,7 +3519,7 @@ S.targets = [];
 render();
 } else if(sig === 'Alpha') {
 const level = getLevel('Alpha', heroIdx);
-if(level === 0) { toast('Alpha not unlocked!'); return; }
+if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
@@ -3530,7 +3537,7 @@ if(S.locked) return;
 // RIBBLETON TUTORIAL: PROMPT 2 - Explain D20 gambit
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'healer_d20') {
 tutorialState.stage = 'd20_menu';
-showTutorialPop('ribbleton_d20_menu', "Choose a gambit action! Each has a difficulty check (DC) - roll the dice to try to succeed. Pick CONFUSE to damage the Wolf!", () => {
+showTutorialPop('ribbleton_d20_menu', "Choose a gambit action! Each has a DC (Difficulty Check) - a DC of 16 means you need to roll 16+ to succeed! Pick CONFUSE to damage the Wolf!", () => {
 // After prompt, show the d20 menu
 renderD20MenuAfterTutorial(heroIdx);
 });
