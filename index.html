@@ -1294,7 +1294,7 @@ html += '</div>';
 });
 html += '</div></div>';
 if(selected >= kills) {
-html += '<button class="btn" style="background:#dc2626;margin-top:1rem" onclick="confirmEncampmentKills()">Confirm Removals</button>';
+html += '<button class="btn danger" style="margin-top:1rem" onclick="confirmEncampmentKills()">Confirm Removals</button>';
 }
 return html;
 }
@@ -1692,7 +1692,7 @@ sigUpgradeCounts: {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost
 
 // ===== GAME PROGRESSION =====
 floor: 1,
-gameMode: 'Standard', // 'Standard' or 'Effed'
+gameMode: 'Standard', // 'Standard' or 'fu'
 runNumber: 1,
 currentSlot: null,
 gold: 0,
@@ -1739,7 +1739,7 @@ ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
 princeGender: 'Prince',          // Gender preference for quest line
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasAncientStatuette: false,
-effedUnlocked: false,
+fuUnlocked: false,
 tapoUnlocked: false,             // Unlocked after first FU victory
 
 // ===== UI STATE =====
@@ -2090,7 +2090,7 @@ sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
-effedUnlocked: S.effedUnlocked,
+fuUnlocked: S.fuUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 runsAttempted: S.runsAttempted,
@@ -2132,7 +2132,7 @@ savePermanent(); // Save the fix
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
-S.effedUnlocked = j.effedUnlocked || false;
+S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
@@ -2289,7 +2289,7 @@ savePermanent(); // Save the fix
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
-S.effedUnlocked = j.effedUnlocked || false;
+S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -2340,7 +2340,7 @@ sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
-effedUnlocked: S.effedUnlocked,
+fuUnlocked: S.fuUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
@@ -3163,7 +3163,7 @@ const maxSlots = 8;
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.98</p>
-<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
+<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
 
 <div style="text-align:center;margin-bottom:1rem">
 <button class="btn secondary" onclick="showFAQ()" style="padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold">
@@ -3171,7 +3171,7 @@ v.innerHTML = `
 </button>
 </div>
 
-${S.effedUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
+${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
 🏆 Champions of Floor 20 🏆
 </button></div>` : ''}
@@ -3330,7 +3330,7 @@ btn.style.opacity = sel.length === 2 ? '1' : '0.4';
 }
 
 function toggleMode() {
-S.gameMode = S.gameMode === 'Standard' ? 'Effed' : 'Standard';
+S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 savePermanent();
 title();
 }
@@ -3445,7 +3445,7 @@ function startFloor(f) {
 S.floor=f;
 upd();
 // Special: Floor 20 in Frogged Up mode shows Old Tapo encounter
-if(f === 20 && S.gameMode === 'Effed') {
+if(f === 20 && S.gameMode === 'fu') {
 showOldTapo();
 return;
 }
@@ -3529,13 +3529,13 @@ let comp = getEnemyComp(f);
 
 S.enemies = comp.map((t,i) => {
 const base = E[t];
-const effedMultiplier = S.gameMode === 'Effed' ? 3 : 1;
+const fuMultiplier = S.gameMode === 'fu' ? 3 : 1;
 const enemy = {
 id:`e${Date.now()}${i}`, n:base.n,
-p:base.p * effedMultiplier,
-h:base.h * effedMultiplier,
-m:base.m * effedMultiplier,
-goldDrop:(base.goldDrop || 0) * effedMultiplier, x:(base.x || 0) * effedMultiplier, s: [], pool: base.pool,
+p:base.p * fuMultiplier,
+h:base.h * fuMultiplier,
+m:base.m * fuMultiplier,
+goldDrop:(base.goldDrop || 0) * fuMultiplier, x:(base.x || 0) * fuMultiplier, s: [], pool: base.pool,
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
 st:0, li: i % S.heroes.length, sh:0, g:0, alphaActed: false
@@ -6329,13 +6329,13 @@ outcome = `${hero.n} slips past quietly. The enemies remain unaware.`;
 const comp = getEnemyComp(S.floor + 1);
 const stragglerType = comp[Math.floor(Math.random() * comp.length)];
 const base = E[stragglerType];
-const effedMultiplier = S.gameMode === 'Effed' ? 5 : 1;
+const fuMultiplier = S.gameMode === 'fu' ? 5 : 1;
 const straggler = {
 id: `recruit${Date.now()}`,
 n: base.n,
-p: base.p * effedMultiplier,
-h: base.h * effedMultiplier,
-m: base.m * effedMultiplier,
+p: base.p * fuMultiplier,
+h: base.h * fuMultiplier,
+m: base.m * fuMultiplier,
 g: base.g,
 x: base.x,
 s: [],
@@ -6989,7 +6989,7 @@ v.innerHTML = `
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
 "Well, it might be more profitable for <em>both</em> of us if I don't, you know… kill you. I have another arrangement in mind."
 </p>
-<button class="btn" onclick="completeDeathIntro()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem;margin:0 auto;display:block">Continue...</button>
+<button class="btn danger" onclick="completeDeathIntro()" style="font-size:1.2rem;padding:1rem 2rem;margin:0 auto;display:block">Continue...</button>
 </div>`;
 }
 
@@ -7158,7 +7158,7 @@ html += `</div>
 
 html += `
 <div style="text-align:center;margin-top:2rem">
-<button class="btn" onclick="restartAfterDeath()" style="background:#dc2626;font-size:1.2rem;padding:1rem 2rem">Return to Ribbleton</button>
+<button class="btn danger" onclick="restartAfterDeath()" style="font-size:1.2rem;padding:1rem 2rem">Return to Ribbleton</button>
 </div>
 </div>`;
 
@@ -7280,16 +7280,16 @@ let html = `
 <div style="background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.1));border:3px solid #fbbf24;border-radius:12px;padding:2rem;margin-bottom:1.5rem">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.5rem">⚱️ Pedestal of Champions</h2>
 <p style="text-align:center;margin-bottom:1.5rem;color:#666">Manage your hero figurines (${pedestalCount}/${maxSlots} placed)</p>
-<button class="btn" onclick="showPedestal()" style="background:#22c55e;font-size:1.1rem">View Pedestal</button>
+<button class="btn safe" onclick="showPedestal()" style="font-size:1.1rem">View Pedestal</button>
 </div>
 
 <div style="background:linear-gradient(135deg,rgba(220,38,38,0.1),rgba(127,29,29,0.1));border:3px solid #dc2626;border-radius:12px;padding:2rem;margin-bottom:1.5rem">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.5rem">🌀 Portal to Frogged Up Realm</h2>
 <p style="text-align:center;margin-bottom:1rem;color:#666">Switch between Standard and Frogged Up modes</p>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem">
-Current Mode: <strong style="color:${S.gameMode === 'Effed' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</strong>
+Current Mode: <strong style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</strong>
 </p>
-<button class="btn" onclick="toggleModeFromChampions()" style="background:${S.gameMode === 'Effed' ? '#22c55e' : '#dc2626'};font-size:1.1rem">
+<button class="btn" onclick="toggleModeFromChampions()" style="background:${S.gameMode === 'fu' ? '#22c55e' : '#dc2626'};font-size:1.1rem">
 Enter ${S.gameMode === 'Standard' ? 'Frogged Up Realm 🔥' : 'Standard Realm'}
 </button>
 </div>
@@ -7303,7 +7303,7 @@ v.innerHTML = html;
 }
 
 function toggleModeFromChampions() {
-S.gameMode = S.gameMode === 'Standard' ? 'Effed' : 'Standard';
+S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 showChampionsMenu();
 }
 
@@ -7457,13 +7457,13 @@ earnedFigurines.push(h.n);
 // Unlock Frogged Up mode if Standard victory
 const firstStandardVictory = S.gameMode === 'Standard' && !S.tutorialFlags.first_victory_sequence;
 if(S.gameMode === 'Standard') {
-S.effedUnlocked = true;
+S.fuUnlocked = true;
 if(firstStandardVictory) {
 S.tutorialFlags.first_victory_sequence = true;
 }
 }
 
-const firstFU = S.gameMode === 'Effed' && !S.tutorialFlags.first_fu_victory;
+const firstFU = S.gameMode === 'fu' && !S.tutorialFlags.first_fu_victory;
 if(firstFU) {
 S.tutorialFlags.first_fu_victory = true;
 // Note: Tapo is now unlocked at Floor 20 via Old Tapo encounter
@@ -7561,7 +7561,7 @@ v.innerHTML = `
 </div>
 
 <div style="text-align:center">
-<button class="btn" onclick="showStatueRoom()" style="background:#22c55e;padding:1rem 2rem;font-size:1.1rem;margin-bottom:1rem">Place Figurines</button>
+<button class="btn safe" onclick="showStatueRoom()" style="padding:1rem 2rem;font-size:1.1rem;margin-bottom:1rem">Place Figurines</button>
 <button class="btn" onclick="title()" style="padding:1rem 2rem;font-size:1.1rem">Play Again</button>
 </div>
 </div>`;
@@ -7617,7 +7617,7 @@ const v = document.getElementById('gameView');
 let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
 
-if(S.gameMode === 'Effed') {
+if(S.gameMode === 'fu') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
 } else {
 html += `<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
@@ -7720,7 +7720,7 @@ ${heroNames.map(h => `<option value="${h.idx}">${h.name} (POW:${S.heroes[h.idx].
 
 ${inCombat ? `
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Combat</h3>
-<button class="btn" onclick="debugDealDamage()" style="background:#dc2626">Deal 50 DMG to Enemy</button>
+<button class="btn danger" onclick="debugDealDamage()">Deal 50 DMG to Enemy</button>
 ` : ''}
 
 <h3 style="color:#fbbf24;margin:1rem 0 0.5rem 0">Cheats</h3>
@@ -7991,8 +7991,8 @@ a: `Enemies scale based on floor number and game mode:<br><br>
 • Floor 9: First Dragon (5 POW, 25 HP, draws 2 sigils/turn)<br>
 • Floor 15: Three Dragons (brutal difficulty spike!)<br>
 • Floor 11: Goblin Ambush (stunned Turn 1)<br><br>
-<strong>Effed Mode:</strong><br>
-• All enemy stats ×5!<br>
+<strong>Frogged Up Mode:</strong><br>
+• All enemy stats ×3!<br>
 • Floor 1 Goblins have 5 POW and 25 HP<br>
 • Designed for masochists only 🐸`
 },
@@ -8261,7 +8261,7 @@ S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, E
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
-S.effedUnlocked = j.effedUnlocked || false;
+S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
