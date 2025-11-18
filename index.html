@@ -1781,14 +1781,15 @@ addBonusTurnStack(cardId, count);
 }
 
 function toast(msg, dur=1200) {
-// Add to history
-S.toastHistory.unshift(msg);
+// Add to history (strip HTML for text log)
+const textMsg = msg.replace(/<[^>]*>/g, '');
+S.toastHistory.unshift(textMsg);
 if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20); // Keep last 20
 updateToastLog();
-// Show toast popup
+// Show toast popup (supports HTML)
 const t = document.createElement('div');
 t.className = 'toast';
-t.textContent = msg;
+t.innerHTML = msg; // Changed from textContent to innerHTML to support HTML
 document.body.appendChild(t);
 setTimeout(() => t.classList.add('show'), 10);
 setTimeout(() => {
@@ -2272,7 +2273,21 @@ return rollDice(d20Level, 20);
 }
 
 function showD20Result(rolls, best) {
-return `Rolling ${rolls.length}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+// Visual dice display with highlighted best roll
+const diceHTML = rolls.map(r => {
+const isBest = r === best;
+return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#22c55e' : '#1e293b'};border:2px solid ${isBest ? '#16a34a' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:#f1f5f9;font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(34,197,94,0.6);' : ''}">${r}</span>`;
+}).join(' ');
+return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
+}
+
+function formatD20Compact(rolls, best) {
+// Compact dice display for toasts/combat
+const diceHTML = rolls.map(r => {
+const isBest = r === best;
+return `<span style="display:inline-block;width:1.8rem;height:1.8rem;line-height:1.8rem;text-align:center;background:${isBest ? '#22c55e' : '#1e293b'};border:2px solid ${isBest ? '#16a34a' : '#475569'};border-radius:0.4rem;margin:0 0.15rem;font-weight:bold;color:#f1f5f9;font-size:1rem;vertical-align:middle;${isBest ? 'box-shadow:0 0 8px rgba(34,197,94,0.6);' : ''}">${r}</span>`;
+}).join('');
+return diceHTML;
 }
 
 function buildNeutralHTML(options) {
@@ -3605,14 +3620,14 @@ return;
 if(actionName === 'MEND') {
 const d20Level = getLevel('D20', heroIdx);
 const {rolls, best} = rollDice(d20Level, 20);
-const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+const rollText = formatD20Compact(rolls, best);
 const h = S.heroes[heroIdx];
 if(best >= dc) {
 const healAmount = h.p;
 h.h = Math.min(h.h + healAmount, h.m);
-toast(`${rollText} - SUCCESS! ${h.n} healed for ${healAmount} HP!`, 2000);
+toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} healed for ${healAmount} HP!`, 2000);
 } else {
-toast(`${rollText} - FAILED!`, 1800);
+toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
 }
 S.pending = null;
 render();
@@ -3642,10 +3657,10 @@ best = fudgedRoll;
 } else {
 ({rolls, best} = rollDice(d20Level, 20));
 }
-const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+const rollText = formatD20Compact(rolls, best);
 
 if(best >= dc) {
-toast(`${rollText} - SUCCESS!`, 1800);
+toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span>`, 1800);
 const targetNames = S.targets.map(id => {
 const e = S.enemies.find(e => e.id === id);
 return e ? e.n : null;
@@ -3666,7 +3681,7 @@ return;
 }
 finishD20Asterisk(heroIdx);
 } else {
-toast(`${rollText} - FAILED!`, 1800);
+toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
 if(S.asteriskD20Repeats > 1) {
 S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
