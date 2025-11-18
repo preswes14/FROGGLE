@@ -5515,24 +5515,25 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 // ===== 4. MUMBLING WIZARD =====
 function showWizard1() {
 const v = document.getElementById('gameView');
+let description = 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."<br><br>Choose which hero will approach the wizard:';
+let buttons = '';
+S.heroes.forEach((h, idx) => {
+buttons += `<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})">${h.n}</button>`;
+});
+buttons += `<button class="btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
+
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'Hieroglyphs on the Wall',
-description: 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."',
-buttons: `
-<button class="btn risky" onclick="approachWizard()">Approach the wizard</button>
-<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-`
+description,
+buttons
 });
 }
 
-function approachWizard() {
+function heroApproachesWizard(heroIdx) {
+const h = S.heroes[heroIdx];
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
-
-const sigilPool = ['Grapple', 'Heal', 'Ghost', 'Alpha', 'Star', 'Asterisk'];
-const randomSigil = sigilPool[Math.floor(Math.random() * sigilPool.length)];
-S.wizardSigil = randomSigil;
 
 const v = document.getElementById('gameView');
 
@@ -5541,64 +5542,87 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText,
-outcomes: ['You stare at the glowing symbols but can\'t make sense of them. The wizard sighs heavily: "You don\'t see it. How unfortunate. Please leave."'],
+outcomes: [`${h.n} stares at the glowing symbols but can't make sense of them. The wizard sighs heavily: "You don't see it. How unfortunate. Please leave."`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
-} else {
-const heroesWithSigil = [];
-S.heroes.forEach((h, idx) => {
-if(h.s.includes(randomSigil) || (h.ts && h.ts.includes(randomSigil))) {
-heroesWithSigil.push(idx);
+return;
 }
-});
 
-if(heroesWithSigil.length === 0) {
+// Non-starter sigil pool
+const nonStarterPool = ['Alpha', 'Asterisk', 'Star', 'Grapple', 'Ghost'];
+
+// Get sigils hero has from non-starter pool
+const heroNonStarters = nonStarterPool.filter(sig => h.s.includes(sig) || (h.ts && h.ts.includes(sig)));
+
+let chosenSigil;
+if(heroNonStarters.length > 0) {
+// Prioritize passives (Star, Asterisk, Ghost) if hero has any
+const heroPassives = heroNonStarters.filter(sig => ['Star', 'Asterisk', 'Ghost'].includes(sig));
+if(heroPassives.length > 0) {
+// On natural 20, prioritize lower level sigils
+if(best === 20) {
+heroPassives.sort((a, b) => getLevel(a, heroIdx) - getLevel(b, heroIdx));
+chosenSigil = heroPassives[0];
+} else {
+chosenSigil = heroPassives[Math.floor(Math.random() * heroPassives.length)];
+}
+} else {
+// No passives, pick from actives hero has
+if(best === 20) {
+heroNonStarters.sort((a, b) => getLevel(a, heroIdx) - getLevel(b, heroIdx));
+chosenSigil = heroNonStarters[0];
+} else {
+chosenSigil = heroNonStarters[Math.floor(Math.random() * heroNonStarters.length)];
+}
+}
+} else {
+// Hero has no non-starters, pick random from pool
+chosenSigil = nonStarterPool[Math.floor(Math.random() * nonStarterPool.length)];
+}
+
+const currentLevel = getLevel(chosenSigil, heroIdx);
+const bonusLevels = best === 20 ? 2 : 1;
+
+// Check if hero has the sigil
+const heroHasSigil = h.s.includes(chosenSigil) || (h.ts && h.ts.includes(chosenSigil));
+
+if(!heroHasSigil) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText,
 outcomes: [
-`The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard beams with pride.`,
-'But when he realizes none of you possess this sigil, his face falls: "Useless! All of you, useless! Get out!"'
+`The hieroglyph reveals itself as the symbol for ${chosenSigil}! The wizard beams with pride.`,
+`But ${h.n} doesn't possess this sigil. The wizard's face falls: "You don't have it? Useless! Get out!"`
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
-} else {
-let description = `The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard exclaims: "Yes! YES! You see it! One of you has this power already!" Choose which hero receives the upgrade:`;
-let buttons = '';
-heroesWithSigil.forEach(idx => {
-const h = S.heroes[idx];
-const currentLevel = getLevel(randomSigil, idx);
-buttons += `<button class="neutral-btn safe" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">${h.n} - ${sigilIcon(randomSigil)} L${currentLevel} → L${currentLevel+1}</button>`;
-});
+return;
+}
+
+// Hero has it! Grant temp upgrade
+if(!h.ts) h.ts = [];
+if(!h.ts.includes(chosenSigil)) h.ts.push(chosenSigil);
+
+const oldLevel = S.sig[chosenSigil] || 0;
+S.sig[chosenSigil] = oldLevel + bonusLevels;
+
+S.wizardHero = heroIdx;
+S.wizardSigil = chosenSigil;
+
+const critText = best === 20 ? ` <span style="color:#fbbf24;font-weight:bold">(CRITICAL!)</span>` : '';
+toast(`${chosenSigil} temporarily upgraded to L${S.sig[chosenSigil]} for ${h.n}!`, 1800);
+
+replaceStage1WithStage2('wizard');
+setTimeout(() => {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
-diceRoll: rollText,
-description,
-buttons
-});
-}
-}
-}
-
-function upgradeWizardSigil(heroIdx, sig) {
-const h = S.heroes[heroIdx];
-if(!h.ts) h.ts = [];
-if(!h.ts.includes(sig) && !h.s.includes(sig)) h.ts.push(sig);
-
-const oldLevel = S.sig[sig] || 0;
-S.sig[sig] = oldLevel + 1;
-
-toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 1800);
-replaceStage1WithStage2('wizard');
-setTimeout(() => {
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/wizard1.png',
+diceRoll: rollText + critText,
 outcomes: [
-`The wizard places his hands on ${h.n}'s head. The hieroglyph glows brighter, and power flows into them!`,
-'"Good, good! Now leave me to my studies."'
+`The hieroglyph reveals itself as the symbol for ${chosenSigil}! ${h.n} feels power surge through them.`,
+`${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels}!`,
+'"Yes! YES! You understand!" The wizard\'s eyes gleam. "But... there is more I can offer you, if you dare..."'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -5606,63 +5630,149 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function showWizard2() {
-if(!S.wizardSigil) {
+if(S.wizardHero === undefined || !S.wizardSigil) {
 nextFloor();
 return;
 }
 
-const sig = S.wizardSigil;
-const heroesWithSigil = [];
-S.heroes.forEach((h, idx) => {
-if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) {
-heroesWithSigil.push(idx);
-}
-});
-
-if(heroesWithSigil.length === 0) {
-nextFloor();
-return;
+// Initialize wizard challenge state
+if(!S.wizardChallenges) {
+S.wizardChallenges = [5, 10, 15, 20];
+S.wizardChallengeIndex = 0;
+S.wizardUpgradedSigils = [];
 }
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
-title: 'Sacrifice for Power',
-description: `The wizard channels arcane energy, his eyes glowing with power: "I can make this permanent... but all who carry ${sig} must sacrifice their current mastery. Do you accept?"<br><br><div style="font-size:0.85rem;margin-bottom:1rem;color:#b64141">Cost: All heroes lose ${sig} for THIS RUN ONLY<br>Benefit: ${sig} permanently upgraded in Sigilarium</div>`,
-buttons: `
-<button class="btn danger" onclick="acceptWizardSacrifice('${sig}')">Accept Sacrifice</button>
-<button class="btn" onclick="declineWizardSacrifice()">Decline</button>
-`
+title: 'Trials of Power',
+description: 'The wizard\'s eyes gleam with arcane power: "You have potential... but can you prove it? I offer you a series of trials. Each success earns you greater strength. But you must attempt them all - there is no turning back!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#666">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
+buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
+<button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
 });
 }
 
-function acceptWizardSacrifice(sig) {
-S.heroes.forEach(h => {
-if(h.s.includes(sig)) h.s = h.s.filter(s => s !== sig);
-if(h.ts && h.ts.includes(sig)) h.ts = h.ts.filter(s => s !== sig);
+function startWizardChallenges() {
+attemptWizardChallenge();
+}
+
+function attemptWizardChallenge() {
+const heroIdx = S.wizardHero;
+const h = S.heroes[heroIdx];
+const challengeIndex = S.wizardChallengeIndex;
+const dc = S.wizardChallenges[challengeIndex];
+
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+
+const v = document.getElementById('gameView');
+
+if(best < dc) {
+// Failed! Keep what you got
+const upgradeCount = S.wizardUpgradedSigils.length;
+let outcomeText = upgradeCount > 0
+? `${h.n} earned ${upgradeCount} temporary upgrade${upgradeCount > 1 ? 's' : ''} before failing!`
+: `${h.n} failed the first trial. No upgrades earned.`;
+
+removeNeutralFromDeck('wizard');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: `Trial ${challengeIndex + 1} - DC ${dc}`,
+diceRoll: rollText + ` - <span style="color:#dc2626">FAILED</span>`,
+outcomes: [
+`${h.n} could not meet the challenge!`,
+outcomeText,
+'"You have reached your limit. Take what you have earned and go."'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+return;
+}
+
+// Success! Choose a sigil to upgrade
+const heroSigils = [...h.s];
+if(h.ts) heroSigils.push(...h.ts);
+const availableSigils = heroSigils.filter(sig => !S.wizardUpgradedSigils.includes(sig));
+
+if(availableSigils.length === 0) {
+// No more sigils to upgrade
+removeNeutralFromDeck('wizard');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: `Trial ${challengeIndex + 1} - DC ${dc}`,
+diceRoll: rollText + ` - <span style="color:#22c55e">SUCCESS</span>`,
+outcomes: [
+`${h.n} passed the trial!`,
+`But ${h.n} has no more sigils available to upgrade!`,
+`Total upgrades earned: ${S.wizardUpgradedSigils.length}`,
+'"You have taken all I can offer. Go now."'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+return;
+}
+
+// Show sigil selection
+let description = `${h.n} passed the trial! Choose a sigil to upgrade temporarily (cannot pick the same sigil twice):`;
+let buttons = '';
+availableSigils.forEach(sig => {
+const currentLevel = getLevel(sig, heroIdx);
+buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIcon(sig)} ${sig} - L${currentLevel} → L${currentLevel + 1}</button>`;
 });
 
-S.sig[sig] = (S.sig[sig] || 0) + 1;
-toast(`${sig} PERMANENTLY upgraded to L${S.sig[sig]}!`, 1800);
-removeNeutralFromDeck('wizard');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: `Trial ${challengeIndex + 1} - DC ${dc}`,
+diceRoll: rollText + ` - <span style="color:#22c55e">SUCCESS</span>`,
+description,
+buttons
+});
+}
 
+function selectWizardUpgrade(sig) {
+const heroIdx = S.wizardHero;
+const h = S.heroes[heroIdx];
+
+// Apply temp upgrade
+if(!h.ts) h.ts = [];
+if(!h.ts.includes(sig)) h.ts.push(sig);
+
+const oldLevel = S.sig[sig] || 0;
+S.sig[sig] = oldLevel + 1;
+
+S.wizardUpgradedSigils.push(sig);
+toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 1800);
+
+S.wizardChallengeIndex++;
+
+// Check if more challenges remain
+if(S.wizardChallengeIndex >= S.wizardChallenges.length) {
+// All trials complete!
+removeNeutralFromDeck('wizard');
+setTimeout(() => {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 outcomes: [
-`The wizard's ritual completes. All knowledge of ${sig} drains from those who held it, but you feel the power crystallize into something greater.`,
-'"The sacrifice strengthens the foundation. Now go."'
+`${h.n} has completed all trials!`,
+`Total upgrades: ${S.wizardUpgradedSigils.length}`,
+'"Impressive! You have proven yourself worthy. Now go forth with your newfound power!"'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
+}, 500);
+} else {
+// Continue to next challenge
+setTimeout(() => attemptWizardChallenge(), 800);
+}
 }
 
-function declineWizardSacrifice() {
+function declineWizardChallenges() {
 removeNeutralFromDeck('wizard');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
-outcomes: ['The wizard\'s glow fades. He returns to mumbling at the wall, disappointed but unsurprised.'],
+outcomes: ['The wizard\'s glow fades. "Coward! You lack the will to seize greatness!" He returns to mumbling at the wall.'],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
