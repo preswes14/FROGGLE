@@ -980,19 +980,23 @@ tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alp
 };
 
 const E = {
+fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:1, pool:[], gainRate:999 },
 goblin: { n:'Goblin', p:1, h:5, m:5, goldDrop:1, x:2, pool:['Asterisk','Expand','Shield'], gainRate:3 },
 wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], gainRate:2 },
-orc: { n:'Orc', p:2, h:7, m:7, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
-giant: { n:'Giant', p:3, h:15, m:15, goldDrop:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
-dragon: { n:'Dragon', p:10, h:25, m:25, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
+orc: { n:'Orc', p:3, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
+giant: { n:'Giant', p:4, h:12, m:12, goldDrop:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
+caveTroll: { n:'Cave Troll', p:5, h:15, m:15, goldDrop:5, x:15, pool:'ANY', gainRate:1, startSigils:1 },
+dragon: { n:'Dragon', p:5, h:25, m:25, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
 };
 
 // Enemy emoji icons
 const ENEMY_EMOJI = {
+'Fly': '🪰',
 'Goblin': '👺',
 'Wolf': '🐺',
 'Orc': '👹',
 'Giant': '🗿',
+'Cave Troll': '👹',
 'Dragon': '🐉'
 };
 
@@ -1030,11 +1034,11 @@ const SIGIL_DESCRIPTIONS = {
 'Attack': 'Deal POW damage to target. L2: Attack twice. L3: Attack 3 times. L4: Attack 4 times. Stacks with Asterisk.',
 'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield persists between battles (capped at hero max HP).',
 'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
-'D20': 'Roll for crazy gambits: Confuse (damage), Startle (stun), Steal (gold), Scare (remove), Recruit (join team). Higher levels roll more dice, take best result.',
+'D20': 'Roll for crazy gambits: Confuse (damage), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team). Higher levels roll more dice, take best result.',
 'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
 'Grapple': 'Stun target for (Level) turns. You take damage equal to target\'s POW.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges).',
-'Asterisk': 'Click to activate, then your next action triggers (Level+1) times. Use once per combat. Enemies with Asterisk get extra attacks.',
+'Asterisk': 'PASSIVE: Your first action each combat is automatically multiplied by (Level+1). Works with any action. Enemies with Asterisk get extra attacks.',
 'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
 'Alpha': 'Grant target hero an extra action this turn. Higher levels grant more actions.'
 };
@@ -1214,8 +1218,7 @@ html += `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} he
 } else {
 const h = S.heroes[S.activeIdx];
 if(h) {
-if(S.asteriskPrimed) html += `${h.n}'s Turn - Asterisk ×${S.asteriskMultiplier} PRIMED!`;
-else if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
+if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
 else html += `${h.n}'s Turn`;
 }
 }
@@ -1288,7 +1291,10 @@ return {hpLost, shieldLost, totalDamage: rawDamage}; // Return detailed breakdow
 const TutorialManager = {
 // Tutorial stage definitions
 stages: {
+// Phase 1 stages
 'waiting_for_start': {allowedActions: []},
+'catching_flies': {allowedActions: 'ALL'}, // Phase 1: Free-form fly catching
+// Phase 2 stages
 'warrior_attack': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
 'targeting_wolf': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
 'healer_d20': {allowedActions: [{hero: 'Healer', sig: 'D20'}]},
@@ -1299,7 +1305,7 @@ stages: {
 'expand_targets': {allowedActions: [{hero: 'Healer', sig: 'Heal'}]},
 'finish_wolf': {allowedActions: [{hero: 'Warrior', sig: 'Attack'}]},
 'shield_sigil': {allowedActions: []},
-'free': {allowedActions: []} // Tutorial complete, allow all actions
+'free': {allowedActions: 'ALL'} // Tutorial complete, allow all actions
 },
 
 // Check if an action is allowed in current tutorial stage
@@ -1307,7 +1313,7 @@ canPerformAction(hero, sig) {
 if(!tutorialState || S.floor !== 0) return true; // Not in tutorial
 const stage = this.stages[tutorialState.stage];
 if(!stage) return true; // Unknown stage, allow
-if(tutorialState.stage === 'free') return true; // Tutorial complete
+if(stage.allowedActions === 'ALL') return true; // Free-form stage
 
 const allowed = stage.allowedActions;
 if(allowed.length === 0) return false; // No actions allowed in this stage
@@ -1439,11 +1445,11 @@ const descriptions = {
 'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
-'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (damage), Startle (stun), Steal (gold), Scare (remove), Recruit (join team)`,
+'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (damage), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
 'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Stun target for ${boldNum(level)} turn${level > 1 ? 's' : ''}. You take damage equal to target's POW`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
-'Asterisk': level === 0 ? 'Not unlocked' : `Click to activate. Your next action triggers ${boldNum(level + 1)} times. Use once per combat`,
+'Asterisk': level === 0 ? 'Not unlocked' : `PASSIVE: Your first action each combat automatically triggers ${boldNum(level + 1)} times. Works with any action type`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
 'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
 };
@@ -1563,10 +1569,6 @@ pending: null,
 targets: [],
 currentInstanceTargets: [],
 instancesRemaining: 0,
-// Asterisk state
-asteriskPrimed: false,
-asteriskMultiplier: 1,
-asteriskUsedThisCombat: false,
 lastActions: {},
 // Neutral encounter state
 neutralDeck: [],
@@ -2619,46 +2621,122 @@ Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Ribbleton's Defenders</h2>
-<div style="margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:200px;height:auto;animation:tapoBounce2 3s ease-in-out infinite">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#fbbf24">A Special Gift</h2>
+<div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
+<div>
+<img src="magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
+</div>
+<div style="font-size:3rem">🎁</div>
+<div style="animation:tapoBounceSmall 2s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="width:120px;height:auto">
+<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Tapo</div>
+</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Ribbletonians gathered around little Tapo as he blew out the candles on his birthday cake.<br>
-<strong>Ribbleton's 4 greatest warriors stood guard over the celebrations...</strong>
+Mage promised to teach Tapo how to catch flies as a birthday present!<br>
+<strong>"Let's go find some flies together!"</strong> Mage said cheerfully.
 </p>
-<div style="display:flex;justify-content:center;gap:1rem;margin:1.5rem 0;flex-wrap:wrap">
-<div style="animation:partyFlip 2s ease-in-out infinite"><img src="warriorfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 5s ease-in-out infinite"><img src="tankfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 3s ease-in-out infinite"><img src="magefull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-<div style="animation:partyFlip 4s ease-in-out infinite"><img src="healerfull.png" style="width:120px;height:auto;border-radius:8px;border:2px solid #fbbf24;box-shadow:0 4px 8px rgba(0,0,0,0.2)"></div>
-</div>
 </div>
 <style>
-@keyframes tapoBounce2 {
-0% { transform: translateY(0) scaleX(1); }
-10% { transform: translateY(-20px) scaleX(1); }
-15% { transform: translateY(-10px) scaleX(1); }
-20% { transform: translateY(-25px) scaleX(1); }
-30% { transform: translateY(0) scaleX(1); }
-50% { transform: translateY(0) scaleX(-1); }
-60% { transform: translateY(-20px) scaleX(-1); }
-65% { transform: translateY(-10px) scaleX(-1); }
-70% { transform: translateY(-25px) scaleX(-1); }
-80% { transform: translateY(0) scaleX(-1); }
-100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes bounce {
-0%, 100% { transform: translateY(0) scale(1); }
-50% { transform: translateY(-20px) scale(1.05); }
-}
-@keyframes partyFlip {
-0%, 100% { transform: scaleX(1) rotate(0deg); }
-50% { transform: scaleX(-1) rotate(10deg); }
+@keyframes tapoBounceSmall {
+0%, 100% { transform: translateY(0); }
+50% { transform: translateY(-15px); }
 }
 </style>
 `
-},
+}
+];
+slides.skippable = true;
+slides.onComplete = () => {
+// Start Phase 1: Tapo's Birthday tutorial
+startTaposBirthdayTutorial();
+
+setTimeout(() => {
+showTaposBirthdayOverlay();
+}, 100);
+};
+console.log('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
+showNarrativeSlide(slides, 0);
+console.log('[FROGGLE] showNarrativeSlide called');
+}
+
+function showTaposBirthdayOverlay() {
+// Show Phase 1 narrative overlay
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:550px">
+<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+🪰 <strong>Three flies</strong> are buzzing around! 🪰
+</p>
+<p style="font-size:1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
+Help Mage catch them for Tapo's birthday!
+</p>
+<button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
+</div>`;
+document.body.appendChild(overlay);
+}
+
+function dismissTaposBirthdayOverlay() {
+const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+allBackdrops.forEach(backdrop => backdrop.remove());
+// Show first tutorial popup
+showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to catch a fly!", () => {
+tutorialState.stage = 'catching_flies';
+render();
+});
+}
+
+function startTaposBirthdayTutorial() {
+// Phase 1: Mage vs 3 Flies (no D20)
+S.floor = 0;
+S.xp = 0;
+S.levelUpCount = 0;
+S.heroes = [
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+];
+
+// Add permanent passives
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
+// Initialize Phase 1 tutorial state
+tutorialState = {
+stage: 'waiting_for_start',
+phase: 1, // Track which phase we're in
+fliesKilled: 0,
+round: 1
+};
+
+// Start combat with 3 Flies
+combat(0);
+}
+
+function finishTaposBirthdayPhase() {
+// Phase 1 victory celebration
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="text-align:center;padding:2rem">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Mage and Tapo catch all the flies!<br>
+Tapo squeals with delight as they share the tasty treats together. 🎉
+</p>
+<button onclick="transitionToPortalInvasion()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1rem">Continue</button>
+</div>`;
+}
+
+function transitionToPortalInvasion() {
+// Show portal opening narrative
+const slides = [
 {
 html: `
 <div style="text-align:center">
@@ -2668,8 +2746,8 @@ html: `
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Suddenly, <strong>a dark portal</strong> tore open in Ribbleton's square!<br>
-Strange, dangerous enemies began to emerge...
+Suddenly, <strong>a dark portal</strong> tears open in the square!<br>
+Tank, Warrior, and Healer rush to defend Tapo and Mage!
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
 <div style="animation:enemyAppear 1s ease-out">👺</div>
@@ -2698,19 +2776,15 @@ to { transform: scale(1) rotate(0deg); opacity: 1; }
 `
 }
 ];
-slides.skippable = true; // Make tutorial skippable
 slides.onComplete = () => {
-// Start combat FIRST so enemies are visible
+// Start Phase 2: Portal Invasion
 startRibbletonTutorial();
 
-// Then show narrative overlay describing what's happening
 setTimeout(() => {
 showTutorialStoryOverlay();
 }, 100);
 };
-console.log('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
 showNarrativeSlide(slides, 0);
-console.log('[FROGGLE] showNarrativeSlide called');
 }
 
 function showTutorialStoryOverlay() {
@@ -2720,7 +2794,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-A Goblin and a Wolf have appeared from the portal!
+A Goblin and a Wolf appear from the portal!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -2821,15 +2895,16 @@ toast('Going to hero selection...');
 title();
 }
 
-// ===== RIBBLETON TUTORIAL =====
+// ===== RIBBLETON TUTORIAL (PHASE 2) =====
 function startRibbletonTutorial() {
-// Set up tutorial heroes
-S.floor = 0; // Special floor 0 for tutorial
-// NOTE: Gold persists! Don't reset it here
+// Phase 2: Portal Invasion - All 4 heroes, Mage now has D20
+S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
+{id:'h_tutorial_tank', n:'Tank', p:1, h:10, m:10, s:['Shield','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
 {id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
@@ -2838,16 +2913,16 @@ const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 S.heroes.forEach(hero => {
 passiveSigils.forEach(passive => {
 const permLevel = S.sig[passive] || 0;
-// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
 if(permLevel > 0 && !hero.s.includes(passive)) {
 hero.s.push(passive);
 }
 });
 });
 
-// Initialize tutorial state
+// Initialize Phase 2 tutorial state
 tutorialState = {
-stage: 'waiting_for_start', // Will transition to 'warrior_attack' after overlay dismissal
+stage: 'waiting_for_start',
+phase: 2, // Phase 2: Portal Invasion
 wolfDamaged: false,
 wolfKilled: false,
 goblinKilled: false,
@@ -2862,9 +2937,9 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative
 const slides = [
-{text: "The few enemies remaining around Ribbleton scampered back into the portal from whence they came. Relieved, and sheathing their weapons, the frog heroes assembled to try to pick up the string of their failed party - but Tapo was missing!!"},
-{text: "As the Ribbletonians looked high and low, our heroes realized there was only one possibility - the poor tadpole had squiggled his way through!"},
-{text: "Without a thought for their lives, the brave heroes dove into the swirling darkness..."}
+{text: "The few enemies remaining around Ribbleton scamper back into the portal. Relieved, the frog heroes sheathe their weapons and look for Tapo - but he's missing!!"},
+{text: "As the Ribbletonians search high and low, the heroes realize there's only one possibility - the poor tadpole has squiggled his way through the portal!"},
+{text: "Without a thought for their lives, the brave heroes dive into the swirling darkness..."}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -3184,7 +3259,14 @@ neutral(f);
 
 function getEnemyComp(f) {
 const heroCount = S.heroes.length;
-if(f===0) return ['goblin', 'wolf']; // Tutorial floor
+if(f===0) {
+// Tutorial floor - check phase
+if(tutorialState && tutorialState.phase === 1) {
+return ['fly', 'fly', 'fly']; // Phase 1: Tapo's Birthday
+} else {
+return ['goblin', 'wolf']; // Phase 2: Portal Invasion
+}
+}
 if(f===1) return Array(heroCount).fill('goblin');
 if(f===3) return Array(heroCount).fill('wolf');
 if(f===5) return Array(heroCount * 2).fill('orc');
@@ -3209,7 +3291,7 @@ return ['goblin'];
 // ===== COMBAT (v7.2 PERFECT COMBAT - UNCHANGED) =====
 function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
-S.lastActions={}; S.asteriskUsedThisCombat=false; S.asteriskPrimed=false; S.asteriskMultiplier=1;
+S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
@@ -3219,6 +3301,8 @@ S.heroes.forEach(h => {
 if(h.sh > h.m) h.sh = h.m;
 h.st=0;
 if(!h.ts) h.ts=[];
+// Passive Asterisk: Reset first action flag each combat
+h.firstActionUsed = false;
 // If ambushed, stun all heroes turn 1
 if(S.ambushed) h.st = 1;
 });
@@ -3295,11 +3379,16 @@ function needsEnemyTarget(action) { return ['Attack', 'Grapple'].includes(action
 function needsHeroTarget(action) { return ['Heal', 'Shield', 'Alpha'].includes(action); }
 function isMultiInstance(action) { return ['Attack', 'Shield', 'Heal'].includes(action); }
 
-function getD20DC(baseDC, heroIdx) {
+function getD20DC(baseDC, heroIdx, gambitName) {
 const h = S.heroes[heroIdx];
 if(!h.ls) return baseDC;
-// Cap Last Stand DC increase at +4 (so CONFUSE maxes at DC 20)
-return baseDC + Math.min(h.lst, 4);
+// Last Stand: +2 immediately, then +2 each turn (h.lst counts turns in Last Stand)
+const lastStandBonus = (h.lst + 1) * 2;
+// Confuse caps at DC 20, all other gambits continue increasing
+if(gambitName === 'CONFUSE') {
+return Math.min(baseDC + lastStandBonus, 20);
+}
+return baseDC + lastStandBonus;
 }
 
 function selectHero(idx) {
@@ -3344,25 +3433,16 @@ if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 if(h.ls && sig !== 'D20') { toast('Last Stand - D20 only!'); return; }
 S.activeIdx = heroIdx;
 
-if(sig === 'Asterisk') {
-const level = getLevel('Asterisk', heroIdx);
-if(level === 0) { toast('Asterisk not unlocked!'); return; }
-if(S.asteriskUsedThisCombat) { toast('Asterisk already used this combat!'); return; }
-S.asteriskPrimed = true;
-S.asteriskMultiplier = level + 1;
-toast(`Asterisk primed! Next action ×${S.asteriskMultiplier}`);
-render();
-return;
-}
+// PASSIVE ASTERISK: Auto-apply on first action per combat
+const asteriskLevel = getLevel('Asterisk', heroIdx);
+const hasAsterisk = asteriskLevel > 0;
+const firstAction = !h.firstActionUsed;
+let repeats = 1;
 
-const repeats = S.asteriskPrimed ? S.asteriskMultiplier : 1;
-if(S.asteriskPrimed) {
-S.asteriskUsedThisCombat = true;
-S.asteriskPrimed = false;
-// Remove bonus turn stack
-const hero = S.heroes[heroIdx];
-if(hero) removeBonusTurnStack(hero.id, true);
-toast(`Asterisk: ${sig} ×${repeats}!`);
+if(hasAsterisk && firstAction) {
+repeats = asteriskLevel + 1;
+h.firstActionUsed = true;
+toast(`Asterisk activated! ${sig} ×${repeats}!`, 1500);
 }
 
 if(sig === 'Ghost') {
@@ -3436,15 +3516,15 @@ if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #fbbf24;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 16, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
-<strong style="font-size:1.2rem">✅ DC 16: CONFUSE</strong><br>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 12, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
+<strong style="font-size:1.2rem">✅ DC 12: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal damage = enemy POW</span>
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:17, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:14, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:16, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
-{dc:19, name:'SCARE', desc:'Remove from battle'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
 lockedOptions.forEach(opt => {
@@ -3469,16 +3549,19 @@ if(S.asteriskD20Repeats > 1) {
 html += `<p style="margin-bottom:0.5rem;color:#f59e0b">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
 html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
 }
-if(h.ls && h.lst > 0) html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${h.lst}</p>`;
+if(h.ls && h.lst >= 0) {
+const lsBonus = (h.lst + 1) * 2;
+html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
+}
 const options = [
-{dc:16, name:'CONFUSE', desc:'Deal damage = enemy POW'},
-{dc:17, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:12, name:'CONFUSE', desc:'Deal damage = enemy POW'},
+{dc:14, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:16, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
-{dc:19, name:'SCARE', desc:'Remove from battle'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
 options.forEach(opt => {
-const adjustedDC = getD20DC(opt.dc, heroIdx);
+const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.5rem">
 <strong>${dcText}: ${opt.name}</strong><br>
@@ -3518,6 +3601,25 @@ render();
 return;
 }
 
+// MEND is self-targeting, execute immediately
+if(actionName === 'MEND') {
+const d20Level = getLevel('D20', heroIdx);
+const {rolls, best} = rollDice(d20Level, 20);
+const rollText = `Rolling ${d20Level}d20: [${rolls.join('] [')}] → Highest: ${best}`;
+const h = S.heroes[heroIdx];
+if(best >= dc) {
+const healAmount = h.p;
+h.h = Math.min(h.h + healAmount, h.m);
+toast(`${rollText} - SUCCESS! ${h.n} healed for ${healAmount} HP!`, 2000);
+} else {
+toast(`${rollText} - FAILED!`, 1800);
+}
+S.pending = null;
+render();
+checkTurnEnd();
+return;
+}
+
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
@@ -3550,7 +3652,7 @@ return e ? e.n : null;
 }).filter(n => n);
 S.targets.forEach(targetId => executeD20ActionOnTarget(targetId, actionName));
 if(targetNames.length > 0) {
-const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed', 'SCARE': 'scared away', 'RECRUIT': 'recruited'};
+const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed', 'RECRUIT': 'recruited'};
 if(actionName !== 'STEAL') toast(`${targetNames.join(', ')} ${actionDesc[actionName]}!`, 2500);
 }
 if(S.asteriskD20Repeats > 1) {
@@ -3596,13 +3698,6 @@ const gold = enemy.p;
 S.gold += gold;
 upd();
 toast(`Stole ${gold} Gold from ${enemy.n}!`);
-} else if(action === 'SCARE') {
-if(enemy.n.includes('Dragon')) { toast(`${enemy.n} immune to SCARE!`); return; }
-setTimeout(() => {
-S.enemies = S.enemies.filter(e => e.id !== enemyId);
-render();
-checkCombatEnd();
-}, 300);
 } else if(action === 'RECRUIT') {
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
@@ -4535,7 +4630,13 @@ S.combatXP = 0;
 S.combatGold = 0;
 setTimeout(() => {
 toast('Victory!');
+if(tutorialState && tutorialState.phase === 1) {
+// Phase 1 complete: Transition to Phase 2
+setTimeout(finishTaposBirthdayPhase, 1000);
+} else {
+// Phase 2 complete: Finish tutorial
 setTimeout(finishRibbletonTutorial, 1000);
+}
 }, 500);
 return true;
 }
@@ -4698,11 +4799,10 @@ visualLvl = Math.max(0, lvl - usedInstances);
 const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
 // Allow clicking sigils if: hero hasn't acted, not stunned, and either (no pending action OR pending but no instances committed yet)
 const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances);
-const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Asterisk','Alpha'].includes(s);
-const isPrimed = (s === 'Asterisk' && S.asteriskPrimed && S.activeIdx === i);
+const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Alpha'].includes(s);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
-const isPassive = ['Expand', 'Star'].includes(s);
-html += `<span class="sigil ${cl} ${isPassive?'passive':''} ${isPrimed?'asterisk-primed':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
+const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
+html += `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), 500)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
 });
@@ -4768,13 +4868,6 @@ v.innerHTML = html;
 
 // Apply bonus turn stacks after DOM is updated
 setTimeout(() => {
-// Show Asterisk bonus turn stacks
-if(S.asteriskPrimed && S.activeIdx >= 0) {
-const activeHero = S.heroes[S.activeIdx];
-if(activeHero) {
-addBonusTurnStack(activeHero.id, S.asteriskMultiplier);
-}
-}
 // Show Alpha-granted action stacks
 if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
 // Count remaining actions for each hero
@@ -4904,7 +4997,7 @@ levelUpMenu();
 }
 
 function upgradeSigil() {
-showTutorialPop('levelup_upgrade_active', "Each active sigil works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack can attack twice with 1 action! Passive sigils (Expand, Ghost, Asterisk, Star) work differently - they apply globally to all heroes and enhance your existing actions!");
+showTutorialPop('levelup_upgrade_active', "Each active sigil works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack can attack twice with 1 action! Passive sigils (Expand, Asterisk, Star) work differently - they apply globally to all heroes and enhance your existing actions automatically!");
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
@@ -5010,7 +5103,7 @@ if(S.xp < cost) return;
 const isPassive = ['Expand', 'Star'].includes(sig);
 const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(isPassive && currentLevel === 0) {
-showTutorialPop('levelup_upgrade_passive', "Expand and Star are PASSIVE sigils - they're always active and work automatically! No need to click them in battle (except Asterisk, which must be primed).");
+showTutorialPop('levelup_upgrade_passive', "Expand, Asterisk, and Star are PASSIVE sigils - they're always active and work automatically! No need to click them in battle.");
 }
 
 S.xp -= cost;
@@ -5511,24 +5604,25 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 // ===== 4. MUMBLING WIZARD =====
 function showWizard1() {
 const v = document.getElementById('gameView');
+let description = 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."<br><br>Choose which hero will approach the wizard:';
+let buttons = '';
+S.heroes.forEach((h, idx) => {
+buttons += `<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})">${h.n}</button>`;
+});
+buttons += `<button class="btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
+
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'Hieroglyphs on the Wall',
-description: 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."',
-buttons: `
-<button class="btn risky" onclick="approachWizard()">Approach the wizard</button>
-<button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
-`
+description,
+buttons
 });
 }
 
-function approachWizard() {
+function heroApproachesWizard(heroIdx) {
+const h = S.heroes[heroIdx];
 const {rolls, best} = rollD20Neutral();
 const rollText = showD20Result(rolls, best);
-
-const sigilPool = ['Grapple', 'Heal', 'Ghost', 'Alpha', 'Star', 'Asterisk'];
-const randomSigil = sigilPool[Math.floor(Math.random() * sigilPool.length)];
-S.wizardSigil = randomSigil;
 
 const v = document.getElementById('gameView');
 
@@ -5537,64 +5631,87 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText,
-outcomes: ['You stare at the glowing symbols but can\'t make sense of them. The wizard sighs heavily: "You don\'t see it. How unfortunate. Please leave."'],
+outcomes: [`${h.n} stares at the glowing symbols but can't make sense of them. The wizard sighs heavily: "You don't see it. How unfortunate. Please leave."`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
-} else {
-const heroesWithSigil = [];
-S.heroes.forEach((h, idx) => {
-if(h.s.includes(randomSigil) || (h.ts && h.ts.includes(randomSigil))) {
-heroesWithSigil.push(idx);
+return;
 }
-});
 
-if(heroesWithSigil.length === 0) {
+// Non-starter sigil pool
+const nonStarterPool = ['Alpha', 'Asterisk', 'Star', 'Grapple', 'Ghost'];
+
+// Get sigils hero has from non-starter pool
+const heroNonStarters = nonStarterPool.filter(sig => h.s.includes(sig) || (h.ts && h.ts.includes(sig)));
+
+let chosenSigil;
+if(heroNonStarters.length > 0) {
+// Prioritize passives (Star, Asterisk, Ghost) if hero has any
+const heroPassives = heroNonStarters.filter(sig => ['Star', 'Asterisk', 'Ghost'].includes(sig));
+if(heroPassives.length > 0) {
+// On natural 20, prioritize lower level sigils
+if(best === 20) {
+heroPassives.sort((a, b) => getLevel(a, heroIdx) - getLevel(b, heroIdx));
+chosenSigil = heroPassives[0];
+} else {
+chosenSigil = heroPassives[Math.floor(Math.random() * heroPassives.length)];
+}
+} else {
+// No passives, pick from actives hero has
+if(best === 20) {
+heroNonStarters.sort((a, b) => getLevel(a, heroIdx) - getLevel(b, heroIdx));
+chosenSigil = heroNonStarters[0];
+} else {
+chosenSigil = heroNonStarters[Math.floor(Math.random() * heroNonStarters.length)];
+}
+}
+} else {
+// Hero has no non-starters, pick random from pool
+chosenSigil = nonStarterPool[Math.floor(Math.random() * nonStarterPool.length)];
+}
+
+const currentLevel = getLevel(chosenSigil, heroIdx);
+const bonusLevels = best === 20 ? 2 : 1;
+
+// Check if hero has the sigil
+const heroHasSigil = h.s.includes(chosenSigil) || (h.ts && h.ts.includes(chosenSigil));
+
+if(!heroHasSigil) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText,
 outcomes: [
-`The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard beams with pride.`,
-'But when he realizes none of you possess this sigil, his face falls: "Useless! All of you, useless! Get out!"'
+`The hieroglyph reveals itself as the symbol for ${chosenSigil}! The wizard beams with pride.`,
+`But ${h.n} doesn't possess this sigil. The wizard's face falls: "You don't have it? Useless! Get out!"`
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
-} else {
-let description = `The hieroglyph reveals itself as the symbol for ${randomSigil}! The wizard exclaims: "Yes! YES! You see it! One of you has this power already!" Choose which hero receives the upgrade:`;
-let buttons = '';
-heroesWithSigil.forEach(idx => {
-const h = S.heroes[idx];
-const currentLevel = getLevel(randomSigil, idx);
-buttons += `<button class="neutral-btn safe" onclick="upgradeWizardSigil(${idx}, '${randomSigil}')">${h.n} - ${sigilIcon(randomSigil)} L${currentLevel} → L${currentLevel+1}</button>`;
-});
+return;
+}
+
+// Hero has it! Grant temp upgrade
+if(!h.ts) h.ts = [];
+if(!h.ts.includes(chosenSigil)) h.ts.push(chosenSigil);
+
+const oldLevel = S.sig[chosenSigil] || 0;
+S.sig[chosenSigil] = oldLevel + bonusLevels;
+
+S.wizardHero = heroIdx;
+S.wizardSigil = chosenSigil;
+
+const critText = best === 20 ? ` <span style="color:#fbbf24;font-weight:bold">(CRITICAL!)</span>` : '';
+toast(`${chosenSigil} temporarily upgraded to L${S.sig[chosenSigil]} for ${h.n}!`, 1800);
+
+replaceStage1WithStage2('wizard');
+setTimeout(() => {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
-diceRoll: rollText,
-description,
-buttons
-});
-}
-}
-}
-
-function upgradeWizardSigil(heroIdx, sig) {
-const h = S.heroes[heroIdx];
-if(!h.ts) h.ts = [];
-if(!h.ts.includes(sig) && !h.s.includes(sig)) h.ts.push(sig);
-
-const oldLevel = S.sig[sig] || 0;
-S.sig[sig] = oldLevel + 1;
-
-toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 1800);
-replaceStage1WithStage2('wizard');
-setTimeout(() => {
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/wizard1.png',
+diceRoll: rollText + critText,
 outcomes: [
-`The wizard places his hands on ${h.n}'s head. The hieroglyph glows brighter, and power flows into them!`,
-'"Good, good! Now leave me to my studies."'
+`The hieroglyph reveals itself as the symbol for ${chosenSigil}! ${h.n} feels power surge through them.`,
+`${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels}!`,
+'"Yes! YES! You understand!" The wizard\'s eyes gleam. "But... there is more I can offer you, if you dare..."'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -5602,63 +5719,149 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function showWizard2() {
-if(!S.wizardSigil) {
+if(S.wizardHero === undefined || !S.wizardSigil) {
 nextFloor();
 return;
 }
 
-const sig = S.wizardSigil;
-const heroesWithSigil = [];
-S.heroes.forEach((h, idx) => {
-if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) {
-heroesWithSigil.push(idx);
-}
-});
-
-if(heroesWithSigil.length === 0) {
-nextFloor();
-return;
+// Initialize wizard challenge state
+if(!S.wizardChallenges) {
+S.wizardChallenges = [5, 10, 15, 20];
+S.wizardChallengeIndex = 0;
+S.wizardUpgradedSigils = [];
 }
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
-title: 'Sacrifice for Power',
-description: `The wizard channels arcane energy, his eyes glowing with power: "I can make this permanent... but all who carry ${sig} must sacrifice their current mastery. Do you accept?"<br><br><div style="font-size:0.85rem;margin-bottom:1rem;color:#b64141">Cost: All heroes lose ${sig} for THIS RUN ONLY<br>Benefit: ${sig} permanently upgraded in Sigilarium</div>`,
-buttons: `
-<button class="btn danger" onclick="acceptWizardSacrifice('${sig}')">Accept Sacrifice</button>
-<button class="btn" onclick="declineWizardSacrifice()">Decline</button>
-`
+title: 'Trials of Power',
+description: 'The wizard\'s eyes gleam with arcane power: "You have potential... but can you prove it? I offer you a series of trials. Each success earns you greater strength. But you must attempt them all - there is no turning back!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#666">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
+buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
+<button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
 });
 }
 
-function acceptWizardSacrifice(sig) {
-S.heroes.forEach(h => {
-if(h.s.includes(sig)) h.s = h.s.filter(s => s !== sig);
-if(h.ts && h.ts.includes(sig)) h.ts = h.ts.filter(s => s !== sig);
+function startWizardChallenges() {
+attemptWizardChallenge();
+}
+
+function attemptWizardChallenge() {
+const heroIdx = S.wizardHero;
+const h = S.heroes[heroIdx];
+const challengeIndex = S.wizardChallengeIndex;
+const dc = S.wizardChallenges[challengeIndex];
+
+const {rolls, best} = rollD20Neutral();
+const rollText = showD20Result(rolls, best);
+
+const v = document.getElementById('gameView');
+
+if(best < dc) {
+// Failed! Keep what you got
+const upgradeCount = S.wizardUpgradedSigils.length;
+let outcomeText = upgradeCount > 0
+? `${h.n} earned ${upgradeCount} temporary upgrade${upgradeCount > 1 ? 's' : ''} before failing!`
+: `${h.n} failed the first trial. No upgrades earned.`;
+
+removeNeutralFromDeck('wizard');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: `Trial ${challengeIndex + 1} - DC ${dc}`,
+diceRoll: rollText + ` - <span style="color:#dc2626">FAILED</span>`,
+outcomes: [
+`${h.n} could not meet the challenge!`,
+outcomeText,
+'"You have reached your limit. Take what you have earned and go."'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+return;
+}
+
+// Success! Choose a sigil to upgrade
+const heroSigils = [...h.s];
+if(h.ts) heroSigils.push(...h.ts);
+const availableSigils = heroSigils.filter(sig => !S.wizardUpgradedSigils.includes(sig));
+
+if(availableSigils.length === 0) {
+// No more sigils to upgrade
+removeNeutralFromDeck('wizard');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: `Trial ${challengeIndex + 1} - DC ${dc}`,
+diceRoll: rollText + ` - <span style="color:#22c55e">SUCCESS</span>`,
+outcomes: [
+`${h.n} passed the trial!`,
+`But ${h.n} has no more sigils available to upgrade!`,
+`Total upgrades earned: ${S.wizardUpgradedSigils.length}`,
+'"You have taken all I can offer. Go now."'
+],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+return;
+}
+
+// Show sigil selection
+let description = `${h.n} passed the trial! Choose a sigil to upgrade temporarily (cannot pick the same sigil twice):`;
+let buttons = '';
+availableSigils.forEach(sig => {
+const currentLevel = getLevel(sig, heroIdx);
+buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIcon(sig)} ${sig} - L${currentLevel} → L${currentLevel + 1}</button>`;
 });
 
-S.sig[sig] = (S.sig[sig] || 0) + 1;
-toast(`${sig} PERMANENTLY upgraded to L${S.sig[sig]}!`, 1800);
-removeNeutralFromDeck('wizard');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: `Trial ${challengeIndex + 1} - DC ${dc}`,
+diceRoll: rollText + ` - <span style="color:#22c55e">SUCCESS</span>`,
+description,
+buttons
+});
+}
 
+function selectWizardUpgrade(sig) {
+const heroIdx = S.wizardHero;
+const h = S.heroes[heroIdx];
+
+// Apply temp upgrade
+if(!h.ts) h.ts = [];
+if(!h.ts.includes(sig)) h.ts.push(sig);
+
+const oldLevel = S.sig[sig] || 0;
+S.sig[sig] = oldLevel + 1;
+
+S.wizardUpgradedSigils.push(sig);
+toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 1800);
+
+S.wizardChallengeIndex++;
+
+// Check if more challenges remain
+if(S.wizardChallengeIndex >= S.wizardChallenges.length) {
+// All trials complete!
+removeNeutralFromDeck('wizard');
+setTimeout(() => {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 outcomes: [
-`The wizard's ritual completes. All knowledge of ${sig} drains from those who held it, but you feel the power crystallize into something greater.`,
-'"The sacrifice strengthens the foundation. Now go."'
+`${h.n} has completed all trials!`,
+`Total upgrades: ${S.wizardUpgradedSigils.length}`,
+'"Impressive! You have proven yourself worthy. Now go forth with your newfound power!"'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
+}, 500);
+} else {
+// Continue to next challenge
+setTimeout(() => attemptWizardChallenge(), 800);
+}
 }
 
-function declineWizardSacrifice() {
+function declineWizardChallenges() {
 removeNeutralFromDeck('wizard');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
-outcomes: ['The wizard\'s glow fades. He returns to mumbling at the wall, disappointed but unsurprised.'],
+outcomes: ['The wizard\'s glow fades. "Coward! You lack the will to seize greatness!" He returns to mumbling at the wall.'],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
@@ -7446,10 +7649,11 @@ q: "What are Star and Asterisk sigils?",
 a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5× XP bonus per Star level.<br>
 • 2 heroes with Star L1 = +1.0× bonus = 2× total XP<br>
 • Star is extremely powerful for long-term scaling!<br><br>
-<strong>Asterisk:</strong> Once per combat, prime Asterisk to multiply your next action.<br>
-• Asterisk L1: ×2 your next action<br>
-• Asterisk L4: ×5 your next action<br>
-• After priming, your next action (Attack, Shield, Heal, etc.) repeats multiple times<br>
+<strong>Asterisk:</strong> PASSIVE - Automatically multiplies your first action each combat.<br>
+• Asterisk L1: First action triggers ×2<br>
+• Asterisk L4: First action triggers ×5<br>
+• Works with ANY action: Attack, Shield, Heal, D20 gambits, etc.<br>
+• No activation needed - happens automatically on your first action<br>
 • Can be combined with Alpha for devastating combos!`
 },
 {
@@ -7457,7 +7661,7 @@ q: "How does enemy difficulty scale?",
 a: `Enemies scale based on floor number and game mode:<br><br>
 <strong>Standard Mode:</strong><br>
 • Floor 1-5: Goblins (1 POW), Wolves (2 POW), Orcs (3 POW)<br>
-• Floor 9: First Dragon (10 POW, 25 HP, draws 2 sigils/turn)<br>
+• Floor 9: First Dragon (5 POW, 25 HP, draws 2 sigils/turn)<br>
 • Floor 15: Three Dragons (brutal difficulty spike!)<br>
 • Floor 11: Goblin Ambush (stunned Turn 1)<br><br>
 <strong>Effed Mode:</strong><br>
@@ -7469,10 +7673,10 @@ a: `Enemies scale based on floor number and game mode:<br><br>
 q: "What's the best strategy for surviving Dragon floors?",
 a: `Dragons (Floors 9, 15, 19) are massive difficulty spikes. Here's how to survive:<br><br>
 <strong>1. Stack Grapple:</strong> Dragons have high HP but Grapple stuns them for multiple turns<br>
-<strong>2. Shield Early:</strong> Dragons deal 10+ damage per attack - shields save lives<br>
+<strong>2. Shield Early:</strong> Dragons deal 5 base damage (more with Attack sigils) - shields save lives<br>
 <strong>3. Recruit Help:</strong> Recruited enemies can tank hits and deal damage<br>
-<strong>4. Use D20 SCARE:</strong> Dragons are immune to SCARE, but other enemies aren't<br>
-<strong>5. Asterisk + Attack:</strong> Burst damage before they gain too many sigils<br><br>
+<strong>4. Asterisk + Attack:</strong> Burst damage before they gain too many sigils<br>
+<strong>5. Use Mend:</strong> D20 Mend can heal your heroes mid-combat to survive longer<br><br>
 Dragons gain 2 sigils per turn and have permanent Attack L2 + Expand L5. Don't let combat drag on!`
 }
 ];
