@@ -7276,35 +7276,46 @@ const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
 
 let html = `
-<div style="max-width:700px;margin:0 auto;padding:2rem">
-<h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+<div style="position:relative;max-width:800px;margin:0 auto">
+<h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
 🏆 Champions of Floor 20 🏆
 </h1>
-<p style="text-align:center;margin-bottom:2rem;font-size:1.1rem;color:#666">You conquered the depths and earned these rewards!</p>
 
-<div style="background:linear-gradient(135deg,rgba(251,191,36,0.1),rgba(245,158,11,0.1));border:3px solid #fbbf24;border-radius:12px;padding:2rem;margin-bottom:1.5rem">
-<h2 style="text-align:center;margin-bottom:1rem;font-size:1.5rem">⚱️ Pedestal of Champions</h2>
-<p style="text-align:center;margin-bottom:1.5rem;color:#666">Manage your hero figurines (${pedestalCount}/${maxSlots} placed)</p>
-<button class="btn safe" onclick="showPedestal()" style="font-size:1.1rem">View Pedestal</button>
+<div style="position:relative;width:100%;margin:0 auto">
+<img src="assets/victory-room.png" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
+
+<!-- Clickable pedestal hotspot (center) -->
+<div onclick="showPedestal()" style="position:absolute;left:35%;top:30%;width:30%;height:50%;cursor:pointer" title="View Pedestal"></div>
+
+<!-- Clickable left portal (blue portal - leads to Standard mode) -->
+<div onclick="enterPortal('Standard')" style="position:absolute;left:5%;top:20%;width:20%;height:60%;cursor:pointer" title="${S.gameMode === 'Standard' ? 'Current Mode' : 'Enter Standard Realm'}"></div>
+
+<!-- Clickable right portal (orange portal - leads to FU mode) -->
+<div onclick="enterPortal('fu')" style="position:absolute;right:5%;top:20%;width:20%;height:60%;cursor:pointer" title="${S.gameMode === 'fu' ? 'Current Mode' : 'Enter Frogged Up Realm 🔥'}"></div>
 </div>
 
-<div style="background:linear-gradient(135deg,rgba(220,38,38,0.1),rgba(127,29,29,0.1));border:3px solid #dc2626;border-radius:12px;padding:2rem;margin-bottom:1.5rem">
-<h2 style="text-align:center;margin-bottom:1rem;font-size:1.5rem">🌀 Portal to Frogged Up Realm</h2>
-<p style="text-align:center;margin-bottom:1rem;color:#666">Switch between Standard and Frogged Up modes</p>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem">
-Current Mode: <strong style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</strong>
-</p>
-<button class="btn" onclick="toggleModeFromChampions()" style="background:${S.gameMode === 'fu' ? '#22c55e' : '#dc2626'};font-size:1.1rem">
-Enter ${S.gameMode === 'Standard' ? 'Frogged Up Realm 🔥' : 'Standard Realm'}
-</button>
+<div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(251,191,36,0.1);border:2px solid #fbbf24;border-radius:8px">
+<p style="margin:0.5rem 0;font-size:1rem"><strong>Current Mode:</strong> <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
+<p style="margin:0.5rem 0;font-size:0.9rem;opacity:0.8">Click the <strong>pedestal</strong> to manage figurines (${pedestalCount}/${maxSlots})</p>
+<p style="margin:0.5rem 0;font-size:0.9rem;opacity:0.8">Click a <strong>portal</strong> to switch game modes</p>
 </div>
 
-<div style="text-align:center;margin-top:2rem">
+<div style="text-align:center;margin-top:1rem">
 <button class="btn secondary" onclick="title()">Back to Title</button>
 </div>
 </div>`;
 
 v.innerHTML = html;
+}
+
+function enterPortal(targetMode) {
+if(S.gameMode === targetMode) {
+toast('You are already in this realm!');
+return;
+}
+S.gameMode = targetMode;
+toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Realm!`);
+showChampionsMenu();
 }
 
 function toggleModeFromChampions() {
@@ -7385,7 +7396,7 @@ ${S.hasAncientStatuette ? `<div style="position:absolute;bottom:15%;left:10%;rig
 </div>` : ''}
 
 <div style="position:absolute;bottom:5%;left:50%;transform:translateX(-50%)">
-<button class="btn secondary" onclick="showChampionsMenu()">Back to Champions</button>
+<button class="btn secondary" onclick="showChampionsMenu()">Back to Victory Room</button>
 </div>
 </div>
 <div class="neutral-right" style="background-image:url('assets/neutrals/statue2.png')"></div>
