@@ -99,43 +99,71 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .neutral-btn.danger { background: #dc2626; color: white; }
 .neutral-btn.secondary { background: #6b7280; color: white; }
 .neutral-container {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   width: 100%;
   height: 100vh;
-  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  background: #1a1a1a;
+}
+.neutral-left {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  padding: 1rem;
+  overflow-y: auto;
+  background: #1a1a1a;
+}
+.neutral-right {
+  height: 180px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+  background-color: #2a2a2a;
+}
+@media (min-width: 768px) {
+  .neutral-container {
+    flex-direction: row;
+  }
+  .neutral-left {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 1.5rem;
+  }
+  .neutral-right {
+    flex: 0 0 50%;
+    max-width: 50%;
+    height: auto;
+    background-size: cover;
+    background-position: center;
+  }
+}
+@media (min-width: 1400px) {
+  .neutral-left {
+    padding: 2rem;
+  }
 }
 .neutral-header {
-  padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  align-items: flex-start;
-  max-width: 600px;
-  width: 100%;
-}
-@media (min-width: 768px) {
-  .neutral-header {
-    max-width: 700px;
-  }
+  margin-bottom: 1rem;
 }
 .neutral-stats {
-  background: rgba(0,0,0,0.75);
+  background: rgba(255,255,255,0.1);
   color: white;
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
   font-size: 0.85rem;
   font-weight: bold;
+  width: fit-content;
 }
 .neutral-narrative {
-  background: rgba(0,0,0,0.8);
+  background: rgba(255,255,255,0.05);
   color: white;
   border-radius: 8px;
   padding: 0.75rem;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .neutral-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: #fbbf24; }
 .neutral-desc { font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.5rem; }
@@ -147,8 +175,8 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   justify-content: center;
 }
 .neutral-footer {
-  padding: 1rem;
-  max-width: 450px;
+  margin-top: auto;
+  padding-top: 1rem;
 }
 .dice-roll { font-size: 1.2rem; font-weight: bold; text-align: center; padding: 1rem; background: #2c63c7; color: white; border-radius: 6px; margin: 1rem 0; }
 /* Combat layout */
@@ -567,20 +595,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
     margin-bottom: 0.75rem;
   }
 
-  /* Neutral screens */
-  .neutral-header {
-    max-width: 800px;
-    gap: 1rem;
-    padding: 1.5rem;
-  }
-
+  /* Neutral screens - Desktop scaling */
   .neutral-stats {
     font-size: 1.05rem;
     padding: 0.6rem 1rem;
-  }
-
-  .neutral-narrative {
-    padding: 1rem 1.25rem;
   }
 
   .neutral-title {
@@ -596,11 +614,6 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   .neutral-outcome {
     font-size: 1rem;
     padding: 0.75rem;
-  }
-
-  .neutral-footer {
-    max-width: 600px;
-    padding: 1.5rem;
   }
 
   /* Dice roll */
@@ -729,19 +742,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   }
 
   /* Neutral encounters - Scale up for large desktop */
-  .neutral-header {
-    max-width: 950px;
-    gap: 1.25rem;
-    padding: 2rem;
-  }
-
   .neutral-stats {
     font-size: 1.2rem;
     padding: 0.75rem 1.25rem;
-  }
-
-  .neutral-narrative {
-    padding: 1.25rem 1.5rem;
   }
 
   .neutral-title {
@@ -757,11 +760,6 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   .neutral-outcome {
     font-size: 1.15rem;
     padding: 1rem;
-  }
-
-  .neutral-footer {
-    max-width: 750px;
-    padding: 2rem;
   }
 
   .neutral-btn {
@@ -795,19 +793,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   }
 
   /* Neutral encounters - Maximum scale for ultra-wide */
-  .neutral-header {
-    max-width: 1100px;
-    gap: 1.5rem;
-    padding: 2.5rem;
-  }
-
   .neutral-stats {
     font-size: 1.3rem;
     padding: 0.85rem 1.5rem;
-  }
-
-  .neutral-narrative {
-    padding: 1.5rem 2rem;
   }
 
   .neutral-title {
@@ -823,11 +811,6 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   .neutral-outcome {
     font-size: 1.25rem;
     padding: 1.25rem;
-  }
-
-  .neutral-footer {
-    max-width: 900px;
-    padding: 2.5rem;
   }
 
   .neutral-btn {
@@ -2321,7 +2304,7 @@ function initNeutralDeck() {
 S.neutralDeck = [
 'shopkeeper1', 'wishingwell1', 'treasurechest1',
 'wizard1', 'oracle1', 'encampment1',
-'statue1', 'ghost1', 'prince1'
+'gambling1', 'ghost1', 'prince1'
 ];
 S.lastNeutral = null;
 }
@@ -2408,7 +2391,10 @@ buttons = '',
 showStats = true
 } = options;
 
-let html = `<div class="neutral-container" style="background-image: url('${bgImage}')">`;
+let html = `<div class="neutral-container">`;
+
+// Left side - Content
+html += '<div class="neutral-left">';
 
 // Header with stats and narrative
 html += '<div class="neutral-header">';
@@ -2424,15 +2410,17 @@ if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
 });
 html += '</div></div>'; // close narrative and header
 
-// Spacer for art
-html += '<div style="flex:1"></div>';
-
 // Footer with buttons
 if(buttons) {
 html += `<div class="neutral-footer">${buttons}</div>`;
 }
 
-html += '</div>';
+html += '</div>'; // close neutral-left
+
+// Right side - Art
+html += `<div class="neutral-right" style="background-image: url('${bgImage}')"></div>`;
+
+html += '</div>'; // close container
 return html;
 }
 
@@ -5281,8 +5269,8 @@ else if(enc === 'oracle1') showOracle1();
 else if(enc === 'oracle2') showOracle2();
 else if(enc === 'encampment1') showEncampment1();
 else if(enc === 'encampment2') showEncampment2();
-else if(enc === 'statue1') showStatue1();
-else if(enc === 'statue2') showStatue2();
+else if(enc === 'gambling1') showGambling1();
+else if(enc === 'gambling2') showGambling2();
 else if(enc === 'ghost1') showGhost1();
 else if(enc === 'ghost2') showGhost2();
 else if(enc === 'prince1') showPrince1();
@@ -6307,12 +6295,12 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 // ===== 7. BETWEEN THE 20s =====
-function showStatue1() {
+function showGambling1() {
 const v = document.getElementById('gameView');
 // Entry requirement: minimum 2 gold
 if(S.gold < 2) {
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
+bgImage: 'assets/neutrals/gambling1.png',
 title: 'Between the 20s',
 description: 'A mysterious gambling den with glowing dice floating in the air. A sign reads: "Minimum 2 Gold to play."',
 outcomes: ['<span style="color:#ef4444">You don\'t have enough gold to play.</span>'],
@@ -6327,7 +6315,7 @@ let wager = Math.min(maxWager, Math.floor(S.gold / 2) * 2);
 if(wager < 2) wager = 2;
 
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
+bgImage: 'assets/neutrals/gambling1.png',
 title: 'Between the 20s',
 description: `A mysterious gambling den beckons. Roll dice to set your range, then try to land between them. Wager: ${wager}G for a ${wager * 2}G payout.`,
 outcomes: [],
@@ -6359,7 +6347,7 @@ if(minBound === maxBound) {
 S.gold -= wager;
 upd();
 v.innerHTML = buildNeutralHTML({
-bgImage: stage === 1 ? 'assets/neutrals/statue1.png' : 'assets/neutrals/statue2.png',
+bgImage: stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
 title: stage === 1 ? 'Between the 20s' : 'Between the 20s Extreme',
 description: `Rolling ${boundsCount} dice to set bounds...`,
 outcomes: [
@@ -6378,7 +6366,7 @@ window.between20sState = { stage, wager, minBound, maxBound, boundsRolls };
 // PHASE 2: Decision Point (Stage 1 only)
 if(stage === 1) {
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
+bgImage: 'assets/neutrals/gambling1.png',
 title: 'Between the 20s',
 description: `Rolling ${boundsCount} dice to set bounds...`,
 outcomes: [
@@ -6394,7 +6382,7 @@ buttons: `
 } else {
 // Stage 2: No backing out, go straight to target roll
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue2.png',
+bgImage: 'assets/neutrals/gambling2.jpeg',
 title: 'Between the 20s Extreme',
 description: `Rolling ${boundsCount} dice to set bounds...`,
 outcomes: [
@@ -6420,7 +6408,7 @@ upd();
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue1.png',
+bgImage: 'assets/neutrals/gambling1.png',
 title: 'Between the 20s',
 outcomes: [
 'You decide to play it safe and back out.',
@@ -6459,12 +6447,12 @@ upd();
 
 // Unlock Stage 2 after Stage 1 win
 if(state.stage === 1) {
-replaceStage1WithStage2('statue');
+replaceStage1WithStage2('gambling');
 toast('Between the 20s Extreme unlocked!', 1800);
 }
 
 v.innerHTML = buildNeutralHTML({
-bgImage: state.stage === 1 ? 'assets/neutrals/statue1.png' : 'assets/neutrals/statue2.png',
+bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
 title: state.stage === 1 ? 'Between the 20s - WIN!' : 'Between the 20s Extreme - WIN!',
 description: `Rolling ${d20Level} target ${d20Level === 1 ? 'die' : 'dice'}...`,
 outcomes: [
@@ -6479,7 +6467,7 @@ S.gold -= state.wager;
 upd();
 
 v.innerHTML = buildNeutralHTML({
-bgImage: state.stage === 1 ? 'assets/neutrals/statue1.png' : 'assets/neutrals/statue2.png',
+bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
 title: state.stage === 1 ? 'Between the 20s - Loss' : 'Between the 20s Extreme - Loss',
 description: `Rolling ${d20Level} target ${d20Level === 1 ? 'die' : 'dice'}...`,
 outcomes: [
@@ -6492,12 +6480,12 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 }
 
-function showStatue2() {
+function showGambling2() {
 const v = document.getElementById('gameView');
 // Entry requirement: minimum 2 gold
 if(S.gold < 2) {
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue2.png',
+bgImage: 'assets/neutrals/gambling2.jpeg',
 title: 'Between the 20s Extreme',
 description: 'The high-stakes gambling den glows with intense energy. A sign reads: "Minimum 2 Gold to play - 4x payout, capped at 40G."',
 outcomes: ['<span style="color:#ef4444">You don\'t have enough gold to play.</span>'],
@@ -6515,7 +6503,7 @@ if(wager < 2) wager = 2;
 const potentialPayout = Math.min(wager * 4, 40);
 
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/statue2.png',
+bgImage: 'assets/neutrals/gambling2.jpeg',
 title: 'Between the 20s Extreme',
 description: `The EXTREME version! Only 2 dice for bounds, NO backing out, but ${potentialPayout}G payout! High risk, high reward.`,
 outcomes: ['<span style="color:#fbbf24">WARNING: No safety net here. You\'re all in once you start.</span>'],
@@ -7183,7 +7171,7 @@ const slotted = S.pedestal.find(p => p.hero === hero && p.stat === stat && p.mod
 const isSlotted = !!slotted;
 
 // Position slots in a 2x4 grid over the pedestal image
-// Adjust these percentages to match the actual slot positions on statue2.png
+// Adjust these percentages to match the actual slot positions on the pedestal art
 const left = 20 + (colIdx * 20); // Distribute 4 columns across width
 const top = 40 + (rowIdx * 25); // Distribute 2 rows across height
 
@@ -7221,11 +7209,13 @@ statLabelsHTML += `<div style="color:#fff;font-weight:bold;text-shadow:0 2px 4px
 statLabelsHTML += '</div>';
 
 let html = `
-<div class="neutral-container" style="background-image:url('assets/neutrals/statue2.png');position:relative;min-height:600px">
+<div class="neutral-container">
+<div class="neutral-left" style="position:relative;min-height:600px">
 <div class="neutral-header">
+<div class="neutral-stats">💰 ${S.gold}G | 🎯 Floor ${S.floor}</div>
 <div class="neutral-narrative">
-<h2 style="margin:0;text-shadow:0 2px 4px rgba(0,0,0,0.8)">⚱️ Pedestal of Champions</h2>
-<p style="margin:0.5rem 0;font-size:0.9rem;text-shadow:0 2px 4px rgba(0,0,0,0.8)">${S.gameMode} Mode - Place figurines for permanent stat buffs</p>
+<h2 style="margin:0">⚱️ Pedestal of Champions</h2>
+<p style="margin:0.5rem 0;font-size:0.9rem">${S.gameMode} Mode - Place figurines for permanent stat buffs</p>
 </div>
 </div>
 
@@ -7241,6 +7231,8 @@ ${S.hasAncientStatuette ? `<div style="position:absolute;bottom:15%;left:10%;rig
 <div style="position:absolute;bottom:5%;left:50%;transform:translateX(-50%)">
 <button class="btn secondary" onclick="showChampionsMenu()">Back to Champions</button>
 </div>
+</div>
+<div class="neutral-right" style="background-image:url('assets/neutrals/statue2.png')"></div>
 </div>`;
 
 v.innerHTML = html;
