@@ -7080,7 +7080,7 @@ const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colors = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 
@@ -8083,7 +8083,7 @@ const passiveSigils = ['Star', 'Expand'];
 
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
-if(level === 1) return '#1e40af';
+if(level === 1) return '#000';
 if(level === 2) return '#0d9488';
 if(level === 3) return '#9333ea';
 if(level === 4) return '#d97706';
@@ -8102,10 +8102,9 @@ let html = `
 
 activeSigils.forEach(sig => {
 const level = S.sig[sig] || 0;
-const effectiveLevel = level === 0 ? 1 : level;
-const cl = effectiveLevel===0?'l0':effectiveLevel===1?'l1':effectiveLevel===2?'l2':effectiveLevel===3?'l3':effectiveLevel===4?'l4':'l5';
+const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
 const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
-const levelColor = getLevelColor(effectiveLevel);
+const levelColor = getLevelColor(level);
 
 html += `
 <div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
