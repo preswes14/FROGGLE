@@ -189,7 +189,11 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card.targetable:active { transform: scale(0.98); }
 .card.targeted { box-shadow: 0 0 0 4px lime; }
 .card.acted { opacity: 0.6; }
-.card.last-stand { border-color: #dc2626; box-shadow: 0 0 0 3px #dc2626; }
+.card.last-stand {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px #dc2626;
+  animation: pulse-last-stand 1.5s ease-in-out infinite;
+}
 .card.hero.targetable { box-shadow: 0 0 0 3px #3b82f6; }
 .card.enemy.targetable { box-shadow: 0 0 0 3px #dc2626; }
 .card.hero.targeted { box-shadow: 0 0 0 4px #60a5fa; }
@@ -201,6 +205,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .card.heal-flash { animation: heal-flash 0.48s ease !important; }
 .card.shield-flash { animation: shield-flash 0.48s ease !important; }
 @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px gold; } 50% { box-shadow: 0 0 0 8px gold; } }
+@keyframes pulse-last-stand {
+  0%, 100% { box-shadow: 0 0 0 3px #dc2626, 0 0 15px rgba(220, 38, 38, 0.6); border-color: #dc2626; }
+  50% { box-shadow: 0 0 0 6px #dc2626, 0 0 25px rgba(220, 38, 38, 0.9); border-color: #ef4444; }
+}
+@keyframes pulse-text {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.05); }
+}
 @keyframes damage-stagger {
   0% { transform: translateX(0) scale(1); filter: brightness(1); }
   15% { transform: translateX(-15px) scale(0.95); filter: brightness(2) saturate(2); background-color: rgba(220, 38, 38, 0.5); }
@@ -1249,6 +1261,14 @@ target.sh = 0;
 hpLost = dmg;
 target.h -= dmg;
 
+// LAYER 1: Warning when hero drops below 30% HP (preventive Last Stand warning)
+if(options.isHero && !target.ls && target.h > 0 && target.h < target.m * 0.3) {
+// Check if this is the first time we're warning about low HP
+if(!S.tutorialFlags.last_stand_warning) {
+showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0 HP, they'll enter Last Stand mode - they can only use D20 gambits, and each turn makes survival harder. Use Ghost charges or heal up to avoid it!`);
+}
+}
+
 // Handle lethal damage
 if(target.h <= 0) {
 if(target.g > 0) {
@@ -1267,8 +1287,9 @@ if(options.isHero) {
 target.ls = true;
 target.lst = 0;
 if(!options.silent) {
-toast(`${target.n} entered Last Stand!`);
-showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can still use their D20 sigil for one last desperate gambit, but each failed attempt brings them closer to the void…");
+// LAYER 2: Extended toast duration (3000ms instead of default)
+toast(`${target.n} entered Last Stand!`, 3000);
+showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
 }
 } else {
 // Enemies die - award gold/XP and schedule removal
@@ -1330,7 +1351,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Nice hit! Doesn't look like the Healer has any damage to heal right now, but they can still make a difference! Click the Healer's D20 sigil!", () => {
+showTutorialPop('ribbleton_healer_d20', "Nice hit! The Healer can't heal yet, but they can gambit - click the Healer's D20 to see risky actions!", () => {
 S.activeIdx = 1;
 render();
 });
@@ -1340,10 +1361,7 @@ tutorialState.stage = 'enemy_turn_wait';
 }
 else if(tutorialState.stage === 'expand_targets' && hero === 'Healer') {
 tutorialState.stage = 'finish_wolf';
-showTutorialPop('ribbleton_finish_wolf', "Now finish off that Wolf with the Warrior's Attack sigil!", () => {
-S.activeIdx = 0;
-render();
-});
+// REMOVED: "Finish Wolf" popup - trust player to continue combat after heal
 }
 },
 
@@ -1353,9 +1371,9 @@ if(!tutorialState || S.floor !== 0) return;
 
 console.log('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
 
-// Round 2: Healer Heal prompt
+// Round 2: Healer Heal prompt (NOW BATCHED WITH EXPAND)
 if(round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
-console.log('[TUTORIAL] Triggering PROMPT 6 - Healer Heal (stage:', tutorialState.stage, ')');
+console.log('[TUTORIAL] Triggering PROMPT 4 - Healer Heal + Expand (batched) (stage:', tutorialState.stage, ')');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -1363,10 +1381,9 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 render();
-showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Healer's Heal sigil! You can pick which order your heroes take their actions.", () => {
+// Popup now appears when Heal is pending (see render() section) - it includes Expand explanation
 S.activeIdx = 1;
 render();
-});
 } else if(round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
 console.log('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
 S.turn = 'player';
@@ -1376,12 +1393,11 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 render();
-showTutorialPop('ribbleton_healer_heal', "Oh gosh - looks like both of you took some damage. Healer can help with that - click the Healer's Heal sigil! You can pick which order your heroes take their actions.", () => {
+// Popup now appears when Heal is pending (see render() section) - it includes Expand explanation
 S.activeIdx = 1;
 render();
-});
 }
-// Round 3: Force Goblin to draw Shield, then PROMPT 9 + 10
+// Round 3: Force Goblin to draw Shield, then PROMPT 5 (Enemy Sigils batched) + PROMPT 6 (Tooltip + Handoff batched)
 else if(round === 3 && tutorialState.stage === 'finish_wolf') {
 // Force Goblin to draw Shield
 const goblin = S.enemies.find(e => e.n === 'Goblin');
@@ -1396,15 +1412,12 @@ S.locked = false;
 tutorialState.stage = 'shield_sigil';
 upd();
 render();
-// First show that enemies can get sigils
-showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! Each enemy type has their own unique sigil pool and gains sigils as the battle continues.", () => {
-// Then explain this specific sigil
-showTutorialPop('ribbleton_shield_sigil', "The Goblin has drawn a Shield sigil! Enemies activate their sigils AFTER they attack, then the sigils disappear. Take him down before he can use it!", () => {
-// PROMPT 10: Handoff
-showTutorialPop('ribbleton_handoff', "You're on your own now - good luck!", () => {
+// PROMPT 5: Enemy Sigils + Shield (BATCHED)
+showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! The Goblin drew Shield - enemies activate sigils AFTER they attack, then the sigils disappear. Take him down before he shields up!", () => {
+// PROMPT 6: Tooltip + Handoff (BATCHED)
+showTutorialPop('ribbleton_handoff', "Hover over (or long-press on mobile) any sigil to see what it does. You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
 render();
-});
 });
 });
 }
@@ -2885,8 +2898,8 @@ console.error('[TUTORIAL] ERROR: Still have backdrops!', remaining);
 remaining.forEach(r => r.remove());
 }
 
-// PROMPT 1: Warrior Attack
-showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Attack an enemy - click the Warrior's Attack sigil.", () => {
+// PROMPT 1: Warrior Attack + Targeting (BATCHED)
+showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Click the Warrior's Attack sigil, then click the Wolf to target it.", () => {
 console.log('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -3026,6 +3039,17 @@ ${S.tapoUnlocked ? `
 </div>`;
 
 console.log('[FROGGLE] title() innerHTML set successfully');
+
+// Shield persistence tutorial (after first run with shield usage or death)
+if(!S.helpTipsDisabled && !S.tutorialFlags.shield_persistence && S.highestFloor >= 1) {
+// Check if they used shield or died
+const usedShield = S.sig.Shield > 0 || (S.tempSigUpgrades && S.tempSigUpgrades.Shield > 0);
+if(usedShield || S.highestFloor > 0) { // highestFloor > 0 means they died at least once
+setTimeout(() => {
+showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next floor with protection. Use this to survive tough encounters!");
+}, 100);
+}
+}
 
 // Update selection display
 updateSelectionDisplay();
@@ -3360,10 +3384,7 @@ S.selectingEncampmentTargets = true;
 S.encampmentSelectedTargets = [];
 }
 render();
-// Tutorial: Explain tooltips on first combat
-if(f === 1 && !S.helpTipsDisabled && !S.tutorialFlags.ribbleton_tooltip_intro) {
-showTutorialPop('ribbleton_tooltip_intro', "Hover over (or long-press on mobile) any sigil icon to see detailed information about what it does! This works for both your heroes' and enemies' sigils.");
-}
+// REMOVED: Tooltip tutorial now batched with handoff in Ribbleton (floor 0)
 }
 
 function getLevel(sig, heroIdx) {
@@ -3506,10 +3527,10 @@ render();
 function d20Menu(heroIdx) {
 if(S.locked) return;
 
-// RIBBLETON TUTORIAL: PROMPT 4 - Explain D20 gambit
+// RIBBLETON TUTORIAL: PROMPT 2 - Explain D20 gambit
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'healer_d20') {
 tutorialState.stage = 'd20_menu';
-showTutorialPop('ribbleton_d20_menu', "Heroes start with different Active abilities, but they all can try to turn the tides of battle with a gambit! Click the Healer's D20 sigil!", () => {
+showTutorialPop('ribbleton_d20_menu', "Choose a gambit action! Each has a difficulty check (DC) - roll the dice to try to succeed. Pick CONFUSE to damage the Wolf!", () => {
 // After prompt, show the d20 menu
 renderD20MenuAfterTutorial(heroIdx);
 });
@@ -3825,7 +3846,7 @@ return sum + (enemy ? enemy.p : 0);
 }, 0) * S.grappleRepeats;
 const effectiveHP = (hero.h || 0) + (hero.sh || 0);
 if(totalRecoil >= effectiveHP && !hero.g && !hero.ls) {
-toast('Grapple would be lethal! Choose fewer/weaker targets or cancel.', 2000);
+toast('Grapple would kill you! Pick weaker targets.', 2000);
 S.targets = [];
 render();
 return;
@@ -4698,18 +4719,16 @@ return;
 
 // RIBBLETON TUTORIAL: Show targeting prompts
 if(tutorialState && S.floor === 0 && S.pending) {
-// PROMPT 2: Targeting Wolf with Warrior Attack
+// REMOVED: Targeting popup is now batched with Attack popup
+// Auto-advance stage when Attack is pending
 if(tutorialState.stage === 'warrior_attack' && S.pending === 'Attack' && S.targets.length === 0) {
 tutorialState.stage = 'targeting_wolf';
-showTutorialPop('ribbleton_targeting', "You can choose which enemy to target! Click on the Wolf to select it as your target - it looks nasty, so take it out first!", () => {
-render();
-});
-return;
+// No popup - already explained in popup 1
 }
-// PROMPT 7: Expand heal targets
+// PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Helpful - Healer starts with the Expand passive! That means they can target 1 extra ally or enemy. Click both heroes to heal them!", () => {
+showTutorialPop('ribbleton_expand', "Both heroes took damage! Healer has Expand, which lets them target 1 extra ally. Click both heroes to heal them!", () => {
 render();
 });
 return;
@@ -4787,6 +4806,10 @@ if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
+// LAYER 3: Last Stand visual indicator
+if(h.ls) {
+html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem;background:#dc2626;color:white;padding:0.2rem;border-radius:4px;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
+}
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
@@ -5408,7 +5431,7 @@ toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`);
+toast(`${hero.n} entered Last Stand!`, 3000);
 }
 }
 toast(`${hero.n} took ${hpLoss} damage!`);
@@ -5586,7 +5609,7 @@ toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`);
+toast(`${hero.n} entered Last Stand!`, 3000);
 }
 }
 toast(`${hero.n} took ${trapDmg} damage!`);
@@ -7340,7 +7363,7 @@ ${window.earnedFigurines && window.earnedFigurines.length > 0 ?
 
 function showStatueRoom() {
 // This redirects to the existing Pedestal UI
-showTutorialPop('pedestal_first_placement', "Welcome to the Pedestal! Place figurines here to permanently boost your heroes' stats. Each hero can have up to 2 figurines (one for POW, one for HP) per game mode.", () => {
+showTutorialPop('pedestal_first_placement', "Welcome to the Pedestal! Figurines are rewards for heroes who survive to victory. Place them here to permanently boost that hero's stats. Each hero can earn up to 2 figurines per difficulty mode.", () => {
 showPedestal();
 });
 }
@@ -7617,6 +7640,29 @@ const v = document.getElementById('gameView');
 
 const faqItems = [
 {
+q: "What are sigils?",
+a: `Sigils are your heroes' special abilities! Each hero has sigils they can use in combat to attack enemies, defend the team, or perform special actions.<br><br>
+<strong>Basic Sigils:</strong><br>
+• <strong>Attack</strong> - Deal damage to enemies<br>
+• <strong>Shield</strong> - Protect heroes from damage<br>
+• <strong>Heal</strong> - Restore HP to heroes<br>
+• <strong>D20</strong> - Roll the dice for risky gambit actions<br><br>
+You can see your sigils at the bottom of your hero card during combat. Hover over (or long-press on mobile) any sigil icon to see what it does!`
+},
+{
+q: "How do I level up sigils?",
+a: `There are two ways to upgrade sigils:<br><br>
+<strong>1. Level-Up Menu (Odd Floors - 1, 3, 5...)</strong><br>
+• Spend XP earned from battles<br>
+• Choose to upgrade a sigil, boost stats, or add new sigils<br>
+• These upgrades reset when you die<br><br>
+<strong>2. Shop (Even Floors - 2, 4, 6...)</strong><br>
+• Spend Gold<br>
+• Permanently upgrade sigils that persist across all runs<br>
+• This is your long-term progression!<br><br>
+Your total sigil level = Permanent (Gold) + Temporary (XP) upgrades.`
+},
+{
 q: "Why does Attack show as L1 when I haven't upgraded it?",
 a: `Active sigils (Attack, Shield, Heal, Grapple, Ghost, D20, Alpha) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
 <strong>Example:</strong> Attack storage level 0 = displays as L1 (1 attack per action)<br>
@@ -7721,6 +7767,7 @@ Dragons gain 2 sigils per turn and have permanent Attack L2 + Expand L5. Don't l
 let html = `
 <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(#fff,#f7f1e3);border:3px solid #9333ea;border-radius:16px;padding:2rem;z-index:30000;max-width:700px;width:90%;max-height:85vh;overflow-y:auto">
 <h2 style="text-align:center;color:#9333ea;margin-bottom:0.5rem">❓ Frequently Asked Questions ❓</h2>
+<p style="text-align:center;font-size:1rem;color:#6b4423;margin-bottom:1rem;line-height:1.5">Welcome to FROGGLE! 🐸 You'll lead heroes through floors of enemies, using sigils (special abilities) to attack, defend, and survive. Level up after each floor to get stronger. Your goal: reach the deepest floor you can!</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Tap a question to expand/collapse the answer</p>
 <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem">
 `;
