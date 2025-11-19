@@ -1100,9 +1100,9 @@ const DEATH_QUOTES = [
 
 const H = {
 warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
-tank: {n:'Tank', p:1, h:10, m:10, s:['Shield','D20']},
+tank: {n:'Tank', p:1, h:10, m:10, s:['Attack','Shield','D20']},
 mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
-healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']},
+healer: {n:'Healer', p:1, h:5, m:5, s:['Attack','Heal','D20','Expand']},
 tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alpha','Ghost','Expand','Star','Asterisk']}
 };
 
@@ -1166,11 +1166,11 @@ const SIGIL_DESCRIPTIONS = {
 'Attack': 'Deal POW damage to target. L2: Attack twice. L3: Attack 3 times. L4: Attack 4 times. Stacks with Asterisk.',
 'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield persists between battles (capped at hero max HP).',
 'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
-'D20': 'Roll 1d20 per level, take highest. Need 10+ to succeed. L1: 55%, L2: 80%, L3: 91%, L4: 96%. Effects: Confuse (damage), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team).',
+'D20': 'Roll 1d20 per level, take highest. Need 10+ to succeed. L1: 55%, L2: 80%, L3: 91%, L4: 96%. Effects: Confuse (deal enemy POW to all), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team).',
 'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
 'Grapple': 'Stun target for (Level) turns. You take damage equal to target\'s POW.',
 'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges). Ghost charges PERSIST between combats.',
-'Asterisk': 'PASSIVE: Your first action each combat is automatically multiplied by (Level+1). Works with any action. Enemies with Asterisk get extra attacks.',
+'Asterisk': 'PASSIVE: Next action triggers +(Level+1) times! Resets after each battle. Works with any action type.',
 'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
 'Alpha': 'Grant target hero an extra action this turn. Higher levels grant more actions.'
 };
@@ -1622,11 +1622,11 @@ const descriptions = {
 'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
-'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (damage), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
+'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (deal enemy POW to all), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
 'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Stun target for ${boldNum(level)} turn${level > 1 ? 's' : ''}. You take damage equal to target's POW`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death this combat (max 9)`,
-'Asterisk': level === 0 ? 'Not unlocked' : `PASSIVE: Your first action each combat automatically triggers ${boldNum(level + 1)} times. Works with any action type`,
+'Asterisk': level === 0 ? 'Not unlocked' : `PASSIVE: Next action triggers ${boldNum(level + 1)} times! Resets after each battle`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
 'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
 };
@@ -3835,7 +3835,7 @@ html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 12, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">✅ DC 12: CONFUSE</strong><br>
-<span style="font-size:0.95rem">Deal damage = enemy POW</span>
+<span style="font-size:0.95rem">Deal this enemy's POW to all enemies</span>
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
@@ -3871,7 +3871,7 @@ const lsBonus = (h.lst + 1) * 2;
 html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
-{dc:12, name:'CONFUSE', desc:'Deal damage = enemy POW'},
+{dc:12, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
 {dc:14, name:'STARTLE', desc:'Stun for 1 turn'},
 {dc:16, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
@@ -4002,7 +4002,10 @@ const enemy = S.enemies.find(e => e.id === enemyId);
 if(!enemy) return;
 if(action === 'CONFUSE') {
 const dmg = enemy.p;
-dealDamageToEnemy(enemy, dmg);
+// Deal this enemy's POW to all enemies
+S.enemies.forEach(e => {
+dealDamageToEnemy(e, dmg);
+});
 } else if(action === 'STARTLE') {
 enemy.st = 1;
 // Check prince quest completion
@@ -4931,6 +4934,8 @@ const draws = e.drawsPerTurn || 1;
 for(let i = 0; i < draws; i++) {
 drawEnemySigil(e);
 }
+// Immediately render to show new sigils
+render();
 }
 });
 // Process recruit sigil drawing
@@ -4942,6 +4947,8 @@ const draws = r.drawsPerTurn || 1;
 for(let i = 0; i < draws; i++) {
 drawEnemySigil(r);
 }
+// Immediately render to show new sigils
+render();
 }
 });
 }
@@ -5418,7 +5425,10 @@ const isActive = actives.includes(sig);
 // Actives display with minimum level of 1 (since they start at L1 when equipped)
 const displayLevel = (isActive && level === 0) ? 1 : level;
 const nextDisplayLevel = displayLevel + 1;
-html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong></div>`;
+// Check if any hero has this sigil
+const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
+const newSigilNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
+html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong>${newSigilNote}</div>`;
 });
 }
 }
@@ -5464,8 +5474,11 @@ const isActive = actives.includes(sig);
 // Actives at L0 show as L1 (minimum level when equipped), passives show as L0
 const displayLevel = (isActive && level === 0) ? 1 : level;
 const levelText = (level === 0 && !isActive) ? `L${displayLevel} (Passive only)` : `L${displayLevel}`;
+// Check if any hero has this sigil
+const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
+const newSigilNote = !anyHeroHasSigil ? `<span style="color:#dc2626;font-size:0.85rem"> *No hero has this yet!</span>` : '';
 html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>${newSigilNote}
 </div>`;
 });
 }
@@ -5498,8 +5511,9 @@ function upSigil(sig) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 
-// Show passive sigil tutorial when upgrading Expand or Star from L0 to L1
-const isPassive = ['Expand', 'Star'].includes(sig);
+// Show passive sigil tutorial when upgrading Expand, Asterisk, or Star from L0 to L1
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const isPassive = passiveSigils.includes(sig);
 const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(isPassive && currentLevel === 0) {
 showTutorialPop('levelup_upgrade_passive', "Expand, Asterisk, and Star are PASSIVE sigils - they're always active and work automatically! No need to click them in battle.");
@@ -5509,7 +5523,21 @@ S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+
+// PASSIVE SIGILS: Automatically add to all heroes who don't have it yet
+if(isPassive) {
+S.heroes.forEach(hero => {
+if(!hero.s.includes(sig) && !(hero.ts && hero.ts.includes(sig))) {
+if(!hero.ts) hero.ts = [];
+hero.ts.push(sig);
+hero.ts = sortSigils(hero.ts);
+}
+});
+toast(`${sig} upgraded to L${newLevel}! Added to all heroes!`);
+} else {
 toast(`${sig} upgraded to L${newLevel}!`);
+}
+
 upd();
 saveGame();
 levelUpMenu();
@@ -6278,7 +6306,7 @@ buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/prince1.png',
 title: 'Consult the Oracle',
 description,
 buttons
@@ -6320,7 +6348,7 @@ replaceStage1WithStage2('oracle');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/prince1.png',
 title: 'The Oracle\'s Fortune',
 diceRoll: rollText,
 outcomes: [
@@ -6936,7 +6964,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor 
 function showPrince1() {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'Help Recover the Ring',
 description: `A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
 buttons: `
@@ -6952,7 +6980,7 @@ S.princeQuestActive = true;
 S.princeQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 outcomes: [`The ${S.princeGender} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -6965,7 +6993,7 @@ if(!S.princeQuestCompleted) {
 // Quest failed
 S.princeQuestActive = false;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'Quest Failed',
 description: `The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
 outcomes: [`The ${S.princeGender} departs sadly. No reward.`],
@@ -8071,6 +8099,14 @@ S.helpTipsDisabled = !enabled;
 if(enabled) {
 S.tutorialFlags = {};
 toast('Help/Tips enabled! All tips reset and will show again.', 2000);
+// Re-trigger current screen to show relevant popups immediately
+if(typeof render === 'function') {
+try { render(); } catch(e) { /* render() not applicable in current state */ }
+}
+// If in Ribbleton hub, re-show to trigger ribbleton_hub_intro popup
+if(document.querySelector('h1')?.textContent?.includes('Welcome Home to Ribbleton')) {
+setTimeout(() => showRibbleton(), 100);
+}
 } else {
 toast('Help/Tips disabled. No more popups!', 1200);
 }
@@ -8184,7 +8220,7 @@ q: "What are Star and Asterisk sigils?",
 a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5× XP bonus per Star level.<br>
 • 2 heroes with Star L1 = +1.0× bonus = 2× total XP<br>
 • Star is extremely powerful for long-term scaling!<br><br>
-<strong>Asterisk:</strong> PASSIVE - Automatically multiplies your first action each combat.<br>
+<strong>Asterisk:</strong> PASSIVE - Next action triggers +X times! Resets after each battle.<br>
 • Asterisk L1: First action triggers ×2<br>
 • Asterisk L4: First action triggers ×5<br>
 • Works with ANY action: Attack, Shield, Heal, D20 gambits, etc.<br>
@@ -8271,8 +8307,8 @@ overlays.forEach(el => el.remove());
 function showSigilarium() {
 closeSettingsMenu();
 const v = document.getElementById('gameView');
-const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha', 'Asterisk'];
-const passiveSigils = ['Star', 'Expand'];
+const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
