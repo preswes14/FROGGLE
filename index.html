@@ -1212,6 +1212,20 @@ const best = Math.max(...rolls);
 return {rolls, best};
 }
 
+// Get display name for enemy with A, B, C suffix if there are duplicates
+function getEnemyDisplayName(enemy) {
+if (!enemy || !S.enemies) return enemy?.n || '';
+// Count enemies with same base name
+const sameName = S.enemies.filter(e => e.n === enemy.n);
+if (sameName.length <= 1) return enemy.n;
+// Find position of this enemy among same-named enemies
+const index = sameName.findIndex(e => e.id === enemy.id);
+if (index === -1) return enemy.n;
+// Add suffix: A, B, C, etc.
+const suffix = String.fromCharCode(65 + index); // 65 = 'A'
+return `${enemy.n} ${suffix}`;
+}
+
 // Helper for enemy attacks - handles targeting, damage, animations, and toast
 function executeEnemyAttackOnHeroes(enemy, targetCount, attackName = 'Base Attack') {
 const targets = selectEnemyTargets(enemy, targetCount);
@@ -1235,7 +1249,7 @@ damagedIds.forEach(id => triggerHitAnimation(id));
 
 if(targetDetails.length > 0) {
 const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
-toast(`${enemy.n}'s ${attackName} hit ${targetStrings.join(', ')}!`);
+toast(`${getEnemyDisplayName(enemy)}'s ${attackName} hit ${targetStrings.join(', ')}!`);
 }
 
 return targets.length;
@@ -1296,7 +1310,7 @@ if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
 <div class="card-emoji">${enemyEmoji}</div>
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${e.n}</div>
+<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${getEnemyDisplayName(e)}</div>
 <div class="card-stats">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
@@ -4014,7 +4028,7 @@ toast('Prince Quest completed! Ring retrieved!', 1800);
 const gold = enemy.p;
 S.gold += gold;
 upd();
-toast(`Stole ${gold} Gold from ${enemy.n}!`);
+toast(`Stole ${gold} Gold from ${getEnemyDisplayName(enemy)}!`);
 } else if(action === 'RECRUIT') {
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
@@ -4024,9 +4038,9 @@ const existingRecruitIdx = S.recruits.findIndex(r => r.recruitedBy === heroIdx);
 if(existingRecruitIdx >= 0) {
 const oldRecruit = S.recruits[existingRecruitIdx];
 S.recruits.splice(existingRecruitIdx, 1);
-toast(`${enemy.n} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
+toast(`${getEnemyDisplayName(enemy)} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
 } else {
-toast(`${enemy.n} recruited by ${hero.n}!`, 1500);
+toast(`${getEnemyDisplayName(enemy)} recruited by ${hero.n}!`, 1500);
 }
 // Remove enemy from enemies array
 S.enemies = S.enemies.filter(e => e.id !== enemyId);
@@ -4036,7 +4050,7 @@ if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
 } else {
-toast(`${enemy.n} recruited but recruits are full! (Max ${MAX_RECRUITS})`, 2000);
+toast(`${getEnemyDisplayName(enemy)} recruited but recruits are full! (Max ${MAX_RECRUITS})`, 2000);
 }
 setTimeout(() => {
 render();
@@ -4418,7 +4432,7 @@ applyDamageToTarget(enemy, dmg, {isHero: false, skipRewards: false});
 const hpAfter = enemy.h;
 
 // Show damage toast
-toast(`${enemy.n} took ${dmg} damage (❤${hpBefore}→❤${hpAfter})!`);
+toast(`${getEnemyDisplayName(enemy)} took ${dmg} damage (❤${hpBefore}→❤${hpAfter})!`);
 
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && enemy.n === 'Wolf') {
@@ -4570,7 +4584,7 @@ if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
 const level = enemy.n === 'Cave Troll' ? 2 : 1 + Math.floor(Math.random() * 3);
 enemy.s.push({sig, level, perm:false});
-toast(`${enemy.n} drew ${sig} L${level}!`);
+toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`);
 } else if(pool === 'ANY_ADVANCED') {
 const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
 const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
@@ -4578,7 +4592,7 @@ if(availableSigils.length === 0) return;
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
 const level = 2 + Math.floor(Math.random() * 3);
 enemy.s.push({sig, level, perm:false});
-toast(`${enemy.n} drew ${sig} L${level}!`);
+toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`);
 } else {
 const availablePool = pool.filter(sigName => {
 if(sigName === 'Attack2') return !heldSigils.includes('Attack');
@@ -4589,13 +4603,13 @@ if(availablePool.length === 0) return;
 const pick = availablePool[Math.floor(Math.random() * availablePool.length)];
 if(pick === 'Attack2') {
 enemy.s.push({sig:'Attack', level:2, perm:false});
-toast(`${enemy.n} drew Attack L2!`);
+toast(`${getEnemyDisplayName(enemy)} drew Attack L2!`);
 } else if(pick === 'Shield2') {
 enemy.s.push({sig:'Shield', level:2, perm:false});
-toast(`${enemy.n} drew Shield L2!`);
+toast(`${getEnemyDisplayName(enemy)} drew Shield L2!`);
 } else {
 enemy.s.push({sig:pick, level:1, perm:false});
-toast(`${enemy.n} drew ${pick} L1!`);
+toast(`${getEnemyDisplayName(enemy)} drew ${pick} L1!`);
 }
 }
 }
@@ -4740,9 +4754,9 @@ setTimeout(() => endEnemyTurn(), delay + 600);
 }
 
 function executeEnemyTurn(enemy) {
-if(enemy.st > 0) { toast(`${enemy.n} is stunned!`); return; }
+if(enemy.st > 0) { toast(`${getEnemyDisplayName(enemy)} is stunned!`); return; }
 if(enemy.alphaActed) {
-toast(`${enemy.n} used Alpha (skipping normal turn)`);
+toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
@@ -4761,7 +4775,7 @@ if(target && target.h > 0) {
 const recoilDamage = target.p;
 // Skip grapple if it would kill the enemy
 if(enemy.h <= recoilDamage) {
-toast(`${enemy.n} considered Grapple but chose to survive instead!`);
+toast(`${getEnemyDisplayName(enemy)} considered Grapple but chose to survive instead!`);
 return false;
 }
 }
@@ -4860,7 +4874,7 @@ executeEnemyAttackOnHeroes(enemy, targetCount, `Attack ${i+1}/${level}`);
 const shieldAmt = 2 * enemy.p * level;
 enemy.sh = (enemy.sh || 0) + shieldAmt;
 if(enemy.sh > enemy.m) enemy.sh = enemy.m;
-toast(`${enemy.n} gained ${shieldAmt} shield!`);
+toast(`${getEnemyDisplayName(enemy)} gained ${shieldAmt} shield!`);
 } else if(sig === 'Heal') {
 const healAmt = 2 * enemy.p * level;
 const allies = S.enemies.filter(e => e.id !== enemy.id && e.h > 0);
@@ -4869,17 +4883,17 @@ allies.sort((a,b) => a.h - b.h);
 const healTarget = allies[0];
 healTarget.h += healAmt;
 if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
-toast(`${enemy.n} healed ${healTarget.n} for ${healAmt}!`);
+toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} for ${healAmt}!`);
 }
 } else if(sig === 'Grapple') {
 const target = S.heroes[enemy.li];
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
 enemy.h -= dmgToEnemy;
-toast(`${enemy.n} grappled ${target.n}!`);
+toast(`${getEnemyDisplayName(enemy)} grappled ${target.n}!`);
 if(enemy.h <= 0) {
 enemy.h = 0;
-toast(`${enemy.n} defeated by grapple recoil!`);
+toast(`${getEnemyDisplayName(enemy)} defeated by grapple recoil!`);
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 } else {
 target.st = level;
@@ -4889,15 +4903,15 @@ toast(`${target.n} stunned for ${level} turns!`);
 } else if(sig === 'Ghost') {
 enemy.g = (enemy.g || 0) + level;
 if(enemy.g > 9) enemy.g = 9;
-toast(`${enemy.n} gained ${level} Ghost charge!`);
+toast(`${getEnemyDisplayName(enemy)} gained ${level} Ghost charge!`);
 } else if(sig === 'Expand') {
-toast(`${enemy.n} used Expand (affects their attacks)`);
+toast(`${getEnemyDisplayName(enemy)} used Expand (affects their attacks)`);
 } else if(sig === 'Asterisk') {
 // Asterisk for enemies: Multiply attacks by (level + 1)
 const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
 const multiplier = level + 1;
-toast(`${enemy.n} used Asterisk: ×${multiplier} attacks!`);
+toast(`${getEnemyDisplayName(enemy)} used Asterisk: ×${multiplier} attacks!`);
 for(let i = 0; i < multiplier; i++) {
 executeEnemyAttackOnHeroes(enemy, targetCount, `Asterisk Attack ${i+1}/${multiplier}`);
 }
@@ -5241,7 +5255,7 @@ if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">`;
 // Name at top
-html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${e.n}</div>`;
+html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
 // POW - emoji - HP row (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${e.p}</div>`;
@@ -8439,7 +8453,7 @@ const enemy = S.enemies[0];
 enemy.h -= 50;
 if(enemy.h < 0) enemy.h = 0;
 upd();
-toast(`Dealt 50 damage to ${enemy.n}!`, 1200);
+toast(`Dealt 50 damage to ${getEnemyDisplayName(enemy)}!`, 1200);
 closeDebugMenu();
 // Check if combat is over
 setTimeout(() => checkCombatEnd(), 100);
