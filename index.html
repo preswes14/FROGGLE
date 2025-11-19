@@ -110,11 +110,11 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 .btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.2); }
-.btn:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+.btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .btn:active { transform: translateY(4px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15); }
 .btn.primary { background: #2c63c7; } /* Default blue */
 .btn.safe { background: #22c55e; }
-.btn.risky { background: #f59e0b; }
+.btn.risky { background: #f97316; }
 .btn.danger { background: #dc2626; }
 .btn.secondary { background: #6b7280; }
 .btn.disabled {
@@ -137,14 +137,14 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 }
 .choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; }
 .choice:hover { transform: translateY(-2px); background: #f9f9f9; box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.15); }
-.choice:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+.choice:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .choice:active { transform: translateY(4px) scale(0.98); background: #f0f0f0; box-shadow: 0 0 0 rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.1); }
 .neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 14px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15); transition: all 0.15s ease; }
 .neutral-btn:hover { transform: translateY(-1px); opacity: 0.95; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 10px rgba(0,0,0,0.2); }
-.neutral-btn:focus-visible { outline: 3px solid #fbbf24; outline-offset: 2px; }
+.neutral-btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15); }
 .neutral-btn.safe { background: #22c55e; color: white; }
-.neutral-btn.risky { background: #f59e0b; color: white; }
+.neutral-btn.risky { background: #f97316; color: white; }
 .neutral-btn.danger { background: #dc2626; color: white; }
 .neutral-btn.secondary { background: #6b7280; color: white; }
 .neutral-container {
@@ -204,7 +204,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   padding: 0.75rem;
   border: 1px solid rgba(255,255,255,0.1);
 }
-.neutral-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: #fde047; }
+.neutral-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: #60a5fa; }
 .neutral-desc { font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.5rem; }
 .neutral-outcome { font-size: 0.85rem; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px; margin-bottom: 0.5rem; }
 .neutral-content {
@@ -333,8 +333,8 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   right: 0;
   width: 100%;
   height: 100%;
-  background: #fbbf24;
-  border: 3px solid #f59e0b;
+  background: #3b82f6;
+  border: 3px solid #f97316;
   border-radius: 8px;
   opacity: 0.7;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -354,7 +354,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil.passive { border: none; opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
-.sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
+.sigil.active-action { box-shadow: 0 0 12px #3b82f6; animation: pulse-action 0.8s infinite; }
 .sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.4); }
 .sigil.l1 { color: #000; border-color: #000; }
@@ -381,9 +381,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   100% { background-position: 300% 50%; }
 }
 .sigil.engraved { color: #6b7280; border-color: #9ca3af; font-style: italic; opacity: 0.7; background: rgba(107,114,128,0.1); }
-.sigil.asterisk-primed { box-shadow: 0 0 8px #fbbf24; animation: pulse-asterisk 1s infinite; }
-@keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #fbbf24; } 50% { box-shadow: 0 0 16px #fbbf24; } }
-@keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #fbbf24; } 50% { box-shadow: 0 0 20px #fbbf24; } }
+.sigil.asterisk-primed { box-shadow: 0 0 8px #3b82f6; animation: pulse-asterisk 1s infinite; }
+@keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #3b82f6; } 50% { box-shadow: 0 0 16px #3b82f6; } }
+@keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #3b82f6; } 50% { box-shadow: 0 0 20px #3b82f6; } }
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast-log { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: linear-gradient(#fff, #f7f1e3); border: 3px solid #22c55e; border-radius: 8px; padding: 0.75rem; max-width: 400px; width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 9999; display: none; }
@@ -403,10 +403,10 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tutorial-modal button:hover { background: #15803d; }
 .tutorial-modal button:active { transform: scale(0.98); }
 .choice.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
-.tooltip { position: fixed; z-index: 25000; background: rgba(0,0,0,0.95); color: #fff; padding: 1rem; border-radius: 8px; border: 2px solid #fbbf24; max-width: 320px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+.tooltip { position: fixed; z-index: 25000; background: rgba(0,0,0,0.95); color: #fff; padding: 1rem; border-radius: 8px; border: 2px solid #3b82f6; max-width: 320px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
 .tooltip.show { opacity: 1; }
 .tooltip-green { background: rgba(34,197,94,0.85) !important; border-color: #22c55e !important; }
-.tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fde047; }
+.tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #60a5fa; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
 
 /* Tablet improvements (768px-1023px) */
@@ -1062,7 +1062,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🪵</button>
 <button onclick="showFAQ()" style="padding:0.25rem 0.5rem;background:#f97316;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">❓</button>
 <button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">⚙️</button>
-<div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#fbbf24;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🛠️</button></div>
+<div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🛠️</button></div>
 </div>
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
@@ -1071,7 +1071,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 // ===== VERSION CHECK =====
 const GAME_VERSION = '9.992';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
-console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
+console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f97316; font-weight: bold;');
 
 // ===== GAME DATA =====
 // Hero images
@@ -2601,12 +2601,12 @@ v.innerHTML = `
 <div style="position:relative;margin-bottom:1.5rem">
 <img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
 <div style="position:absolute;top:0.3rem;right:0.3rem;background:rgba(0,0,0,0.85);padding:0.25rem 0.5rem;border-radius:6px;border:2px solid rgba(251,191,36,0.7)">
-<p style="font-size:0.7rem;color:#fbbf24;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}</p>
+<p style="font-size:0.7rem;color:#3b82f6;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}</p>
 </div>
 </div>
 
 <!-- Single Play button -->
-<button class="btn" onclick="showSaveSlotSelection()" style="width:100%;font-size:1.2rem;padding:1rem;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🐸 PLAY 🐸</button>
+<button class="btn" onclick="showSaveSlotSelection()" style="width:100%;font-size:1.2rem;padding:1rem;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🐸 PLAY 🐸</button>
 </div>
 </div>`;
 }
@@ -2639,7 +2639,7 @@ ${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active 
 </div>
 ` : `
 <p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
 `}
 </div>
 
@@ -2660,7 +2660,7 @@ ${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active 
 </div>
 ` : `
 <p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#fbbf24;border:3px solid #f59e0b;font-weight:bold">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
 `}
 </div>
 
@@ -2883,7 +2883,7 @@ Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#fde047">A Special Gift</h2>
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#60a5fa">A Special Gift</h2>
 <div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
 <div>
 <img src="assets/characters/magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
@@ -3083,11 +3083,11 @@ A Goblin and a Wolf appear from the portal!
 </div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
-<img src="assets/characters/warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
+<img src="assets/characters/warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">⚔️ Attacking!</div>
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
-<img src="assets/characters/healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #fbbf24;transform:scaleX(-1)">
+<img src="assets/characters/healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">✚ Attacking!</div>
 </div>
 </div>
@@ -3258,7 +3258,7 @@ v.innerHTML = `
 </div>
 
 ${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
-<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);font-weight:bold">
+<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#3b82f6,#f97316);font-weight:bold">
 🏆 Champions of Floor 20 🏆
 </button></div>` : ''}
 
@@ -3276,7 +3276,7 @@ ${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 
 ${S.tapoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
-<button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#fbbf24 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
+<button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
 🎉 View Tapo (UNLOCKED!) 🎉
 </button>
 </div>` : ''}
@@ -3828,9 +3828,9 @@ const isTutorial = tutorialState && S.floor === 0 && tutorialState.stage === 'd2
 let html = '';
 if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
-html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #fbbf24;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
+html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 12, 'CONFUSE')" style="margin-bottom:0.5rem;background:#fbbf24;border:3px solid #f59e0b;font-size:1.1rem;cursor:pointer">
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 12, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">✅ DC 12: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal this enemy's POW to all enemies</span>
 </div>`;
@@ -3860,7 +3860,7 @@ const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
 if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">✨ Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
 if(S.asteriskD20Repeats > 1) {
-html += `<p style="margin-bottom:0.5rem;color:#f59e0b">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
+html += `<p style="margin-bottom:0.5rem;color:#f97316">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
 html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
 }
 if(h.ls && h.lst >= 0) {
@@ -6135,7 +6135,7 @@ S.sig[chosenSigil] = oldLevel + bonusLevels;
 S.wizardHero = heroIdx;
 S.wizardSigil = chosenSigil;
 
-const critText = best === 20 ? ` <span style="color:#fbbf24;font-weight:bold">(CRITICAL!)</span>` : '';
+const critText = best === 20 ? ` <span style="color:#3b82f6;font-weight:bold">(CRITICAL!)</span>` : '';
 toast(`${chosenSigil} temporarily upgraded to L${S.sig[chosenSigil]} for ${h.n}!`, 1800);
 
 replaceStage1WithStage2('wizard');
@@ -6697,7 +6697,7 @@ description: `Rolling ${boundsCount} dice to set bounds...`,
 outcomes: [
 `${diceDisplay}`,
 `Range set: <span style="color:#22c55e">${minBound}</span> to <span style="color:#22c55e">${maxBound}</span>`,
-'<span style="color:#fbbf24">NO BACKING OUT! Rolling for target...</span>'
+'<span style="color:#3b82f6">NO BACKING OUT! Rolling for target...</span>'
 ],
 buttons: `<button class="btn danger" onclick="targetRollBetween20s()">Roll target dice</button>`
 });
@@ -6815,7 +6815,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/gambling2.jpeg',
 title: 'Between the 20s Extreme',
 description: `The EXTREME version! Only 2 dice for bounds, NO backing out, but ${potentialPayout}G payout! High risk, high reward.`,
-outcomes: ['<span style="color:#fbbf24">WARNING: No safety net here. You\'re all in once you start.</span>'],
+outcomes: ['<span style="color:#3b82f6">WARNING: No safety net here. You\'re all in once you start.</span>'],
 buttons: `
 <button class="btn safe" onclick="nextFloor()">Walk away</button>
 <button class="btn danger" onclick="playBetween20s(2, ${wager})">Play EXTREME (${wager}G for ${potentialPayout}G)</button>
@@ -7076,7 +7076,7 @@ v.innerHTML = `
 <div style="text-align:center;margin:2rem 0">
 <div style="font-size:3rem;animation:clap 0.5s ease-in-out 3;margin-bottom:2rem">👏</div>
 <img src="assets/tapo-nobg.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
-<div style="font-size:2.5rem;font-weight:bold;color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
+<div style="font-size:2.5rem;font-weight:bold;color:#3b82f6;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
 ✨ Tapo Unlocked! ✨
 </div>
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
@@ -7085,7 +7085,7 @@ Baby Tapo has been added to your hero roster!<br>
 <span style="color:#8b5cf6">Starts with ALL active sigils!</span>
 </div>
 </div>
-<button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #fbbf24, #f59e0b);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
+<button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #3b82f6, #f97316);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
 </div>
 <style>
 @keyframes clap {
@@ -7193,7 +7193,7 @@ let html = `
 <style>
 @keyframes marquee-flash {
   0%, 100% { border-color: #dc2626; box-shadow: 0 0 10px rgba(220,38,38,0.8), 0 0 20px rgba(220,38,38,0.5); }
-  50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
+  50% { border-color: #3b82f6; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
 }
 .going-rate-marquee {
   animation: marquee-flash 1.5s ease-in-out infinite;
@@ -7431,7 +7431,7 @@ const maxSlots = 8;
 
 let html = `
 <div style="position:relative;max-width:800px;margin:0 auto">
-<h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+<h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
 🏆 Champions of Floor 20 🏆
 </h1>
 
@@ -7448,7 +7448,7 @@ let html = `
 <div onclick="enterPortal('fu')" style="position:absolute;right:5%;top:20%;width:20%;height:60%;cursor:pointer" title="${S.gameMode === 'fu' ? 'Current Mode' : 'Enter Frogged Up Realm 🔥'}"></div>
 </div>
 
-<div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(251,191,36,0.1);border:2px solid #fbbf24;border-radius:8px">
+<div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(251,191,36,0.1);border:2px solid #3b82f6;border-radius:8px">
 <p style="margin:0.5rem 0;font-size:1rem"><strong>Current Mode:</strong> <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
 <p style="margin:0.5rem 0;font-size:0.9rem;opacity:0.8">Click the <strong>pedestal</strong> to manage figurines (${pedestalCount}/${maxSlots})</p>
 <p style="margin:0.5rem 0;font-size:0.9rem;opacity:0.8">Click a <strong>portal</strong> to switch game modes</p>
@@ -7498,7 +7498,7 @@ const top = 40 + (rowIdx * 25); // Distribute 2 rows across height
 
 slotsHTML += `
 <div style="position:absolute;left:${left}%;top:${top}%;width:15%;height:20%;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="${isSlotted ? `removeFigurine('${hero}','${stat}')` : `slotFigurine('${hero}','${stat}')`}">
-<div style="width:100%;height:100%;background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(2px)">`;
+<div style="width:100%;height:100%;background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#3b82f6' : 'rgba(255,255,255,0.3)'};border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(2px)">`;
 
 if(isSlotted) {
 const displayIcon = slotted.source === 'statuette' ? '🗿' : heroIcons[hero];
@@ -7701,7 +7701,7 @@ showNarrativeSlide(slides, 0);
 function showFUVictoryCredits() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #fbbf24;color:#fff">
+<div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #3b82f6;color:#fff">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">🔥 FROGGED UP MODE CONQUERED! 🔥</h1>
 
 <div style="text-align:center;margin-bottom:2rem;font-size:1.2rem;line-height:1.8">
@@ -7712,7 +7712,7 @@ v.innerHTML = `
 </div>
 
 <div style="background:rgba(0,0,0,0.3);padding:1.5rem;border-radius:8px;margin:2rem 0">
-<h3 style="text-align:center;margin-bottom:1rem;color:#fbbf24">FROGGLE</h3>
+<h3 style="text-align:center;margin-bottom:1rem;color:#3b82f6">FROGGLE</h3>
 <div style="text-align:center;font-size:0.9rem;line-height:2;opacity:0.9">
 <p>A game by Preston Wesner</p>
 <p>Design, Art, & Code: Preston</p>
@@ -7722,7 +7722,7 @@ v.innerHTML = `
 </div>
 </div>
 
-<div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #fbbf24">
+<div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #3b82f6">
 <h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
 <img src="assets/tapo.png" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
@@ -7740,7 +7740,7 @@ v.innerHTML = `
 function showTapoVictoryMessage() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #fbbf24;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+<div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
 
 <div style="text-align:center;margin:2rem 0">
@@ -7768,7 +7768,7 @@ I hope you had fun!
 
 <div style="text-align:center;margin-top:2rem">
 ${window.earnedFigurines && window.earnedFigurines.length > 0 ?
-  '<button class="btn" onclick="showStatueRoom()" style="background:#fbbf24;color:#000;padding:1rem 2rem;font-size:1.1rem;margin-bottom:1rem;font-weight:bold">Place Figurines</button><br>' :
+  '<button class="btn" onclick="showStatueRoom()" style="background:#3b82f6;color:#000;padding:1rem 2rem;font-size:1.1rem;margin-bottom:1rem;font-weight:bold">Place Figurines</button><br>' :
   ''}
 <button class="btn" onclick="title()" style="background:#fff;color:#22c55e;padding:1rem 2rem;font-size:1.1rem;font-weight:bold">Play Again</button>
 </div>
@@ -7919,8 +7919,8 @@ const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghos
 const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
 
 let html = `
-<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #fbbf24;border-radius:12px;padding:2rem;z-index:30000;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
-<h2 style="text-align:center;color:#fbbf24;margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.95);border:3px solid #3b82f6;border-radius:12px;padding:2rem;z-index:30000;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
+<h2 style="text-align:center;color:#3b82f6;margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
 
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Resources</h3>
 <button class="btn" onclick="debugAddGold()" style="margin-bottom:0.5rem;background:#22c55e">+100 Gold</button>
@@ -7967,7 +7967,7 @@ ${inCombat ? `
 <button class="btn danger" onclick="debugDealDamage()">Deal 50 DMG to Enemy</button>
 ` : ''}
 
-<h3 style="color:#fbbf24;margin:1rem 0 0.5rem 0">Cheats</h3>
+<h3 style="color:#3b82f6;margin:1rem 0 0.5rem 0">Cheats</h3>
 <label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(251,191,36,0.2);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
 <input type="checkbox" ${S.oopsAll20s ? 'checked' : ''} onchange="toggleOopsAll20s(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
 <span>🎲 Oops All 20s (Auto-succeed D20 rolls)</span>
@@ -7999,7 +7999,7 @@ ${inGame ? `
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Game</h3>
 <button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
 <button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#dc2626">🔄 Restart Level</button>
-<button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f59e0b">🔄 Reset Tutorial</button>
+<button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f97316">🔄 Reset Tutorial</button>
 ` : ''}
 
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Help</h3>
@@ -8019,12 +8019,12 @@ ${inGame ? `
 <span>🔍 Show Sigil Tooltips</span>
 </label>
 
-<h3 style="color:#fbbf24;margin:1rem 0 0.5rem 0">Debug</h3>
+<h3 style="color:#3b82f6;margin:1rem 0 0.5rem 0">Debug</h3>
 <label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
 <input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
 <span>🛠️ Enable Debug Mode</span>
 </label>
-${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#fbbf24">🛠️ Open Debug Tools</button>` : ''}
+${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">🛠️ Open Debug Tools</button>` : ''}
 
 <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
