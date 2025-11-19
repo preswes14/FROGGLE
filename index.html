@@ -1218,21 +1218,24 @@ const targets = selectEnemyTargets(enemy, targetCount);
 if(targets.length === 0) return 0;
 
 const damagedIds = [];
-const targetNames = [];
+const targetDetails = [];
 targets.forEach(target => {
 if(target.h > 0) {
-targetNames.push(target.n);
+const hpBefore = target.h;
 damagedIds.push(target.id);
 // Apply damage silently (we'll show one toast for all targets)
 applyDamageToTarget(target, enemy.p, {isHero: true, silent: true});
+const hpAfter = target.h;
+targetDetails.push({name: target.n, before: hpBefore, after: hpAfter});
 }
 });
 
 // Trigger all animations simultaneously
 damagedIds.forEach(id => triggerHitAnimation(id));
 
-if(targetNames.length > 0) {
-toast(`${enemy.n}'s ${attackName} hit ${targetNames.join(', ')} for ${enemy.p} damage each!`);
+if(targetDetails.length > 0) {
+const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
+toast(`${enemy.n}'s ${attackName} hit ${targetStrings.join(', ')}!`);
 }
 
 return targets.length;
@@ -1514,16 +1517,11 @@ if(!tutorialState || S.floor !== 0) return;
 
 console.log('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
 
-// PHASE 1 (Fly Catching): Round 2 - Give Mage the Expand ability
-if(tutorialState.phase === 1 && round === 2 && !S.tutorialFlags.tapo_expand_unlocked) {
-console.log('[TUTORIAL] Phase 1 Round 2 - Adding Expand to Mage');
-const mage = S.heroes.find(h => h.n === 'Mage');
-if(mage && !mage.s.includes('Expand')) {
-mage.s.push('Expand');
-S.tutorialFlags.tapo_expand_unlocked = true;
-upd();
-render();
-showTutorialPop('tapo_expand_tutorial', "You learned Expand! This passive lets you hit multiple targets with Attack and Heal. Try it now - click Attack and select both flies!", () => {
+// PHASE 1 (Fly Catching): Round 2 - Remind about Expand ability
+if(tutorialState.phase === 1 && round === 2 && !S.tutorialFlags.tapo_expand_tutorial) {
+console.log('[TUTORIAL] Phase 1 Round 2 - Reminding about Expand');
+S.tutorialFlags.tapo_expand_tutorial = true;
+showTutorialPop('tapo_expand_tutorial', "Mage has Expand! This passive lets you hit multiple targets with Attack. Try it now - click Attack and select both flies!", () => {
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -1532,7 +1530,6 @@ upd();
 render();
 });
 return;
-}
 }
 
 // PHASE 2 (Ribbleton): Round 2: Healer Heal prompt (NOW BATCHED WITH EXPAND)
@@ -2958,16 +2955,16 @@ render();
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 2 Flies (Expand unlocks on turn 2)
+// Phase 1: Mage vs 2 Flies - Mage has Expand from the start
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
-// Add permanent passives (but NOT Expand in Phase 1 - it unlocks on turn 2)
-const passiveSigils = ['Asterisk', 'Star']; // Expand excluded for Phase 1
+// Add permanent passives (Asterisk, Star)
+const passiveSigils = ['Asterisk', 'Star'];
 S.heroes.forEach(hero => {
 passiveSigils.forEach(passive => {
 const permLevel = S.sig[passive] || 0;
@@ -4281,16 +4278,18 @@ const pow = h.p;
 if(action === 'Attack') {
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
-const targetNames = [];
+const targetDetails = [];
 const damagedEnemyIds = [];
 // First pass: Apply damage to all targets
 targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
-targetNames.push(e.n);
+const hpBefore = e.h;
 damagedEnemyIds.push(e.id);
 // Apply damage (without animation yet)
 applyDamageToTarget(e, pow, {isHero: false, skipRewards: false});
+const hpAfter = e.h;
+targetDetails.push({name: e.n, before: hpBefore, after: hpAfter});
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && e.n === 'Wolf') {
 console.log('[TUTORIAL] Wolf took damage! HP now:', e.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
@@ -4316,7 +4315,10 @@ if(e.n === 'Goblin') tutorialState.goblinKilled = true;
 S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
 }
 });
-if(targetNames.length > 0) toast(`${h.n} attacked ${targetNames.join(', ')} for ${pow} damage each!`);
+if(targetDetails.length > 0) {
+const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
+toast(`${h.n} attacked ${targetStrings.join(', ')}!`);
+}
 // Check if combat ended
 if(S.enemies.length === 0) {
 render();
@@ -4409,9 +4411,14 @@ toast(msg);
 
 function dealDamageToEnemy(enemy, dmg) {
 triggerHitAnimation(enemy.id);
+const hpBefore = enemy.h;
 
 // Apply damage using unified function
 applyDamageToTarget(enemy, dmg, {isHero: false, skipRewards: false});
+const hpAfter = enemy.h;
+
+// Show damage toast
+toast(`${enemy.n} took ${dmg} damage (❤${hpBefore}→❤${hpAfter})!`);
 
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && enemy.n === 'Wolf') {
@@ -4899,13 +4906,15 @@ executeEnemyAttackOnHeroes(enemy, targetCount, `Asterisk Attack ${i+1}/${multipl
 
 function dealDamageToHero(hero, dmg, source) {
 triggerHitAnimation(hero.id);
+const hpBefore = hero.h;
 const damage = applyDamageToTarget(hero, dmg, {isHero: true});
-// Build detailed damage message
-let msg = `${source} hit ${hero.n}:`;
+const hpAfter = hero.h;
+// Build detailed damage message with HP change
+let msg = `${source} hit ${hero.n} (❤${hpBefore}→❤${hpAfter}):`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
 msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
 } else if(damage.shieldLost > 0) {
-msg += ` -${damage.shieldLost}🛡️ (shield absorbed all damage)`;
+msg += ` -${damage.shieldLost}🛡️`;
 } else if(damage.hpLost > 0) {
 msg += ` -${damage.hpLost}❤️`;
 }
