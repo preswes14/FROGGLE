@@ -1541,7 +1541,7 @@ const mage = S.heroes[0];
 if(!mage.s.includes('Expand')) {
 mage.s.push('Expand');
 }
-showTutorialPop('tapo_expand_tutorial', "Mage also has the Expand sigil! Hover over (or long-press on mobile) it to learn more. Then click Attack and try selecting both flies!", () => {
+showTutorialPop('tapo_expand_tutorial', "Mage also has the Expand sigil! Hover / long-press it to learn more. Then click Attack and try selecting both flies!", () => {
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -1596,7 +1596,7 @@ render();
 // PROMPT 5: Enemy Sigils + Shield (BATCHED)
 showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Defeat him before he can shield!", () => {
 // PROMPT 6: Tooltip + Handoff (BATCHED)
-showTutorialPop('ribbleton_handoff', "Hover over (or long-press on mobile) any sigil to see what it does. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does. You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
 render();
 });
@@ -8167,7 +8167,7 @@ a: `Sigils are your heroes' special abilities! Each hero has sigils they can use
 • <strong>Shield</strong> - Protect heroes from damage<br>
 • <strong>Heal</strong> - Restore HP to heroes<br>
 • <strong>D20</strong> - Roll the dice for risky gambit actions<br><br>
-You can see your sigils at the bottom of your hero card during combat. Hover over (or long-press on mobile) any sigil icon to see what it does!`
+You can see your sigils at the bottom of your hero card during combat. Hover / long-press any sigil icon to see what it does!`
 },
 {
 q: "How do I level up sigils?",
