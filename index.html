@@ -5182,10 +5182,10 @@ v.innerHTML = `
 
 function nextFloor() {
 saveGame();
-// Show FAQ intro after first neutral encounter (Floor 2 complete)
+// Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
 S.tutorialFlags.faq_intro = true;
-showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! If you have questions about game mechanics, check out the FAQ in the settings menu (⚙️ button)!", () => {
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br>🌀 <strong>Sigilarium</strong> - View all sigils and their effects<br>🪵 <strong>Log</strong> - See combat message history<br>❓ <strong>FAQ</strong> - Frequently asked questions about game mechanics<br>⚙️ <strong>Settings</strong> - Adjust game options and preferences", () => {
 startFloor(S.floor + 1);
 });
 return;
