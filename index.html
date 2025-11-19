@@ -5443,25 +5443,41 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
+const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
+const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
+
 const available = allSigils.filter(s => {
 const totalLevel = (S.sig[s] || 0) + (S.tempSigUpgrades[s] || 0);
 return totalLevel < 4;
 });
-if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">All sigils maxed!</p>`;
-else {
-available.forEach(sig => {
+
+if(available.length === 0) {
+html += `<p style="text-align:center;margin-bottom:1rem">All sigils maxed!</p>`;
+} else {
+const actives = [...coreSigils, ...advancedSigils];
+
+// Helper to render sigil choices
+const renderSigilChoices = (sigils, categoryName, categoryColor) => {
+const availableInCategory = sigils.filter(s => available.includes(s));
+if(availableInCategory.length === 0) return '';
+let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
+availableInCategory.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const isActive = actives.includes(sig);
-// Actives display with minimum level of 1 (since they start at L1 when equipped)
 const displayLevel = (isActive && level === 0) ? 1 : level;
 const nextDisplayLevel = displayLevel + 1;
-// Check if any hero has this sigil
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const newSigilNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-html += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong>${newSigilNote}</div>`;
+categoryHtml += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong>${newSigilNote}</div>`;
 });
+return categoryHtml;
+};
+
+html += renderSigilChoices(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderSigilChoices(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+html += renderSigilChoices(passiveSigils, '✨ Passive Sigils', '#9333ea');
 }
 }
 html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
@@ -5492,27 +5508,42 @@ function selectHeroForSigil(heroIdx) {
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
-const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Alpha', 'Asterisk', 'Star'];
+const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
+const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
 const available = allSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to ${h.n}</h2>
 <p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
-if(available.length === 0) html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all sigils!</p>`;
-else {
+if(available.length === 0) {
+html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all sigils!</p>`;
+} else {
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
-available.forEach(sig => {
+
+const actives = [...coreSigils, ...advancedSigils];
+
+// Helper to render sigil choices for a category
+const renderCategorySigils = (sigils, categoryName, categoryColor) => {
+const availableInCategory = sigils.filter(s => available.includes(s));
+if(availableInCategory.length === 0) return '';
+let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
+availableInCategory.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const isActive = actives.includes(sig);
-// Actives at L0 show as L1 (minimum level when equipped), passives show as L0
 const displayLevel = (isActive && level === 0) ? 1 : level;
 const levelText = (level === 0 && !isActive) ? `L${displayLevel} (Passive only)` : `L${displayLevel}`;
-// Check if any hero has this sigil
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const newSigilNote = !anyHeroHasSigil ? `<span style="color:#dc2626;font-size:0.85rem"> *No hero has this yet!</span>` : '';
-html += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
+categoryHtml += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
 <strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>${newSigilNote}
 </div>`;
 });
+return categoryHtml;
+};
+
+html += renderCategorySigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderCategorySigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+html += renderCategorySigils(passiveSigils, '✨ Passive Sigils', '#9333ea');
 }
 html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
 v.innerHTML = html;
@@ -7194,7 +7225,10 @@ return;
 }
 
 const v = document.getElementById('gameView');
-const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
+const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
+const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
 
 // Select a random Death quote that hasn't been used yet
 let deathQuote = "";
@@ -7240,9 +7274,11 @@ if(S.gold === 0) {
 html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc2626;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
 } else {
 html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#2c2416">Upgrade Sigilarium:</h3>`;
-html += `<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 
-allSigils.forEach(sig => {
+// Helper function to render sigil upgrade cards
+const renderSigilCards = (sigils) => {
+let cards = '';
+sigils.forEach(sig => {
 const permLevel = S.sig[sig] || 0;
 // Actives show their effective level (perm + 1 for display)
 const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
@@ -7261,7 +7297,7 @@ const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 
-html += `
+cards += `
 <div style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
@@ -7273,7 +7309,25 @@ ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
 </div>`;
 });
+return cards;
+};
 
+// Core Sigils
+html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">⚔️ Core Sigils</h4>`;
+html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += renderSigilCards(coreSigils);
+html += `</div>`;
+
+// Advanced Sigils
+html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">🔥 Advanced Sigils</h4>`;
+html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += renderSigilCards(advancedSigils);
+html += `</div>`;
+
+// Passive Sigils
+html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">✨ Passive Sigils</h4>`;
+html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += renderSigilCards(passiveSigils);
 html += `</div>`;
 }
 
@@ -8339,7 +8393,8 @@ overlays.forEach(el => el.remove());
 function showSigilarium() {
 closeSettingsMenu();
 const v = document.getElementById('gameView');
-const activeSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
+const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 
 const getLevelColor = (level) => {
@@ -8356,12 +8411,41 @@ let html = `
 <h2 style="text-align:center;color:#9333ea;margin-bottom:1rem">📖 SIGILARIUM 📖</h2>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-bottom:1.5rem">All Sigils and Their Permanent Upgrade Levels</p>
 
-<!-- Active Sigils -->
-<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">⚔️ Active Sigils</h3>
+<!-- Core Sigils -->
+<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">⚔️ Core Sigils</h3>
 <div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
-activeSigils.forEach(sig => {
+coreSigils.forEach(sig => {
+const permLevel = S.sig[sig] || 0;
+const displayLevel = permLevel + 1; // Actives display +1 higher (perm 0 = L1)
+const cl = permLevel===0?'l1':permLevel===1?'l2':permLevel===2?'l3':permLevel===3?'l4':permLevel===4?'l5':'l5';
+const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
+const levelColor = getLevelColor(displayLevel);
+
+html += `
+<div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
+<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
+<span class="sigil ${cl}" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
+<div>
+<div style="font-weight:bold;font-size:1.1rem">${sig}</div>
+<div style="font-size:0.85rem;opacity:0.8">Level: <span style="color:${levelColor};font-weight:bold">L${displayLevel}</span></div>
+</div>
+</div>
+<div style="font-size:0.9rem;line-height:1.4;color:#4b5563">${desc}</div>
+</div>
+`;
+});
+
+html += `
+</div>
+
+<!-- Advanced Sigils -->
+<h3 style="color:#f97316;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #f97316;padding-bottom:0.25rem">🔥 Advanced Sigils</h3>
+<div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
+`;
+
+advancedSigils.forEach(sig => {
 const permLevel = S.sig[sig] || 0;
 const displayLevel = permLevel + 1; // Actives display +1 higher (perm 0 = L1)
 const cl = permLevel===0?'l1':permLevel===1?'l2':permLevel===2?'l3':permLevel===3?'l4':permLevel===4?'l5':'l5';
