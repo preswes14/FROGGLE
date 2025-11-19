@@ -351,7 +351,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil-row.compact .sigil { padding: 2px 4px; font-size: 0.65rem; min-height: 20px; border-width: 2px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-.sigil.passive { border: none; opacity: 0.85; }
+.sigil.passive { border-style: dashed; opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #3b82f6; animation: pulse-action 0.8s infinite; }
@@ -1282,7 +1282,8 @@ const activeSigils = [...h.s, ...(h.ts || [])];
 activeSigils.forEach(s => {
 const lvl = getLevel(s, i);
 const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${s}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${lvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
+const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
+html += `<span class="sigil ${cl} ${passiveClass}" onmouseenter="showTooltip('${s}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${lvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
 });
 html += '</div>';
 html += `<div class="card-stats">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
@@ -1540,7 +1541,7 @@ const mage = S.heroes[0];
 if(!mage.s.includes('Expand')) {
 mage.s.push('Expand');
 }
-showTutorialPop('tapo_expand_tutorial', "Mage learned Expand! This passive lets you hit multiple targets with Attack. Try it now - click Attack and select both flies!", () => {
+showTutorialPop('tapo_expand_tutorial', "Mage also has the Expand sigil! Hover / long-press it to learn more. Then click Attack and try selecting both flies!", () => {
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -1595,7 +1596,7 @@ render();
 // PROMPT 5: Enemy Sigils + Shield (BATCHED)
 showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Defeat him before he can shield!", () => {
 // PROMPT 6: Tooltip + Handoff (BATCHED)
-showTutorialPop('ribbleton_handoff', "Hover over (or long-press on mobile) any sigil to see what it does. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does. You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
 render();
 });
@@ -3376,7 +3377,10 @@ if(!cardEl) return;
 if(sel.includes(h)) {
 const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
-const sigilsHTML = hData.sigils.map(s => `<span class="sigil l1" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`).join('');
+const sigilsHTML = hData.sigils.map(s => {
+const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
+return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
+}).join('');
 const calloutsHTML = hData.callouts ? hData.callouts.map(c => `<div style="font-size:0.45rem;text-align:left;opacity:0.9;margin:1px 0">• ${c}</div>`).join('') : '';
 cardEl.innerHTML = `
 <div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
@@ -8163,7 +8167,7 @@ a: `Sigils are your heroes' special abilities! Each hero has sigils they can use
 • <strong>Shield</strong> - Protect heroes from damage<br>
 • <strong>Heal</strong> - Restore HP to heroes<br>
 • <strong>D20</strong> - Roll the dice for risky gambit actions<br><br>
-You can see your sigils at the bottom of your hero card during combat. Hover over (or long-press on mobile) any sigil icon to see what it does!`
+You can see your sigils at the bottom of your hero card during combat. Hover / long-press any sigil icon to see what it does!`
 },
 {
 q: "How do I level up sigils?",
@@ -8395,7 +8399,7 @@ const levelColor = getLevelColor(level);
 html += `
 <div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
 <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
-<span class="sigil ${cl}" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
+<span class="sigil ${cl} passive" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
 <div>
 <div style="font-weight:bold;font-size:1.1rem">${sig}</div>
 <div style="font-size:0.85rem;opacity:0.8">Permanent Level: <span style="color:${levelColor};font-weight:bold">L${level}</span></div>
