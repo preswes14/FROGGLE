@@ -1531,11 +1531,16 @@ if(!tutorialState || S.floor !== 0) return;
 
 console.log('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
 
-// PHASE 1 (Fly Catching): Round 2 - Remind about Expand ability
+// PHASE 1 (Fly Catching): Round 2 - Add Expand ability to Mage
 if(tutorialState.phase === 1 && round === 2 && !S.tutorialFlags.tapo_expand_tutorial) {
-console.log('[TUTORIAL] Phase 1 Round 2 - Reminding about Expand');
+console.log('[TUTORIAL] Phase 1 Round 2 - Adding Expand to Mage');
 S.tutorialFlags.tapo_expand_tutorial = true;
-showTutorialPop('tapo_expand_tutorial', "Mage has Expand! This passive lets you hit multiple targets with Attack. Try it now - click Attack and select both flies!", () => {
+// Add Expand to Mage's sigils
+const mage = S.heroes[0];
+if(!mage.s.includes('Expand')) {
+mage.s.push('Expand');
+}
+showTutorialPop('tapo_expand_tutorial', "Mage learned Expand! This passive lets you hit multiple targets with Attack. Try it now - click Attack and select both flies!", () => {
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -2969,12 +2974,12 @@ render();
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 2 Flies - Mage has Expand from the start
+// Phase 1: Mage vs 2 Flies - Mage gets Expand on Turn 2
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanent passives (Asterisk, Star)
