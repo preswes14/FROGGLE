@@ -2862,10 +2862,43 @@ const nextIndex = window.currentNarrativeIndex + 1;
 showNarrativeSlide(slides, nextIndex);
 }
 
+function showSkipTutorialConfirmation(proceedCallback) {
+// Show friendly skip confirmation
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:500px">
+<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ! 💪</h2>
+<p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
+You're on your own - get going and save Tapo!
+</p>
+<p style="font-size:0.95rem;line-height:1.5;text-align:center;margin-bottom:0.5rem;opacity:0.9">
+Need help? Check out the <strong>FAQ</strong> and <strong>Sigilarium</strong> buttons at the top of the screen anytime!
+</p>
+<p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
+(Help/tips can be disabled in the Settings menu)
+</p>
+<button onclick="confirmSkipTutorial()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's go!</button>
+</div>`;
+document.body.appendChild(overlay);
+window.skipTutorialProceedCallback = proceedCallback;
+}
+
+function confirmSkipTutorial() {
+const overlay = document.querySelector('.tutorial-modal-backdrop');
+if(overlay) overlay.remove();
+if(window.skipTutorialProceedCallback) {
+window.skipTutorialProceedCallback();
+window.skipTutorialProceedCallback = null;
+}
+}
+
 function skipTutorialFromSlide() {
-// Skip to title card, then Ribbleton (Help/Tips remain ON by default)
+// Show confirmation popup before skipping
+showSkipTutorialConfirmation(() => {
 toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
 setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
+});
 }
 
 // ===== RIBBLETON TUTORIAL INTRO =====
@@ -3178,9 +3211,11 @@ console.error('[TUTORIAL] Error in story overlay cleanup:', error);
 function skipTutorialFromOverlay() {
 const overlay = document.querySelector('.tutorial-modal-backdrop');
 if(overlay) overlay.remove();
-// Skip to title card, then Ribbleton (Help/Tips remain ON by default)
+// Show confirmation popup before skipping
+showSkipTutorialConfirmation(() => {
 toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
 setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
+});
 }
 
 function skipTutorial() {
@@ -5000,6 +5035,13 @@ S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
 upd();
+
+// Show "Your turn!" toast to indicate player can act again
+const aliveHeroes = S.heroes.filter(h => h.h > 0);
+if(aliveHeroes.length > 0) {
+toast('Your turn!', ANIMATION_TIMINGS.TOAST_SHORT);
+}
+
 // Auto-skip stunned heroes
 S.heroes.forEach((h, idx) => {
 if(h.st > 0 && !S.acted.includes(idx)) {
@@ -8315,9 +8357,6 @@ ${inGame ? `
 <button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f97316">🔄 Reset Tutorial</button>
 ` : ''}
 
-<h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Help</h3>
-<button class="btn" onclick="closeSettingsMenu();showFAQ()" style="margin-bottom:0.5rem;background:#9333ea">❓ Frequently Asked Questions</button>
-
 <h3 style="color:#22c55e;margin:1rem 0 0.5rem 0">Display</h3>
 <label style="display:flex;align-items:center;cursor:pointer;user-select:none;color:white;background:rgba(255,255,255,0.1);padding:0.75rem;border-radius:6px;margin-bottom:0.5rem">
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)" style="margin-right:0.5rem;transform:scale(1.2)">
@@ -8577,8 +8616,58 @@ Dragons gain 2 sigils per turn and have permanent Attack L2 + Expand L5. Don't l
 let html = `
 <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(#fff,#f7f1e3);border:3px solid #9333ea;border-radius:16px;padding:2rem;z-index:30000;max-width:700px;width:90%;max-height:85vh;overflow-y:auto">
 <h2 style="text-align:center;color:#9333ea;margin-bottom:0.5rem">❓ Frequently Asked Questions ❓</h2>
-<p style="text-align:center;font-size:1rem;color:#6b4423;margin-bottom:1rem;line-height:1.5">Welcome to FROGGLE! 🐸 You'll lead heroes through floors of enemies, using sigils (special abilities) to attack, defend, and survive. Level up after each floor to get stronger. Your goal: reach the deepest floor you can!</p>
-<p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Tap a question to expand/collapse the answer</p>
+
+<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
+<h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">🐸 FROGGLE</h3>
+<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Gain and upgrade powerful sigils to advance through the dungeon and save Tapo the tadpole! On death, you'll have a chance to spend gold you've earned to make your team permanently stronger!</p>
+
+<div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem">
+<h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">⚔️ HOW LEVEL-UPS WORK</h4>
+<p style="font-size:0.9rem;margin:0 0 0.5rem 0">After combat, you can spend XP in 3 ways:</p>
+
+<div style="margin-left:1rem;font-size:0.9rem;line-height:1.6">
+<p style="margin:0.5rem 0"><strong>1️⃣ UPGRADE A SIGIL</strong> (makes it stronger everywhere!)</p>
+<div style="margin-left:1rem;margin-bottom:0.75rem">
+<p style="margin:0.25rem 0"><strong style="color:#9333ea">Passive Sigils</strong> (Expand, Asterisk, Star):</p>
+<ul style="margin:0.25rem 0;padding-left:1.5rem">
+<li>Start at Level 0 (inactive)</li>
+<li>Spend XP to upgrade to Level 1 to activate for ALL heroes automatically</li>
+<li>Work automatically in battle - no action needed</li>
+</ul>
+<p style="margin:0.5rem 0 0.25rem 0"><strong style="color:#2c63c7">Active Sigils</strong> (Attack, Shield, Heal, D20, etc.):</p>
+<ul style="margin:0.25rem 0;padding-left:1.5rem">
+<li>Start at Level 1 effectiveness</li>
+<li>Upgrading makes them stronger on every hero who has them</li>
+<li>Example: Attack L1→L2 means attack twice instead of once!</li>
+</ul>
+</div>
+
+<p style="margin:0.5rem 0"><strong>2️⃣ ADD A SIGIL TO A HERO</strong></p>
+<ul style="margin:0.25rem 0 0.75rem 1.5rem;padding-left:1.5rem">
+<li>All heroes can learn any sigil by spending XP!</li>
+<li>Active sigils use your hero's 1 action per turn</li>
+<li>Choose abilities that complement your strategy</li>
+</ul>
+
+<p style="margin:0.5rem 0"><strong>3️⃣ UPGRADE HERO STATS</strong></p>
+<ul style="margin:0.25rem 0;padding-left:1.5rem">
+<li>Spend XP for +1 POW (increases damage/healing/shields)</li>
+<li>Spend XP for +5 Max HP (and heal if in Last Stand)</li>
+</ul>
+</div>
+</div>
+
+<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-top:1rem">
+<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">💡 PRO TIPS</h4>
+<ul style="margin:0;padding-left:1.5rem;font-size:0.85rem;line-height:1.5">
+<li><strong>Mage & Healer Start Stronger:</strong> They get +1 Expand built-in, so their actions hit 1 extra target from the start!</li>
+<li><strong>Shields Persist:</strong> Before winning a battle, use remaining actions to shield your team - they carry over to the next fight!</li>
+<li><strong>D20 Gambits:</strong> Higher D20 sigil levels = better success rates. Hover over D20 in battle to see all 5 effects and their difficulty.</li>
+</ul>
+</div>
+</div>
+
+<p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Tap a question below to expand/collapse the answer</p>
 <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
