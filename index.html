@@ -1799,7 +1799,10 @@ death_intro: false,
 death_exit_warning: false,
 neutral_intro: false,
 neutral_d20_level: false,
+faq_intro: false,
 last_stand_intro: false,
+last_stand_warning: false,
+shield_persistence: false,
 recruit_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
@@ -2947,7 +2950,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:portalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
+<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
@@ -2965,7 +2968,7 @@ Tank, Warrior, and Healer rush to defend Tapo and Mage!
 25% { transform: translateX(-5px); }
 75% { transform: translateX(5px); }
 }
-@keyframes portalPulse {
+@keyframes narrativePortalPulse {
 0%, 100% { transform: scale(1); opacity: 0.8; }
 50% { transform: scale(1.1); opacity: 1; }
 }
@@ -3626,7 +3629,7 @@ function isMultiInstance(action) { return ['Attack', 'Shield', 'Heal'].includes(
 
 function getD20DC(baseDC, heroIdx, gambitName) {
 const h = S.heroes[heroIdx];
-if(!h.ls) return baseDC;
+if(!h || !h.ls) return baseDC;
 // Last Stand: +2 immediately, then +2 each turn (h.lst counts turns in Last Stand)
 const lastStandBonus = (h.lst + 1) * 2;
 // Confuse caps at DC 20, all other gambits continue increasing
@@ -3640,6 +3643,7 @@ function selectHero(idx) {
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(S.pending) return;
 const h = S.heroes[idx];
+if(!h) { console.error('Invalid hero index:', idx); return; }
 if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 S.activeIdx = idx;
@@ -3653,6 +3657,7 @@ hideTooltip();
 
 // RIBBLETON TUTORIAL: Check for scripted actions using TutorialManager
 const h = S.heroes[heroIdx];
+if(!h) { console.error('Invalid hero index in act():', heroIdx); return; }
 if(!TutorialManager.canPerformAction(h, sig)) {
 toast("Follow the tutorial instructions!");
 return;
