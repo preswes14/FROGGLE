@@ -1738,6 +1738,7 @@ ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
 princeGender: 'Prince',          // Gender preference for quest line
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasAncientStatuette: false,
+hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
 fuUnlocked: false,
 tapoUnlocked: false,             // Unlocked after first FU victory
 
@@ -2082,6 +2083,7 @@ sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
+hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
@@ -2124,6 +2126,7 @@ savePermanent(); // Save the fix
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
+S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
@@ -2281,6 +2284,7 @@ savePermanent(); // Save the fix
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
+S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
@@ -2332,6 +2336,7 @@ sigUpgradeCounts: S.sigUpgradeCounts,
 ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
+hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
@@ -2760,9 +2765,9 @@ showNarrativeSlide(slides, nextIndex);
 }
 
 function skipTutorialFromSlide() {
-// Skip to hero selection (Help/Tips remain ON by default)
-toast('Tutorial skipped! Going to hero selection...', ANIMATION_TIMINGS.TOAST_SHORT);
-setTimeout(() => transitionScreen(title), ANIMATION_TIMINGS.ACTION_COMPLETE);
+// Skip to title card, then Ribbleton (Help/Tips remain ON by default)
+toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
+setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
 }
 
 // ===== RIBBLETON TUTORIAL INTRO =====
@@ -3063,9 +3068,9 @@ render();
 function skipTutorialFromOverlay() {
 const overlay = document.querySelector('.tutorial-modal-backdrop');
 if(overlay) overlay.remove();
-// Skip to hero selection (Help/Tips remain ON by default)
-toast('Tutorial skipped! Going to hero selection...', ANIMATION_TIMINGS.TOAST_SHORT);
-setTimeout(() => transitionScreen(title), ANIMATION_TIMINGS.ACTION_COMPLETE);
+// Skip to title card, then Ribbleton (Help/Tips remain ON by default)
+toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
+setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
 }
 
 function skipTutorial() {
@@ -3136,7 +3141,7 @@ v.innerHTML = `
 
 setTimeout(() => {
 tutorialState = null;
-title(); // Go to hero select
+showRibbleton(); // Go to Ribbleton hub
 }, 5500);
 }
 
@@ -5170,6 +5175,14 @@ addBonusTurnStack(hero.id, actionCounts[heroIdx]);
 
 // ===== LEVEL UP =====
 function levelUp() {
+// Unlock blue portal and award statuette after completing Floor 19 (combat before floor 20)
+if(S.floor === 19) {
+S.hasReachedFloor20 = true;
+S.hasAncientStatuette = true;
+savePermanent();
+toast('🗿 Ancient Statuette acquired! The blue portal in Ribbleton has awakened!', 2500);
+}
+
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
 v.innerHTML = `
@@ -7263,8 +7276,9 @@ localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 }
 // Also clear old save format for backwards compatibility
 localStorage.removeItem('froggle8');
-// Reload page to start fresh - will show save slot selection screen
-location.reload();
+// Return to Ribbleton hub
+toast('Returning to Ribbleton...', 1200);
+setTimeout(() => transitionScreen(showRibbleton), ANIMATION_TIMINGS.ACTION_COMPLETE);
 }
 
 // ===== CHAMPIONS MENU =====
@@ -7650,10 +7664,75 @@ html += `</ul></div>`;
 }
 
 html += `<div style="text-align:center;margin-top:2rem">
-<button class="btn" onclick="title()" style="padding:1rem 2rem;font-size:1.1rem">Play Again</button>
+<button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">Return to Ribbleton</button>
 </div>`;
 
 v.innerHTML = html;
+}
+
+// ===== RIBBLETON HUB =====
+function showRibbleton() {
+// Hide game header in Ribbleton
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'none';
+
+const v = document.getElementById('gameView');
+const bluePortalUnlocked = S.hasReachedFloor20;
+
+let html = `
+<div style="position:relative;max-width:1000px;margin:0 auto;padding:1rem">
+<h1 style="text-align:center;margin-bottom:1rem;font-size:2rem;color:#22c55e;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
+🐸 Welcome to Ribbleton! 🐸
+</h1>
+
+<div style="position:relative;width:100%;margin:0 auto">
+<img src="assets/ribbleton.png" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
+
+<!-- Red Portal (Always Available) - Left side of town square -->
+<div onclick="enterRedPortal()" style="position:absolute;left:15%;top:40%;width:15%;height:25%;cursor:pointer;border-radius:50%;transition:transform 0.2s"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+     title="Enter the Red Portal - Begin a new adventure!">
+  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(220, 38, 38, 0.7) 0%, rgba(220, 38, 38, 0.3) 50%, transparent 100%);border:3px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(220, 38, 38, 0.8)">
+    <div style="font-size:3rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🔴</div>
+  </div>
+</div>
+
+${bluePortalUnlocked ? `
+<!-- Blue Portal (Unlocked after Floor 20) - Right side of town square -->
+<div onclick="enterBluePortal()" style="position:absolute;right:15%;top:40%;width:15%;height:25%;cursor:pointer;border-radius:50%;transition:transform 0.2s"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+     title="Enter the Blue Portal - Return to Floor 20!">
+  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(59, 130, 246, 0.7) 0%, rgba(59, 130, 246, 0.3) 50%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(59, 130, 246, 0.8)">
+    <div style="font-size:3rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🔵</div>
+  </div>
+</div>
+` : ''}
+</div>
+
+<div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.9);border:3px solid #22c55e;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
+  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Begin a new adventure!</p>
+  ${bluePortalUnlocked ?
+    `<p style="font-size:1.1rem;margin:0"><strong>🔵 Blue Portal:</strong> Visit the Champions Hall (Floor 20)</p>` :
+    `<p style="font-size:0.9rem;margin:0;opacity:0.6"><em>A mysterious blue portal appears to be locked... Perhaps reaching Floor 20 will unlock it?</em></p>`
+  }
+</div>
+</div>`;
+
+v.innerHTML = html;
+}
+
+function enterRedPortal() {
+toast('Entering the Red Portal...', 1200);
+setTimeout(() => transitionScreen(title), ANIMATION_TIMINGS.ACTION_COMPLETE);
+}
+
+function enterBluePortal() {
+if(!S.hasReachedFloor20) {
+toast('The Blue Portal is locked!');
+return;
+}
+toast('Entering the Blue Portal...', 1200);
+setTimeout(() => transitionScreen(showChampionsMenu), ANIMATION_TIMINGS.ACTION_COMPLETE);
 }
 
 // ===== DEBUG MODE =====
@@ -8274,6 +8353,7 @@ S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, E
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
+S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
