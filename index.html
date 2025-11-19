@@ -59,6 +59,26 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   75% { transform: rotate(15deg); }
 }
 
+@keyframes portalPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.8);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 40px rgba(220, 38, 38, 1), 0 0 60px rgba(220, 38, 38, 0.6);
+  }
+}
+
+@keyframes portalGlow {
+  0%, 100% {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(220, 38, 38, 0.8));
+  }
+  50% {
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9)) drop-shadow(0 0 30px rgba(220, 38, 38, 1));
+  }
+}
+
 .rotate-message {
   font-size: 1.5rem;
   font-weight: bold;
@@ -1769,6 +1789,7 @@ enemies_get_sigils: false,
 ribbleton_shield_sigil: false,
 ribbleton_handoff: false,
 ribbleton_tooltip_intro: false,
+ribbleton_hub_intro: false,
 levelup_intro: false,
 levelup_stat_upgrade: false,
 levelup_add_active: false,
@@ -1778,7 +1799,10 @@ death_intro: false,
 death_exit_warning: false,
 neutral_intro: false,
 neutral_d20_level: false,
+faq_intro: false,
 last_stand_intro: false,
+last_stand_warning: false,
+shield_persistence: false,
 recruit_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
@@ -2926,7 +2950,7 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:portalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
+<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
@@ -2944,7 +2968,7 @@ Tank, Warrior, and Healer rush to defend Tapo and Mage!
 25% { transform: translateX(-5px); }
 75% { transform: translateX(5px); }
 }
-@keyframes portalPulse {
+@keyframes narrativePortalPulse {
 0%, 100% { transform: scale(1); opacity: 0.8; }
 50% { transform: scale(1.1); opacity: 1; }
 }
@@ -3123,7 +3147,7 @@ function finishRibbletonTutorial() {
 const slides = [
 {text: "The few enemies remaining around Ribbleton scamper back into the portal. Relieved, the frog heroes sheathe their weapons and look for Tapo - but he's missing!!"},
 {text: "As the Ribbletonians search high and low, the heroes realize there's only one possibility - the poor tadpole has squiggled his way through the portal!"},
-{text: "Without a thought for their lives, the brave heroes dive into the swirling darkness..."}
+{text: "The townspeople gather around the heroes. \"You must bring him home!\" they plead. The heroes nod solemnly - Ribbleton will be their sanctuary, and they'll return here between each rescue attempt."}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -3142,7 +3166,7 @@ v.innerHTML = `
 setTimeout(() => {
 tutorialState = null;
 showRibbleton(); // Go to Ribbleton hub
-}, 5500);
+}, 3000); // Reduced from 5500ms to 3000ms for faster flow
 }
 
 // ===== TITLE & HERO SELECT =====
@@ -3605,7 +3629,7 @@ function isMultiInstance(action) { return ['Attack', 'Shield', 'Heal'].includes(
 
 function getD20DC(baseDC, heroIdx, gambitName) {
 const h = S.heroes[heroIdx];
-if(!h.ls) return baseDC;
+if(!h || !h.ls) return baseDC;
 // Last Stand: +2 immediately, then +2 each turn (h.lst counts turns in Last Stand)
 const lastStandBonus = (h.lst + 1) * 2;
 // Confuse caps at DC 20, all other gambits continue increasing
@@ -3619,6 +3643,7 @@ function selectHero(idx) {
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(S.pending) return;
 const h = S.heroes[idx];
+if(!h) { console.error('Invalid hero index:', idx); return; }
 if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 S.activeIdx = idx;
@@ -3632,6 +3657,7 @@ hideTooltip();
 
 // RIBBLETON TUTORIAL: Check for scripted actions using TutorialManager
 const h = S.heroes[heroIdx];
+if(!h) { console.error('Invalid hero index in act():', heroIdx); return; }
 if(!TutorialManager.canPerformAction(h, sig)) {
 toast("Follow the tutorial instructions!");
 return;
@@ -7679,21 +7705,30 @@ if(header) header.style.display = 'none';
 const v = document.getElementById('gameView');
 const bluePortalUnlocked = S.hasReachedFloor20;
 
+// Show tutorial for first-time visitors to Ribbleton hub
+const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
+if(isFirstVisit && !S.helpTipsDisabled) {
+  setTimeout(() => {
+    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal whenever you're ready to begin your next rescue mission!", () => {
+      // Tutorial dismissed, player can now explore
+    });
+  }, 500);
+}
+
 let html = `
 <div style="position:relative;max-width:1000px;margin:0 auto;padding:1rem">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2rem;color:#22c55e;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
-🐸 Welcome to Ribbleton! 🐸
+🐸 Welcome Home to Ribbleton! 🐸
 </h1>
 
 <div style="position:relative;width:100%;margin:0 auto">
 <img src="assets/ribbleton.png" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
 
 <!-- Red Portal (Always Available) - Left side of town square -->
-<div onclick="enterRedPortal()" style="position:absolute;left:15%;top:40%;width:15%;height:25%;cursor:pointer;border-radius:50%;transition:transform 0.2s"
-     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+<div onclick="enterRedPortal()" style="position:absolute;left:15%;top:40%;width:15%;height:25%;cursor:pointer;border-radius:50%"
      title="Enter the Red Portal - Begin a new adventure!">
-  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(220, 38, 38, 0.7) 0%, rgba(220, 38, 38, 0.3) 50%, transparent 100%);border:3px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(220, 38, 38, 0.8)">
-    <div style="font-size:3rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🔴</div>
+  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(220, 38, 38, 0.7) 0%, rgba(220, 38, 38, 0.3) 50%, transparent 100%);border:3px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:portalPulse 2s ease-in-out infinite">
+    <div style="font-size:3rem;animation:portalGlow 2s ease-in-out infinite">🔴</div>
   </div>
 </div>
 
@@ -7710,7 +7745,7 @@ ${bluePortalUnlocked ? `
 </div>
 
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.9);border:3px solid #22c55e;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
-  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Begin a new adventure!</p>
+  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Venture forth on a rescue mission!</p>
   ${bluePortalUnlocked ?
     `<p style="font-size:1.1rem;margin:0"><strong>🔵 Blue Portal:</strong> Visit the Champions Hall (Floor 20)</p>` :
     `<p style="font-size:0.9rem;margin:0;opacity:0.6"><em>A mysterious blue portal appears to be locked... Perhaps reaching Floor 20 will unlock it?</em></p>`
@@ -7926,6 +7961,7 @@ enemies_get_sigils: false,
 ribbleton_shield_sigil: false,
 ribbleton_handoff: false,
 ribbleton_tooltip_intro: false,
+ribbleton_hub_intro: false,
 levelup_intro: false,
 levelup_stat_upgrade: false,
 levelup_add_active: false,
