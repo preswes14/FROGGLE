@@ -1783,6 +1783,9 @@ combatXP: 0,        // XP earned this combat
 combatGold: 0,      // Gold earned this combat
 selectingEncampmentTargets: false, // Special state for Encampment encounter
 encampmentEarlyKills: 0,           // Number of enemies to kill early
+d20HeroIdx: -1,     // Hero index for D20 action targeting
+grappleRepeats: 0,  // Number of grapple repeats for recoil calculation
+grappleLevel: 0,    // Grapple level for recoil calculation
 
 // ===== NEUTRAL ENCOUNTER STATE (resets each encounter) =====
 neutralDeck: [],    // Deck of neutral encounter IDs
@@ -2109,16 +2112,21 @@ console.log('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.
 S.tutorialFlags[flagName] = true;
 savePermanent();
 
-// Remove ALL backdrops aggressively
+// Remove ALL backdrops aggressively with error handling
+try {
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
 console.log('[TUTORIAL] Removing', allBackdrops.length, 'backdrops');
 allBackdrops.forEach((b, i) => {
 console.log('[TUTORIAL] Removing backdrop', i);
 b.remove();
 });
+} catch (error) {
+console.error('[TUTORIAL] Error removing backdrops:', error);
+}
 
 // Verify it's gone
 setTimeout(() => {
+try {
 const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
 console.log('[TUTORIAL] Backdrops remaining after pop dismiss:', remaining.length);
 if(remaining.length > 0) {
@@ -2136,6 +2144,11 @@ window.tutorialCallback();
 window.tutorialCallback = null;
 } else {
 console.warn('[TUTORIAL] No callback found!');
+}
+} catch (error) {
+console.error('[TUTORIAL] Error in callback execution:', error);
+// Still try to clear callback even if there's an error
+if(window.tutorialCallback) window.tutorialCallback = null;
 }
 }, 50);
 }
@@ -2931,8 +2944,12 @@ document.body.appendChild(overlay);
 }
 
 function dismissTaposBirthdayOverlay() {
+try {
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
 allBackdrops.forEach(backdrop => backdrop.remove());
+} catch (error) {
+console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
+}
 // Show first tutorial popup
 showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to catch a fly!", () => {
 tutorialState.stage = 'catching_flies';
@@ -3106,15 +3123,20 @@ document.body.appendChild(overlay);
 function dismissStoryOverlay() {
 console.log('[TUTORIAL] Dismissing story overlay');
 // Remove ALL backdrops before showing the tutorial pop
+try {
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
 console.log('[TUTORIAL] Found', allBackdrops.length, 'backdrops to remove');
 allBackdrops.forEach((backdrop, idx) => {
 console.log('[TUTORIAL] Removing backdrop', idx);
 backdrop.remove();
 });
+} catch (error) {
+console.error('[TUTORIAL] Error removing story overlay backdrops:', error);
+}
 
 // Double-check they're gone
 setTimeout(() => {
+try {
 const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
 console.log('[TUTORIAL] Remaining overlays after dismiss:', remaining.length);
 if(remaining.length > 0) {
@@ -3130,6 +3152,9 @@ S.activeIdx = 0;
 console.log('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
 render();
 });
+} catch (error) {
+console.error('[TUTORIAL] Error in story overlay cleanup:', error);
+}
 }, 50);
 }
 
@@ -3437,7 +3462,7 @@ S.floor=1; S.xp=0; S.levelUpCount=0;
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
-id:`h${Date.now()}${i}`,
+id:`h-${crypto.randomUUID()}`,
 n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
 }));
@@ -3607,7 +3632,7 @@ S.enemies = comp.map((t,i) => {
 const base = E[t];
 const fuMultiplier = S.gameMode === 'fu' ? 3 : 1;
 const enemy = {
-id:`e${Date.now()}${i}`, n:base.n,
+id:`e-${crypto.randomUUID()}`, n:base.n,
 p:base.p * fuMultiplier,
 h:base.h * fuMultiplier,
 m:base.m * fuMultiplier,
@@ -6429,7 +6454,7 @@ const stragglerType = comp[Math.floor(Math.random() * comp.length)];
 const base = E[stragglerType];
 const fuMultiplier = S.gameMode === 'fu' ? 5 : 1;
 const straggler = {
-id: `recruit${Date.now()}`,
+id: `recruit-${crypto.randomUUID()}`,
 n: base.n,
 p: base.p * fuMultiplier,
 h: base.h * fuMultiplier,
