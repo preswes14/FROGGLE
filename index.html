@@ -1494,7 +1494,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Nice hit! The Healer can't heal yet, but they can gambit - click the Healer's D20 to see risky actions!", () => {
+showTutorialPop('ribbleton_healer_d20', "Nice hit! Before we heal, let's learn about gambits - click the Healer's D20 to see risky actions!", () => {
 S.activeIdx = 1;
 render();
 });
@@ -1523,7 +1523,7 @@ mage.s.push('Expand');
 S.tutorialFlags.tapo_expand_unlocked = true;
 upd();
 render();
-showTutorialPop('tapo_expand_tutorial', "You learned a new ability: Expand! This passive ability lets your Attack and Heal hit multiple targets. Click Attack, then select which enemies to target!", () => {
+showTutorialPop('tapo_expand_tutorial', "You learned Expand! This passive lets you hit multiple targets with Attack and Heal. Try it now - click Attack and select both flies!", () => {
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -1577,7 +1577,7 @@ tutorialState.stage = 'shield_sigil';
 upd();
 render();
 // PROMPT 5: Enemy Sigils + Shield (BATCHED)
-showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! The Goblin drew Shield - enemies activate sigils AFTER they attack, then the sigils disappear. Take him down before he shields up!", () => {
+showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Defeat him before he can shield!", () => {
 // PROMPT 6: Tooltip + Handoff (BATCHED)
 showTutorialPop('ribbleton_handoff', "Hover over (or long-press on mobile) any sigil to see what it does. You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
@@ -3788,7 +3788,7 @@ if(S.locked) return;
 // RIBBLETON TUTORIAL: PROMPT 2 - Explain D20 gambit
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'healer_d20') {
 tutorialState.stage = 'd20_menu';
-showTutorialPop('ribbleton_d20_menu', "Choose a gambit action! Each has a DC (Difficulty Check) - a DC of 16 means you need to roll 16+ to succeed! Pick CONFUSE to damage the Wolf!", () => {
+showTutorialPop('ribbleton_d20_menu', "Choose a gambit! Each has a DC (Difficulty Check) - you need to roll that number or higher to succeed. Pick CONFUSE to damage the Wolf!", () => {
 // After prompt, show the d20 menu
 renderD20MenuAfterTutorial(heroIdx);
 });
@@ -3877,7 +3877,7 @@ S.d20HeroIdx = heroIdx;
 
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
-showTutorialPop('healer_expand_explain', "Healer starts with the Expand passive sigil - that means she gets to choose 1 extra target for each action!", () => {
+showTutorialPop('healer_expand_explain', "Healer also has Expand - just like Mage used with Attack! This lets you add a target to your D20 gambit. Try selecting 2 enemies to Confuse!", () => {
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
@@ -4077,7 +4077,7 @@ toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
 // PHASE 1 TUTORIAL: Explain wasted Expand slots
 if(tutorialState && tutorialState.phase === 1 && !S.tutorialFlags.tapo_wasted_expand) {
 S.tutorialFlags.tapo_wasted_expand = true;
-showTutorialPop('tapo_wasted_expand', "When you have fewer enemies than Expand slots, some slots go to waste - but that's okay! Expand is still useful when there are multiple targets.", () => {
+showTutorialPop('tapo_wasted_expand', "One slot wasted - but that's okay! Expand shines when you have multiple targets.", () => {
 upd();
 render();
 });
@@ -5058,7 +5058,7 @@ tutorialState.stage = 'targeting_wolf';
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Both heroes took damage! Healer has Expand, which lets them target 1 extra ally. Click both heroes to heal them!", () => {
+showTutorialPop('ribbleton_expand', "Use Healer's Expand to heal both wounded heroes!", () => {
 render();
 });
 return;
