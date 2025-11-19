@@ -396,7 +396,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
-.tutorial-modal { background: linear-gradient(#fff, #f7f1e3); border: 4px solid #fbbf24; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
+.tutorial-modal { background: linear-gradient(#fff, #e8f5e9); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
 .tutorial-modal h2 { margin-top: 0; color: #6b4423; }
 .tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; }
 .tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
@@ -3145,7 +3145,7 @@ remaining.forEach(r => r.remove());
 }
 
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Click the Warrior's Attack sigil, then click the Wolf to target it.", () => {
+showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Click the Warrior's Attack sigil.", () => {
 console.log('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -3174,14 +3174,12 @@ title();
 
 // ===== RIBBLETON TUTORIAL (PHASE 2) =====
 function startRibbletonTutorial() {
-// Phase 2: Portal Invasion - All 4 heroes, Mage now has D20
+// Phase 2: Portal Invasion - Wolf and Goblin fight with Warrior and Healer
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_tank', n:'Tank', p:1, h:10, m:10, s:['Shield','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
 {id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
