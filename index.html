@@ -204,7 +204,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   padding: 0.75rem;
   border: 1px solid rgba(255,255,255,0.1);
 }
-.neutral-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: #fbbf24; }
+.neutral-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; color: #fde047; }
 .neutral-desc { font-size: 0.9rem; line-height: 1.4; margin-bottom: 0.5rem; }
 .neutral-outcome { font-size: 0.85rem; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px; margin-bottom: 0.5rem; }
 .neutral-content {
@@ -406,7 +406,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .tooltip { position: fixed; z-index: 25000; background: rgba(0,0,0,0.95); color: #fff; padding: 1rem; border-radius: 8px; border: 2px solid #fbbf24; max-width: 320px; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
 .tooltip.show { opacity: 1; }
 .tooltip-green { background: rgba(34,197,94,0.85) !important; border-color: #22c55e !important; }
-.tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fbbf24; }
+.tooltip-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.5rem; color: #fde047; }
 .tooltip-desc { font-size: 0.9rem; line-height: 1.4; }
 
 /* Tablet improvements (768px-1023px) */
@@ -1462,6 +1462,29 @@ if(allowed.length === 0) return false; // No actions allowed in this stage
 return allowed.some(a => a.hero === hero.n && a.sig === sig);
 },
 
+// Get descriptive message for current tutorial stage
+getInstructionMessage() {
+if(!tutorialState || S.floor !== 0) return "Follow the tutorial instructions!";
+const stage = tutorialState.stage;
+
+// Stage-specific messages
+const messages = {
+'waiting_for_start': "Wait for the tutorial to begin!",
+'warrior_attack': "Click the Warrior's Attack sigil, then target the Wolf!",
+'targeting_wolf': "Click the Wolf to target it with your Attack!",
+'healer_d20': "Click the Healer's D20 to see risky gambit actions!",
+'d20_menu': "Select a D20 gambit option!",
+'enemy_turn_wait': "Wait for the enemy turn to complete!",
+'enemy_turn_explained': "Wait for the next round to begin!",
+'healer_heal': "Click the Healer's Heal sigil!",
+'expand_targets': "Select targets for your Heal with Expand!",
+'finish_wolf': "Use your abilities to defeat the remaining enemies!",
+'shield_sigil': "Wait and watch what happens!"
+};
+
+return messages[stage] || "Follow the tutorial instructions!";
+},
+
 // Advance to next stage based on action completion
 advanceStage(context) {
 if(!tutorialState || S.floor !== 0) return;
@@ -1471,7 +1494,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Nice hit! The Healer can't heal yet, but they can gambit - click the Healer's D20 to see risky actions!", () => {
+showTutorialPop('ribbleton_healer_d20', "Nice hit! Before we heal, let's learn about gambits - click the Healer's D20 to see risky actions!", () => {
 S.activeIdx = 1;
 render();
 });
@@ -1491,7 +1514,28 @@ if(!tutorialState || S.floor !== 0) return;
 
 console.log('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
 
-// Round 2: Healer Heal prompt (NOW BATCHED WITH EXPAND)
+// PHASE 1 (Fly Catching): Round 2 - Give Mage the Expand ability
+if(tutorialState.phase === 1 && round === 2 && !S.tutorialFlags.tapo_expand_unlocked) {
+console.log('[TUTORIAL] Phase 1 Round 2 - Adding Expand to Mage');
+const mage = S.heroes.find(h => h.n === 'Mage');
+if(mage && !mage.s.includes('Expand')) {
+mage.s.push('Expand');
+S.tutorialFlags.tapo_expand_unlocked = true;
+upd();
+render();
+showTutorialPop('tapo_expand_tutorial', "You learned Expand! This passive lets you hit multiple targets with Attack and Heal. Try it now - click Attack and select both flies!", () => {
+S.turn = 'player';
+S.activeIdx = -1;
+S.acted = [];
+S.locked = false;
+upd();
+render();
+});
+return;
+}
+}
+
+// PHASE 2 (Ribbleton): Round 2: Healer Heal prompt (NOW BATCHED WITH EXPAND)
 if(round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
 console.log('[TUTORIAL] Triggering PROMPT 4 - Healer Heal + Expand (batched) (stage:', tutorialState.stage, ')');
 S.turn = 'player';
@@ -1533,7 +1577,7 @@ tutorialState.stage = 'shield_sigil';
 upd();
 render();
 // PROMPT 5: Enemy Sigils + Shield (BATCHED)
-showTutorialPop('enemies_get_sigils', "Enemies can draw sigils too! The Goblin drew Shield - enemies activate sigils AFTER they attack, then the sigils disappear. Take him down before he shields up!", () => {
+showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Defeat him before he can shield!", () => {
 // PROMPT 6: Tooltip + Handoff (BATCHED)
 showTutorialPop('ribbleton_handoff', "Hover over (or long-press on mobile) any sigil to see what it does. You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
@@ -2829,7 +2873,7 @@ Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#fbbf24">A Special Gift</h2>
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#fde047">A Special Gift</h2>
 <div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
 <div>
 <img src="assets/characters/magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
@@ -2843,7 +2887,7 @@ html: `
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
 Mage promised to teach Tapo how to catch flies as a birthday present!<br>
-<strong>"Let's go find some flies together!"</strong> Mage said cheerfully.
+Together they set off to find some flies.
 </p>
 </div>
 <style>
@@ -2876,7 +2920,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
-🪰 <strong>Three flies</strong> are buzzing around! 🪰
+🪰 <strong>Two flies</strong> are buzzing around! 🪰
 </p>
 <p style="font-size:1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
 Help Mage catch them for Tapo's birthday!
@@ -2897,16 +2941,16 @@ render();
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 3 Flies (no D20)
+// Phase 1: Mage vs 2 Flies (Expand unlocks on turn 2)
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
-// Add permanent passives
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+// Add permanent passives (but NOT Expand in Phase 1 - it unlocks on turn 2)
+const passiveSigils = ['Asterisk', 'Star']; // Expand excluded for Phase 1
 S.heroes.forEach(hero => {
 passiveSigils.forEach(passive => {
 const permLevel = S.sig[passive] || 0;
@@ -3499,7 +3543,7 @@ const heroCount = S.heroes.length;
 if(f===0) {
 // Tutorial floor - check phase
 if(tutorialState && tutorialState.phase === 1) {
-return ['fly', 'fly', 'fly']; // Phase 1: Tapo's Birthday
+return ['fly', 'fly']; // Phase 1: Tapo's Birthday (2 flies)
 } else {
 return ['goblin', 'wolf']; // Phase 2: Portal Invasion
 }
@@ -3659,7 +3703,7 @@ hideTooltip();
 const h = S.heroes[heroIdx];
 if(!h) { console.error('Invalid hero index in act():', heroIdx); return; }
 if(!TutorialManager.canPerformAction(h, sig)) {
-toast("Follow the tutorial instructions!");
+toast(TutorialManager.getInstructionMessage());
 return;
 }
 
@@ -3744,7 +3788,7 @@ if(S.locked) return;
 // RIBBLETON TUTORIAL: PROMPT 2 - Explain D20 gambit
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'healer_d20') {
 tutorialState.stage = 'd20_menu';
-showTutorialPop('ribbleton_d20_menu', "Choose a gambit action! Each has a DC (Difficulty Check) - a DC of 16 means you need to roll 16+ to succeed! Pick CONFUSE to damage the Wolf!", () => {
+showTutorialPop('ribbleton_d20_menu', "Choose a gambit! Each has a DC (Difficulty Check) - you need to roll that number or higher to succeed. Pick CONFUSE to damage the Wolf!", () => {
 // After prompt, show the d20 menu
 renderD20MenuAfterTutorial(heroIdx);
 });
@@ -3833,7 +3877,7 @@ S.d20HeroIdx = heroIdx;
 
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
-showTutorialPop('healer_expand_explain', "Healer starts with the Expand passive sigil - that means she gets to choose 1 extra target for each action!", () => {
+showTutorialPop('healer_expand_explain', "Healer also has Expand - just like Mage used with Attack! This lets you add a target to your D20 gambit. Try selecting 2 enemies to Confuse!", () => {
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
@@ -4030,6 +4074,14 @@ if(slotsFilled || allEnemiesSelected) {
 if(allEnemiesSelected && S.currentInstanceTargets.length < targetsPerInstance) {
 const wasted = targetsPerInstance - S.currentInstanceTargets.length;
 toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
+// PHASE 1 TUTORIAL: Explain wasted Expand slots
+if(tutorialState && tutorialState.phase === 1 && !S.tutorialFlags.tapo_wasted_expand) {
+S.tutorialFlags.tapo_wasted_expand = true;
+showTutorialPop('tapo_wasted_expand', "One slot wasted - but that's okay! Expand shines when you have multiple targets.", () => {
+upd();
+render();
+});
+}
 }
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
@@ -4661,6 +4713,10 @@ toast(`${enemy.n} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
+// PHASE 1 TUTORIAL: Flies don't attack (they're just targets for practice)
+if(tutorialState && tutorialState.phase === 1 && enemy.n === 'Fly') {
+return; // Flies are passive in the birthday fly-catching game
+}
 executeEnemyBaseAttack(enemy);
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
 
@@ -5002,7 +5058,7 @@ tutorialState.stage = 'targeting_wolf';
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Both heroes took damage! Healer has Expand, which lets them target 1 extra ally. Click both heroes to heal them!", () => {
+showTutorialPop('ribbleton_expand', "Use Healer's Expand to heal both wounded heroes!", () => {
 render();
 });
 return;
