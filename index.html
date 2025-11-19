@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
 <link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
-<title>FROGGLE v9.991</title>
+<title>FROGGLE v9.992</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
@@ -1050,7 +1050,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div class="game-area" id="gameView"></div>
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '9.98';
+const GAME_VERSION = '9.992';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f59e0b; font-weight: bold;');
 
@@ -3162,7 +3162,7 @@ const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.98</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.992</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
 
 <div style="text-align:center;margin-bottom:1rem">
@@ -7080,7 +7080,7 @@ const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colors = ['#666', '#1e40af', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 
@@ -8083,7 +8083,7 @@ const passiveSigils = ['Star', 'Expand'];
 
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
-if(level === 1) return '#1e40af';
+if(level === 1) return '#000';
 if(level === 2) return '#0d9488';
 if(level === 3) return '#9333ea';
 if(level === 4) return '#d97706';
@@ -8102,10 +8102,9 @@ let html = `
 
 activeSigils.forEach(sig => {
 const level = S.sig[sig] || 0;
-const effectiveLevel = level === 0 ? 1 : level;
-const cl = effectiveLevel===0?'l0':effectiveLevel===1?'l1':effectiveLevel===2?'l2':effectiveLevel===3?'l3':effectiveLevel===4?'l4':'l5';
+const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
 const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
-const levelColor = getLevelColor(effectiveLevel);
+const levelColor = getLevelColor(level);
 
 html += `
 <div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
