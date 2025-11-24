@@ -2248,7 +2248,8 @@ f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 hasAncientStatuette: S.hasAncientStatuette,
-tempSigUpgrades: S.tempSigUpgrades
+tempSigUpgrades: S.tempSigUpgrades,
+gameMode: S.gameMode
 }));
 savePermanent();
 } catch(e) {
@@ -2269,6 +2270,8 @@ S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
 S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.gameMode = j.gameMode || 'Standard';
+S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -2403,6 +2406,8 @@ S.neutralDeck = r.neutralDeck || [];
 S.lastNeutral = r.lastNeutral || null;
 S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.gameMode = r.gameMode || 'Standard';
+S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
 upd();
 startFloor(S.floor);
@@ -2462,7 +2467,8 @@ f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 hasAncientStatuette: S.hasAncientStatuette,
-tempSigUpgrades: S.tempSigUpgrades
+tempSigUpgrades: S.tempSigUpgrades,
+gameMode: S.gameMode
 }));
 savePermanent();
 } catch(e) {
@@ -3513,6 +3519,8 @@ if(header) header.style.display = 'flex';
 S.floor=1; S.xp=0; S.levelUpCount=0;
 // Reset temporary XP sigil upgrades (these don't persist between runs)
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// Reset recruits from any previous run
+S.recruits = [];
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
 id:`h-${crypto.randomUUID()}`,
@@ -3986,9 +3994,17 @@ toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> 
 } else {
 toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
 }
+// Handle Asterisk repeats for MEND
+if(S.asteriskD20Repeats > 1) {
+S.asteriskD20Count++;
+if(S.asteriskD20Count < S.asteriskD20Repeats) {
 S.pending = null;
 render();
-checkTurnEnd();
+setTimeout(() => d20Menu(heroIdx), ANIMATION_TIMINGS.TUTORIAL_DELAY);
+return;
+}
+}
+finishD20Asterisk(heroIdx);
 return;
 }
 
@@ -5927,6 +5943,9 @@ v.innerHTML = `
 
 // ===== 1. SHOPKEEPER =====
 function showShopkeeper1() {
+// Reset shopkeeper state at start of each encounter (fixes bug where state persisted between runs)
+shopSmallBought = false;
+shopLargeBought = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
@@ -6024,10 +6043,15 @@ outcomes.push('<span style="color:#dc2626">You don\'t have enough Gold! Death sh
 buttons = `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 } else {
 description += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 available.forEach(sig => {
-const level = S.sig[sig] || 0;
+const permLevel = S.sig[sig] || 0;
+const isActive = actives.includes(sig);
+// Actives display +1 (storage L0 = display L1)
+const displayLevel = isActive ? permLevel + 1 : permLevel;
+const nextDisplayLevel = displayLevel + 1;
 buttons += `<div class="choice" onclick="acceptDeathsBargain('${sig}', ${cost})">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">L${level} → L${level+1}</span>
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">L${displayLevel} → L${nextDisplayLevel}</span>
 </div>`;
 });
 buttons += `<button class="btn risky" onclick="finishDeathsBargain()">Decline</button>`;
