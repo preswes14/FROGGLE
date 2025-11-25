@@ -3066,6 +3066,35 @@ function showConfirmModal(message, onConfirm, onCancel) {
     if (onCancel) onCancel();
   };
 
+  // Keyboard support for desktop users
+  function handleKeydown(e) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      cleanup();
+      document.removeEventListener('keydown', handleKeydown);
+      if (onCancel) onCancel();
+    }
+    // Trap focus within modal (Tab cycles between Yes and No)
+    if (e.key === 'Tab') {
+      const focusedEl = document.activeElement;
+      if (e.shiftKey && focusedEl === yesBtn) {
+        e.preventDefault();
+        noBtn.focus();
+      } else if (!e.shiftKey && focusedEl === noBtn) {
+        e.preventDefault();
+        yesBtn.focus();
+      }
+    }
+  }
+  document.addEventListener('keydown', handleKeydown);
+
+  // Update cleanup to remove keyboard listener
+  const originalCleanup = cleanup;
+  cleanup = function() {
+    document.removeEventListener('keydown', handleKeydown);
+    originalCleanup();
+  };
+
   // Focus the Yes button for controller navigation
   if (typeof GamepadController !== 'undefined' && GamepadController.active) {
     GamepadController.updateFocusableElements();
