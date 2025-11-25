@@ -1375,7 +1375,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3) !important;
   animation: controllerFocusPulse 1s ease-in-out infinite;
   position: relative;
-  z-index: 100;
+  z-index: 25001; /* Above tooltips (25000) but below modals (29999) */
 }
 
 @keyframes controllerFocusPulse {
@@ -1391,6 +1391,16 @@ body.controller-active * {
   cursor: none;
 }
 
+/* Global game area adjustment for controller bar (all screen sizes) */
+body.controller-active .game-area {
+  height: calc(100vh - 44px - 56px); /* Account for header (44px) + controller prompts bar (~56px) */
+}
+
+/* Toast notification adjustment when controller bar is visible */
+body.controller-active .toast {
+  bottom: 70px; /* Move above controller bar */
+}
+
 /* Controller button prompts bar */
 .controller-prompts {
   position: fixed;
@@ -1398,31 +1408,32 @@ body.controller-active * {
   left: 0;
   right: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.8));
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   display: flex;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.25rem;
+  flex-wrap: wrap;
   z-index: 50000;
   border-top: 2px solid #3b82f6;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: white;
 }
 
 .controller-prompt {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .controller-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   font-weight: bold;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   border: 2px solid currentColor;
 }
 
@@ -1430,12 +1441,23 @@ body.controller-active * {
 .controller-btn.b { background: #dc2626; color: white; border-color: #b91c1c; }
 .controller-btn.x { background: #3b82f6; color: white; border-color: #2563eb; }
 .controller-btn.y { background: #fbbf24; color: #1c1b19; border-color: #f59e0b; }
-.controller-btn.lb, .controller-btn.rb {
+.controller-btn.lb, .controller-btn.rb, .controller-btn.lt, .controller-btn.rt {
   width: auto;
-  padding: 0 0.5rem;
+  padding: 0 0.4rem;
   border-radius: 6px;
   background: #6b7280;
   border-color: #4b5563;
+}
+.controller-btn.lt, .controller-btn.rt {
+  background: #4b5563;
+}
+.controller-btn.start {
+  width: auto;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  background: #374151;
+  border-color: #6b7280;
+  font-size: 0.65rem;
 }
 .controller-btn.dpad {
   width: auto;
@@ -1443,6 +1465,12 @@ body.controller-active * {
   border-radius: 6px;
   background: #374151;
   border-color: #4b5563;
+}
+
+/* Controller tooltip indicator */
+.controller-tooltip-active {
+  outline: 3px solid #fbbf24 !important;
+  outline-offset: 2px;
 }
 
 /* Steam Deck specific optimizations (1280x800 @ 7" screen) */
@@ -1486,11 +1514,6 @@ body.controller-active * {
   .header button {
     padding: 0.4rem 0.6rem !important;
     font-size: 0.85rem !important;
-  }
-
-  /* Increase game area height when controller prompts are shown */
-  body.controller-active .game-area {
-    height: calc(100vh - 44px - 60px); /* Account for controller prompts bar */
   }
 
   /* Combat layout optimizations */
@@ -1557,10 +1580,11 @@ body.controller-active .controller-prompts {
 
 <!-- Controller button prompts (shown when gamepad is connected) -->
 <div id="controllerPrompts" class="controller-prompts">
-  <div class="controller-prompt"><span class="controller-btn dpad">D-Pad</span> Navigate</div>
+  <div class="controller-prompt"><span class="controller-btn dpad">D-Pad</span> Move</div>
   <div class="controller-prompt"><span class="controller-btn a">A</span> Select</div>
   <div class="controller-prompt"><span class="controller-btn b">B</span> Back</div>
-  <div class="controller-prompt"><span class="controller-btn y">Y</span> Menu</div>
+  <div class="controller-prompt"><span class="controller-btn y">Y</span> Tooltip</div>
+  <div class="controller-prompt"><span class="controller-btn start">☰</span> Menu</div>
 </div>
 
 <script>
@@ -6097,10 +6121,19 @@ setTimeout(() => v.classList.remove('fade-in'), ANIMATION_TIMINGS.FADE_TRANSITIO
 }
 
 function render() {
+// Save controller focus state before DOM update
+if (typeof GamepadController !== 'undefined' && GamepadController.active) {
+GamepadController.saveFocusState();
+}
+
 const v = document.getElementById('gameView');
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
 v.innerHTML = renderEncampmentSelection();
+// Restore controller focus after DOM update
+if (typeof GamepadController !== 'undefined' && GamepadController.active) {
+GamepadController.restoreFocusState();
+}
 return;
 }
 
@@ -6333,6 +6366,11 @@ if(hero) {
 addBonusTurnStack(hero.id, actionCounts[heroIdx]);
 }
 });
+}
+
+// Restore controller focus after DOM update
+if (typeof GamepadController !== 'undefined' && GamepadController.active) {
+GamepadController.restoreFocusState();
 }
 }, 0);
 }
@@ -10220,17 +10258,22 @@ const GamepadController = {
   pollInterval: null,
   buttonStates: {},
   contextStack: [], // Stack for nested menus/modals
+  tooltipVisible: false, // Track if tooltip is showing via controller
+  tooltipElement: null, // Element with active tooltip
+  currentUnitIndex: 0, // Current unit (hero/enemy) index for LB/RB cycling
+  currentSigilIndex: 0, // Current sigil index for LT/RT cycling
+  lastFocusedId: null, // For focus restoration after render
 
   // Button indices (standard gamepad mapping)
   BUTTONS: {
     A: 0,        // Bottom button (confirm/select)
     B: 1,        // Right button (back/cancel)
     X: 2,        // Left button
-    Y: 3,        // Top button (menu)
-    LB: 4,       // Left bumper
-    RB: 5,       // Right bumper
-    LT: 6,       // Left trigger
-    RT: 7,       // Right trigger
+    Y: 3,        // Top button (tooltip toggle)
+    LB: 4,       // Left bumper (prev unit)
+    RB: 5,       // Right bumper (next unit)
+    LT: 6,       // Left trigger (prev sigil)
+    RT: 7,       // Right trigger (next sigil)
     SELECT: 8,   // Back/Select
     START: 9,    // Start/Menu
     L3: 10,      // Left stick click
@@ -10386,10 +10429,10 @@ const GamepadController = {
         this.goBack();
         break;
       case this.BUTTONS.Y:
-        this.openMenu();
+        this.toggleTooltip(); // Y = toggle tooltip on focused element
         break;
       case this.BUTTONS.START:
-        this.openMenu();
+        this.openMenu(); // Start = open settings menu
         break;
       case this.BUTTONS.DPAD_UP:
         this.onDirection('up');
@@ -10404,10 +10447,16 @@ const GamepadController = {
         this.onDirection('right');
         break;
       case this.BUTTONS.LB:
-        this.quickAction('prev');
+        this.cycleUnit('prev'); // LB = previous unit (hero/enemy)
         break;
       case this.BUTTONS.RB:
-        this.quickAction('next');
+        this.cycleUnit('next'); // RB = next unit (hero/enemy)
+        break;
+      case this.BUTTONS.LT:
+        this.cycleSigil('prev'); // LT = previous sigil on focused unit
+        break;
+      case this.BUTTONS.RT:
+        this.cycleSigil('next'); // RT = next sigil on focused unit
         break;
     }
   },
@@ -10616,23 +10665,210 @@ const GamepadController = {
     }
   },
 
-  quickAction(type) {
-    // LB/RB for quick hero/lane switching in combat
-    if (typeof S !== 'undefined' && S.heroes && S.heroes.length > 0) {
-      const heroCards = document.querySelectorAll('.card.hero:not(.acted)');
-      if (heroCards.length > 0) {
-        const currentIdx = Array.from(heroCards).findIndex(el => el.classList.contains('controller-focus'));
-        let nextIdx;
+  // Toggle tooltip on focused element (Y button)
+  toggleTooltip() {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
 
-        if (type === 'next') {
-          nextIdx = (currentIdx + 1) % heroCards.length;
-        } else {
-          nextIdx = (currentIdx - 1 + heroCards.length) % heroCards.length;
+    // If tooltip is already visible, hide it
+    if (this.tooltipVisible) {
+      if (typeof hideTooltip === 'function') {
+        hideTooltip();
+      }
+      if (this.tooltipElement) {
+        this.tooltipElement.classList.remove('controller-tooltip-active');
+      }
+      this.tooltipVisible = false;
+      this.tooltipElement = null;
+      return;
+    }
+
+    // Try to show tooltip for focused element
+    if (!this.focusedElement) return;
+
+    // Check if focused element is a sigil or has tooltip data
+    const sigilEl = this.focusedElement.classList.contains('sigil') ? this.focusedElement :
+                    this.focusedElement.querySelector('.sigil');
+
+    if (sigilEl) {
+      // Extract sigil name from the element's onmouseenter or data
+      const mouseEnter = sigilEl.getAttribute('onmouseenter');
+      if (mouseEnter) {
+        const match = mouseEnter.match(/showTooltip\('([^']+)'/);
+        if (match && typeof showTooltip === 'function') {
+          const sigilName = match[1];
+          // Extract level if present
+          const levelMatch = mouseEnter.match(/,\s*(\d+)\)/);
+          const level = levelMatch ? parseInt(levelMatch[1]) : undefined;
+          showTooltip(sigilName, sigilEl, level);
+          this.tooltipVisible = true;
+          this.tooltipElement = sigilEl;
+          sigilEl.classList.add('controller-tooltip-active');
+          return;
         }
-
-        this.setFocus(heroCards[nextIdx]);
       }
     }
+
+    // Check for card with sigils (show first sigil's tooltip)
+    const cardSigil = this.focusedElement.querySelector('.sigil');
+    if (cardSigil) {
+      const mouseEnter = cardSigil.getAttribute('onmouseenter');
+      if (mouseEnter) {
+        const match = mouseEnter.match(/showTooltip\('([^']+)'/);
+        if (match && typeof showTooltip === 'function') {
+          showTooltip(match[1], cardSigil);
+          this.tooltipVisible = true;
+          this.tooltipElement = cardSigil;
+          cardSigil.classList.add('controller-tooltip-active');
+        }
+      }
+    }
+  },
+
+  // Cycle between units: heroes and enemies (LB/RB)
+  cycleUnit(direction) {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Hide any active tooltip when switching units
+    if (this.tooltipVisible) {
+      if (typeof hideTooltip === 'function') hideTooltip();
+      if (this.tooltipElement) this.tooltipElement.classList.remove('controller-tooltip-active');
+      this.tooltipVisible = false;
+      this.tooltipElement = null;
+    }
+
+    // Collect all unit cards (heroes first, then enemies)
+    const heroCards = Array.from(document.querySelectorAll('.card.hero'));
+    const enemyCards = Array.from(document.querySelectorAll('.card.enemy'));
+    const allUnits = [...heroCards, ...enemyCards];
+
+    if (allUnits.length === 0) return;
+
+    // Find current focused unit
+    let currentIdx = allUnits.findIndex(el =>
+      el === this.focusedElement || el.contains(this.focusedElement)
+    );
+
+    if (currentIdx === -1) {
+      // Not on a unit, start with first
+      currentIdx = 0;
+    } else {
+      // Move to next/prev
+      if (direction === 'next') {
+        currentIdx = (currentIdx + 1) % allUnits.length;
+      } else {
+        currentIdx = (currentIdx - 1 + allUnits.length) % allUnits.length;
+      }
+    }
+
+    this.currentUnitIndex = currentIdx;
+    this.currentSigilIndex = 0; // Reset sigil index when changing units
+    this.setFocus(allUnits[currentIdx]);
+  },
+
+  // Cycle through sigils on the currently focused unit (LT/RT)
+  cycleSigil(direction) {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Find the card containing the focused element or focus a card first
+    let card = this.focusedElement;
+    if (!card) return;
+
+    // If focused element is not a card, find parent card
+    if (!card.classList.contains('card')) {
+      card = card.closest('.card');
+    }
+    if (!card) return;
+
+    // Get all sigils in this card
+    const sigils = Array.from(card.querySelectorAll('.sigil'));
+    if (sigils.length === 0) return;
+
+    // Find current sigil index
+    let currentIdx = sigils.findIndex(el =>
+      el === this.focusedElement || el.classList.contains('controller-tooltip-active')
+    );
+
+    if (currentIdx === -1) {
+      currentIdx = 0;
+    } else {
+      if (direction === 'next') {
+        currentIdx = (currentIdx + 1) % sigils.length;
+      } else {
+        currentIdx = (currentIdx - 1 + sigils.length) % sigils.length;
+      }
+    }
+
+    this.currentSigilIndex = currentIdx;
+    const targetSigil = sigils[currentIdx];
+
+    // Hide previous tooltip
+    if (this.tooltipVisible && this.tooltipElement) {
+      if (typeof hideTooltip === 'function') hideTooltip();
+      this.tooltipElement.classList.remove('controller-tooltip-active');
+    }
+
+    // Show tooltip for new sigil
+    const mouseEnter = targetSigil.getAttribute('onmouseenter');
+    if (mouseEnter) {
+      const match = mouseEnter.match(/showTooltip\('([^']+)'/);
+      if (match && typeof showTooltip === 'function') {
+        const sigilName = match[1];
+        const levelMatch = mouseEnter.match(/,\s*(\d+)\)/);
+        const level = levelMatch ? parseInt(levelMatch[1]) : undefined;
+        showTooltip(sigilName, targetSigil, level);
+        this.tooltipVisible = true;
+        this.tooltipElement = targetSigil;
+        targetSigil.classList.add('controller-tooltip-active');
+      }
+    }
+
+    // If the sigil is clickable, focus it
+    if (targetSigil.classList.contains('clickable') || targetSigil.hasAttribute('onclick')) {
+      this.setFocus(targetSigil);
+    }
+  },
+
+  // Save focus state before DOM updates
+  saveFocusState() {
+    if (this.focusedElement) {
+      this.lastFocusedId = this.focusedElement.id || null;
+      // Also try to save a descriptor for non-id elements
+      if (!this.lastFocusedId && this.focusedElement.classList.contains('card')) {
+        const heroId = this.focusedElement.id;
+        if (heroId) this.lastFocusedId = heroId;
+      }
+    }
+  },
+
+  // Restore focus after DOM updates
+  restoreFocusState() {
+    if (!this.active) return;
+
+    setTimeout(() => {
+      this.updateFocusableElements();
+
+      // Try to restore by ID
+      if (this.lastFocusedId) {
+        const el = document.getElementById(this.lastFocusedId);
+        if (el && this.focusableElements.includes(el)) {
+          this.setFocus(el);
+          return;
+        }
+      }
+
+      // Fallback to first focusable
+      if (this.focusableElements.length > 0) {
+        this.setFocus(this.focusableElements[0]);
+      }
+
+      this.updatePrompts();
+    }, 50);
   },
 
   updateFocusableElements() {
@@ -10697,9 +10933,10 @@ const GamepadController = {
     const hasModal = document.querySelector('.modal-container');
     const inCombat = typeof S !== 'undefined' && S.heroes && S.enemies && S.enemies.length > 0;
     const hasPending = typeof S !== 'undefined' && S.pending;
+    const hasCards = document.querySelectorAll('.card').length > 0;
 
     let prompts = [
-      { btn: 'dpad', label: 'Navigate' },
+      { btn: 'dpad', label: 'Move' },
       { btn: 'a', label: 'Select' }
     ];
 
@@ -10711,25 +10948,35 @@ const GamepadController = {
       prompts.push({ btn: 'b', label: 'Back' });
     }
 
-    prompts.push({ btn: 'y', label: 'Menu' });
+    // Y = tooltip (only show when cards/sigils visible)
+    if (hasCards || inCombat) {
+      prompts.push({ btn: 'y', label: 'Tooltip' });
+    }
 
+    // Start = menu
+    prompts.push({ btn: 'start', label: 'Menu' });
+
+    // Combat-specific controls
     if (inCombat && !hasModal) {
-      prompts.push({ btn: 'lb', label: 'Prev Hero' });
-      prompts.push({ btn: 'rb', label: 'Next Hero' });
+      prompts.push({ btn: 'lb', label: '←Unit' });
+      prompts.push({ btn: 'rb', label: 'Unit→' });
+      prompts.push({ btn: 'lt', label: '←Sigil' });
+      prompts.push({ btn: 'rt', label: 'Sigil→' });
     }
 
     // Build HTML
     promptsEl.innerHTML = prompts.map(p => {
-      const btnClass = p.btn === 'dpad' ? 'dpad' :
-                       p.btn === 'lb' || p.btn === 'rb' ? p.btn :
-                       p.btn;
-      const label = p.btn.toUpperCase();
-      return `<div class="controller-prompt"><span class="controller-btn ${btnClass}">${
-        p.btn === 'dpad' ? 'D-Pad' :
-        p.btn === 'lb' ? 'LB' :
-        p.btn === 'rb' ? 'RB' :
-        label
-      }</span> ${p.label}</div>`;
+      const btnClass = p.btn;
+      const displayLabel = {
+        'dpad': 'D-Pad',
+        'lb': 'LB',
+        'rb': 'RB',
+        'lt': 'LT',
+        'rt': 'RT',
+        'start': '☰'
+      }[p.btn] || p.btn.toUpperCase();
+
+      return `<div class="controller-prompt"><span class="controller-btn ${btnClass}">${displayLabel}</span> ${p.label}</div>`;
     }).join('');
   }
 };
