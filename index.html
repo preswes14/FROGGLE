@@ -1857,9 +1857,13 @@ return html;
 // ===== UTILITY FUNCTIONS =====
 // Unified dice rolling utility
 function rollDice(count, sides = 20) {
+// Play dice roll sound for D20s
+if(sides === 20) SoundFX.play('d20roll');
+
 // Debug mode: Oops All 20s
 if(S.oopsAll20s && sides === 20) {
 const rolls = Array(count).fill(20);
+SoundFX.play('nat20');
 return {rolls, best: 20};
 }
 const rolls = [];
@@ -1867,6 +1871,16 @@ for(let i = 0; i < count; i++) {
 rolls.push(Math.ceil(Math.random() * sides));
 }
 const best = Math.max(...rolls);
+const worst = Math.min(...rolls);
+
+// Play special sounds for nat 20 and nat 1
+if(sides === 20) {
+if(best === 20) {
+  setTimeout(() => SoundFX.play('nat20'), 350); // After dice roll sound
+} else if(worst === 1 && best < 10) {
+  setTimeout(() => SoundFX.play('nat1'), 350); // Sad trombone for bad rolls with a 1
+}
+}
 return {rolls, best};
 }
 
@@ -2442,6 +2456,26 @@ const ANIMATION_TIMINGS = {
   KNOCKOUT: 600,          // Death animation
 };
 
+// ===== ANIMATION SPEED SYSTEM =====
+// Helper function to apply animation speed multiplier
+// Speed: 1 = normal, 2 = 2x faster, 4 = 4x faster, 0 = instant
+function T(baseTime) {
+  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  if (speed === 0) return 1; // Instant mode: 1ms minimum
+  return Math.max(1, Math.round(baseTime / speed));
+}
+
+// Get current animation speed label
+function getSpeedLabel() {
+  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  switch(speed) {
+    case 0: return 'Instant';
+    case 2: return '2x';
+    case 4: return '4x';
+    default: return 'Normal';
+  }
+}
+
 // ===== JUICE & POLISH SYSTEM =====
 // Floating damage/heal numbers
 function showFloatingNumber(targetId, text, type = 'damage', offsetX = 0) {
@@ -2718,6 +2752,138 @@ const SoundFX = {
         osc.start(now);
         osc.stop(now + 0.2);
         break;
+
+      // ===== FROGGY SOUNDS =====
+      case 'ribbit':
+        // Classic frog croak - two-tone chirp
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(180, now + 0.08);
+        osc.frequency.setValueAtTime(260, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.2);
+        gain.gain.setValueAtTime(this.volume * 0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.25);
+        break;
+
+      case 'splash':
+        // Water splash for D20 rolls - noise-like falling tone
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.35);
+        break;
+
+      case 'hop':
+        // Light hop - quick ascending blip
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(500, now + 0.06);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.1);
+        gain.gain.setValueAtTime(this.volume * 0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.12);
+        break;
+
+      case 'croak':
+        // Deep croak for enemy defeats - low rumble
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+        osc.frequency.setValueAtTime(100, now + 0.2);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+        gain.gain.setValueAtTime(this.volume * 0.9, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc.type = 'triangle';
+        osc.start(now);
+        osc.stop(now + 0.45);
+        break;
+
+      case 'bubble':
+        // Bubble pop for shields - playful bloop
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.15);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.18);
+        break;
+
+      case 'gulp':
+        // Gulp/slurp for healing - descending then up
+        osc.frequency.setValueAtTime(500, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(700, now + 0.15);
+        gain.gain.setValueAtTime(this.volume * 0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.2);
+        break;
+
+      case 'd20roll':
+        // Dice tumbling - rapid frequency wobble
+        osc.frequency.setValueAtTime(400, now);
+        for(let i = 0; i < 8; i++) {
+          osc.frequency.setValueAtTime(350 + Math.random() * 200, now + i * 0.04);
+        }
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.35);
+        gain.gain.setValueAtTime(this.volume * 0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.type = 'square';
+        osc.start(now);
+        osc.stop(now + 0.4);
+        break;
+
+      case 'portal':
+        // Portal whoosh - sweeping mystical sound
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.5);
+        gain.gain.setValueAtTime(this.volume * 0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.55);
+        break;
+
+      case 'nat20':
+        // Natural 20! - triumphant ascending fanfare
+        [400, 500, 600, 800].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now);
+          g.gain.setValueAtTime(this.volume * 0.8, now + i * 0.08);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.25);
+          o.type = 'sine';
+          o.start(now + i * 0.08);
+          o.stop(now + i * 0.08 + 0.25);
+        });
+        break;
+
+      case 'nat1':
+        // Natural 1 - sad descending trombone
+        [300, 280, 250, 150].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.12);
+          g.gain.setValueAtTime(this.volume * 0.6, now + i * 0.12);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.15);
+          o.type = 'sawtooth';
+          o.start(now + i * 0.12);
+          o.stop(now + i * 0.12 + 0.15);
+        });
+        break;
     }
   }
 };
@@ -2790,6 +2956,7 @@ hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
 fuUnlocked: false,
 tapoUnlocked: false,             // Unlocked after first FU victory
+pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
 // ===== UI STATE =====
 toastHistory: [],               // Array of recent toast messages
@@ -2797,6 +2964,7 @@ toastLogExpanded: false,        // Whether toast log is expanded
 toastLogVisible: true,          // Whether toast log is shown
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
 helpTipsDisabled: false,        // Whether tutorial help tips are disabled
+animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
 
 // ===== DEBUG STATE =====
 debugMode: false,       // Debug mode toggle
@@ -2926,8 +3094,9 @@ function triggerHealAnimation(targetId, healAmount = 0) {
 const card = document.getElementById(targetId);
 if(card) {
 card.classList.add('heal-flash');
-// JUICE: Sound effect
-SoundFX.play('heal');
+// JUICE: Sound effects - froggy gulp + heal chime
+SoundFX.play('gulp');
+setTimeout(() => SoundFX.play('heal'), 100);
 // JUICE: Floating heal number
 if (healAmount > 0) {
   showFloatingNumber(targetId, `+${healAmount}`, 'heal');
@@ -2948,8 +3117,9 @@ function triggerShieldAnimation(targetId, shieldAmount = 0) {
 const card = document.getElementById(targetId);
 if(card) {
 card.classList.add('shield-flash');
-// JUICE: Sound effect
-SoundFX.play('shield');
+// JUICE: Sound effects - froggy bubble + shield chime
+SoundFX.play('bubble');
+setTimeout(() => SoundFX.play('shield'), 80);
 // JUICE: Floating shield number
 if (shieldAmount > 0) {
   showFloatingNumber(targetId, `+${shieldAmount}🛡`, 'shield');
@@ -3270,7 +3440,9 @@ tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
-controllerDisabled: S.controllerDisabled
+controllerDisabled: S.controllerDisabled,
+animationSpeed: S.animationSpeed,
+pondHistory: S.pondHistory
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -3314,6 +3486,8 @@ S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
+S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
+S.pondHistory = j.pondHistory || [];
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -4536,9 +4710,11 @@ const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 const isSelected = sel.includes(heroType);
 if(isSelected) {
 sel = sel.filter(h => h !== heroType);
+SoundFX.play('click');
 } else {
 if(sel.length < requiredHeroes) {
 sel.push(heroType);
+SoundFX.play('hop'); // Froggy hop for hero selection
 }
 }
 
@@ -4688,7 +4864,7 @@ v.innerHTML = `
   to { opacity: 1; transform: translateY(0); }
 }
 </style>`;
-setTimeout(callback, ANIMATION_TIMINGS.FLOOR_INTERSTITIAL);
+setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 }
 
 function startFloor(f) {
@@ -5273,10 +5449,10 @@ S.instancesRemaining--;
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
 // Delay finishAction to allow attack animation to complete
-setTimeout(() => finishAction(heroIdx), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 } else {
 // Delay render to allow attack animation to complete
-setTimeout(() => render(), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 } else render();
 } else if(S.pending === 'Grapple') {
@@ -5331,9 +5507,9 @@ executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
-setTimeout(() => finishAction(heroIdx), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 } else {
-setTimeout(() => render(), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 } else render();
 } else if(S.pending === 'Heal') {
@@ -5351,9 +5527,9 @@ executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining--;
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
-setTimeout(() => finishAction(heroIdx), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 } else {
-setTimeout(() => render(), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 } else render();
 } else if(S.pending === 'Alpha') {
@@ -5498,7 +5674,7 @@ if(e.n === 'Goblin') tutorialState.goblinKilled = true;
 });
 // Remove dead enemies after short delay for knockout animation
 if(deadEnemies.length > 0) {
-SoundFX.play('death');
+SoundFX.play('croak'); // Froggy croak for enemy defeat
 triggerScreenShake(true); // Heavy shake on enemy defeat
 setTimeout(() => {
 deadEnemies.forEach(e => {
@@ -5706,7 +5882,7 @@ S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
 TutorialManager.onEnemyTurnStart();
-setTimeout(() => { S.locked = true; enemyTurn(); }, ANIMATION_TIMINGS.TURN_TRANSITION);
+setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
 }
 }
 
@@ -5832,7 +6008,7 @@ toast(`${getEnemyDisplayName(enemy)} drew ${pick} L1!`);
  */
 function executeAlphaPhase() {
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
-if(alphaEnemies.length === 0) { setTimeout(executeRecruitPhase, ANIMATION_TIMINGS.PHASE_TRANSITION); return; }
+if(alphaEnemies.length === 0) { setTimeout(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all Alpha enemies in reading order with minimal stagger
 let delay = 0;
 alphaEnemies.forEach((alphaEnemy, idx) => {
@@ -5847,22 +6023,22 @@ toast(`${alphaEnemy.n} grants ${bestAlly.n} ${attacks} attack${attacks>1?'s':''}
 for(let i = 0; i < attacks; i++) executeEnemyBaseAttack(bestAlly);
 alphaEnemy.alphaActed = true;
 }, delay);
-delay += ANIMATION_TIMINGS.ENEMY_ACTION_DELAY; // Minimal stagger (was 600ms)
+delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-setTimeout(() => executeRecruitPhase(), delay + 600);
+setTimeout(() => executeRecruitPhase(), delay + T(600));
 }
 
 function executeRecruitPhase() {
-if(!S.recruits || S.recruits.length === 0) { setTimeout(executeNormalEnemyPhase, ANIMATION_TIMINGS.PHASE_TRANSITION); return; }
+if(!S.recruits || S.recruits.length === 0) { setTimeout(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all recruits in reading order with minimal stagger
 let delay = 0;
 S.recruits.forEach((recruit, idx) => {
 setTimeout(() => executeRecruitTurn(recruit), delay);
-delay += ANIMATION_TIMINGS.ENEMY_ACTION_DELAY; // Minimal stagger (was 600ms)
+delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-setTimeout(() => executeNormalEnemyPhase(), delay + 600);
+setTimeout(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
@@ -5946,11 +6122,11 @@ const allEnemies = [...S.enemies].sort((a, b) => a.li - b.li); // Sort by lane i
 let delay = 0;
 allEnemies.forEach((enemy, idx) => {
 setTimeout(() => executeEnemyTurn(enemy), delay);
-delay += ANIMATION_TIMINGS.ENEMY_ACTION_DELAY; // Just enough stagger for visual clarity (was 600ms)
+delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Just enough stagger for visual clarity (was 600ms)
 });
 
 // Wait for longest animation to complete (600ms per enemy action + stagger)
-setTimeout(() => endEnemyTurn(), delay + 600);
+setTimeout(() => endEnemyTurn(), delay + T(600));
 }
 
 function executeEnemyTurn(enemy) {
@@ -6233,10 +6409,10 @@ setTimeout(() => {
 toast('Victory!');
 if(tutorialState && tutorialState.phase === 1) {
 // Phase 1 complete: Transition to Phase 2
-setTimeout(finishTaposBirthdayPhase, ANIMATION_TIMINGS.VICTORY_DELAY);
+setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Finish tutorial
-setTimeout(finishRibbletonTutorial, ANIMATION_TIMINGS.VICTORY_DELAY);
+setTimeout(finishRibbletonTutorial, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 }
 }, 500);
 return true;
@@ -6245,7 +6421,8 @@ return true;
 // Normal combat victory
 // JUICE: Victory celebration!
 spawnConfetti(60);
-SoundFX.play('victory');
+SoundFX.play('ribbit'); // Celebratory frog croak!
+setTimeout(() => SoundFX.play('victory'), 200);
 
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
@@ -6263,7 +6440,7 @@ if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)
 animateCounterPop('xp');
 upd();
 toast('Victory!');
-setTimeout(levelUp, ANIMATION_TIMINGS.VICTORY_DELAY);
+setTimeout(levelUp, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 }, 500);
 return true;
 }
@@ -6271,11 +6448,14 @@ const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
 // Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// Record to The Pond - determine what killed the heroes
+const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
+recordPondHistory('defeat', killedBy);
 // JUICE: Defeat sound
 SoundFX.play('death');
 setTimeout(() => {
 toast('Defeated!');
-setTimeout(() => transitionScreen(showDeathScreen), ANIMATION_TIMINGS.DEFEAT_DELAY);
+setTimeout(() => transitionScreen(showDeathScreen), T(ANIMATION_TIMINGS.DEFEAT_DELAY));
 }, ANIMATION_TIMINGS.ACTION_COMPLETE);
 return true;
 }
@@ -8948,6 +9128,261 @@ savePermanent();
 showDeathScreen();
 }
 
+// ===== THE POND - RUN HISTORY =====
+// Records a run's outcome to the permanent history
+function recordPondHistory(outcome, killedBy = null) {
+const heroNames = S.heroes.map(h => h.n);
+const entry = {
+runNumber: S.runNumber,
+heroes: heroNames,
+floorReached: S.floor,
+gameMode: S.gameMode,
+outcome: outcome, // 'defeat' or 'victory'
+killedBy: killedBy,
+timestamp: Date.now(),
+xpEarned: S.xp - S.startingXP,
+goldEarned: S.gold
+};
+// Add to history (limit to last 50 runs to save localStorage space)
+S.pondHistory.unshift(entry);
+if(S.pondHistory.length > 50) {
+S.pondHistory = S.pondHistory.slice(0, 50);
+}
+savePermanent();
+}
+
+// Show The Pond - a reflective place for remembering past adventures
+function showPond() {
+const v = document.getElementById('gameView');
+const history = S.pondHistory || [];
+
+// Generate lily pad for each run
+function renderLilyPad(run, idx) {
+const isVictory = run.outcome === 'victory';
+const isFUVictory = isVictory && run.gameMode === 'fu';
+const isStandardVictory = isVictory && run.gameMode !== 'fu';
+
+// Size based on floor reached (40px base + up to 60px more for floor 20)
+const baseSize = 45;
+const maxBonus = 55;
+const floorProgress = Math.min(run.floorReached, 20) / 20;
+const size = Math.round(baseSize + (maxBonus * floorProgress));
+
+// Colors: green (defeat), gold (standard win), prismatic (FU win)
+let background, border, glow, animation;
+if (isFUVictory) {
+  // Prismatic rainbow gradient
+  background = 'linear-gradient(135deg, #ff6b6b 0%, #feca57 17%, #48dbfb 34%, #ff9ff3 51%, #54a0ff 68%, #5f27cd 85%, #ff6b6b 100%)';
+  border = '3px solid #fff';
+  glow = '0 0 15px rgba(255,255,255,0.8), 0 0 30px rgba(138,43,226,0.5)';
+  animation = 'animation: prismatic-shimmer 3s linear infinite;';
+} else if (isStandardVictory) {
+  // Golden
+  background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)';
+  border = '3px solid #fcd34d';
+  glow = '0 0 12px rgba(251,191,36,0.6)';
+  animation = '';
+} else {
+  // Green lily pad (defeat) - brighter green for higher floors
+  const greenIntensity = 0.5 + (floorProgress * 0.4);
+  background = `linear-gradient(135deg, rgba(34,197,94,${greenIntensity}) 0%, rgba(22,163,74,${greenIntensity + 0.15}) 100%)`;
+  border = '2px solid rgba(34,197,94,0.7)';
+  glow = '0 2px 8px rgba(0,0,0,0.3)';
+  animation = '';
+}
+
+return `
+<div class="lily-pad" onclick="showLilyPadDetail(${idx})" style="
+  width:${size}px;
+  height:${size}px;
+  border-radius:50% 50% 50% 20%;
+  background:${background};
+  border:${border};
+  box-shadow:${glow};
+  cursor:pointer;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  transition:transform 0.2s, box-shadow 0.2s;
+  position:relative;
+  ${animation}
+" onmouseover="this.style.transform='scale(1.15)'"
+   onmouseout="this.style.transform='scale(1)'"
+   title="Run #${run.runNumber} - Floor ${run.floorReached}${isVictory ? ' 🏆' : ''}">
+  <span style="font-size:${Math.max(11, size/4)}px;font-weight:bold;color:${isVictory ? '#000' : '#fff'};text-shadow:${isVictory ? 'none' : '1px 1px 2px rgba(0,0,0,0.6)'}">${run.floorReached}</span>
+  ${isVictory ? `<span style="font-size:${Math.max(10, size/5)}px">🏆</span>` : ''}
+</div>`;
+}
+
+let html = `
+<style>
+@keyframes prismatic-shimmer {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+@keyframes pond-ripple {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+.pond-water {
+  background: linear-gradient(135deg,
+    rgba(30,58,138,0.4) 0%,
+    rgba(59,130,246,0.25) 25%,
+    rgba(30,64,175,0.35) 50%,
+    rgba(59,130,246,0.25) 75%,
+    rgba(30,58,138,0.4) 100%);
+  background-size: 200% 200%;
+  animation: pond-ripple 8s ease-in-out infinite;
+}
+.lily-pad-container {
+  display:flex;
+  flex-wrap:wrap;
+  gap:15px;
+  justify-content:center;
+  align-items:center;
+  padding:2rem 1.5rem;
+  min-height:180px;
+}
+</style>
+<div style="max-width:900px;margin:0 auto;padding:1rem">
+<h1 style="text-align:center;margin-bottom:0.5rem;font-size:2rem;color:#60a5fa;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
+🌿 The Pond 🌿
+</h1>
+<p style="text-align:center;color:#94a3b8;margin-bottom:1rem;font-size:0.95rem">
+A quiet place to reflect on adventures past...
+</p>
+
+<!-- Legend -->
+<div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap;font-size:0.85rem">
+<span style="color:#22c55e">🟢 Journey</span>
+<span style="color:#fbbf24">🟡 Victory</span>
+<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">🌈 Frogged Up Win</span>
+<span style="color:#64748b;font-size:0.8rem">(bigger = higher floor)</span>
+</div>
+
+${history.length === 0 ? `
+<div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
+<p style="font-size:2rem;margin-bottom:1rem">🪷</p>
+<p style="color:#94a3b8;font-size:1.1rem">The water is still...</p>
+<p style="color:#64748b;margin-top:0.5rem">Your lily pads will appear here after your first adventure.</p>
+</div>
+` : `
+<div class="pond-water" style="border-radius:20px;border:3px solid rgba(59,130,246,0.3)">
+<div class="lily-pad-container">
+${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
+</div>
+</div>
+
+<!-- Stats summary -->
+<div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:0.75rem;text-align:center">
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.3rem;font-weight:bold;color:#f1f5f9">${history.length}</div>
+<div style="color:#94a3b8;font-size:0.75rem">Journeys</div>
+</div>
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.3rem;font-weight:bold;color:#fbbf24">${history.filter(r => r.outcome === 'victory').length}</div>
+<div style="color:#94a3b8;font-size:0.75rem">Victories</div>
+</div>
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.3rem;font-weight:bold;color:#60a5fa">${Math.max(...history.map(r => r.floorReached), 0)}</div>
+<div style="color:#94a3b8;font-size:0.75rem">Best Floor</div>
+</div>
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.3rem;font-weight:bold;color:#f59e0b">${getMostUsedHero(history)}</div>
+<div style="color:#94a3b8;font-size:0.75rem">Favorite</div>
+</div>
+</div>
+`}
+
+<div style="text-align:center;margin-top:1.5rem">
+<button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">🐸 Return to Ribbleton</button>
+</div>
+</div>`;
+
+v.innerHTML = html;
+}
+
+// Show detail popup when clicking a lily pad
+function showLilyPadDetail(idx) {
+const run = S.pondHistory[idx];
+if (!run) return;
+
+const date = new Date(run.timestamp);
+const dateStr = date.toLocaleDateString(undefined, {weekday: 'short', month: 'short', day: 'numeric'});
+const isVictory = run.outcome === 'victory';
+const isFUVictory = isVictory && run.gameMode === 'fu';
+const modeText = run.gameMode === 'fu' ? 'Frogged Up' : 'Standard';
+
+let headerBg, headerColor;
+if (isFUVictory) {
+headerBg = 'linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff)';
+headerColor = '#000';
+} else if (isVictory) {
+headerBg = 'linear-gradient(135deg, #fbbf24, #f59e0b)';
+headerColor = '#000';
+} else {
+headerBg = 'linear-gradient(135deg, #22c55e, #16a34a)';
+headerColor = '#fff';
+}
+
+const v = document.getElementById('gameView');
+const html = `
+<div class="modal-container" style="max-width:350px">
+<div style="background:${headerBg};padding:1rem;border-radius:8px 8px 0 0;text-align:center">
+<h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? '🏆 Victory!' : '🪷 Journey'} #${run.runNumber}</h2>
+</div>
+<div style="padding:1rem">
+<div style="display:grid;gap:0.5rem;font-size:0.95rem">
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">Date:</span>
+<span style="color:#f1f5f9">${dateStr}</span>
+</div>
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">Mode:</span>
+<span style="color:#f1f5f9">${run.gameMode === 'fu' ? '🔥 ' : '⚔️ '}${modeText}</span>
+</div>
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">Floor Reached:</span>
+<span style="color:#f1f5f9;font-weight:bold">${run.floorReached}</span>
+</div>
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">Heroes:</span>
+<span style="color:#f1f5f9">${run.heroes.join(' + ')}</span>
+</div>
+${!isVictory && run.killedBy ? `
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">Fell to:</span>
+<span style="color:#f87171">${run.killedBy}</span>
+</div>
+` : ''}
+${isVictory ? `
+<div style="text-align:center;margin-top:0.5rem;padding:0.5rem;background:rgba(34,197,94,0.2);border-radius:4px">
+<span style="color:#22c55e;font-weight:bold">🎉 Tapo Rescued!</span>
+</div>
+` : ''}
+</div>
+<button class="btn" onclick="this.closest('.modal-container').remove();document.querySelector('.modal-overlay')?.remove()" style="margin-top:1rem;width:100%">Close</button>
+</div>
+</div>
+<div class="modal-overlay" onclick="document.querySelector('.modal-container')?.remove();this.remove()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+SoundFX.play('hop');
+}
+
+function getMostUsedHero(history) {
+if(history.length === 0) return '-';
+const counts = {};
+history.forEach(run => {
+run.heroes.forEach(hero => {
+  counts[hero] = (counts[hero] || 0) + 1;
+});
+});
+const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+return sorted.length > 0 ? sorted[0][0] : '-';
+}
+
 // ===== DEATH SCREEN =====
 function showDeathScreen() {
 savePermanent(); // Save gold, goingRate, sig upgrades
@@ -9232,7 +9667,7 @@ localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 localStorage.removeItem('froggle8');
 // Return to Ribbleton hub
 toast('Returning to Ribbleton...', 1200);
-setTimeout(() => transitionScreen(showRibbleton), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 
 // ===== CHAMPIONS MENU =====
@@ -9421,6 +9856,9 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
+// Record victory to The Pond!
+recordPondHistory('victory');
+
 // Gold is lost on victory (reset to 0)
 S.gold = 0;
 savePermanent();
@@ -9679,23 +10117,35 @@ ${bluePortalUnlocked ? `
     `<p style="font-size:0.9rem;margin:0;opacity:0.6"><em>A mysterious blue portal appears to be locked... Perhaps reaching Floor 20 will unlock it?</em></p>`
   }
 </div>
+
+${S.pondHistory && S.pondHistory.length > 0 ? `
+<div style="text-align:center;margin-top:1rem">
+<button class="btn" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;padding:0.75rem 1.5rem;font-size:1rem">
+🪷 Visit The Pond
+</button>
+<p style="font-size:0.8rem;color:#666;margin-top:0.3rem">Reflect on your past journeys</p>
+</div>
+` : ''}
 </div>`;
 
 v.innerHTML = html;
 }
 
 function enterRedPortal() {
+SoundFX.play('portal');
 toast('Entering the Red Portal...', 1200);
-setTimeout(() => transitionScreen(title), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => transitionScreen(title), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 
 function enterBluePortal() {
 if(!S.hasReachedFloor20) {
 toast('The Blue Portal is locked!');
+SoundFX.play('error');
 return;
 }
+SoundFX.play('portal');
 toast('Entering the Blue Portal...', 1200);
-setTimeout(() => transitionScreen(showChampionsMenu), ANIMATION_TIMINGS.ACTION_COMPLETE);
+setTimeout(() => transitionScreen(showChampionsMenu), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 
 // ===== DEBUG MODE =====
@@ -9819,6 +10269,15 @@ ${inGame ? `
 <input type="checkbox" ${SoundFX.enabled ? 'checked' : ''} onchange="toggleSoundFX(this.checked)">
 <span>🔊 Sound Effects</span>
 </label>
+
+<h3 class="modal-section-title green">Animation Speed</h3>
+<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+<button class="btn ${S.animationSpeed === 1 ? 'selected' : ''}" onclick="setAnimationSpeed(1)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 1 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸 Normal</button>
+<button class="btn ${S.animationSpeed === 2 ? 'selected' : ''}" onclick="setAnimationSpeed(2)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 2 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨 2x</button>
+<button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨💨 4x</button>
+<button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">⚡ Instant</button>
+</div>
+<p style="font-size:0.8rem;opacity:0.7;margin:0 0 0.5rem 0;padding-left:0.5rem">Speed up animations for faster gameplay</p>
 
 <h3 class="modal-section-title green">Display</h3>
 <label class="modal-checkbox-label">
@@ -9963,6 +10422,17 @@ toast('Sound effects enabled!', 1200);
 } else {
 toast('Sound effects disabled!', 1200);
 }
+}
+
+function setAnimationSpeed(speed) {
+S.animationSpeed = speed;
+const labels = {0: '⚡ Instant', 1: '🐸 Normal', 2: '🐸💨 2x', 4: '🐸💨💨 4x'};
+toast(`Animation speed: ${labels[speed]}`, 1200);
+SoundFX.play('hop');
+savePermanent();
+// Refresh settings menu to update button states
+closeSettingsMenu();
+showSettingsMenu();
 }
 
 function toggleControllerSupport(enabled) {

@@ -1,29 +1,58 @@
 # FROGGLE Project Memory
 
-## About This Project
-FROGGLE is a tactical turn-based dungeon crawler roguelike game built as a PWA. It's a pure frontend game with no backend or AI integration - all game logic runs in the browser using vanilla JavaScript.
+## About
+FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all game logic runs in the browser with vanilla JavaScript. Think Balatro/Inscryption vibes, not mobile retention loops.
 
-## Model Selection Policy
+## Tech Stack
+- Single HTML file (~11,500 lines) with embedded JS/CSS
+- localStorage for saves (no backend/cloud sync)
+- Mobile-first, PWA installable
+- Steam Deck controller support
 
-**Default Model: Sonnet 4.5** - Use for all coding tasks (implementation, debugging, refactoring, code reviews)
+## Development
+- Feature branches: `claude/` prefix, push when complete
+- Default to Sonnet for coding; use Opus for architecture/balance analysis
+- Keep it simple - no frameworks, no over-engineering
 
-**Switch to Opus (`/model opus`) when:**
+## Planned: Code Modularization
 
-1. **Complex Game Balance Analysis** - Analyzing interconnected systems (progression, sigils, enemy scaling) requiring deep reasoning about game theory and player psychology
+**Status:** Ready to implement
 
-2. **Major Feature Architecture** - Designing complex new systems that require comprehensive architectural analysis (e.g., multiplayer, new game modes, major system overhauls)
+### The Plan
+Split monolith into ES modules, concatenate back to single file for production (best of both worlds).
 
-3. **Critical Multi-System Bug Investigation** - Debugging elusive issues involving complex interactions between multiple game systems that require exhaustive reasoning
+```
+src/
+├── constants.js      # HEROES, ENEMIES, SIGILS, DEATH_QUOTES, ANIMATION_TIMINGS
+├── sounds.js         # SoundFX object and all sound definitions
+├── state.js          # Game state `S`, save/load functions
+├── combat.js         # Combat engine, render(), enemy turns
+├── neutrals.js       # All 9 neutral encounters
+├── ui.js             # Animations, toasts, tooltips, modals
+├── screens.js        # title, Ribbleton, Pond, death, levelUp, win
+├── controller.js     # GamepadController (Steam Deck)
+└── main.js           # Entry point, init, event listeners
+```
 
-4. **Strategic Product Decisions** - High-level roadmap planning, feature prioritization, or analyzing tradeoffs between major development paths
+### Watch Out For
+- **`S`** - Global state object used everywhere
+- **`SoundFX`**, **`toast()`**, **`T()`** - Called cross-module
+- **`getLevel()`, `rollDice()`, `render()`, `saveGame()`** - Shared helpers
 
-**Automatic Switching Protocol:**
-- When you detect tasks matching the criteria above, proactively suggest: "This task would benefit from Opus's deeper reasoning. Should I switch to Opus for this?"
-- If the user agrees or if the task clearly requires strategic/architectural thinking (not coding), use `/model opus`
-- After completing the strategic work, switch back to Sonnet for implementation
-
-## Development Notes
-- Game uses localStorage for saves (browser-only, no cloud sync)
-- Single HTML file architecture with embedded JS/CSS
-- Mobile-first design with PWA capabilities
-- All changes should be developed on feature branches starting with `claude/` and pushed when complete
+### Code Sections (approx line numbers, Nov 2025)
+| Section | Lines |
+|---------|-------|
+| CSS | 1-1650 |
+| Constants | 1650-2400 |
+| SoundFX | 2575-2870 |
+| Game State S | 2875-3020 |
+| Save/Load | 3250-3550 |
+| Combat | 4750-6460 |
+| Level Up | 6745-6900 |
+| Neutrals | 7400-9100 |
+| The Pond | 9130-9380 |
+| Death Screen | 9385-9550 |
+| Win/Victory | 9857-10050 |
+| Ribbleton | 10066-10140 |
+| Settings | 10140-10400 |
+| Controller | 10700-11200 |
