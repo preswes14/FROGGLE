@@ -43,7 +43,8 @@ MODULES=(
     "src/constants.js"      # Version, HERO_IMAGES, DEATH_QUOTES, H, E, SIGIL_*, ANIMATION_TIMINGS
     "src/sounds.js"         # SoundFX system
     "src/state.js"          # Game state S, upd(), animations, toast, save/load
-    "src/neutrals.js"       # Neutral deck, encounters, combat, title/hero select, level up
+    "src/combat.js"         # Floor management, combat system, render(), level up
+    "src/neutrals.js"       # Neutral deck, title/hero select, tutorials, neutral encounters
     "src/screens.js"        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub
     "src/settings.js"       # Debug, Settings, FAQ
     "src/controller.js"     # GamepadController (Steam Deck support)

@@ -3737,1099 +3737,6 @@ toast('Warning: Game could not be saved', 2000);
 };
 
 
-// ===== NEUTRAL DECK SYSTEM =====
-function initNeutralDeck() {
-S.neutralDeck = [
-'shopkeeper1', 'wishingwell1', 'treasurechest1',
-'wizard1', 'oracle1', 'encampment1',
-'gambling1', 'ghost1', 'royal1'
-];
-S.lastNeutral = null;
-}
-
-function getNeutralEncounter() {
-// TUTORIAL: Floor 2 always gets Oracle Stage 1
-if(S.floor === 2 && !S.tutorialFlags.neutral_intro) {
-return 'oracle1';
-}
-
-// Level 18: Prioritize Stage 2s
-if(S.floor === 18) {
-const stage2s = S.neutralDeck.filter(n => n.includes('2'));
-if(stage2s.length > 0) {
-const pick = stage2s[Math.floor(Math.random() * stage2s.length)];
-return pick;
-}
-}
-
-// Filter out last neutral for back-to-back prevention
-let available = S.neutralDeck;
-if(S.lastNeutral) {
-const base = S.lastNeutral.replace(/[12]$/, '');
-available = available.filter(n => !n.startsWith(base));
-}
-
-// Floor 10: NEVER allow Enemy Encampment (Floor 11 is always ambush)
-if(S.floor === 10) {
-available = available.filter(n => !n.startsWith('encampment'));
-}
-
-if(available.length === 0) {
-available = S.neutralDeck;
-}
-
-const pick = available[Math.floor(Math.random() * available.length)];
-S.lastNeutral = pick;
-return pick;
-}
-
-function removeNeutralFromDeck(base) {
-S.neutralDeck = S.neutralDeck.filter(n => !n.startsWith(base));
-}
-
-function replaceStage1WithStage2(base) {
-S.neutralDeck = S.neutralDeck.filter(n => n !== `${base}1`);
-S.neutralDeck.push(`${base}2`);
-}
-
-// ===== D20 ROLLS FOR NEUTRALS =====
-function rollD20Neutral() {
-const d20Level = S.sig.D20 || 1;
-// TUTORIAL: Explain D20 level affects neutral rolls
-showTutorialPop('neutral_d20_level', "These D20 checks use the same Level as your D20 sigil from combat - leveling it up improves your odds everywhere!");
-return rollDice(d20Level, 20);
-}
-
-function showD20Result(rolls, best) {
-// Visual dice display with highlighted best roll - improved contrast
-const diceHTML = rolls.map(r => {
-const isBest = r === best;
-return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
-}).join(' ');
-return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
-}
-
-function formatD20Compact(rolls, best) {
-// Compact dice display for toasts/combat - improved contrast
-const diceHTML = rolls.map(r => {
-const isBest = r === best;
-return `<span style="display:inline-block;width:1.8rem;height:1.8rem;line-height:1.8rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.4rem;margin:0 0.15rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1rem;vertical-align:middle;${isBest ? 'box-shadow:0 0 8px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
-}).join('');
-return diceHTML;
-}
-
-function buildNeutralHTML(options) {
-const {
-bgImage,
-title,
-description,
-outcomes = [],
-diceRoll = '',
-buttons = '',
-showStats = true
-} = options;
-
-let html = `<div class="neutral-container">`;
-
-// Left side - Content
-html += '<div class="neutral-left">';
-
-// Header with stats and narrative
-html += '<div class="neutral-header">';
-if(showStats) {
-html += `<div class="neutral-stats">💰 ${S.gold}G | 🎯 Floor ${S.floor}</div>`;
-}
-html += '<div class="neutral-narrative">';
-if(title) html += `<div class="neutral-title">${title}</div>`;
-if(description) html += `<div class="neutral-desc">${description}</div>`;
-if(diceRoll) html += `<div class="dice-roll">${diceRoll}</div>`;
-outcomes.forEach(outcome => {
-if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
-});
-html += '</div></div>'; // close narrative and header
-
-// Footer with buttons
-if(buttons) {
-html += `<div class="neutral-footer">${buttons}</div>`;
-}
-
-html += '</div>'; // close neutral-left
-
-// Right side - Art
-html += `<div class="neutral-right" style="background-image: url('${bgImage}')"></div>`;
-
-html += '</div>'; // close container
-return html;
-}
-
-// ===== MAIN TITLE PAGE =====
-function mainTitlePage() {
-debugLog('[FROGGLE] mainTitlePage START');
-// Hide game header on title screen
-const header = document.getElementById('gameHeader');
-if(header) header.style.display = 'none';
-
-const v = document.getElementById('gameView');
-debugLog('[FROGGLE] gameView element:', v);
-// Check for old saves and migrate
-migrateOldSave();
-// If migration created slot 1 but currentSlot not set, set it
-if(!S.currentSlot && localStorage.getItem('froggle8_permanent_slot1')) {
-S.currentSlot = 1;
-localStorage.setItem('froggle8_current_slot', '1');
-debugLog('[SAVE] Set currentSlot to 1 after migration');
-}
-v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
-<!-- Green mat container -->
-<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:90%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
-<!-- Title image with version label -->
-<div style="position:relative;margin-bottom:1.5rem">
-<img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
-<div style="position:absolute;top:0.3rem;right:0.3rem;background:rgba(0,0,0,0.85);padding:0.25rem 0.5rem;border-radius:6px;border:2px solid rgba(251,191,36,0.7)">
-<p style="font-size:0.7rem;color:#3b82f6;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}</p>
-</div>
-</div>
-
-<!-- Single Play button -->
-<button class="btn" onclick="showSaveSlotSelection()" style="width:100%;font-size:1.2rem;padding:1rem;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🐸 PLAY 🐸</button>
-</div>
-</div>`;
-}
-
-// Show save slot selection screen
-function showSaveSlotSelection() {
-const v = document.getElementById('gameView');
-const slot1 = getSlotMetadata(1);
-const slot2 = getSlotMetadata(2);
-
-v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
-<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
-<h2 style="text-align:center;margin-bottom:1.5rem;font-size:1.5rem">Select Save Slot</h2>
-
-<!-- Slot 1 -->
-<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<h3 style="font-size:1.2rem;margin:0">Slot 1</h3>
-</div>
-${slot1.exists ? `
-<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
-<div>📊 Runs Attempted: <strong>${slot1.runsAttempted}</strong></div>
-<div>💰 Going Rate: <strong>${slot1.goingRate}G</strong></div>
-${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
-</div>
-<div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(1)">🗑️</button>
-</div>
-` : `
-<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
-`}
-</div>
-
-<!-- Slot 2 -->
-<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<h3 style="font-size:1.2rem;margin:0">Slot 2</h3>
-</div>
-${slot2.exists ? `
-<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
-<div>📊 Runs Attempted: <strong>${slot2.runsAttempted}</strong></div>
-<div>💰 Going Rate: <strong>${slot2.goingRate}G</strong></div>
-${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
-</div>
-<div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(2)">🗑️</button>
-</div>
-` : `
-<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
-`}
-</div>
-
-<button class="btn secondary" onclick="mainTitlePage()" style="width:100%">← Back</button>
-</div>
-</div>`;
-}
-
-// Continue/start a slot
-function continueSlot(slot) {
-const meta = getSlotMetadata(slot);
-if(meta.hasActiveRun) {
-// Load existing run
-if(loadSlot(slot)) {
-// Success - game already started
-} else {
-toast('Failed to load slot');
-}
-} else {
-// Start new run in existing slot
-S.runsAttempted = (meta.runsAttempted || 0) + 1;
-newGameInSlot(slot);
-}
-}
-
-// Create new game in empty slot
-function createNewSlot(slot) {
-S.currentSlot = slot;
-localStorage.setItem('froggle8_current_slot', slot.toString());
-S.runsAttempted = 1;
-S.runNumber = 1;
-newGame();
-}
-
-// Start new game in existing slot
-function newGameInSlot(slot) {
-S.currentSlot = slot;
-localStorage.setItem('froggle8_current_slot', slot.toString());
-S.runNumber = (S.runsAttempted || 1);
-if(S.runNumber === 1 && !S.helpTipsDisabled) {
-showTutorialStory();
-} else {
-title();
-}
-}
-
-// Delete slot with confirmation
-function confirmDeleteSlot(slot) {
-showConfirmModal(`Delete Save Slot ${slot}? This cannot be undone!`, () => {
-try {
-localStorage.removeItem(`froggle8_slot${slot}`);
-localStorage.removeItem(`froggle8_permanent_slot${slot}`);
-toast(`Slot ${slot} deleted`);
-showSaveSlotSelection(); // Refresh
-} catch(e) {
-toast('Failed to delete slot');
-}
-});
-}
-
-function newGame() {
-// Reset runNumber to 1 for new game (allows tutorial to show)
-S.runNumber = 1;
-debugLog('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
-if(S.runNumber === 1 && !S.helpTipsDisabled) {
-debugLog('[FROGGLE] Showing tutorial story');
-showTutorialStory();
-} else {
-debugLog('[FROGGLE] Skipping tutorial, going to title()');
-title();
-}
-}
-
-function loadGameFromTitle() {
-const s = localStorage.getItem('froggle8');
-if(s) {
-loadGame();
-} else {
-toast('No saved game found!');
-}
-}
-
-function exitGame() {
-showConfirmModal('Thanks for playing FROGGLE! Close the window to exit.', () => {
-window.close();
-});
-}
-
-function exportSave() {
-const saveData = localStorage.getItem('froggle8');
-const permanentData = localStorage.getItem('froggle8_permanent');
-if(!saveData && !permanentData) {
-toast('No save data to export!');
-return;
-}
-const exportData = {
-save: saveData ? JSON.parse(saveData) : null,
-permanent: permanentData ? JSON.parse(permanentData) : null,
-exportDate: new Date().toISOString(),
-version: GAME_VERSION
-};
-const dataStr = JSON.stringify(exportData, null, 2);
-const blob = new Blob([dataStr], {type: 'application/json'});
-const url = URL.createObjectURL(blob);
-const a = document.createElement('a');
-a.href = url;
-a.download = `froggle-save-${new Date().toISOString().split('T')[0]}.json`;
-document.body.appendChild(a);
-a.click();
-document.body.removeChild(a);
-URL.revokeObjectURL(url);
-toast('Save exported!');
-}
-
-function importSave() {
-const input = document.createElement('input');
-input.type = 'file';
-input.accept = '.json';
-input.onchange = (e) => {
-const file = e.target.files[0];
-if(!file) return;
-const reader = new FileReader();
-reader.onload = (event) => {
-try {
-const importData = JSON.parse(event.target.result);
-if(importData.save) {
-localStorage.setItem('froggle8', JSON.stringify(importData.save));
-}
-if(importData.permanent) {
-localStorage.setItem('froggle8_permanent', JSON.stringify(importData.permanent));
-}
-toast('Save imported successfully!');
-setTimeout(() => {
-mainTitlePage();
-}, 1000);
-} catch(err) {
-toast('Error: Invalid save file!');
-console.error('Import error:', err);
-}
-};
-reader.readAsText(file);
-};
-input.click();
-}
-
-// ===== NARRATIVE SLIDE SYSTEM =====
-function showNarrativeSlide(slides, currentIndex = 0) {
-debugLog('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
-if(currentIndex >= slides.length) {
-// All slides shown, call completion callback
-debugLog('[FROGGLE] All slides complete, calling onComplete');
-if(slides.onComplete) slides.onComplete();
-return;
-}
-
-const slide = slides[currentIndex];
-debugLog('[FROGGLE] Rendering slide', currentIndex);
-const v = document.getElementById('gameView');
-debugLog('[FROGGLE] gameView element:', v);
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
-debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
-v.innerHTML = `
-<div style="max-width:600px;margin:2rem auto;padding:1rem">
-${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
-<div style="text-align:center;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem">${slide.buttonText || 'Continue'}</button>
-${skipButton}
-</div>
-</div>`;
-
-window.currentNarrativeSlides = slides;
-window.currentNarrativeIndex = currentIndex;
-debugLog('[FROGGLE] Slide', currentIndex, 'rendered successfully');
-}
-
-function continueNarrative() {
-const slides = window.currentNarrativeSlides;
-const nextIndex = window.currentNarrativeIndex + 1;
-showNarrativeSlide(slides, nextIndex);
-}
-
-function showSkipTutorialConfirmation(proceedCallback) {
-// Show friendly skip confirmation
-const overlay = document.createElement('div');
-overlay.className = 'tutorial-modal-backdrop';
-overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:500px">
-<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ! 💪</h2>
-<p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
-You're on your own - get going and save Tapo!
-</p>
-<p style="font-size:0.95rem;line-height:1.5;text-align:center;margin-bottom:0.5rem;opacity:0.9">
-Need help? Check out the <strong>FAQ</strong> and <strong>Sigilarium</strong> buttons at the top of the screen anytime!
-</p>
-<p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
-(Help/tips can be disabled in the Settings menu)
-</p>
-<button onclick="confirmSkipTutorial()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's go!</button>
-</div>`;
-document.body.appendChild(overlay);
-window.skipTutorialProceedCallback = proceedCallback;
-}
-
-function confirmSkipTutorial() {
-const overlay = document.querySelector('.tutorial-modal-backdrop');
-if(overlay) overlay.remove();
-if(window.skipTutorialProceedCallback) {
-window.skipTutorialProceedCallback();
-window.skipTutorialProceedCallback = null;
-}
-}
-
-function skipTutorialFromSlide() {
-// Show confirmation popup before skipping
-showSkipTutorialConfirmation(() => {
-toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
-setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
-});
-}
-
-// ===== RIBBLETON TUTORIAL INTRO =====
-function showTutorialStory() {
-debugLog('[FROGGLE] showTutorialStory START');
-const slides = [
-{
-html: `
-<div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
-<div style="margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
-</div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
-</p>
-</div>
-<style>
-@keyframes tapoBounce {
-0% { transform: translateY(0) scaleX(1); }
-10% { transform: translateY(-20px) scaleX(1); }
-15% { transform: translateY(-10px) scaleX(1); }
-20% { transform: translateY(-25px) scaleX(1); }
-30% { transform: translateY(0) scaleX(1); }
-50% { transform: translateY(0) scaleX(-1); }
-60% { transform: translateY(-20px) scaleX(-1); }
-65% { transform: translateY(-10px) scaleX(-1); }
-70% { transform: translateY(-25px) scaleX(-1); }
-80% { transform: translateY(0) scaleX(-1); }
-100% { transform: translateY(0) scaleX(1); }
-}
-</style>
-`
-},
-{
-html: `
-<div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#2c63c7">A Special Gift</h2>
-<div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
-<div>
-<img src="assets/characters/magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
-<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
-</div>
-<div style="font-size:3rem">🎁</div>
-<div style="animation:tapoBounceSmall 2s ease-in-out infinite">
-<img src="assets/tapo-nobg.png" style="width:120px;height:auto">
-<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Tapo</div>
-</div>
-</div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Mage promised to teach Tapo how to catch flies as a birthday present!<br>
-Together they set off to find some flies.
-</p>
-</div>
-<style>
-@keyframes tapoBounceSmall {
-0%, 100% { transform: translateY(0); }
-50% { transform: translateY(-15px); }
-}
-</style>
-`
-}
-];
-slides.skippable = true;
-slides.onComplete = () => {
-// Start Phase 1: Tapo's Birthday tutorial
-startTaposBirthdayTutorial();
-
-setTimeout(() => {
-showTaposBirthdayOverlay();
-}, 100);
-};
-debugLog('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
-showNarrativeSlide(slides, 0);
-debugLog('[FROGGLE] showNarrativeSlide called');
-}
-
-function showTaposBirthdayOverlay() {
-// Show Phase 1 narrative overlay
-const overlay = document.createElement('div');
-overlay.className = 'tutorial-modal-backdrop';
-overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:550px">
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
-🪰 <strong>Two flies</strong> are buzzing around! 🪰
-</p>
-<p style="font-size:1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
-Help Mage catch them for Tapo's birthday!
-</p>
-<button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
-</div>`;
-document.body.appendChild(overlay);
-}
-
-function dismissTaposBirthdayOverlay() {
-try {
-const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-allBackdrops.forEach(backdrop => backdrop.remove());
-} catch (error) {
-console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
-}
-// Show first tutorial popup
-showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to catch a fly!", () => {
-tutorialState.stage = 'catching_flies';
-render();
-});
-}
-
-function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 2 Flies - Mage gets Expand on Turn 2
-S.floor = 0;
-S.xp = 0;
-S.levelUpCount = 0;
-S.heroes = [
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
-];
-
-// Add permanent passives (Asterisk, Star)
-const passiveSigils = ['Asterisk', 'Star'];
-S.heroes.forEach(hero => {
-passiveSigils.forEach(passive => {
-const permLevel = S.sig[passive] || 0;
-if(permLevel > 0 && !hero.s.includes(passive)) {
-hero.s.push(passive);
-}
-});
-});
-
-// Initialize Phase 1 tutorial state
-tutorialState = {
-stage: 'waiting_for_start',
-phase: 1, // Track which phase we're in
-fliesKilled: 0,
-round: 1
-};
-
-// Start combat with 3 Flies
-combat(0);
-}
-
-function finishTaposBirthdayPhase() {
-// Phase 1 victory celebration
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div style="text-align:center;padding:2rem">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Mage and Tapo catch all the flies!<br>
-Tapo squeals with delight as they share the tasty treats together. 🎉
-</p>
-<button onclick="transitionToPortalInvasion()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1rem">Continue</button>
-</div>`;
-}
-
-function transitionToPortalInvasion() {
-// Show portal opening narrative
-const slides = [
-{
-html: `
-<div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
-<div style="margin:1.5rem 0;position:relative">
-<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
-</div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Suddenly, <strong>a dark portal</strong> tears open in the square!<br>
-Tank, Warrior, and Healer rush to defend Tapo and Mage!
-</p>
-<div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
-<div style="animation:enemyAppear 1s ease-out">👺</div>
-<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
-</div>
-</div>
-<style>
-@keyframes shake {
-0%, 100% { transform: translateX(0); }
-25% { transform: translateX(-5px); }
-75% { transform: translateX(5px); }
-}
-@keyframes narrativePortalPulse {
-0%, 100% { transform: scale(1); opacity: 0.8; }
-50% { transform: scale(1.1); opacity: 1; }
-}
-@keyframes spin {
-from { transform: translate(-50%, -50%) rotate(0deg); }
-to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-@keyframes enemyAppear {
-from { transform: scale(0) rotate(-180deg); opacity: 0; }
-to { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-</style>
-`
-}
-];
-slides.onComplete = () => {
-// Start Phase 2: Portal Invasion
-startRibbletonTutorial();
-
-setTimeout(() => {
-showTutorialStoryOverlay();
-}, 100);
-};
-showNarrativeSlide(slides, 0);
-}
-
-function showTutorialStoryOverlay() {
-// Show narrative on TOP of combat screen
-const overlay = document.createElement('div');
-overlay.className = 'tutorial-modal-backdrop';
-overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:550px">
-<p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-A Goblin and a Wolf appear from the portal!
-</p>
-<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
-<div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
-<div style="animation:defensiveStance 1.5s ease-in-out infinite">
-<img src="assets/characters/tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">🛡 On Guard!</div>
-</div>
-<div style="text-align:center">
-<img src="assets/tapo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
-<div style="font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Protected!</div>
-</div>
-<div style="animation:defensiveStance 1.3s ease-in-out infinite">
-<img src="assets/characters/magefull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">📖 On Guard!</div>
-</div>
-</div>
-<div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:2.5rem">
-<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
-<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
-</div>
-<div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
-<div style="animation:chargeForward 0.8s ease-out infinite alternate">
-<img src="assets/characters/warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">⚔️ Attacking!</div>
-</div>
-<div style="animation:chargeForward 1s ease-out infinite alternate">
-<img src="assets/characters/healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">✚ Attacking!</div>
-</div>
-</div>
-</div>
-<p style="font-size:1rem;line-height:1.6;text-align:center;font-style:italic;opacity:0.9">
-Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the portal!
-</p>
-<div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-<button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
-<button onclick="skipTutorialFromOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#888;color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
-</div>
-</div>
-<style>
-@keyframes chargeForward {
-0% { transform: translateX(0) scale(1); }
-100% { transform: translateX(15px) scale(1.05); }
-}
-@keyframes defensiveStance {
-0%, 100% { transform: translateY(0); }
-50% { transform: translateY(-5px); }
-}
-@keyframes enemyThreat {
-0%, 100% { transform: scale(1) rotate(0deg); }
-50% { transform: scale(1.2) rotate(10deg); }
-}
-</style>`;
-document.body.appendChild(overlay);
-}
-
-function dismissStoryOverlay() {
-debugLog('[TUTORIAL] Dismissing story overlay');
-// Remove ALL backdrops before showing the tutorial pop
-try {
-const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-debugLog('[TUTORIAL] Found', allBackdrops.length, 'backdrops to remove');
-allBackdrops.forEach((backdrop, idx) => {
-debugLog('[TUTORIAL] Removing backdrop', idx);
-backdrop.remove();
-});
-} catch (error) {
-console.error('[TUTORIAL] Error removing story overlay backdrops:', error);
-}
-
-// Double-check they're gone
-setTimeout(() => {
-try {
-const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
-debugLog('[TUTORIAL] Remaining overlays after dismiss:', remaining.length);
-if(remaining.length > 0) {
-console.error('[TUTORIAL] ERROR: Still have backdrops!', remaining);
-remaining.forEach(r => r.remove());
-}
-
-// PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Click the Warrior's Attack sigil.", () => {
-debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
-tutorialState.stage = 'warrior_attack';
-S.activeIdx = 0;
-debugLog('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
-render();
-});
-} catch (error) {
-console.error('[TUTORIAL] Error in story overlay cleanup:', error);
-}
-}, 50);
-}
-
-function skipTutorialFromOverlay() {
-const overlay = document.querySelector('.tutorial-modal-backdrop');
-if(overlay) overlay.remove();
-// Show confirmation popup before skipping
-showSkipTutorialConfirmation(() => {
-toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
-setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
-});
-}
-
-function skipTutorial() {
-// This function is for legacy "skip tutorial" - just go to title
-toast('Going to hero selection...');
-title();
-}
-
-// ===== RIBBLETON TUTORIAL (PHASE 2) =====
-function startRibbletonTutorial() {
-// Phase 2: Portal Invasion - Wolf and Goblin fight with Warrior and Healer
-S.floor = 0;
-S.xp = 0;
-S.levelUpCount = 0;
-S.heroes = [
-{id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
-];
-
-// Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
-S.heroes.forEach(hero => {
-passiveSigils.forEach(passive => {
-const permLevel = S.sig[passive] || 0;
-if(permLevel > 0 && !hero.s.includes(passive)) {
-hero.s.push(passive);
-}
-});
-});
-
-// Initialize Phase 2 tutorial state
-tutorialState = {
-stage: 'waiting_for_start',
-phase: 2, // Phase 2: Portal Invasion
-wolfDamaged: false,
-wolfKilled: false,
-goblinKilled: false,
-round: 1
-};
-
-// Start combat using real combat system!
-combat(0);
-}
-
-
-function finishRibbletonTutorial() {
-// Post-combat narrative
-const slides = [
-{text: "The few enemies remaining around Ribbleton scamper back into the portal. Relieved, the frog heroes sheathe their weapons and look for Tapo - but he's missing!!"},
-{text: "As the Ribbletonians search high and low, the heroes realize there's only one possibility - the poor tadpole has squiggled his way through the portal!"},
-{text: "The townspeople gather around the heroes. \"You must bring him home!\" they plead. The heroes nod solemnly - Ribbleton will be their sanctuary, and they'll return here between each rescue attempt."}
-];
-slides.onComplete = showTitleCard;
-showNarrativeSlide(slides, 0);
-}
-
-function showTitleCard() {
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
-<div style="text-align:center;color:#fff">
-<div style="font-size:3rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
-<div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
-</div>
-</div>`;
-
-setTimeout(() => {
-tutorialState = null;
-showRibbleton(); // Go to Ribbleton hub
-}, 3000); // Reduced from 5500ms to 3000ms for faster flow
-}
-
-// ===== TITLE & HERO SELECT =====
-let selectedHeroView = null; // Track which hero card is currently displayed
-
-function title() {
-debugLog('[FROGGLE] title() called - Hero selection screen');
-// Reset selection first
-sel = [];
-
-const v = document.getElementById('gameView');
-const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
-const maxSlots = 8;
-const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
-
-v.innerHTML = `
-<h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v${GAME_VERSION}</p>
-<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
-
-<div style="text-align:center;margin-bottom:1rem">
-<button class="btn secondary" onclick="showFAQ()" style="padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold">
-❓ Help/FAQ
-</button>
-</div>
-
-${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
-<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#3b82f6,#f97316);font-weight:bold">
-🏆 Champions of Floor 20 🏆
-</button></div>` : ''}
-
-<div style="max-width:600px;margin:0 auto">
-<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose ${requiredHeroes} Heroes</h2>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
-<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
-<img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
-<!-- Controller-friendly hero selection buttons -->
-<button type="button" class="hero-select-btn" data-hero="warrior" onclick="event.stopPropagation();toggleHeroSelection('warrior')" aria-label="Select Warrior"></button>
-<button type="button" class="hero-select-btn" data-hero="tank" onclick="event.stopPropagation();toggleHeroSelection('tank')" aria-label="Select Tank"></button>
-<button type="button" class="hero-select-btn" data-hero="mage" onclick="event.stopPropagation();toggleHeroSelection('mage')" aria-label="Select Mage"></button>
-<button type="button" class="hero-select-btn" data-hero="healer" onclick="event.stopPropagation();toggleHeroSelection('healer')" aria-label="Select Healer"></button>
-<!-- Hero card overlays -->
-<div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="mage-card" style="position:absolute;bottom:10%;left:51%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="healer-card" style="position:absolute;bottom:10%;left:76%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-</div>
-
-${S.tapoUnlocked ? `
-<div style="margin-top:1rem;text-align:center">
-<button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
-🎉 View Tapo (UNLOCKED!) 🎉
-</button>
-</div>` : ''}
-
-<!-- Selection display -->
-<div style="text-align:center;margin:1.5rem 0;padding:1rem;background:rgba(0,0,0,0.05);border-radius:8px">
-<strong>Selected Heroes:</strong>
-<div id="selection-display" style="margin-top:0.5rem;font-size:1.1rem;color:#2563eb"></div>
-</div>
-
-<button class="btn" id="start" onclick="start()" style="width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
-</div>`;
-
-debugLog('[FROGGLE] title() innerHTML set successfully');
-
-// Shield persistence tutorial (after first run with shield usage or death)
-if(!S.helpTipsDisabled && !S.tutorialFlags.shield_persistence && S.highestFloor >= 1) {
-// Check if they used shield or died
-const usedShield = S.sig.Shield > 0 || (S.tempSigUpgrades && S.tempSigUpgrades.Shield > 0);
-if(usedShield || S.highestFloor > 0) { // highestFloor > 0 means they died at least once
-setTimeout(() => {
-showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next floor with protection. Use this to survive tough encounters!");
-}, 100);
-}
-}
-
-// Update selection display
-updateSelectionDisplay();
-}
-
-function handleHeroImageClick(event, container) {
-// Validate inputs
-if (!event || !container) {
-console.warn('Invalid event or container, ignoring click');
-return;
-}
-
-// Calculate which hero was clicked based on X position
-const rect = container.getBoundingClientRect();
-if (!rect) {
-console.warn('Could not get container bounds, ignoring click');
-return;
-}
-
-const x = event.clientX - rect.left;
-const percent = (x / rect.width) * 100;
-
-// Validate coordinates - if invalid, ignore the click
-if (Number.isNaN(percent) || percent < 0 || percent > 100) {
-console.warn('Invalid click coordinates, ignoring');
-return;
-}
-
-// Determine hero based on position (4 equal 25% sections)
-let heroType;
-if (percent < 25) heroType = 'warrior';
-else if (percent < 50) heroType = 'tank';
-else if (percent < 75) heroType = 'mage';
-else heroType = 'healer';
-
-toggleHeroSelection(heroType);
-}
-
-function updateHeroCards() {
-const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks', callouts: ['Starts with 2 POW', 'Starts with Attack and D20']},
-tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Starts with 10 HP', 'Starts with Shield and D20']},
-mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Attack, D20, and Expand']},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Heal, D20, and Expand']},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!', callouts: ['Starts with ALL 10 sigils', 'Only 1 HP - high risk, high reward!']}
-};
-
-// Update all card displays
-['warrior', 'tank', 'mage', 'healer'].forEach(h => {
-const cardEl = document.getElementById(`${h}-card`);
-if(!cardEl) return;
-
-if(sel.includes(h)) {
-const hData = heroData[h];
-const hPixelImage = HERO_IMAGES[h] || '';
-const sigilsHTML = hData.sigils.map(s => {
-const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
-}).join('');
-const calloutsHTML = hData.callouts ? hData.callouts.map(c => `<div style="font-size:0.45rem;text-align:left;opacity:0.9;margin:1px 0">• ${c}</div>`).join('') : '';
-cardEl.innerHTML = `
-<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
-onclick="event.stopPropagation();toggleHeroSelection('${h}')">
-<div style="text-align:center">
-<div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
-<div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
-<div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
-${calloutsHTML ? `<div style="margin-top:0.25rem;padding:0.25rem;background:rgba(251,191,36,0.1);border-radius:4px">${calloutsHTML}</div>` : ''}
-<div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
-</div>
-</div>`;
-cardEl.style.display = 'block';
-} else {
-cardEl.style.display = 'none';
-}
-});
-}
-
-function toggleHeroSelection(heroType) {
-// Toggle selection
-const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
-const isSelected = sel.includes(heroType);
-if(isSelected) {
-sel = sel.filter(h => h !== heroType);
-SoundFX.play('click');
-} else {
-if(sel.length < requiredHeroes) {
-sel.push(heroType);
-SoundFX.play('hop'); // Froggy hop for hero selection
-}
-}
-
-// Update card displays and selection display
-updateHeroCards();
-updateSelectionDisplay();
-}
-
-
-function updateSelectionDisplay() {
-const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
-const display = document.getElementById('selection-display');
-if(!display) return;
-
-if(sel.length === 0) {
-display.textContent = 'None';
-display.style.color = '#6b7280';
-} else {
-const heroNames = sel.map(h => H[h].n);
-display.textContent = heroNames.join(' + ');
-display.style.color = '#2563eb';
-}
-
-const btn = document.getElementById('start');
-if(btn) {
-const isDisabled = sel.length !== requiredHeroes;
-btn.disabled = isDisabled;
-if(isDisabled) {
-btn.classList.add('disabled');
-} else {
-btn.classList.remove('disabled');
-}
-btn.style.opacity = sel.length === requiredHeroes ? '1' : '0.4';
-}
-}
-
-function toggleMode() {
-S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
-savePermanent();
-title();
-}
-
-function pick(t) {
-const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
-const i = sel.indexOf(t);
-if(i>=0) {
-sel.splice(i,1);
-} else if(sel.length<requiredHeroes) {
-sel.push(t);
-} else {
-toast(`Maximum ${requiredHeroes} heroes!`);
-return;
-}
-
-// Update selection display
-updateSelectionDisplay();
-}
-
-function start() {
-const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
-if(sel.length!==requiredHeroes) return;
-// Show game header when entering gameplay
-const header = document.getElementById('gameHeader');
-if(header) header.style.display = 'flex';
-
-S.floor=1; S.xp=0; S.levelUpCount=0;
-// Reset temporary XP sigil upgrades (these don't persist between runs)
-S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
-// Reset recruits from any previous run
-S.recruits = [];
-// NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
-S.heroes = sel.map((t,i) => ({
-id:`h-${crypto.randomUUID()}`,
-n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
-s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
-}));
-
-// Add permanently upgraded passives (Expand, Asterisk, Star) to all heroes
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
-S.heroes.forEach(hero => {
-passiveSigils.forEach(passive => {
-const permLevel = S.sig[passive] || 0;
-// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
-if(permLevel > 0 && !hero.s.includes(passive)) {
-hero.s.push(passive);
-}
-});
-});
-
-// Apply pedestal buffs
-S.pedestal.forEach(slot => {
-if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
-const hero = S.heroes.find(h => h.n === slot.hero);
-if(!hero) return;
-if(slot.stat === 'POW') {
-hero.p += 1;
-} else if(slot.stat === 'HP') {
-hero.m += 5;
-hero.h += 5;
-}
-});
-initNeutralDeck();
-upd();
-// Check if player has starting XP from Death Boy sacrifices
-if(S.startingXP > 0) {
-S.xp = S.startingXP;
-showStartingXPScreen();
-} else {
-startFloor(1);
-}
-}
-
 // ===== FLOOR MANAGEMENT =====
 function getFloorName(f) {
 const floorNames = {
@@ -7515,6 +6422,1101 @@ upd();
 saveGame();
 levelUpMenu();
 }
+
+
+// ===== NEUTRAL DECK SYSTEM =====
+function initNeutralDeck() {
+S.neutralDeck = [
+'shopkeeper1', 'wishingwell1', 'treasurechest1',
+'wizard1', 'oracle1', 'encampment1',
+'gambling1', 'ghost1', 'royal1'
+];
+S.lastNeutral = null;
+}
+
+function getNeutralEncounter() {
+// TUTORIAL: Floor 2 always gets Oracle Stage 1
+if(S.floor === 2 && !S.tutorialFlags.neutral_intro) {
+return 'oracle1';
+}
+
+// Level 18: Prioritize Stage 2s
+if(S.floor === 18) {
+const stage2s = S.neutralDeck.filter(n => n.includes('2'));
+if(stage2s.length > 0) {
+const pick = stage2s[Math.floor(Math.random() * stage2s.length)];
+return pick;
+}
+}
+
+// Filter out last neutral for back-to-back prevention
+let available = S.neutralDeck;
+if(S.lastNeutral) {
+const base = S.lastNeutral.replace(/[12]$/, '');
+available = available.filter(n => !n.startsWith(base));
+}
+
+// Floor 10: NEVER allow Enemy Encampment (Floor 11 is always ambush)
+if(S.floor === 10) {
+available = available.filter(n => !n.startsWith('encampment'));
+}
+
+if(available.length === 0) {
+available = S.neutralDeck;
+}
+
+const pick = available[Math.floor(Math.random() * available.length)];
+S.lastNeutral = pick;
+return pick;
+}
+
+function removeNeutralFromDeck(base) {
+S.neutralDeck = S.neutralDeck.filter(n => !n.startsWith(base));
+}
+
+function replaceStage1WithStage2(base) {
+S.neutralDeck = S.neutralDeck.filter(n => n !== `${base}1`);
+S.neutralDeck.push(`${base}2`);
+}
+
+// ===== D20 ROLLS FOR NEUTRALS =====
+function rollD20Neutral() {
+const d20Level = S.sig.D20 || 1;
+// TUTORIAL: Explain D20 level affects neutral rolls
+showTutorialPop('neutral_d20_level', "These D20 checks use the same Level as your D20 sigil from combat - leveling it up improves your odds everywhere!");
+return rollDice(d20Level, 20);
+}
+
+function showD20Result(rolls, best) {
+// Visual dice display with highlighted best roll - improved contrast
+const diceHTML = rolls.map(r => {
+const isBest = r === best;
+return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
+}).join(' ');
+return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
+}
+
+function formatD20Compact(rolls, best) {
+// Compact dice display for toasts/combat - improved contrast
+const diceHTML = rolls.map(r => {
+const isBest = r === best;
+return `<span style="display:inline-block;width:1.8rem;height:1.8rem;line-height:1.8rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.4rem;margin:0 0.15rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1rem;vertical-align:middle;${isBest ? 'box-shadow:0 0 8px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
+}).join('');
+return diceHTML;
+}
+
+function buildNeutralHTML(options) {
+const {
+bgImage,
+title,
+description,
+outcomes = [],
+diceRoll = '',
+buttons = '',
+showStats = true
+} = options;
+
+let html = `<div class="neutral-container">`;
+
+// Left side - Content
+html += '<div class="neutral-left">';
+
+// Header with stats and narrative
+html += '<div class="neutral-header">';
+if(showStats) {
+html += `<div class="neutral-stats">💰 ${S.gold}G | 🎯 Floor ${S.floor}</div>`;
+}
+html += '<div class="neutral-narrative">';
+if(title) html += `<div class="neutral-title">${title}</div>`;
+if(description) html += `<div class="neutral-desc">${description}</div>`;
+if(diceRoll) html += `<div class="dice-roll">${diceRoll}</div>`;
+outcomes.forEach(outcome => {
+if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
+});
+html += '</div></div>'; // close narrative and header
+
+// Footer with buttons
+if(buttons) {
+html += `<div class="neutral-footer">${buttons}</div>`;
+}
+
+html += '</div>'; // close neutral-left
+
+// Right side - Art
+html += `<div class="neutral-right" style="background-image: url('${bgImage}')"></div>`;
+
+html += '</div>'; // close container
+return html;
+}
+
+// ===== MAIN TITLE PAGE =====
+function mainTitlePage() {
+debugLog('[FROGGLE] mainTitlePage START');
+// Hide game header on title screen
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'none';
+
+const v = document.getElementById('gameView');
+debugLog('[FROGGLE] gameView element:', v);
+// Check for old saves and migrate
+migrateOldSave();
+// If migration created slot 1 but currentSlot not set, set it
+if(!S.currentSlot && localStorage.getItem('froggle8_permanent_slot1')) {
+S.currentSlot = 1;
+localStorage.setItem('froggle8_current_slot', '1');
+debugLog('[SAVE] Set currentSlot to 1 after migration');
+}
+v.innerHTML = `
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
+<!-- Green mat container -->
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:90%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
+<!-- Title image with version label -->
+<div style="position:relative;margin-bottom:1.5rem">
+<img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
+<div style="position:absolute;top:0.3rem;right:0.3rem;background:rgba(0,0,0,0.85);padding:0.25rem 0.5rem;border-radius:6px;border:2px solid rgba(251,191,36,0.7)">
+<p style="font-size:0.7rem;color:#3b82f6;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}</p>
+</div>
+</div>
+
+<!-- Single Play button -->
+<button class="btn" onclick="showSaveSlotSelection()" style="width:100%;font-size:1.2rem;padding:1rem;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🐸 PLAY 🐸</button>
+</div>
+</div>`;
+}
+
+// Show save slot selection screen
+function showSaveSlotSelection() {
+const v = document.getElementById('gameView');
+const slot1 = getSlotMetadata(1);
+const slot2 = getSlotMetadata(2);
+
+v.innerHTML = `
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
+<h2 style="text-align:center;margin-bottom:1.5rem;font-size:1.5rem">Select Save Slot</h2>
+
+<!-- Slot 1 -->
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<h3 style="font-size:1.2rem;margin:0">Slot 1</h3>
+</div>
+${slot1.exists ? `
+<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs Attempted: <strong>${slot1.runsAttempted}</strong></div>
+<div>💰 Going Rate: <strong>${slot1.goingRate}G</strong></div>
+${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+</div>
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(1)">🗑️</button>
+</div>
+` : `
+<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
+`}
+</div>
+
+<!-- Slot 2 -->
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<h3 style="font-size:1.2rem;margin:0">Slot 2</h3>
+</div>
+${slot2.exists ? `
+<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs Attempted: <strong>${slot2.runsAttempted}</strong></div>
+<div>💰 Going Rate: <strong>${slot2.goingRate}G</strong></div>
+${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+</div>
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(2)">🗑️</button>
+</div>
+` : `
+<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
+`}
+</div>
+
+<button class="btn secondary" onclick="mainTitlePage()" style="width:100%">← Back</button>
+</div>
+</div>`;
+}
+
+// Continue/start a slot
+function continueSlot(slot) {
+const meta = getSlotMetadata(slot);
+if(meta.hasActiveRun) {
+// Load existing run
+if(loadSlot(slot)) {
+// Success - game already started
+} else {
+toast('Failed to load slot');
+}
+} else {
+// Start new run in existing slot
+S.runsAttempted = (meta.runsAttempted || 0) + 1;
+newGameInSlot(slot);
+}
+}
+
+// Create new game in empty slot
+function createNewSlot(slot) {
+S.currentSlot = slot;
+localStorage.setItem('froggle8_current_slot', slot.toString());
+S.runsAttempted = 1;
+S.runNumber = 1;
+newGame();
+}
+
+// Start new game in existing slot
+function newGameInSlot(slot) {
+S.currentSlot = slot;
+localStorage.setItem('froggle8_current_slot', slot.toString());
+S.runNumber = (S.runsAttempted || 1);
+if(S.runNumber === 1 && !S.helpTipsDisabled) {
+showTutorialStory();
+} else {
+title();
+}
+}
+
+// Delete slot with confirmation
+function confirmDeleteSlot(slot) {
+showConfirmModal(`Delete Save Slot ${slot}? This cannot be undone!`, () => {
+try {
+localStorage.removeItem(`froggle8_slot${slot}`);
+localStorage.removeItem(`froggle8_permanent_slot${slot}`);
+toast(`Slot ${slot} deleted`);
+showSaveSlotSelection(); // Refresh
+} catch(e) {
+toast('Failed to delete slot');
+}
+});
+}
+
+function newGame() {
+// Reset runNumber to 1 for new game (allows tutorial to show)
+S.runNumber = 1;
+debugLog('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
+if(S.runNumber === 1 && !S.helpTipsDisabled) {
+debugLog('[FROGGLE] Showing tutorial story');
+showTutorialStory();
+} else {
+debugLog('[FROGGLE] Skipping tutorial, going to title()');
+title();
+}
+}
+
+function loadGameFromTitle() {
+const s = localStorage.getItem('froggle8');
+if(s) {
+loadGame();
+} else {
+toast('No saved game found!');
+}
+}
+
+function exitGame() {
+showConfirmModal('Thanks for playing FROGGLE! Close the window to exit.', () => {
+window.close();
+});
+}
+
+function exportSave() {
+const saveData = localStorage.getItem('froggle8');
+const permanentData = localStorage.getItem('froggle8_permanent');
+if(!saveData && !permanentData) {
+toast('No save data to export!');
+return;
+}
+const exportData = {
+save: saveData ? JSON.parse(saveData) : null,
+permanent: permanentData ? JSON.parse(permanentData) : null,
+exportDate: new Date().toISOString(),
+version: GAME_VERSION
+};
+const dataStr = JSON.stringify(exportData, null, 2);
+const blob = new Blob([dataStr], {type: 'application/json'});
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `froggle-save-${new Date().toISOString().split('T')[0]}.json`;
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+toast('Save exported!');
+}
+
+function importSave() {
+const input = document.createElement('input');
+input.type = 'file';
+input.accept = '.json';
+input.onchange = (e) => {
+const file = e.target.files[0];
+if(!file) return;
+const reader = new FileReader();
+reader.onload = (event) => {
+try {
+const importData = JSON.parse(event.target.result);
+if(importData.save) {
+localStorage.setItem('froggle8', JSON.stringify(importData.save));
+}
+if(importData.permanent) {
+localStorage.setItem('froggle8_permanent', JSON.stringify(importData.permanent));
+}
+toast('Save imported successfully!');
+setTimeout(() => {
+mainTitlePage();
+}, 1000);
+} catch(err) {
+toast('Error: Invalid save file!');
+console.error('Import error:', err);
+}
+};
+reader.readAsText(file);
+};
+input.click();
+}
+
+// ===== NARRATIVE SLIDE SYSTEM =====
+function showNarrativeSlide(slides, currentIndex = 0) {
+debugLog('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
+if(currentIndex >= slides.length) {
+// All slides shown, call completion callback
+debugLog('[FROGGLE] All slides complete, calling onComplete');
+if(slides.onComplete) slides.onComplete();
+return;
+}
+
+const slide = slides[currentIndex];
+debugLog('[FROGGLE] Rendering slide', currentIndex);
+const v = document.getElementById('gameView');
+debugLog('[FROGGLE] gameView element:', v);
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
+debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
+v.innerHTML = `
+<div style="max-width:600px;margin:2rem auto;padding:1rem">
+${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
+<div style="text-align:center;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem">${slide.buttonText || 'Continue'}</button>
+${skipButton}
+</div>
+</div>`;
+
+window.currentNarrativeSlides = slides;
+window.currentNarrativeIndex = currentIndex;
+debugLog('[FROGGLE] Slide', currentIndex, 'rendered successfully');
+}
+
+function continueNarrative() {
+const slides = window.currentNarrativeSlides;
+const nextIndex = window.currentNarrativeIndex + 1;
+showNarrativeSlide(slides, nextIndex);
+}
+
+function showSkipTutorialConfirmation(proceedCallback) {
+// Show friendly skip confirmation
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:500px">
+<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ! 💪</h2>
+<p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
+You're on your own - get going and save Tapo!
+</p>
+<p style="font-size:0.95rem;line-height:1.5;text-align:center;margin-bottom:0.5rem;opacity:0.9">
+Need help? Check out the <strong>FAQ</strong> and <strong>Sigilarium</strong> buttons at the top of the screen anytime!
+</p>
+<p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
+(Help/tips can be disabled in the Settings menu)
+</p>
+<button onclick="confirmSkipTutorial()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's go!</button>
+</div>`;
+document.body.appendChild(overlay);
+window.skipTutorialProceedCallback = proceedCallback;
+}
+
+function confirmSkipTutorial() {
+const overlay = document.querySelector('.tutorial-modal-backdrop');
+if(overlay) overlay.remove();
+if(window.skipTutorialProceedCallback) {
+window.skipTutorialProceedCallback();
+window.skipTutorialProceedCallback = null;
+}
+}
+
+function skipTutorialFromSlide() {
+// Show confirmation popup before skipping
+showSkipTutorialConfirmation(() => {
+toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
+setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
+});
+}
+
+// ===== RIBBLETON TUTORIAL INTRO =====
+function showTutorialStory() {
+debugLog('[FROGGLE] showTutorialStory START');
+const slides = [
+{
+html: `
+<div style="text-align:center">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
+<div style="margin:1.5rem 0">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
+</div>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Today is <strong>Tapo the Tadpole's first birthday!</strong> 🎉
+</p>
+</div>
+<style>
+@keyframes tapoBounce {
+0% { transform: translateY(0) scaleX(1); }
+10% { transform: translateY(-20px) scaleX(1); }
+15% { transform: translateY(-10px) scaleX(1); }
+20% { transform: translateY(-25px) scaleX(1); }
+30% { transform: translateY(0) scaleX(1); }
+50% { transform: translateY(0) scaleX(-1); }
+60% { transform: translateY(-20px) scaleX(-1); }
+65% { transform: translateY(-10px) scaleX(-1); }
+70% { transform: translateY(-25px) scaleX(-1); }
+80% { transform: translateY(0) scaleX(-1); }
+100% { transform: translateY(0) scaleX(1); }
+}
+</style>
+`
+},
+{
+html: `
+<div style="text-align:center">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#2c63c7">A Special Gift</h2>
+<div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
+<div>
+<img src="assets/characters/magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
+</div>
+<div style="font-size:3rem">🎁</div>
+<div style="animation:tapoBounceSmall 2s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="width:120px;height:auto">
+<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Tapo</div>
+</div>
+</div>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Mage promised to teach Tapo how to catch flies as a birthday present!<br>
+Together they set off to find some flies.
+</p>
+</div>
+<style>
+@keyframes tapoBounceSmall {
+0%, 100% { transform: translateY(0); }
+50% { transform: translateY(-15px); }
+}
+</style>
+`
+}
+];
+slides.skippable = true;
+slides.onComplete = () => {
+// Start Phase 1: Tapo's Birthday tutorial
+startTaposBirthdayTutorial();
+
+setTimeout(() => {
+showTaposBirthdayOverlay();
+}, 100);
+};
+debugLog('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
+showNarrativeSlide(slides, 0);
+debugLog('[FROGGLE] showNarrativeSlide called');
+}
+
+function showTaposBirthdayOverlay() {
+// Show Phase 1 narrative overlay
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:550px">
+<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+🪰 <strong>Two flies</strong> are buzzing around! 🪰
+</p>
+<p style="font-size:1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
+Help Mage catch them for Tapo's birthday!
+</p>
+<button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
+</div>`;
+document.body.appendChild(overlay);
+}
+
+function dismissTaposBirthdayOverlay() {
+try {
+const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+allBackdrops.forEach(backdrop => backdrop.remove());
+} catch (error) {
+console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
+}
+// Show first tutorial popup
+showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to catch a fly!", () => {
+tutorialState.stage = 'catching_flies';
+render();
+});
+}
+
+function startTaposBirthdayTutorial() {
+// Phase 1: Mage vs 2 Flies - Mage gets Expand on Turn 2
+S.floor = 0;
+S.xp = 0;
+S.levelUpCount = 0;
+S.heroes = [
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+];
+
+// Add permanent passives (Asterisk, Star)
+const passiveSigils = ['Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
+// Initialize Phase 1 tutorial state
+tutorialState = {
+stage: 'waiting_for_start',
+phase: 1, // Track which phase we're in
+fliesKilled: 0,
+round: 1
+};
+
+// Start combat with 3 Flies
+combat(0);
+}
+
+function finishTaposBirthdayPhase() {
+// Phase 1 victory celebration
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="text-align:center;padding:2rem">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Mage and Tapo catch all the flies!<br>
+Tapo squeals with delight as they share the tasty treats together. 🎉
+</p>
+<button onclick="transitionToPortalInvasion()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1rem">Continue</button>
+</div>`;
+}
+
+function transitionToPortalInvasion() {
+// Show portal opening narrative
+const slides = [
+{
+html: `
+<div style="text-align:center">
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
+<div style="margin:1.5rem 0;position:relative">
+<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
+</div>
+<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+Suddenly, <strong>a dark portal</strong> tears open in the square!<br>
+Tank, Warrior, and Healer rush to defend Tapo and Mage!
+</p>
+<div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
+<div style="animation:enemyAppear 1s ease-out">👺</div>
+<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
+</div>
+</div>
+<style>
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+25% { transform: translateX(-5px); }
+75% { transform: translateX(5px); }
+}
+@keyframes narrativePortalPulse {
+0%, 100% { transform: scale(1); opacity: 0.8; }
+50% { transform: scale(1.1); opacity: 1; }
+}
+@keyframes spin {
+from { transform: translate(-50%, -50%) rotate(0deg); }
+to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes enemyAppear {
+from { transform: scale(0) rotate(-180deg); opacity: 0; }
+to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+</style>
+`
+}
+];
+slides.onComplete = () => {
+// Start Phase 2: Portal Invasion
+startRibbletonTutorial();
+
+setTimeout(() => {
+showTutorialStoryOverlay();
+}, 100);
+};
+showNarrativeSlide(slides, 0);
+}
+
+function showTutorialStoryOverlay() {
+// Show narrative on TOP of combat screen
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:550px">
+<p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
+A Goblin and a Wolf appear from the portal!
+</p>
+<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
+<div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
+<div style="animation:defensiveStance 1.5s ease-in-out infinite">
+<img src="assets/characters/tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
+<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">🛡 On Guard!</div>
+</div>
+<div style="text-align:center">
+<img src="assets/tapo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #000">
+<div style="font-size:0.65rem;opacity:0.7;margin-top:0.25rem">Protected!</div>
+</div>
+<div style="animation:defensiveStance 1.3s ease-in-out infinite">
+<img src="assets/characters/magefull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
+<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem">📖 On Guard!</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:2.5rem">
+<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
+<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
+<div style="animation:chargeForward 0.8s ease-out infinite alternate">
+<img src="assets/characters/warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
+<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">⚔️ Attacking!</div>
+</div>
+<div style="animation:chargeForward 1s ease-out infinite alternate">
+<img src="assets/characters/healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
+<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem">✚ Attacking!</div>
+</div>
+</div>
+</div>
+<p style="font-size:1rem;line-height:1.6;text-align:center;font-style:italic;opacity:0.9">
+Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the portal!
+</p>
+<div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+<button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
+<button onclick="skipTutorialFromOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#888;color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
+</div>
+</div>
+<style>
+@keyframes chargeForward {
+0% { transform: translateX(0) scale(1); }
+100% { transform: translateX(15px) scale(1.05); }
+}
+@keyframes defensiveStance {
+0%, 100% { transform: translateY(0); }
+50% { transform: translateY(-5px); }
+}
+@keyframes enemyThreat {
+0%, 100% { transform: scale(1) rotate(0deg); }
+50% { transform: scale(1.2) rotate(10deg); }
+}
+</style>`;
+document.body.appendChild(overlay);
+}
+
+function dismissStoryOverlay() {
+debugLog('[TUTORIAL] Dismissing story overlay');
+// Remove ALL backdrops before showing the tutorial pop
+try {
+const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+debugLog('[TUTORIAL] Found', allBackdrops.length, 'backdrops to remove');
+allBackdrops.forEach((backdrop, idx) => {
+debugLog('[TUTORIAL] Removing backdrop', idx);
+backdrop.remove();
+});
+} catch (error) {
+console.error('[TUTORIAL] Error removing story overlay backdrops:', error);
+}
+
+// Double-check they're gone
+setTimeout(() => {
+try {
+const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
+debugLog('[TUTORIAL] Remaining overlays after dismiss:', remaining.length);
+if(remaining.length > 0) {
+console.error('[TUTORIAL] ERROR: Still have backdrops!', remaining);
+remaining.forEach(r => r.remove());
+}
+
+// PROMPT 1: Warrior Attack + Targeting (BATCHED)
+showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Click the Warrior's Attack sigil.", () => {
+debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
+tutorialState.stage = 'warrior_attack';
+S.activeIdx = 0;
+debugLog('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
+render();
+});
+} catch (error) {
+console.error('[TUTORIAL] Error in story overlay cleanup:', error);
+}
+}, 50);
+}
+
+function skipTutorialFromOverlay() {
+const overlay = document.querySelector('.tutorial-modal-backdrop');
+if(overlay) overlay.remove();
+// Show confirmation popup before skipping
+showSkipTutorialConfirmation(() => {
+toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
+setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
+});
+}
+
+function skipTutorial() {
+// This function is for legacy "skip tutorial" - just go to title
+toast('Going to hero selection...');
+title();
+}
+
+// ===== RIBBLETON TUTORIAL (PHASE 2) =====
+function startRibbletonTutorial() {
+// Phase 2: Portal Invasion - Wolf and Goblin fight with Warrior and Healer
+S.floor = 0;
+S.xp = 0;
+S.levelUpCount = 0;
+S.heroes = [
+{id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
+{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+];
+
+// Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
+// Initialize Phase 2 tutorial state
+tutorialState = {
+stage: 'waiting_for_start',
+phase: 2, // Phase 2: Portal Invasion
+wolfDamaged: false,
+wolfKilled: false,
+goblinKilled: false,
+round: 1
+};
+
+// Start combat using real combat system!
+combat(0);
+}
+
+
+function finishRibbletonTutorial() {
+// Post-combat narrative
+const slides = [
+{text: "The few enemies remaining around Ribbleton scamper back into the portal. Relieved, the frog heroes sheathe their weapons and look for Tapo - but he's missing!!"},
+{text: "As the Ribbletonians search high and low, the heroes realize there's only one possibility - the poor tadpole has squiggled his way through the portal!"},
+{text: "The townspeople gather around the heroes. \"You must bring him home!\" they plead. The heroes nod solemnly - Ribbleton will be their sanctuary, and they'll return here between each rescue attempt."}
+];
+slides.onComplete = showTitleCard;
+showNarrativeSlide(slides, 0);
+}
+
+function showTitleCard() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff">
+<div style="font-size:3rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
+<div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
+</div>
+</div>`;
+
+setTimeout(() => {
+tutorialState = null;
+showRibbleton(); // Go to Ribbleton hub
+}, 3000); // Reduced from 5500ms to 3000ms for faster flow
+}
+
+// ===== TITLE & HERO SELECT =====
+let selectedHeroView = null; // Track which hero card is currently displayed
+
+function title() {
+debugLog('[FROGGLE] title() called - Hero selection screen');
+// Reset selection first
+sel = [];
+
+const v = document.getElementById('gameView');
+const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
+const maxSlots = 8;
+const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
+
+v.innerHTML = `
+<h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v${GAME_VERSION}</p>
+<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
+
+<div style="text-align:center;margin-bottom:1rem">
+<button class="btn secondary" onclick="showFAQ()" style="padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold">
+❓ Help/FAQ
+</button>
+</div>
+
+${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
+<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#3b82f6,#f97316);font-weight:bold">
+🏆 Champions of Floor 20 🏆
+</button></div>` : ''}
+
+<div style="max-width:600px;margin:0 auto">
+<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose ${requiredHeroes} Heroes</h2>
+<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
+<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
+<img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
+<!-- Controller-friendly hero selection buttons -->
+<button type="button" class="hero-select-btn" data-hero="warrior" onclick="event.stopPropagation();toggleHeroSelection('warrior')" aria-label="Select Warrior"></button>
+<button type="button" class="hero-select-btn" data-hero="tank" onclick="event.stopPropagation();toggleHeroSelection('tank')" aria-label="Select Tank"></button>
+<button type="button" class="hero-select-btn" data-hero="mage" onclick="event.stopPropagation();toggleHeroSelection('mage')" aria-label="Select Mage"></button>
+<button type="button" class="hero-select-btn" data-hero="healer" onclick="event.stopPropagation();toggleHeroSelection('healer')" aria-label="Select Healer"></button>
+<!-- Hero card overlays -->
+<div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
+<div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
+<div id="mage-card" style="position:absolute;bottom:10%;left:51%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
+<div id="healer-card" style="position:absolute;bottom:10%;left:76%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
+</div>
+
+${S.tapoUnlocked ? `
+<div style="margin-top:1rem;text-align:center">
+<button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
+🎉 View Tapo (UNLOCKED!) 🎉
+</button>
+</div>` : ''}
+
+<!-- Selection display -->
+<div style="text-align:center;margin:1.5rem 0;padding:1rem;background:rgba(0,0,0,0.05);border-radius:8px">
+<strong>Selected Heroes:</strong>
+<div id="selection-display" style="margin-top:0.5rem;font-size:1.1rem;color:#2563eb"></div>
+</div>
+
+<button class="btn" id="start" onclick="start()" style="width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
+</div>`;
+
+debugLog('[FROGGLE] title() innerHTML set successfully');
+
+// Shield persistence tutorial (after first run with shield usage or death)
+if(!S.helpTipsDisabled && !S.tutorialFlags.shield_persistence && S.highestFloor >= 1) {
+// Check if they used shield or died
+const usedShield = S.sig.Shield > 0 || (S.tempSigUpgrades && S.tempSigUpgrades.Shield > 0);
+if(usedShield || S.highestFloor > 0) { // highestFloor > 0 means they died at least once
+setTimeout(() => {
+showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next floor with protection. Use this to survive tough encounters!");
+}, 100);
+}
+}
+
+// Update selection display
+updateSelectionDisplay();
+}
+
+function handleHeroImageClick(event, container) {
+// Validate inputs
+if (!event || !container) {
+console.warn('Invalid event or container, ignoring click');
+return;
+}
+
+// Calculate which hero was clicked based on X position
+const rect = container.getBoundingClientRect();
+if (!rect) {
+console.warn('Could not get container bounds, ignoring click');
+return;
+}
+
+const x = event.clientX - rect.left;
+const percent = (x / rect.width) * 100;
+
+// Validate coordinates - if invalid, ignore the click
+if (Number.isNaN(percent) || percent < 0 || percent > 100) {
+console.warn('Invalid click coordinates, ignoring');
+return;
+}
+
+// Determine hero based on position (4 equal 25% sections)
+let heroType;
+if (percent < 25) heroType = 'warrior';
+else if (percent < 50) heroType = 'tank';
+else if (percent < 75) heroType = 'mage';
+else heroType = 'healer';
+
+toggleHeroSelection(heroType);
+}
+
+function updateHeroCards() {
+const heroData = {
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks', callouts: ['Starts with 2 POW', 'Starts with Attack and D20']},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Starts with 10 HP', 'Starts with Shield and D20']},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Attack, D20, and Expand']},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Heal, D20, and Expand']},
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!', callouts: ['Starts with ALL 10 sigils', 'Only 1 HP - high risk, high reward!']}
+};
+
+// Update all card displays
+['warrior', 'tank', 'mage', 'healer'].forEach(h => {
+const cardEl = document.getElementById(`${h}-card`);
+if(!cardEl) return;
+
+if(sel.includes(h)) {
+const hData = heroData[h];
+const hPixelImage = HERO_IMAGES[h] || '';
+const sigilsHTML = hData.sigils.map(s => {
+const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
+return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
+}).join('');
+const calloutsHTML = hData.callouts ? hData.callouts.map(c => `<div style="font-size:0.45rem;text-align:left;opacity:0.9;margin:1px 0">• ${c}</div>`).join('') : '';
+cardEl.innerHTML = `
+<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
+onclick="event.stopPropagation();toggleHeroSelection('${h}')">
+<div style="text-align:center">
+<div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
+${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
+<div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
+<div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
+${calloutsHTML ? `<div style="margin-top:0.25rem;padding:0.25rem;background:rgba(251,191,36,0.1);border-radius:4px">${calloutsHTML}</div>` : ''}
+<div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
+</div>
+</div>`;
+cardEl.style.display = 'block';
+} else {
+cardEl.style.display = 'none';
+}
+});
+}
+
+function toggleHeroSelection(heroType) {
+// Toggle selection
+const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
+const isSelected = sel.includes(heroType);
+if(isSelected) {
+sel = sel.filter(h => h !== heroType);
+SoundFX.play('click');
+} else {
+if(sel.length < requiredHeroes) {
+sel.push(heroType);
+SoundFX.play('hop'); // Froggy hop for hero selection
+}
+}
+
+// Update card displays and selection display
+updateHeroCards();
+updateSelectionDisplay();
+}
+
+
+function updateSelectionDisplay() {
+const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
+const display = document.getElementById('selection-display');
+if(!display) return;
+
+if(sel.length === 0) {
+display.textContent = 'None';
+display.style.color = '#6b7280';
+} else {
+const heroNames = sel.map(h => H[h].n);
+display.textContent = heroNames.join(' + ');
+display.style.color = '#2563eb';
+}
+
+const btn = document.getElementById('start');
+if(btn) {
+const isDisabled = sel.length !== requiredHeroes;
+btn.disabled = isDisabled;
+if(isDisabled) {
+btn.classList.add('disabled');
+} else {
+btn.classList.remove('disabled');
+}
+btn.style.opacity = sel.length === requiredHeroes ? '1' : '0.4';
+}
+}
+
+function toggleMode() {
+S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
+savePermanent();
+title();
+}
+
+function pick(t) {
+const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
+const i = sel.indexOf(t);
+if(i>=0) {
+sel.splice(i,1);
+} else if(sel.length<requiredHeroes) {
+sel.push(t);
+} else {
+toast(`Maximum ${requiredHeroes} heroes!`);
+return;
+}
+
+// Update selection display
+updateSelectionDisplay();
+}
+
+function start() {
+const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
+if(sel.length!==requiredHeroes) return;
+// Show game header when entering gameplay
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+
+S.floor=1; S.xp=0; S.levelUpCount=0;
+// Reset temporary XP sigil upgrades (these don't persist between runs)
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// Reset recruits from any previous run
+S.recruits = [];
+// NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
+S.heroes = sel.map((t,i) => ({
+id:`h-${crypto.randomUUID()}`,
+n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
+s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
+}));
+
+// Add permanently upgraded passives (Expand, Asterisk, Star) to all heroes
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+S.heroes.forEach(hero => {
+passiveSigils.forEach(passive => {
+const permLevel = S.sig[passive] || 0;
+// If this passive has been upgraded with gold (L1+) and hero doesn't have it, add it
+if(permLevel > 0 && !hero.s.includes(passive)) {
+hero.s.push(passive);
+}
+});
+});
+
+// Apply pedestal buffs
+S.pedestal.forEach(slot => {
+if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
+const hero = S.heroes.find(h => h.n === slot.hero);
+if(!hero) return;
+if(slot.stat === 'POW') {
+hero.p += 1;
+} else if(slot.stat === 'HP') {
+hero.m += 5;
+hero.h += 5;
+}
+});
+initNeutralDeck();
+upd();
+// Check if player has starting XP from Death Boy sacrifices
+if(S.startingXP > 0) {
+S.xp = S.startingXP;
+showStartingXPScreen();
+} else {
+startFloor(1);
+}
+}
+
 
 // ===== NEUTRAL ENCOUNTERS =====
 function neutral(f) {

@@ -26,7 +26,8 @@ src/
 ├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (934 lines)
 ├── sounds.js         # SoundFX Web Audio API system (286 lines)
 ├── state.js          # Game state `S`, upd(), animations, toast, save/load (842 lines)
-├── neutrals.js       # Neutral deck, encounters, combat, title/hero select, level up (5394 lines)
+├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (2686 lines)
+├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (2709 lines)
 ├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (1020 lines)
 ├── settings.js       # Debug, Settings, FAQ (1579 lines)
 ├── controller.js     # GamepadController for Steam Deck (761 lines)
@@ -57,17 +58,15 @@ extract.sh            # Extract modules from index.html
 1. constants.js (no deps)
 2. sounds.js (no deps)
 3. state.js (needs constants, sounds)
-4. neutrals.js (needs all above)
-5. screens.js (needs all above)
-6. settings.js (needs all above)
-7. controller.js (needs state)
-8. main.js (init, must be last)
+4. combat.js (needs all above)
+5. neutrals.js (needs all above)
+6. screens.js (needs all above)
+7. settings.js (needs all above)
+8. controller.js (needs state)
+9. main.js (init, must be last)
 
 ### Editing Workflow
 1. Edit files in `src/`
 2. Run `./build.sh` to rebuild `index.html`
 3. Test in browser
 4. Commit both `src/` and `index.html`
-
-### Note on neutrals.js
-The `neutrals.js` file is large (5394 lines) because it contains the combat engine, all 9 neutral encounters, title/hero selection, level up system, and floor progression. Future refactoring could split this further if needed.
