@@ -5302,6 +5302,12 @@ render();
 }
 
 function checkTurnEnd() {
+// First check if combat has ended (all enemies dead or all heroes in last stand)
+// This prevents continuing turn progression after victory/defeat
+if(S.enemies.length === 0 || S.heroes.every(h => h.ls)) {
+return; // Combat ended, don't process turn logic
+}
+
 // Check if all non-stunned heroes have acted (optimized single-pass)
 const allActedIncludingLS = S.heroes.every((h, idx) => {
 return h.st > 0 || S.acted.includes(idx);
@@ -5316,6 +5322,12 @@ setTimeout(() => { S.locked = true; enemyTurn(); }, ANIMATION_TIMINGS.TURN_TRANS
 }
 
 function enemyTurn() {
+// Safety check: don't start enemy turn if combat has ended
+if(S.enemies.length === 0 || S.heroes.every(h => h.ls)) {
+checkCombatEnd();
+return;
+}
+
 S.turn = 'enemy';
 S.acted = [];
 S.activeIdx = -1;
