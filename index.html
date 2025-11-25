@@ -1675,7 +1675,11 @@ body.controller-active .controller-prompts {
 // ===== VERSION CHECK =====
 const GAME_VERSION = '10.0';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
-console.log('%cIf you see a different version in the UI, clear your cache and reload!', 'color: #f97316; font-weight: bold;');
+
+// Debug logging - only outputs when S.debugMode is true
+function debugLog(...args) {
+if(typeof S !== 'undefined' && S.debugMode) console.log(...args);
+}
 
 // ===== GAME DATA =====
 // Hero images
@@ -2196,11 +2200,11 @@ tutorialState.stage = 'finish_wolf';
 onRoundStart(round) {
 if(!tutorialState || S.floor !== 0) return;
 
-console.log('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
+debugLog('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
 
 // PHASE 1 (Fly Catching): Round 2 - Add Expand ability to Mage
 if(tutorialState.phase === 1 && round === 2 && !S.tutorialFlags.tapo_expand_tutorial) {
-console.log('[TUTORIAL] Phase 1 Round 2 - Adding Expand to Mage');
+debugLog('[TUTORIAL] Phase 1 Round 2 - Adding Expand to Mage');
 S.tutorialFlags.tapo_expand_tutorial = true;
 // Add Expand to Mage's sigils
 const mage = S.heroes[0];
@@ -2220,7 +2224,7 @@ return;
 
 // PHASE 2 (Ribbleton): Round 2: Healer Heal prompt (NOW BATCHED WITH EXPAND)
 if(round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
-console.log('[TUTORIAL] Triggering PROMPT 4 - Healer Heal + Expand (batched) (stage:', tutorialState.stage, ')');
+debugLog('[TUTORIAL] Triggering PROMPT 4 - Healer Heal + Expand (batched) (stage:', tutorialState.stage, ')');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -2232,7 +2236,7 @@ render();
 S.activeIdx = 1;
 render();
 } else if(round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
-console.log('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
+debugLog('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
@@ -2780,7 +2784,7 @@ wizardSigil: null,        // Sigil being tested at Wizard
 // ===== PERSISTENT STATE (survives death, saved in permanent storage) =====
 ancientStatueDeactivated: false, // Ancient Statue one-time choice made
 ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
-princeGender: 'Prince',          // Gender preference for quest line
+royalTitle: 'Prince',          // Title preference for royal quest line (Prince/Princess)
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
@@ -3174,9 +3178,9 @@ log.innerHTML = html;
 }
 
 function showTutorialPop(flagName, message, onDismiss) {
-console.log('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
+debugLog('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
 if(S.helpTipsDisabled || S.tutorialFlags[flagName]) {
-console.log('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
+debugLog('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
 if(onDismiss) onDismiss();
 return;
 }
@@ -3194,23 +3198,23 @@ backdrop.innerHTML = `
 <button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
 </div>`;
 document.body.appendChild(backdrop);
-console.log('[TUTORIAL] Backdrop created and appended, total backdrops now:', document.querySelectorAll('.tutorial-modal-backdrop').length);
+debugLog('[TUTORIAL] Backdrop created and appended, total backdrops now:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }
 
 function dismissTutorialPop(flagName) {
-console.log('[TUTORIAL] dismissTutorialPop called:', flagName);
-console.log('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.tutorial-modal-backdrop').length);
+debugLog('[TUTORIAL] dismissTutorialPop called:', flagName);
+debugLog('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 S.tutorialFlags[flagName] = true;
 savePermanent();
 
 // Remove ALL backdrops aggressively with error handling
 try {
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-console.log('[TUTORIAL] Removing', allBackdrops.length, 'backdrops');
+debugLog('[TUTORIAL] Removing', allBackdrops.length, 'backdrops');
 allBackdrops.forEach((b, i) => {
-console.log('[TUTORIAL] Removing backdrop', i);
+debugLog('[TUTORIAL] Removing backdrop', i);
 b.remove();
 });
 } catch (error) {
@@ -3221,7 +3225,7 @@ console.error('[TUTORIAL] Error removing backdrops:', error);
 setTimeout(() => {
 try {
 const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
-console.log('[TUTORIAL] Backdrops remaining after pop dismiss:', remaining.length);
+debugLog('[TUTORIAL] Backdrops remaining after pop dismiss:', remaining.length);
 if(remaining.length > 0) {
 console.error('[TUTORIAL] ERROR: Backdrops still blocking!', remaining);
 remaining.forEach(r => {
@@ -3230,9 +3234,9 @@ r.remove();
 });
 }
 
-console.log('[TUTORIAL] About to call onDismiss callback');
+debugLog('[TUTORIAL] About to call onDismiss callback');
 if(window.tutorialCallback) {
-console.log('[TUTORIAL] Calling onDismiss callback NOW');
+debugLog('[TUTORIAL] Calling onDismiss callback NOW');
 window.tutorialCallback();
 window.tutorialCallback = null;
 } else {
@@ -3295,7 +3299,7 @@ needsFix = true;
 }
 });
 if(needsFix) {
-console.log('[SAVE] Fixed old save format: starter actives L1→L0');
+debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 savePermanent(); // Save the fix
 }
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
@@ -3420,7 +3424,7 @@ j.sigUpgradeCounts[sig] = Math.max(0, j.sigUpgradeCounts[sig] - 1);
 }
 localStorage.setItem('froggle8_permanent_slot1', JSON.stringify(j));
 localStorage.removeItem('froggle8_permanent');
-console.log('[SAVE] Migrated and fixed old save to slot 1');
+debugLog('[SAVE] Migrated and fixed old save to slot 1');
 }
 if(oldRun) {
 localStorage.setItem('froggle8_slot1', oldRun);
@@ -3457,7 +3461,7 @@ needsFix = true;
 }
 });
 if(needsFix) {
-console.log('[SAVE] Fixed old save format: starter actives L1→L0');
+debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 savePermanent(); // Save the fix
 }
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
@@ -3561,7 +3565,7 @@ function initNeutralDeck() {
 S.neutralDeck = [
 'shopkeeper1', 'wishingwell1', 'treasurechest1',
 'wizard1', 'oracle1', 'encampment1',
-'gambling1', 'ghost1', 'prince1'
+'gambling1', 'ghost1', 'royal1'
 ];
 S.lastNeutral = null;
 }
@@ -3683,20 +3687,20 @@ return html;
 
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
-console.log('[FROGGLE] mainTitlePage START');
+debugLog('[FROGGLE] mainTitlePage START');
 // Hide game header on title screen
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'none';
 
 const v = document.getElementById('gameView');
-console.log('[FROGGLE] gameView element:', v);
+debugLog('[FROGGLE] gameView element:', v);
 // Check for old saves and migrate
 migrateOldSave();
 // If migration created slot 1 but currentSlot not set, set it
 if(!S.currentSlot && localStorage.getItem('froggle8_permanent_slot1')) {
 S.currentSlot = 1;
 localStorage.setItem('froggle8_current_slot', '1');
-console.log('[SAVE] Set currentSlot to 1 after migration');
+debugLog('[SAVE] Set currentSlot to 1 after migration');
 }
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
@@ -3829,12 +3833,12 @@ toast('Failed to delete slot');
 function newGame() {
 // Reset runNumber to 1 for new game (allows tutorial to show)
 S.runNumber = 1;
-console.log('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
+debugLog('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
 if(S.runNumber === 1 && !S.helpTipsDisabled) {
-console.log('[FROGGLE] Showing tutorial story');
+debugLog('[FROGGLE] Showing tutorial story');
 showTutorialStory();
 } else {
-console.log('[FROGGLE] Skipping tutorial, going to title()');
+debugLog('[FROGGLE] Skipping tutorial, going to title()');
 title();
 }
 }
@@ -3913,20 +3917,20 @@ input.click();
 
 // ===== NARRATIVE SLIDE SYSTEM =====
 function showNarrativeSlide(slides, currentIndex = 0) {
-console.log('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
+debugLog('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
 if(currentIndex >= slides.length) {
 // All slides shown, call completion callback
-console.log('[FROGGLE] All slides complete, calling onComplete');
+debugLog('[FROGGLE] All slides complete, calling onComplete');
 if(slides.onComplete) slides.onComplete();
 return;
 }
 
 const slide = slides[currentIndex];
-console.log('[FROGGLE] Rendering slide', currentIndex);
+debugLog('[FROGGLE] Rendering slide', currentIndex);
 const v = document.getElementById('gameView');
-console.log('[FROGGLE] gameView element:', v);
+debugLog('[FROGGLE] gameView element:', v);
 const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
-console.log('[FROGGLE] Setting innerHTML for slide', currentIndex);
+debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:1rem">
 ${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
@@ -3938,7 +3942,7 @@ ${skipButton}
 
 window.currentNarrativeSlides = slides;
 window.currentNarrativeIndex = currentIndex;
-console.log('[FROGGLE] Slide', currentIndex, 'rendered successfully');
+debugLog('[FROGGLE] Slide', currentIndex, 'rendered successfully');
 }
 
 function continueNarrative() {
@@ -3988,7 +3992,7 @@ setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPL
 
 // ===== RIBBLETON TUTORIAL INTRO =====
 function showTutorialStory() {
-console.log('[FROGGLE] showTutorialStory START');
+debugLog('[FROGGLE] showTutorialStory START');
 const slides = [
 {
 html: `
@@ -4056,9 +4060,9 @@ setTimeout(() => {
 showTaposBirthdayOverlay();
 }, 100);
 };
-console.log('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
+debugLog('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
 showNarrativeSlide(slides, 0);
-console.log('[FROGGLE] showNarrativeSlide called');
+debugLog('[FROGGLE] showNarrativeSlide called');
 }
 
 function showTaposBirthdayOverlay() {
@@ -4256,13 +4260,13 @@ document.body.appendChild(overlay);
 }
 
 function dismissStoryOverlay() {
-console.log('[TUTORIAL] Dismissing story overlay');
+debugLog('[TUTORIAL] Dismissing story overlay');
 // Remove ALL backdrops before showing the tutorial pop
 try {
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-console.log('[TUTORIAL] Found', allBackdrops.length, 'backdrops to remove');
+debugLog('[TUTORIAL] Found', allBackdrops.length, 'backdrops to remove');
 allBackdrops.forEach((backdrop, idx) => {
-console.log('[TUTORIAL] Removing backdrop', idx);
+debugLog('[TUTORIAL] Removing backdrop', idx);
 backdrop.remove();
 });
 } catch (error) {
@@ -4273,7 +4277,7 @@ console.error('[TUTORIAL] Error removing story overlay backdrops:', error);
 setTimeout(() => {
 try {
 const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
-console.log('[TUTORIAL] Remaining overlays after dismiss:', remaining.length);
+debugLog('[TUTORIAL] Remaining overlays after dismiss:', remaining.length);
 if(remaining.length > 0) {
 console.error('[TUTORIAL] ERROR: Still have backdrops!', remaining);
 remaining.forEach(r => r.remove());
@@ -4281,10 +4285,10 @@ remaining.forEach(r => r.remove());
 
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
 showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Click the Warrior's Attack sigil.", () => {
-console.log('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
+debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
-console.log('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
+debugLog('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
 render();
 });
 } catch (error) {
@@ -4377,7 +4381,7 @@ showRibbleton(); // Go to Ribbleton hub
 let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
-console.log('[FROGGLE] title() called - Hero selection screen');
+debugLog('[FROGGLE] title() called - Hero selection screen');
 // Reset selection first
 sel = [];
 
@@ -4388,7 +4392,7 @@ const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v9.992</p>
+<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v${GAME_VERSION}</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
 
 <div style="text-align:center;margin-bottom:1rem">
@@ -4435,7 +4439,7 @@ ${S.tapoUnlocked ? `
 <button class="btn" id="start" onclick="start()" style="width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
 </div>`;
 
-console.log('[FROGGLE] title() innerHTML set successfully');
+debugLog('[FROGGLE] title() innerHTML set successfully');
 
 // Shield persistence tutorial (after first run with shield usage or death)
 if(!S.helpTipsDisabled && !S.tutorialFlags.shield_persistence && S.highestFloor >= 1) {
@@ -5163,10 +5167,10 @@ dealDamageToEnemy(e, dmg);
 });
 } else if(action === 'STARTLE') {
 enemy.st = 1;
-// Check prince quest completion
-if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
-S.princeQuestCompleted = true;
-toast('Prince Quest completed! Ring retrieved!', 1800);
+// Check royal quest completion
+if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
+S.royalQuestCompleted = true;
+toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
 }
 } else if(action === 'STEAL') {
 const gold = enemy.p;
@@ -5453,10 +5457,10 @@ targetDetails.push({name: e.n, before: hpBefore, after: hpAfter});
 S.turnDamage += pow;
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && e.n === 'Wolf') {
-console.log('[TUTORIAL] Wolf took damage! HP now:', e.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
+debugLog('[TUTORIAL] Wolf took damage! HP now:', e.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
 if(e.h > 0 && !tutorialState.wolfDamaged) {
 tutorialState.wolfDamaged = true;
-console.log('[TUTORIAL] Set wolfDamaged = true');
+debugLog('[TUTORIAL] Set wolfDamaged = true');
 }
 }
 });
@@ -5568,10 +5572,10 @@ if(!e) return;
 totalDmg += e.p;
 e.st += stunDuration;
 targetNames.push(e.n);
-// Check prince quest completion
-if(S.princeQuestActive && S.round === 1 && !S.princeQuestCompleted) {
-S.princeQuestCompleted = true;
-toast('Prince Quest completed! Ring retrieved!', 1800);
+// Check royal quest completion
+if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
+S.royalQuestCompleted = true;
+toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
 }
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
@@ -5611,10 +5615,10 @@ toast(`${getEnemyDisplayName(enemy)} took ${dmg} damage (❤${hpBefore}→❤${h
 
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && enemy.n === 'Wolf') {
-console.log('[TUTORIAL] Wolf took damage! HP now:', enemy.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
+debugLog('[TUTORIAL] Wolf took damage! HP now:', enemy.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
 if(enemy.h > 0 && !tutorialState.wolfDamaged) {
 tutorialState.wolfDamaged = true;
-console.log('[TUTORIAL] Set wolfDamaged = true');
+debugLog('[TUTORIAL] Set wolfDamaged = true');
 }
 }
 
@@ -7359,8 +7363,8 @@ else if(enc === 'gambling1') showGambling1();
 else if(enc === 'gambling2') showGambling2();
 else if(enc === 'ghost1') showGhost1();
 else if(enc === 'ghost2') showGhost2();
-else if(enc === 'prince1') showPrince1();
-else if(enc === 'prince2') showPrince2();
+else if(enc === 'royal1') showRoyal1();
+else if(enc === 'royal2') showRoyal2();
 else {
 const v = document.getElementById('gameView');
 v.innerHTML = `
@@ -8100,7 +8104,7 @@ buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'Consult the Oracle',
 description,
 buttons
@@ -8142,7 +8146,7 @@ replaceStage1WithStage2('oracle');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince1.png',
+bgImage: 'assets/neutrals/oracle1.png',
 title: 'The Oracle\'s Fortune',
 diceRoll: rollText,
 outcomes: [
@@ -8754,43 +8758,43 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor 
 });
 }
 
-// ===== 9. FLUMMOXED PRINCE(SS) =====
-function showPrince1() {
+// ===== 9. FLUMMOXED ROYAL =====
+function showRoyal1() {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
-title: 'Help Recover the Ring',
-description: `A flummoxed ${S.princeGender} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
+bgImage: 'assets/neutrals/royal1.png',
+title: 'Flummoxed Royal',
+description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
 buttons: `
-<button class="btn" onclick="acceptPrinceQuest()">Accept the quest</button>
+<button class="btn" onclick="acceptRoyalQuest()">Accept the quest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
 `
 });
 }
 
-function acceptPrinceQuest() {
+function acceptRoyalQuest() {
 toast('Stun any enemy Turn 1 of next combat!', 1800);
-S.princeQuestActive = true;
-S.princeQuestCompleted = false;
+S.royalQuestActive = true;
+S.royalQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
-outcomes: [`The ${S.princeGender} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
+bgImage: 'assets/neutrals/royal1.png',
+outcomes: [`The ${S.royalTitle} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
 
-function showPrince2() {
+function showRoyal2() {
 const v = document.getElementById('gameView');
 // Check if quest was completed
-if(!S.princeQuestCompleted) {
+if(!S.royalQuestCompleted) {
 // Quest failed
-S.princeQuestActive = false;
+S.royalQuestActive = false;
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/oracle1.png',
+bgImage: 'assets/neutrals/royal1.png',
 title: 'Quest Failed',
-description: `The ${S.princeGender} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
-outcomes: [`The ${S.princeGender} departs sadly. No reward.`],
+description: `The ${S.royalTitle} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
+outcomes: [`The ${S.royalTitle} departs sadly. No reward.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
@@ -8809,32 +8813,32 @@ return costA - costB;
 const sigil1 = eligible[0] || 'Attack';
 const sigil2 = eligible[1] || 'Shield';
 
-removeNeutralFromDeck('prince');
-S.princeQuestActive = false;
+removeNeutralFromDeck('royal');
+S.royalQuestActive = false;
 
 let buttons = '';
-buttons += `<div class="choice" onclick="choosePrinceSigil('${sigil1}')">
+buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil1}')">
 <strong>${sigilIcon(sigil1)}</strong> <span style="opacity:0.7">L${S.sig[sigil1] || 0} → L${(S.sig[sigil1] || 0) + 1}</span>
 </div>`;
-buttons += `<div class="choice" onclick="choosePrinceSigil('${sigil2}')">
+buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil2}')">
 <strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
 </div>`;
 
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince2.png',
-title: 'The Wedding',
-description: `The ${S.princeGender} proposes to their beloved. A beautiful wedding ceremony unfolds before you!`,
+bgImage: 'assets/neutrals/royal2.png',
+title: 'Royal Wedding',
+description: `The ${S.royalTitle} proposes to their beloved. A beautiful wedding ceremony unfolds before you!`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
 buttons
 });
 }
 
-function choosePrinceSigil(sig) {
+function chooseRoyalSigil(sig) {
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/prince2.png',
+bgImage: 'assets/neutrals/royal2.png',
 outcomes: [`The royal couple thanks you profusely. The ${sig} sigil glows and merges with your power!`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -10061,16 +10065,14 @@ This means you can "shield farm" by using Shield sigils on the last enemy of a f
 q: "What's the difference between XP upgrades and Gold upgrades?",
 a: `There are TWO types of sigil upgrades:<br><br>
 <strong>1. Permanent (Gold) Upgrades</strong><br>
-• Purchased in the Shop (even floors)<br>
+• Purchased at the Death Screen after dying<br>
 • Persist through death and across all runs<br>
-• Stored in S.sig[sigilName]<br>
-• These are your permanent progression!<br><br>
+• These are your long-term progression!<br><br>
 <strong>2. Temporary (XP) Upgrades</strong><br>
-• Purchased during Level Ups (odd floors)<br>
+• Purchased during Level Ups (after combat)<br>
 • Reset when you die or start a new run<br>
-• Stored in S.tempSigUpgrades[sigilName]<br>
 • These boost you during a single run only<br><br>
-<strong>Display level = Permanent level + Temporary level</strong>`
+<strong>Your displayed sigil level = Permanent + Temporary upgrades combined</strong>`
 },
 {
 q: "Why is Mage/Healer better than Warrior/Tank?",
@@ -10472,11 +10474,11 @@ const GamepadController = {
 
   // Initialize controller system
   init() {
-    console.log('[GAMEPAD] Initializing controller support');
+    debugLog('[GAMEPAD] Initializing controller support');
 
     // Check if controller support is disabled
     if (typeof S !== 'undefined' && S.controllerDisabled) {
-      console.log('[GAMEPAD] Controller support disabled by user setting');
+      debugLog('[GAMEPAD] Controller support disabled by user setting');
       return;
     }
 
@@ -10513,11 +10515,11 @@ const GamepadController = {
   },
 
   onGamepadConnected(e) {
-    console.log('[GAMEPAD] Connected:', e.gamepad.id, 'Index:', e.gamepad.index);
+    debugLog('[GAMEPAD] Connected:', e.gamepad.id, 'Index:', e.gamepad.index);
 
     // Check if controller support is disabled
     if (typeof S !== 'undefined' && S.controllerDisabled) {
-      console.log('[GAMEPAD] Controller connected but support is disabled');
+      debugLog('[GAMEPAD] Controller connected but support is disabled');
       return;
     }
 
@@ -10533,7 +10535,7 @@ const GamepadController = {
   },
 
   onGamepadDisconnected(e) {
-    console.log('[GAMEPAD] Disconnected:', e.gamepad.id);
+    debugLog('[GAMEPAD] Disconnected:', e.gamepad.id);
     if (e.gamepad.index === this.gamepadIndex) {
       this.gamepadIndex = null;
       this.deactivateControllerMode();
@@ -10565,7 +10567,7 @@ const GamepadController = {
       this.setFocus(this.focusableElements[0]);
     }
     this.updatePrompts();
-    console.log('[GAMEPAD] Controller mode activated');
+    debugLog('[GAMEPAD] Controller mode activated');
   },
 
   deactivateControllerMode() {
@@ -10573,7 +10575,7 @@ const GamepadController = {
     this.active = false;
     document.body.classList.remove('controller-active');
     this.clearFocus();
-    console.log('[GAMEPAD] Controller mode deactivated (mouse input detected)');
+    debugLog('[GAMEPAD] Controller mode deactivated (mouse input detected)');
   },
 
   // Main polling loop
@@ -11191,12 +11193,12 @@ const GamepadController = {
 
 // ===== INIT =====
 window.onload = () => {
-console.log('[FROGGLE] window.onload fired');
+debugLog('[FROGGLE] window.onload fired');
 // Check for last used slot
 const lastSlot = localStorage.getItem('froggle8_current_slot');
 if(lastSlot) {
 const slot = parseInt(lastSlot);
-console.log('[FROGGLE] Found last used slot:', slot);
+debugLog('[FROGGLE] Found last used slot:', slot);
 // Try to load slot-specific permanent data
 const permData = localStorage.getItem(`froggle8_permanent_slot${slot}`);
 if(permData) {
@@ -11221,7 +11223,7 @@ S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 S.currentSlot = slot;
-console.log('[FROGGLE] Loaded slot-specific permanent data');
+debugLog('[FROGGLE] Loaded slot-specific permanent data');
 } catch(e) {
 console.warn('[FROGGLE] Failed to parse slot permanent data:', e);
 loadPermanent(); // Fallback to old format
@@ -11232,11 +11234,11 @@ loadPermanent(); // No slot data, use old format
 } else {
 loadPermanent(); // No last slot, use old format
 }
-console.log('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
+debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
 initToastLog(); // Initialize toast log UI
 GamepadController.init(); // Initialize Steam Deck / controller support
 mainTitlePage();
-console.log('[FROGGLE] mainTitlePage called');
+debugLog('[FROGGLE] mainTitlePage called');
 };
 
 // Global error handler for image loading failures
