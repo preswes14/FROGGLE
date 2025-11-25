@@ -1366,6 +1366,172 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   0%, 100% { border-color: #22c55e; box-shadow: 0 0 10px rgba(34,197,94,0.3); }
   50% { border-color: #16a34a; box-shadow: 0 0 20px rgba(34,197,94,0.6); }
 }
+
+/* ===== STEAM DECK / CONTROLLER SUPPORT ===== */
+/* Controller focus indicator - glowing ring around focused element */
+.controller-focus {
+  outline: 4px solid #fbbf24 !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3) !important;
+  animation: controllerFocusPulse 1s ease-in-out infinite;
+  position: relative;
+  z-index: 100;
+}
+
+@keyframes controllerFocusPulse {
+  0%, 100% { outline-color: #fbbf24; box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3); }
+  50% { outline-color: #f59e0b; box-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.4); }
+}
+
+/* When controller is active, hide cursor and add focus-visible styles */
+body.controller-active {
+  cursor: none;
+}
+body.controller-active * {
+  cursor: none;
+}
+
+/* Controller button prompts bar */
+.controller-prompts {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.8));
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  z-index: 50000;
+  border-top: 2px solid #3b82f6;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.controller-prompt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controller-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.85rem;
+  border: 2px solid currentColor;
+}
+
+.controller-btn.a { background: #22c55e; color: white; border-color: #16a34a; }
+.controller-btn.b { background: #dc2626; color: white; border-color: #b91c1c; }
+.controller-btn.x { background: #3b82f6; color: white; border-color: #2563eb; }
+.controller-btn.y { background: #fbbf24; color: #1c1b19; border-color: #f59e0b; }
+.controller-btn.lb, .controller-btn.rb {
+  width: auto;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  background: #6b7280;
+  border-color: #4b5563;
+}
+.controller-btn.dpad {
+  width: auto;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  background: #374151;
+  border-color: #4b5563;
+}
+
+/* Steam Deck specific optimizations (1280x800 @ 7" screen) */
+@media (min-width: 1200px) and (max-width: 1400px) and (min-height: 700px) and (max-height: 900px) {
+  /* Larger touch targets for Steam Deck */
+  .btn {
+    min-height: 64px;
+    font-size: 1.2rem;
+    padding: 1.25rem;
+  }
+
+  .choice {
+    min-height: 68px;
+    font-size: 1.1rem;
+    padding: 1.25rem;
+  }
+
+  .card {
+    min-width: 170px;
+    min-height: 80px;
+  }
+
+  .sigil {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 1.3rem;
+  }
+
+  .sigil.compact {
+    min-width: 32px;
+    min-height: 32px;
+    font-size: 1.1rem;
+  }
+
+  /* Header adjustments for Steam Deck */
+  .header {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .header button {
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Increase game area height when controller prompts are shown */
+  body.controller-active .game-area {
+    height: calc(100vh - 44px - 60px); /* Account for controller prompts bar */
+  }
+
+  /* Combat layout optimizations */
+  .combat-lane {
+    padding: 0.75rem;
+    gap: 1rem;
+  }
+
+  /* Modal adjustments */
+  .modal-container {
+    max-width: 600px;
+    padding: 2.5rem;
+  }
+
+  .modal-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .modal-checkbox-label {
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+
+  .modal-checkbox-label input {
+    transform: scale(1.5);
+    margin-right: 0.75rem;
+  }
+}
+
+/* Focusable elements - add data attribute for controller navigation */
+[data-focusable] {
+  transition: outline 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hide controller prompts when not in controller mode */
+.controller-prompts {
+  display: none;
+}
+body.controller-active .controller-prompts {
+  display: flex;
+}
 </style>
 </head>
 <body>
@@ -1388,6 +1554,15 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
 <div class="game-area" id="gameView"></div>
+
+<!-- Controller button prompts (shown when gamepad is connected) -->
+<div id="controllerPrompts" class="controller-prompts">
+  <div class="controller-prompt"><span class="controller-btn dpad">D-Pad</span> Navigate</div>
+  <div class="controller-prompt"><span class="controller-btn a">A</span> Select</div>
+  <div class="controller-prompt"><span class="controller-btn b">B</span> Back</div>
+  <div class="controller-prompt"><span class="controller-btn y">Y</span> Menu</div>
+</div>
+
 <script>
 // ===== VERSION CHECK =====
 const GAME_VERSION = '10.0';
@@ -2886,7 +3061,8 @@ runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
-usedDeathQuotes: S.usedDeathQuotes
+usedDeathQuotes: S.usedDeathQuotes,
+controllerDisabled: S.controllerDisabled
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -2929,6 +3105,7 @@ S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
+S.controllerDisabled = j.controllerDisabled || false;
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -3143,7 +3320,8 @@ runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
-usedDeathQuotes: S.usedDeathQuotes
+usedDeathQuotes: S.usedDeathQuotes,
+controllerDisabled: S.controllerDisabled
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -9431,6 +9609,13 @@ ${inGame ? `
 <span>🔍 Show Sigil Tooltips</span>
 </label>
 
+<h3 class="modal-section-title green">Controller / Steam Deck</h3>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
+<span>🎮 Controller Support</span>
+</label>
+<p style="font-size:0.8rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Enable gamepad/controller navigation (auto-detects Steam Deck)</p>
+
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)">
@@ -9553,6 +9738,33 @@ toast('Sound effects enabled!', 1200);
 } else {
 toast('Sound effects disabled!', 1200);
 }
+}
+
+function toggleControllerSupport(enabled) {
+S.controllerDisabled = !enabled;
+if(enabled) {
+toast('🎮 Controller support enabled! Connect a gamepad to use.', 2000);
+// Re-initialize controller if a gamepad is connected
+if(navigator.getGamepads) {
+const gamepads = navigator.getGamepads();
+for(const gp of gamepads) {
+if(gp) {
+GamepadController.gamepadIndex = gp.index;
+GamepadController.activateControllerMode();
+break;
+}
+}
+}
+} else {
+toast('Controller support disabled.', 1200);
+GamepadController.deactivateControllerMode();
+GamepadController.gamepadIndex = null;
+if(GamepadController.pollInterval) {
+clearInterval(GamepadController.pollInterval);
+GamepadController.pollInterval = null;
+}
+}
+savePermanent();
 }
 
 function showFAQ() {
@@ -9995,6 +10207,533 @@ closeDebugMenu();
 render();
 }
 
+// ===== STEAM DECK / CONTROLLER SUPPORT SYSTEM =====
+const GamepadController = {
+  // State
+  active: false,
+  gamepadIndex: null,
+  focusedElement: null,
+  focusableElements: [],
+  lastInputTime: 0,
+  inputCooldown: 150, // ms between inputs to prevent rapid-fire
+  axisDeadzone: 0.5,
+  pollInterval: null,
+  buttonStates: {},
+  contextStack: [], // Stack for nested menus/modals
+
+  // Button indices (standard gamepad mapping)
+  BUTTONS: {
+    A: 0,        // Bottom button (confirm/select)
+    B: 1,        // Right button (back/cancel)
+    X: 2,        // Left button
+    Y: 3,        // Top button (menu)
+    LB: 4,       // Left bumper
+    RB: 5,       // Right bumper
+    LT: 6,       // Left trigger
+    RT: 7,       // Right trigger
+    SELECT: 8,   // Back/Select
+    START: 9,    // Start/Menu
+    L3: 10,      // Left stick click
+    R3: 11,      // Right stick click
+    DPAD_UP: 12,
+    DPAD_DOWN: 13,
+    DPAD_LEFT: 14,
+    DPAD_RIGHT: 15
+  },
+
+  // Initialize controller system
+  init() {
+    console.log('[GAMEPAD] Initializing controller support');
+
+    // Check if controller support is disabled
+    if (typeof S !== 'undefined' && S.controllerDisabled) {
+      console.log('[GAMEPAD] Controller support disabled by user setting');
+      return;
+    }
+
+    // Listen for gamepad connections
+    window.addEventListener('gamepadconnected', (e) => this.onGamepadConnected(e));
+    window.addEventListener('gamepaddisconnected', (e) => this.onGamepadDisconnected(e));
+
+    // Check for already-connected gamepads
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const gp of gamepads) {
+      if (gp) {
+        this.onGamepadConnected({ gamepad: gp });
+        break;
+      }
+    }
+
+    // Switch to mouse mode on any mouse movement or click
+    document.addEventListener('mousemove', () => this.deactivateControllerMode());
+    document.addEventListener('click', () => this.deactivateControllerMode());
+  },
+
+  onGamepadConnected(e) {
+    console.log('[GAMEPAD] Connected:', e.gamepad.id, 'Index:', e.gamepad.index);
+
+    // Check if controller support is disabled
+    if (typeof S !== 'undefined' && S.controllerDisabled) {
+      console.log('[GAMEPAD] Controller connected but support is disabled');
+      return;
+    }
+
+    this.gamepadIndex = e.gamepad.index;
+    this.activateControllerMode();
+
+    // Start polling loop
+    if (!this.pollInterval) {
+      this.pollInterval = setInterval(() => this.poll(), 16); // ~60fps
+    }
+
+    toast('🎮 Controller connected! Use D-pad to navigate.', 2000);
+  },
+
+  onGamepadDisconnected(e) {
+    console.log('[GAMEPAD] Disconnected:', e.gamepad.id);
+    if (e.gamepad.index === this.gamepadIndex) {
+      this.gamepadIndex = null;
+      this.deactivateControllerMode();
+
+      // Check for other connected gamepads
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (const gp of gamepads) {
+        if (gp) {
+          this.gamepadIndex = gp.index;
+          this.activateControllerMode();
+          return;
+        }
+      }
+
+      // No gamepads left
+      if (this.pollInterval) {
+        clearInterval(this.pollInterval);
+        this.pollInterval = null;
+      }
+    }
+  },
+
+  activateControllerMode() {
+    if (this.active) return;
+    this.active = true;
+    document.body.classList.add('controller-active');
+    this.updateFocusableElements();
+    if (this.focusableElements.length > 0 && !this.focusedElement) {
+      this.setFocus(this.focusableElements[0]);
+    }
+    this.updatePrompts();
+    console.log('[GAMEPAD] Controller mode activated');
+  },
+
+  deactivateControllerMode() {
+    if (!this.active) return;
+    this.active = false;
+    document.body.classList.remove('controller-active');
+    this.clearFocus();
+    console.log('[GAMEPAD] Controller mode deactivated (mouse input detected)');
+  },
+
+  // Main polling loop
+  poll() {
+    if (this.gamepadIndex === null) return;
+
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const gp = gamepads[this.gamepadIndex];
+    if (!gp) return;
+
+    const now = Date.now();
+    if (now - this.lastInputTime < this.inputCooldown) return;
+
+    // Check buttons
+    for (let i = 0; i < gp.buttons.length; i++) {
+      const pressed = gp.buttons[i].pressed;
+      const wasPressed = this.buttonStates[i] || false;
+
+      if (pressed && !wasPressed) {
+        this.onButtonPress(i);
+        this.lastInputTime = now;
+      }
+
+      this.buttonStates[i] = pressed;
+    }
+
+    // Check analog sticks (left stick for navigation)
+    const leftX = gp.axes[0] || 0;
+    const leftY = gp.axes[1] || 0;
+
+    if (Math.abs(leftX) > this.axisDeadzone || Math.abs(leftY) > this.axisDeadzone) {
+      // Determine primary direction
+      if (Math.abs(leftX) > Math.abs(leftY)) {
+        this.onDirection(leftX > 0 ? 'right' : 'left');
+      } else {
+        this.onDirection(leftY > 0 ? 'down' : 'up');
+      }
+      this.lastInputTime = now;
+    }
+  },
+
+  onButtonPress(buttonIndex) {
+    // Activate controller mode on any button press
+    if (!this.active) {
+      this.activateControllerMode();
+    }
+
+    switch (buttonIndex) {
+      case this.BUTTONS.A:
+        this.confirmSelection();
+        break;
+      case this.BUTTONS.B:
+        this.goBack();
+        break;
+      case this.BUTTONS.Y:
+        this.openMenu();
+        break;
+      case this.BUTTONS.START:
+        this.openMenu();
+        break;
+      case this.BUTTONS.DPAD_UP:
+        this.onDirection('up');
+        break;
+      case this.BUTTONS.DPAD_DOWN:
+        this.onDirection('down');
+        break;
+      case this.BUTTONS.DPAD_LEFT:
+        this.onDirection('left');
+        break;
+      case this.BUTTONS.DPAD_RIGHT:
+        this.onDirection('right');
+        break;
+      case this.BUTTONS.LB:
+        this.quickAction('prev');
+        break;
+      case this.BUTTONS.RB:
+        this.quickAction('next');
+        break;
+    }
+  },
+
+  onDirection(dir) {
+    if (!this.active) {
+      this.activateControllerMode();
+      return;
+    }
+
+    this.updateFocusableElements();
+
+    if (this.focusableElements.length === 0) return;
+
+    // Play navigation sound
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    if (!this.focusedElement || !document.body.contains(this.focusedElement)) {
+      // No focus or element removed - focus first element
+      this.setFocus(this.focusableElements[0]);
+      return;
+    }
+
+    // Find next element in direction using spatial navigation
+    const next = this.findNextElement(dir);
+    if (next) {
+      this.setFocus(next);
+    }
+  },
+
+  findNextElement(dir) {
+    if (!this.focusedElement) return this.focusableElements[0];
+
+    const current = this.focusedElement.getBoundingClientRect();
+    const currentCenter = {
+      x: current.left + current.width / 2,
+      y: current.top + current.height / 2
+    };
+
+    let bestCandidate = null;
+    let bestScore = Infinity;
+
+    for (const el of this.focusableElements) {
+      if (el === this.focusedElement) continue;
+
+      const rect = el.getBoundingClientRect();
+      const elCenter = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+
+      // Calculate direction vector
+      const dx = elCenter.x - currentCenter.x;
+      const dy = elCenter.y - currentCenter.y;
+
+      // Check if element is in the right direction
+      let inDirection = false;
+      let primaryDist = 0;
+      let secondaryDist = 0;
+
+      switch (dir) {
+        case 'up':
+          inDirection = dy < -10;
+          primaryDist = Math.abs(dy);
+          secondaryDist = Math.abs(dx);
+          break;
+        case 'down':
+          inDirection = dy > 10;
+          primaryDist = Math.abs(dy);
+          secondaryDist = Math.abs(dx);
+          break;
+        case 'left':
+          inDirection = dx < -10;
+          primaryDist = Math.abs(dx);
+          secondaryDist = Math.abs(dy);
+          break;
+        case 'right':
+          inDirection = dx > 10;
+          primaryDist = Math.abs(dx);
+          secondaryDist = Math.abs(dy);
+          break;
+      }
+
+      if (!inDirection) continue;
+
+      // Score: prefer closer elements, with penalty for off-axis distance
+      const score = primaryDist + secondaryDist * 2;
+
+      if (score < bestScore) {
+        bestScore = score;
+        bestCandidate = el;
+      }
+    }
+
+    // If no element in direction, wrap around
+    if (!bestCandidate) {
+      const idx = this.focusableElements.indexOf(this.focusedElement);
+      if (dir === 'down' || dir === 'right') {
+        bestCandidate = this.focusableElements[(idx + 1) % this.focusableElements.length];
+      } else {
+        bestCandidate = this.focusableElements[(idx - 1 + this.focusableElements.length) % this.focusableElements.length];
+      }
+    }
+
+    return bestCandidate;
+  },
+
+  setFocus(el) {
+    this.clearFocus();
+    if (!el) return;
+
+    this.focusedElement = el;
+    el.classList.add('controller-focus');
+
+    // Scroll into view if needed
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  },
+
+  clearFocus() {
+    if (this.focusedElement) {
+      this.focusedElement.classList.remove('controller-focus');
+    }
+    this.focusedElement = null;
+  },
+
+  confirmSelection() {
+    if (!this.focusedElement) {
+      this.updateFocusableElements();
+      if (this.focusableElements.length > 0) {
+        this.setFocus(this.focusableElements[0]);
+      }
+      return;
+    }
+
+    // Play confirm sound
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Trigger click on focused element
+    this.focusedElement.click();
+
+    // Update focus after action (DOM might have changed)
+    setTimeout(() => {
+      this.updateFocusableElements();
+      if (this.focusableElements.length > 0 && !document.body.contains(this.focusedElement)) {
+        this.setFocus(this.focusableElements[0]);
+      }
+      this.updatePrompts();
+    }, 100);
+  },
+
+  goBack() {
+    // Play back sound
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Check for modal/menu close buttons
+    const closeBtn = document.querySelector('.modal-container .btn[onclick*="close"]') ||
+                     document.querySelector('.modal-container .btn[onclick*="Close"]') ||
+                     document.querySelector('[onclick*="closeSettingsMenu"]') ||
+                     document.querySelector('[onclick*="closeDebugMenu"]');
+
+    if (closeBtn) {
+      closeBtn.click();
+      setTimeout(() => this.updateFocusableElements(), 100);
+      return;
+    }
+
+    // Check for cancel button
+    const cancelBtn = document.querySelector('.btn[onclick*="cancel"]') ||
+                      document.querySelector('.btn[onclick*="Cancel"]') ||
+                      document.querySelector('.btn.secondary[onclick*="Back"]');
+
+    if (cancelBtn) {
+      cancelBtn.click();
+      setTimeout(() => this.updateFocusableElements(), 100);
+      return;
+    }
+
+    // If in combat with pending action, call cancelAction
+    if (typeof S !== 'undefined' && S.pending && typeof cancelAction === 'function') {
+      cancelAction();
+      setTimeout(() => this.updateFocusableElements(), 100);
+    }
+  },
+
+  openMenu() {
+    // Play menu sound
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Open settings menu
+    if (typeof showSettingsMenu === 'function') {
+      showSettingsMenu();
+      setTimeout(() => {
+        this.updateFocusableElements();
+        if (this.focusableElements.length > 0) {
+          this.setFocus(this.focusableElements[0]);
+        }
+      }, 100);
+    }
+  },
+
+  quickAction(type) {
+    // LB/RB for quick hero/lane switching in combat
+    if (typeof S !== 'undefined' && S.heroes && S.heroes.length > 0) {
+      const heroCards = document.querySelectorAll('.card.hero:not(.acted)');
+      if (heroCards.length > 0) {
+        const currentIdx = Array.from(heroCards).findIndex(el => el.classList.contains('controller-focus'));
+        let nextIdx;
+
+        if (type === 'next') {
+          nextIdx = (currentIdx + 1) % heroCards.length;
+        } else {
+          nextIdx = (currentIdx - 1 + heroCards.length) % heroCards.length;
+        }
+
+        this.setFocus(heroCards[nextIdx]);
+      }
+    }
+  },
+
+  updateFocusableElements() {
+    // Find all focusable elements in order of appearance
+    const selectors = [
+      // Buttons
+      '.btn:not(.disabled)',
+      // Choice options
+      '.choice',
+      // Clickable cards (heroes, enemies)
+      '.card[onclick]',
+      '.card.hero:not(.acted)',
+      '.card.enemy.targetable',
+      '.card.hero.targetable',
+      // Clickable sigils
+      '.sigil.clickable',
+      '.sigil[onclick]',
+      // Modal checkboxes
+      '.modal-checkbox-label',
+      // Header buttons
+      '.header button',
+      // Generic clickable elements
+      '[onclick]:not(script)',
+      // Links
+      'a[href]'
+    ];
+
+    const elements = new Set();
+
+    for (const selector of selectors) {
+      document.querySelectorAll(selector).forEach(el => {
+        // Check if element is visible and not in rotate prompt
+        if (el.offsetParent !== null &&
+            !el.closest('#rotatePrompt') &&
+            !el.classList.contains('disabled') &&
+            el.style.display !== 'none' &&
+            el.style.visibility !== 'hidden') {
+          elements.add(el);
+        }
+      });
+    }
+
+    // Sort by visual position (top-to-bottom, left-to-right)
+    this.focusableElements = Array.from(elements).sort((a, b) => {
+      const rectA = a.getBoundingClientRect();
+      const rectB = b.getBoundingClientRect();
+
+      // Group by approximate rows (within 30px vertical)
+      const rowDiff = Math.abs(rectA.top - rectB.top);
+      if (rowDiff > 30) {
+        return rectA.top - rectB.top;
+      }
+      return rectA.left - rectB.left;
+    });
+  },
+
+  updatePrompts() {
+    const promptsEl = document.getElementById('controllerPrompts');
+    if (!promptsEl) return;
+
+    // Determine context and update prompts
+    const hasModal = document.querySelector('.modal-container');
+    const inCombat = typeof S !== 'undefined' && S.heroes && S.enemies && S.enemies.length > 0;
+    const hasPending = typeof S !== 'undefined' && S.pending;
+
+    let prompts = [
+      { btn: 'dpad', label: 'Navigate' },
+      { btn: 'a', label: 'Select' }
+    ];
+
+    if (hasModal) {
+      prompts.push({ btn: 'b', label: 'Close' });
+    } else if (hasPending) {
+      prompts.push({ btn: 'b', label: 'Cancel' });
+    } else {
+      prompts.push({ btn: 'b', label: 'Back' });
+    }
+
+    prompts.push({ btn: 'y', label: 'Menu' });
+
+    if (inCombat && !hasModal) {
+      prompts.push({ btn: 'lb', label: 'Prev Hero' });
+      prompts.push({ btn: 'rb', label: 'Next Hero' });
+    }
+
+    // Build HTML
+    promptsEl.innerHTML = prompts.map(p => {
+      const btnClass = p.btn === 'dpad' ? 'dpad' :
+                       p.btn === 'lb' || p.btn === 'rb' ? p.btn :
+                       p.btn;
+      const label = p.btn.toUpperCase();
+      return `<div class="controller-prompt"><span class="controller-btn ${btnClass}">${
+        p.btn === 'dpad' ? 'D-Pad' :
+        p.btn === 'lb' ? 'LB' :
+        p.btn === 'rb' ? 'RB' :
+        label
+      }</span> ${p.label}</div>`;
+    }).join('');
+  }
+};
+
 // ===== INIT =====
 window.onload = () => {
 console.log('[FROGGLE] window.onload fired');
@@ -10024,6 +10763,7 @@ S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
+S.controllerDisabled = j.controllerDisabled || false;
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 S.currentSlot = slot;
 console.log('[FROGGLE] Loaded slot-specific permanent data');
@@ -10039,6 +10779,7 @@ loadPermanent(); // No last slot, use old format
 }
 console.log('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
 initToastLog(); // Initialize toast log UI
+GamepadController.init(); // Initialize Steam Deck / controller support
 mainTitlePage();
 console.log('[FROGGLE] mainTitlePage called');
 };
