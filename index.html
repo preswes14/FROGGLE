@@ -200,6 +200,17 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   font-size: 1.3rem;
   min-height: 70px;
 }
+.btn.icon {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 48px;
+  padding: 0.5rem;
+  font-size: 1.3rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; }
 .choice:hover { transform: translateY(-2px); background: #f9f9f9; box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.15); }
 .choice:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
@@ -415,22 +426,24 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .sigil-row.compact { gap: 2px; }
 .sigil-row.compact .sigil { padding: 4px; font-size: 0.65rem; min-width: 24px; min-height: 24px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: none; border-radius: 6px; padding: 6px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 32px; min-height: 32px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); aspect-ratio: 1; }
+.sigil { border: 2px solid transparent; border-radius: 6px; padding: 6px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 32px; min-height: 32px; font-weight: 900; background: transparent; text-shadow: none; }
+.sigil img { width: auto; height: 1.2em; object-fit: contain; }
 .sigil.passive { opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
-.sigil.active-action { box-shadow: 0 0 12px #3b82f6; animation: pulse-action 0.8s infinite; }
-.sigil.l0 { color: #666; background: rgba(102, 102, 102, 0.15); opacity: 0.6; }
+.sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
+.sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.4); }
-.sigil.l1 { color: #000; background: rgba(0, 0, 0, 0.08); }
-.sigil.l1 img { filter: brightness(0) saturate(100%); }
-.sigil.l2 { color: #fff; background: #0d9488; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-.sigil.l2 img { filter: brightness(0) invert(1); }
-.sigil.l3 { color: #fff; background: #9333ea; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-.sigil.l3 img { filter: brightness(0) invert(1); }
-.sigil.l4 { color: #000; background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706); text-shadow: 0 0 8px rgba(251,191,36,0.6); }
-.sigil.l4 img { filter: brightness(0); }
+.sigil.l1 { color: #1e40af; border-color: #1e40af; }
+.sigil.l1 img { filter: invert(18%) sepia(89%) saturate(2106%) hue-rotate(219deg) brightness(91%) contrast(95%); }
+.sigil.l2 { color: #0d9488; border-color: #0d9488; }
+.sigil.l2 img { filter: invert(41%) sepia(52%) saturate(1249%) hue-rotate(133deg) brightness(93%) contrast(91%); }
+.sigil.l3 { color: #9333ea; border-color: #9333ea; }
+.sigil.l3 img { filter: invert(28%) sepia(97%) saturate(6144%) hue-rotate(262deg) brightness(82%) contrast(100%); }
+.sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
+.sigil.l4 img { filter: invert(44%) sepia(97%) saturate(950%) hue-rotate(22deg) brightness(97%) contrast(92%); }
 .sigil.l5 {
+  border-color: transparent;
   background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
   background-size: 300% 100%;
   animation: rainbow-shift 3s linear infinite;
@@ -642,7 +655,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   }
 
   .sigil img {
+    width: auto;
     height: 1.4em !important;
+    object-fit: contain;
   }
 
   .sigil-row {
@@ -3343,7 +3358,7 @@ ${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active 
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary" onclick="confirmDeleteSlot(1)" style="flex:0;padding:0.5rem 0.75rem">🗑️</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(1)">🗑️</button>
 </div>
 ` : `
 <p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
@@ -3364,7 +3379,7 @@ ${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active 
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary" onclick="confirmDeleteSlot(2)" style="flex:0;padding:0.5rem 0.75rem">🗑️</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(2)">🗑️</button>
 </div>
 ` : `
 <p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
