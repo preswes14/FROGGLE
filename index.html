@@ -1473,6 +1473,67 @@ body.controller-active .toast {
   outline-offset: 2px;
 }
 
+/* Hero selection overlay buttons for controller navigation */
+.hero-select-btn {
+  position: absolute;
+  bottom: 0;
+  height: 100%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 20;
+  transition: background 0.2s ease;
+}
+.hero-select-btn:hover, .hero-select-btn:focus {
+  background: rgba(251, 191, 36, 0.2);
+}
+.hero-select-btn.controller-focus {
+  background: rgba(251, 191, 36, 0.3);
+}
+.hero-select-btn:nth-child(2) { left: 0; width: 25%; }
+.hero-select-btn:nth-child(3) { left: 25%; width: 25%; }
+.hero-select-btn:nth-child(4) { left: 50%; width: 25%; }
+.hero-select-btn:nth-child(5) { left: 75%; width: 25%; }
+
+/* Custom confirm modal for controller support */
+.confirm-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.95);
+  border: 3px solid #f97316;
+  border-radius: 12px;
+  padding: 2rem;
+  z-index: 100000;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  color: white;
+}
+.confirm-modal h3 {
+  margin-bottom: 1rem;
+  color: #fbbf24;
+}
+.confirm-modal p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+.confirm-modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 99999;
+}
+
 /* Steam Deck specific optimizations (1280x800 @ 7" screen) */
 @media (min-width: 1200px) and (max-width: 1400px) and (min-height: 700px) and (max-height: 900px) {
   /* Larger touch targets for Steam Deck */
@@ -2948,6 +3009,72 @@ setTimeout(() => t.remove(), ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
 }
 
+// Controller-friendly confirm modal to replace browser confirm()
+let confirmModalCallback = null;
+function showConfirmModal(message, onConfirm, onCancel) {
+  // Remove existing modal if any
+  const existingOverlay = document.querySelector('.confirm-modal-overlay');
+  const existingModal = document.querySelector('.confirm-modal');
+  if (existingOverlay) existingOverlay.remove();
+  if (existingModal) existingModal.remove();
+
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-modal-overlay';
+
+  // Create modal
+  const modal = document.createElement('div');
+  modal.className = 'confirm-modal';
+  modal.innerHTML = `
+    <h3>Confirm</h3>
+    <p>${message}</p>
+    <div class="confirm-modal-buttons">
+      <button class="btn confirm-btn-yes" style="background:linear-gradient(135deg,#22c55e,#16a34a);min-width:100px">Yes</button>
+      <button class="btn confirm-btn-no" style="background:linear-gradient(135deg,#ef4444,#dc2626);min-width:100px">No</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(modal);
+
+  const yesBtn = modal.querySelector('.confirm-btn-yes');
+  const noBtn = modal.querySelector('.confirm-btn-no');
+
+  function cleanup() {
+    overlay.remove();
+    modal.remove();
+    confirmModalCallback = null;
+    // Restore controller focus
+    if (typeof GamepadController !== 'undefined' && GamepadController.active) {
+      GamepadController.updateFocusableElements();
+    }
+  }
+
+  yesBtn.onclick = () => {
+    cleanup();
+    if (onConfirm) onConfirm();
+  };
+
+  noBtn.onclick = () => {
+    cleanup();
+    if (onCancel) onCancel();
+  };
+
+  // Store callback for controller B button to cancel
+  confirmModalCallback = () => {
+    cleanup();
+    if (onCancel) onCancel();
+  };
+
+  // Focus the Yes button for controller navigation
+  if (typeof GamepadController !== 'undefined' && GamepadController.active) {
+    GamepadController.updateFocusableElements();
+    GamepadController.setFocus(yesBtn);
+  } else {
+    yesBtn.focus();
+  }
+}
+
 function initToastLog() {
 const existing = document.getElementById('toastLog');
 if(existing) return;
@@ -3634,7 +3761,7 @@ title();
 
 // Delete slot with confirmation
 function confirmDeleteSlot(slot) {
-if(confirm(`Delete Save Slot ${slot}? This cannot be undone!`)) {
+showConfirmModal(`Delete Save Slot ${slot}? This cannot be undone!`, () => {
 try {
 localStorage.removeItem(`froggle8_slot${slot}`);
 localStorage.removeItem(`froggle8_permanent_slot${slot}`);
@@ -3643,7 +3770,7 @@ showSaveSlotSelection(); // Refresh
 } catch(e) {
 toast('Failed to delete slot');
 }
-}
+});
 }
 
 function newGame() {
@@ -3669,9 +3796,9 @@ toast('No saved game found!');
 }
 
 function exitGame() {
-if(confirm('Thanks for playing FROGGLE! Close the window to exit.')) {
+showConfirmModal('Thanks for playing FROGGLE! Close the window to exit.', () => {
 window.close();
-}
+});
 }
 
 function exportSave() {
@@ -4227,6 +4354,11 @@ ${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
+<!-- Controller-friendly hero selection buttons -->
+<button type="button" class="hero-select-btn" data-hero="warrior" onclick="event.stopPropagation();toggleHeroSelection('warrior')" aria-label="Select Warrior"></button>
+<button type="button" class="hero-select-btn" data-hero="tank" onclick="event.stopPropagation();toggleHeroSelection('tank')" aria-label="Select Tank"></button>
+<button type="button" class="hero-select-btn" data-hero="mage" onclick="event.stopPropagation();toggleHeroSelection('mage')" aria-label="Select Mage"></button>
+<button type="button" class="hero-select-btn" data-hero="healer" onclick="event.stopPropagation();toggleHeroSelection('healer')" aria-label="Select Healer"></button>
 <!-- Hero card overlays -->
 <div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
 <div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
@@ -9022,11 +9154,11 @@ function restartAfterDeath() {
 if(S.gold >= S.goingRate && !S.tutorialFlags.death_exit_warning) {
 showTutorialPop('death_exit_warning', "Are you sure? This is some great value, and you'll end up giving it to me sooner or later...", () => {
 // After tutorial, ask for confirmation
-if(confirm('Leave Death Screen with unspent gold?')) {
+showConfirmModal('Leave Death Screen with unspent gold?', () => {
 actuallyRestartAfterDeath();
-} else {
+}, () => {
 showDeathScreen();
-}
+});
 });
 return;
 }
@@ -9680,7 +9812,7 @@ closeSettingsMenu();
 }
 
 function restartLevel() {
-if(confirm('Restart this floor? All progress on this floor will be lost.')) {
+showConfirmModal('Restart this floor? All progress on this floor will be lost.', () => {
 closeSettingsMenu();
 toast('Restarting floor...', 1200);
 setTimeout(() => {
@@ -9692,11 +9824,11 @@ combat(S.floor);
 startFloor(S.floor);
 }
 }, 500);
-}
+});
 }
 
 function resetTutorialFlags() {
-if(confirm('Reset tutorial? This will show all tutorial pop-ups again.')) {
+showConfirmModal('Reset tutorial? This will show all tutorial pop-ups again.', () => {
 S.tutorialFlags = {
 ribbleton_intro: false,
 ribbleton_warrior_attack: false,
@@ -9734,7 +9866,7 @@ tapo_victory_message: false
 savePermanent();
 toast('Tutorial reset! Will show again next run.', 2000);
 closeSettingsMenu();
-}
+});
 }
 
 function toggleHelpTips(enabled) {
@@ -10263,6 +10395,9 @@ const GamepadController = {
   currentUnitIndex: 0, // Current unit (hero/enemy) index for LB/RB cycling
   currentSigilIndex: 0, // Current sigil index for LT/RT cycling
   lastFocusedId: null, // For focus restoration after render
+  lastMouseX: null, // For tracking mouse movement delta
+  lastMouseY: null, // For tracking mouse movement delta
+  mouseMovementThreshold: 15, // Minimum pixels to move before switching to mouse mode
 
   // Button indices (standard gamepad mapping)
   BUTTONS: {
@@ -10307,8 +10442,22 @@ const GamepadController = {
       }
     }
 
-    // Switch to mouse mode on any mouse movement or click
-    document.addEventListener('mousemove', () => this.deactivateControllerMode());
+    // Switch to mouse mode on significant mouse movement or click
+    document.addEventListener('mousemove', (e) => {
+      // Only deactivate on significant mouse movement (not just hover)
+      if (this.lastMouseX === null) {
+        this.lastMouseX = e.clientX;
+        this.lastMouseY = e.clientY;
+        return;
+      }
+      const dx = Math.abs(e.clientX - this.lastMouseX);
+      const dy = Math.abs(e.clientY - this.lastMouseY);
+      if (dx > this.mouseMovementThreshold || dy > this.mouseMovementThreshold) {
+        this.lastMouseX = e.clientX;
+        this.lastMouseY = e.clientY;
+        this.deactivateControllerMode();
+      }
+    });
     document.addEventListener('click', () => this.deactivateControllerMode());
   },
 
@@ -10617,6 +10766,12 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
+    // Check for confirm modal (B button cancels)
+    if (typeof confirmModalCallback === 'function') {
+      confirmModalCallback();
+      return;
+    }
+
     // Check for modal/menu close buttons
     const closeBtn = document.querySelector('.modal-container .btn[onclick*="close"]') ||
                      document.querySelector('.modal-container .btn[onclick*="Close"]') ||
@@ -10900,10 +11055,12 @@ const GamepadController = {
 
     for (const selector of selectors) {
       document.querySelectorAll(selector).forEach(el => {
-        // Check if element is visible and not in rotate prompt
+        // Check if element is visible and not in rotate prompt or modal overlay
         if (el.offsetParent !== null &&
             !el.closest('#rotatePrompt') &&
             !el.classList.contains('disabled') &&
+            !el.classList.contains('modal-overlay') &&
+            !el.classList.contains('confirm-modal-overlay') &&
             el.style.display !== 'none' &&
             el.style.visibility !== 'hidden') {
           elements.add(el);
