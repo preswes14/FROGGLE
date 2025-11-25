@@ -372,6 +372,15 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   80% { transform: translateX(5px) scale(1.02); }
   100% { transform: translateX(0) scale(1); }
 }
+@keyframes enemy-attack-slide {
+  0% { transform: translateX(0) scale(1); }
+  15% { transform: translateX(-5px) scale(1.08); }
+  40% { transform: translateX(-25px) scale(1.1); }
+  60% { transform: translateX(-25px) scale(1.1); }
+  80% { transform: translateX(-5px) scale(1.02); }
+  100% { transform: translateX(0) scale(1); }
+}
+.card.enemy-attack-slide { animation: enemy-attack-slide 0.48s ease !important; }
 @keyframes heal-flash {
   0% { filter: brightness(1); transform: scale(1); }
   15% { filter: brightness(1.5) saturate(1.5); transform: scale(1.03); background-color: rgba(34, 197, 94, 0.3); }
@@ -1328,14 +1337,6 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   100% { transform: scale(1); }
 }
 
-/* Enemy attack telegraph */
-.card.telegraphing {
-  animation: telegraph 0.4s ease-in-out;
-}
-@keyframes telegraph {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
-  50% { box-shadow: 0 0 20px 10px rgba(220,38,38,0.6); }
-}
 
 /* Death/knockout animation */
 .card.knockout {
@@ -1859,8 +1860,8 @@ return `${enemy.n} ${suffix}`;
 
 // Helper for enemy attacks - handles targeting, damage, animations, and toast
 function executeEnemyAttackOnHeroes(enemy, targetCount, attackName = 'Base Attack') {
-// JUICE: Telegraph enemy attack
-telegraphAttack(enemy.id);
+// JUICE: Enemy attack slide animation (charges toward heroes)
+triggerEnemyAttackAnimation(enemy.id);
 
 const targets = selectEnemyTargets(enemy, targetCount);
 if(targets.length === 0) return 0;
@@ -1879,7 +1880,8 @@ targetDetails.push({name: target.n, before: hpBefore, after: hpAfter, dmg: dmg})
 }
 });
 
-// Trigger all animations simultaneously
+// Trigger hit animations when enemy "lands" the hit
+setTimeout(() => {
 damagedIds.forEach((id, idx) => {
 triggerHitAnimation(id);
 // JUICE: Floating damage numbers for hero damage
@@ -1891,6 +1893,7 @@ if(damagedIds.length > 0) {
 SoundFX.play(dmg >= 5 ? 'crit' : 'hit');
 if(dmg >= 5) triggerScreenShake(dmg >= 10);
 }
+}, ANIMATION_TIMINGS.ATTACK_IMPACT);
 
 if(targetDetails.length > 0) {
 const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
@@ -2371,6 +2374,7 @@ const ANIMATION_TIMINGS = {
   // CSS animation durations (must match CSS @keyframes)
   DAMAGE_FLASH: 400,      // .hit-flash animation duration
   ATTACK_SLIDE: 480,      // .attack-slide animation duration
+  ATTACK_IMPACT: 190,     // When attacker "lands" hit (40% of attack slide)
   HEAL_FLASH: 480,        // .heal-flash animation duration
   SHIELD_FLASH: 480,      // .shield-flash animation duration
 
@@ -2409,7 +2413,6 @@ const ANIMATION_TIMINGS = {
   CONFETTI_DURATION: 3000, // Confetti fall duration
   COMBO_DISPLAY: 500,     // Combo counter display time
   COUNTER_POP: 300,       // Counter pop animation
-  TELEGRAPH: 400,         // Enemy attack telegraph
   KNOCKOUT: 600,          // Death animation
 };
 
@@ -2532,15 +2535,6 @@ function animateCounterPop(elementId) {
 
   el.classList.add('counter-pop');
   setTimeout(() => el.classList.remove('counter-pop'), ANIMATION_TIMINGS.COUNTER_POP);
-}
-
-// Enemy attack telegraph
-function telegraphAttack(enemyId) {
-  const card = document.getElementById(enemyId);
-  if (!card) return;
-
-  card.classList.add('telegraphing');
-  setTimeout(() => card.classList.remove('telegraphing'), ANIMATION_TIMINGS.TELEGRAPH);
 }
 
 // Knockout animation for defeated enemies
@@ -2891,6 +2885,14 @@ const card = document.getElementById(attackerId);
 if(card) {
 card.classList.add('attack-slide');
 setTimeout(() => card.classList.remove('attack-slide'), ANIMATION_TIMINGS.ATTACK_SLIDE);
+}
+}
+
+function triggerEnemyAttackAnimation(attackerId) {
+const card = document.getElementById(attackerId);
+if(card) {
+card.classList.add('enemy-attack-slide');
+setTimeout(() => card.classList.remove('enemy-attack-slide'), ANIMATION_TIMINGS.ATTACK_SLIDE);
 }
 }
 
@@ -5436,7 +5438,8 @@ console.log('[TUTORIAL] Set wolfDamaged = true');
 }
 }
 });
-// Second pass: Trigger all hit animations simultaneously with juice
+// Second pass: Trigger hit animations when attacker "lands" the hit
+setTimeout(() => {
 damagedEnemyIds.forEach((id, idx) => {
 triggerHitAnimation(id);
 // JUICE: Floating damage numbers
@@ -5451,6 +5454,7 @@ if(pow >= 5) triggerScreenShake(pow >= 10);
 // Show cumulative damage counter for this hero's turn
 showDamageCounter(S.turnDamage);
 }
+}, ANIMATION_TIMINGS.ATTACK_IMPACT);
 // Third pass: Handle deaths and cleanup
 const deadEnemies = [];
 targets.forEach(tgtId => {
