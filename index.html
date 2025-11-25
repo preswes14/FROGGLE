@@ -411,31 +411,29 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   0% { transform: translate(0, 0); opacity: 0.7; }
   100% { transform: translate(50px, -20px); opacity: 0; }
 }
-.sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; max-width: 100%; max-height: 70px; overflow: hidden; }
-.sigil-row.compact { gap: 2px; max-height: 60px; }
-.sigil-row.compact .sigil { padding: 2px 4px; font-size: 0.65rem; min-height: 20px; border-width: 2px; }
+.sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; max-width: 100%; }
+.sigil-row.compact { gap: 2px; }
+.sigil-row.compact .sigil { padding: 4px; font-size: 0.65rem; min-width: 24px; min-height: 24px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: 3px solid; border-radius: 6px; padding: 4px 8px; font-size: 0.85rem; display: inline-block; margin: 2px; min-height: 28px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
-.sigil.passive { border-style: dashed; opacity: 0.85; }
+.sigil { border: none; border-radius: 6px; padding: 6px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 32px; min-height: 32px; font-weight: 900; background: transparent; text-shadow: 0 1px 2px rgba(0,0,0,0.3); aspect-ratio: 1; }
+.sigil.passive { opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #3b82f6; animation: pulse-action 0.8s infinite; }
-.sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
+.sigil.l0 { color: #666; background: rgba(102, 102, 102, 0.15); opacity: 0.6; }
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.4); }
-.sigil.l1 { color: #000; border-color: #000; }
+.sigil.l1 { color: #000; background: rgba(0, 0, 0, 0.08); }
 .sigil.l1 img { filter: brightness(0) saturate(100%); }
-.sigil.l2 { color: #0d9488; border-color: #0d9488; }
-.sigil.l2 img { filter: sepia(100%) saturate(300%) hue-rotate(140deg) brightness(0.8); }
-.sigil.l3 { color: #9333ea; border-color: #9333ea; }
-.sigil.l3 img { filter: sepia(100%) saturate(500%) hue-rotate(260deg) brightness(0.7); }
-.sigil.l4 { color: #f97316; border-color: #f97316; text-shadow: 0 0 8px rgba(249,115,22,0.4); }
-.sigil.l4 img { filter: sepia(100%) saturate(300%) hue-rotate(10deg) brightness(1.1); }
+.sigil.l2 { color: #fff; background: #0d9488; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.sigil.l2 img { filter: brightness(0) invert(1); }
+.sigil.l3 { color: #fff; background: #9333ea; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+.sigil.l3 img { filter: brightness(0) invert(1); }
+.sigil.l4 { color: #000; background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706); text-shadow: 0 0 8px rgba(251,191,36,0.6); }
+.sigil.l4 img { filter: brightness(0); }
 .sigil.l5 {
   background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
   background-size: 300% 100%;
   animation: rainbow-shift 3s linear infinite;
-  border: 2px solid;
-  border-image: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080) 1;
   color: white;
   text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,0,128,0.6);
   font-weight: bold;
@@ -515,8 +513,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   /* Sigils medium */
   .sigil {
     font-size: 0.95rem;
-    padding: 5px 10px;
-    min-height: 32px;
+    padding: 8px;
+    min-width: 36px;
+    min-height: 36px;
   }
   .sigil-row {
     gap: 6px;
@@ -636,9 +635,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   /* Sigils - Properly sized for desktop */
   .sigil {
     font-size: 1.1rem;
-    padding: 6px 12px;
-    min-height: 38px;
-    border-width: 3px;
+    padding: 10px;
+    min-width: 42px;
+    min-height: 42px;
     margin: 3px;
   }
 
@@ -649,17 +648,16 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   .sigil-row {
     gap: 8px;
     margin-top: 8px;
-    max-height: 100px;
   }
 
   .sigil-row.compact {
     gap: 4px;
-    max-height: 90px;
   }
   .sigil-row.compact .sigil {
     font-size: 0.85rem;
-    padding: 4px 6px;
-    min-height: 28px;
+    padding: 6px;
+    min-width: 32px;
+    min-height: 32px;
   }
 
   .sigil-divider {
@@ -1504,6 +1502,56 @@ return aIndex - bIndex;
 });
 }
 
+// Render sigils in proper 2-row formation
+// Formation: 1-3 = 1 row, 4 = 2x2, 5 = 3+2, 6 = 3+3, 7 = 4+3, 8 = 4+4, 9 = 5+4, 10 = 5+5
+function renderSigilRows(sigils, heroIdx, options = {}) {
+const { compact = false, clickable = false, onClick = null } = options;
+const sorted = sortSigils(sigils);
+const count = sorted.length;
+
+// Calculate row distribution
+let row1Count, row2Count;
+if (count <= 3) {
+row1Count = count;
+row2Count = 0;
+} else if (count === 4) {
+row1Count = 2;
+row2Count = 2;
+} else {
+row1Count = Math.ceil(count / 2);
+row2Count = count - row1Count;
+}
+
+const row1Sigils = sorted.slice(0, row1Count);
+const row2Sigils = sorted.slice(row1Count);
+
+// Determine if we need compact sizing for many sigils
+const needsCompact = compact || count >= 7;
+const sigilClass = needsCompact ? 'sigil-row compact' : 'sigil-row';
+
+const renderSigil = (s) => {
+const sigName = typeof s === 'string' ? s : s.sig;
+const lvl = typeof heroIdx === 'number' ? getLevel(sigName, heroIdx) : (typeof s === 'object' && s.level !== undefined ? s.level : 1);
+const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
+const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(sigName) ? 'passive' : '';
+const clickableClass = clickable ? 'clickable' : '';
+const clickHandler = onClick ? `onclick="${onClick}('${sigName}')"` : '';
+return `<span class="sigil ${cl} ${passiveClass} ${clickableClass}" ${clickHandler} onmouseenter="showTooltip('${sigName}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigName}', this, ${lvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigName, lvl)}</span>`;
+};
+
+let html = `<div class="${sigilClass}">`;
+row1Sigils.forEach(s => html += renderSigil(s));
+html += '</div>';
+
+if (row2Sigils.length > 0) {
+html += `<div class="${sigilClass}">`;
+row2Sigils.forEach(s => html += renderSigil(s));
+html += '</div>';
+}
+
+return html;
+}
+
 // ===== UTILITY FUNCTIONS =====
 // Unified dice rolling utility
 function rollDice(count, sides = 20) {
@@ -1598,16 +1646,9 @@ const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 ${heroImage ? `<img src="${heroImage}" class="card-image">` : ''}
-<div class="sigil-divider"></div>
-<div class="sigil-row">`;
+<div class="sigil-divider"></div>`;
 const activeSigils = [...h.s, ...(h.ts || [])];
-activeSigils.forEach(s => {
-const lvl = getLevel(s, i);
-const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5';
-const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-html += `<span class="sigil ${cl} ${passiveClass}" onmouseenter="showTooltip('${s}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${lvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, lvl)}</span>`;
-});
-html += '</div>';
+html += renderSigilRows(activeSigils, i);
 html += `<div class="card-stats">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '</div>';
 });
@@ -3182,19 +3223,19 @@ return rollDice(d20Level, 20);
 }
 
 function showD20Result(rolls, best) {
-// Visual dice display with highlighted best roll
+// Visual dice display with highlighted best roll - improved contrast
 const diceHTML = rolls.map(r => {
 const isBest = r === best;
-return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#22c55e' : '#1e293b'};border:2px solid ${isBest ? '#16a34a' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:#f1f5f9;font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(34,197,94,0.6);' : ''}">${r}</span>`;
+return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
 }).join(' ');
 return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
 }
 
 function formatD20Compact(rolls, best) {
-// Compact dice display for toasts/combat
+// Compact dice display for toasts/combat - improved contrast
 const diceHTML = rolls.map(r => {
 const isBest = r === best;
-return `<span style="display:inline-block;width:1.8rem;height:1.8rem;line-height:1.8rem;text-align:center;background:${isBest ? '#22c55e' : '#1e293b'};border:2px solid ${isBest ? '#16a34a' : '#475569'};border-radius:0.4rem;margin:0 0.15rem;font-weight:bold;color:#f1f5f9;font-size:1rem;vertical-align:middle;${isBest ? 'box-shadow:0 0 8px rgba(34,197,94,0.6);' : ''}">${r}</span>`;
+return `<span style="display:inline-block;width:1.8rem;height:1.8rem;line-height:1.8rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.4rem;margin:0 0.15rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1rem;vertical-align:middle;${isBest ? 'box-shadow:0 0 8px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
 }).join('');
 return diceHTML;
 }
@@ -5962,12 +6003,29 @@ html += `</div>`;
 // Extra info
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
-// Sigils with smart wrapping
+// Sigils with proper 2-row formation
 const activeSigils = sortSigils([...h.s, ...(h.ts || [])]);
 const sigilCount = activeSigils.length;
-const compactClass = sigilCount >= 4 ? 'compact' : '';
-html += `<div class="sigil-row ${compactClass}">`;
-activeSigils.forEach(s => {
+
+// Calculate row distribution for 2-row max
+let row1Count, row2Count;
+if (sigilCount <= 3) {
+row1Count = sigilCount;
+row2Count = 0;
+} else if (sigilCount === 4) {
+row1Count = 2;
+row2Count = 2;
+} else {
+row1Count = Math.ceil(sigilCount / 2);
+row2Count = sigilCount - row1Count;
+}
+
+const row1Sigils = activeSigils.slice(0, row1Count);
+const row2Sigils = activeSigils.slice(row1Count);
+const needsCompact = sigilCount >= 7;
+const rowClass = needsCompact ? 'sigil-row compact' : 'sigil-row';
+
+const renderCombatSigil = (s) => {
 const lvl = getLevel(s, i);
 // Calculate visual level for roll-down effect
 let visualLvl = lvl;
@@ -5981,11 +6039,19 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Alpha'].includes(s);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
-html += `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
+return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
-});
+};
+
+html += `<div class="${rowClass}">`;
+row1Sigils.forEach(s => html += renderCombatSigil(s));
 html += '</div>';
+if (row2Sigils.length > 0) {
+html += `<div class="${rowClass}">`;
+row2Sigils.forEach(s => html += renderCombatSigil(s));
+html += '</div>';
+}
 html += '</div>';
 html += '</div>'; // Close hero section
 
@@ -6331,15 +6397,258 @@ startingAddSigilToHero();
 }
 
 function levelUpMenu() {
-showTutorialPop('levelup_intro', "Nice! You got enough XP for your first Level-Up! Your team shares XP. Let's check out your options - click on each card to learn more about what it does.");
+// First-time tutorial: multi-modal popup explaining all options
+if(!S.tutorialFlags.levelup_intro) {
+S.tutorialFlags.levelup_intro = true;
+showLevelUpIntroTutorial();
+return;
+}
 const v = document.getElementById('gameView');
 const cost = getXPCost(S.levelUpCount);
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Spend XP</h2>
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
+<div class="choice" onclick="addActiveToHero()">Add Active Sigil to Hero</div>
+<div class="choice" onclick="upgradeActiveSigil()">Upgrade Active Sigil (All Heroes)</div>
+<div class="choice" onclick="upgradePassiveSigil()">Add/Upgrade Passive Sigil (All Heroes)</div>
 <div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
-<div class="choice" onclick="showSigilUpgradeMenu()">Upgrade/Add Sigil</div>
 <button class="btn secondary" onclick="levelUp()">Back</button>`;
+}
+
+// Multi-modal tutorial for first-time level-up
+function showLevelUpIntroTutorial() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
+<div class="tutorial-modal" style="max-width:550px;text-align:left">
+<h2 style="text-align:center;color:#22c55e;margin-bottom:1rem">Level Up!</h2>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! Here are your options:</p>
+
+<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<h4 style="color:#3b82f6;margin:0 0 0.25rem 0;font-size:0.95rem">1. Add Active Sigil to Hero</h4>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Teach a hero a NEW ability they don't have yet.<br><em>Example: Give your Tank the Grapple sigil to stun enemies!</em></p>
+</div>
+
+<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<h4 style="color:#22c55e;margin:0 0 0.25rem 0;font-size:0.95rem">2. Upgrade Active Sigil (All Heroes)</h4>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Make an active sigil stronger for EVERYONE who has it.<br><em>Example: Attack L2 = 2 hits, Shield L2 = 4×POW shields!</em></p>
+</div>
+
+<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<h4 style="color:#9333ea;margin:0 0 0.25rem 0;font-size:0.95rem">3. Add/Upgrade Passive Sigil (All Heroes)</h4>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Passives (Expand, Asterisk, Star) work automatically for ALL heroes!<br><em>Example: Expand +1 = all heroes can target one extra enemy/ally!</em></p>
+</div>
+
+<div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:0.75rem;margin-bottom:1rem">
+<h4 style="color:#f97316;margin:0 0 0.25rem 0;font-size:0.95rem">4. Upgrade Hero Stats</h4>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Add +1 POW or +5 HP to a hero of your choice.<br><em>Great for boosting your key damage dealer or keeping tanks alive!</em></p>
+</div>
+
+<button class="btn" onclick="showLevelUpMenuAfterTutorial()" style="width:100%;margin-top:0.5rem">Got it! Show me the options</button>
+</div>
+</div>`;
+}
+
+function showLevelUpMenuAfterTutorial() {
+const v = document.getElementById('gameView');
+const cost = getXPCost(S.levelUpCount);
+v.innerHTML = `
+<h2 style="text-align:center;margin-bottom:1rem">Spend XP</h2>
+<p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
+<div class="choice" onclick="addActiveToHero()">Add Active Sigil to Hero</div>
+<div class="choice" onclick="upgradeActiveSigil()">Upgrade Active Sigil (All Heroes)</div>
+<div class="choice" onclick="upgradePassiveSigil()">Add/Upgrade Passive Sigil (All Heroes)</div>
+<div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
+<button class="btn secondary" onclick="levelUp()">Back</button>`;
+}
+
+// NEW: Add Active Sigil to Hero (only active sigils)
+function addActiveToHero() {
+showTutorialPop('levelup_add_active', "Teach a hero a NEW active ability! Heroes only get 1 action per turn, but more choices = more tactics. Pick a hero, then pick the sigil they'll learn!");
+const cost = getXPCost(S.levelUpCount);
+const v = document.getElementById('gameView');
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to Hero</h2>
+<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
+if(S.xp < cost) {
+html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
+} else {
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:400px;margin:0 auto">`;
+S.heroes.forEach((h, idx) => {
+const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
+html += renderHeroCard(h, idx, `selectHeroForActiveSigil(${idx})`, sigilInfo);
+});
+html += '</div>';
+}
+html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
+v.innerHTML = html;
+}
+
+function selectHeroForActiveSigil(heroIdx) {
+const cost = getXPCost(S.levelUpCount);
+const v = document.getElementById('gameView');
+const h = S.heroes[heroIdx];
+const activeSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Ghost', 'Alpha', 'Grapple'];
+const available = activeSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to ${h.n}</h2>
+<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
+if(available.length === 0) {
+html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all active sigils!</p>`;
+} else {
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose an active sigil to learn:</p>`;
+const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
+const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
+
+const renderActiveSigils = (sigils, categoryName, categoryColor) => {
+const availableInCategory = sigils.filter(s => available.includes(s));
+if(availableInCategory.length === 0) return '';
+let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
+availableInCategory.forEach(sig => {
+const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+const displayLevel = level === 0 ? 1 : level;
+categoryHtml += `<div class="choice" onclick="confirmAddActiveSigil(${heroIdx}, '${sig}')">
+<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${displayLevel})</span>
+</div>`;
+});
+return categoryHtml;
+};
+
+html += renderActiveSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderActiveSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+}
+html += `<button class="btn secondary" onclick="addActiveToHero()">Back</button>`;
+v.innerHTML = html;
+}
+
+function confirmAddActiveSigil(heroIdx, sig) {
+const cost = getXPCost(S.levelUpCount);
+if(S.xp < cost) return;
+const h = S.heroes[heroIdx];
+if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) { toast(`${h.n} already has ${sig}!`); return; }
+S.xp -= cost;
+S.levelUpCount++;
+if(!h.ts) h.ts = [];
+h.ts.push(sig);
+h.ts = sortSigils(h.ts);
+const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+const displayLevel = totalLevel === 0 ? 1 : totalLevel;
+toast(`${h.n} learned ${sig} (L${displayLevel})!`);
+upd();
+saveGame();
+levelUpMenu();
+}
+
+// NEW: Upgrade Active Sigil (All Heroes)
+function upgradeActiveSigil() {
+showTutorialPop('levelup_upgrade_active', "Upgrading an active sigil makes it MORE POWERFUL for every hero who has it! For example, Attack L2 = hit twice, Shield L2 = 4×POW shields!");
+const cost = getXPCost(S.levelUpCount);
+const v = document.getElementById('gameView');
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Active Sigil</h2>
+<p style="text-align:center;margin-bottom:0.5rem">Cost: ${cost} XP</p>
+<p style="text-align:center;margin-bottom:1rem;font-size:0.85rem;opacity:0.8">Upgrades apply to ALL heroes who have this sigil!</p>`;
+if(S.xp < cost) {
+html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
+} else {
+const activeSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Ghost', 'Alpha', 'Grapple'];
+const available = activeSigils.filter(s => {
+const totalLevel = (S.sig[s] || 0) + (S.tempSigUpgrades[s] || 0);
+return totalLevel < 4;
+});
+
+if(available.length === 0) {
+html += `<p style="text-align:center;margin-bottom:1rem">All active sigils maxed!</p>`;
+} else {
+const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
+const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
+
+const renderUpgradeSigils = (sigils, categoryName, categoryColor) => {
+const availableInCategory = sigils.filter(s => available.includes(s));
+if(availableInCategory.length === 0) return '';
+let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
+availableInCategory.forEach(sig => {
+const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+const displayLevel = level === 0 ? 1 : level;
+const nextDisplayLevel = displayLevel + 1;
+const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
+const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+});
+return categoryHtml;
+};
+
+html += renderUpgradeSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderUpgradeSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+}
+}
+html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
+v.innerHTML = html;
+}
+
+function confirmUpgradeActive(sig) {
+const cost = getXPCost(S.levelUpCount);
+if(S.xp < cost) return;
+const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
+S.xp -= cost;
+S.levelUpCount++;
+S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+const displayLevel = newLevel === 0 ? 1 : newLevel;
+toast(`${sig} upgraded to L${displayLevel}!`);
+upd();
+saveGame();
+levelUpMenu();
+}
+
+// NEW: Add/Upgrade Passive Sigil (All Heroes)
+function upgradePassiveSigil() {
+showTutorialPop('levelup_upgrade_passive', "Passive sigils (Expand, Asterisk, Star) work AUTOMATICALLY for ALL heroes! They enhance your existing actions without needing to click them.");
+const cost = getXPCost(S.levelUpCount);
+const v = document.getElementById('gameView');
+let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive Sigil</h2>
+<p style="text-align:center;margin-bottom:0.5rem">Cost: ${cost} XP</p>
+<p style="text-align:center;margin-bottom:1rem;font-size:0.85rem;opacity:0.8">Passive sigils automatically benefit ALL heroes!</p>`;
+if(S.xp < cost) {
+html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
+} else {
+const passiveSigils = ['Expand', 'Asterisk', 'Star'];
+const available = passiveSigils.filter(s => {
+const totalLevel = (S.sig[s] || 0) + (S.tempSigUpgrades[s] || 0);
+return totalLevel < 4;
+});
+
+if(available.length === 0) {
+html += `<p style="text-align:center;margin-bottom:1rem">All passive sigils maxed!</p>`;
+} else {
+html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">✨ Passive Sigils</h3>
+<p style="font-size:0.85rem;margin:0;line-height:1.4"><strong>Expand:</strong> +1 target for Attack/Shield/Heal<br><strong>Asterisk:</strong> Next action triggers multiple times<br><strong>Star:</strong> Multiply XP earned in combat</p>
+</div>`;
+
+available.forEach(sig => {
+const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+const isNew = level === 0;
+const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → L${level + 1}`;
+html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIcon(sig)} ${displayText}</strong></div>`;
+});
+}
+}
+html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
+v.innerHTML = html;
+}
+
+function confirmUpgradePassive(sig) {
+const cost = getXPCost(S.levelUpCount);
+if(S.xp < cost) return;
+const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
+S.xp -= cost;
+S.levelUpCount++;
+S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+toast(`${sig} ${newLevel === 1 ? 'added' : 'upgraded to L' + newLevel}! All heroes benefit!`);
+upd();
+saveGame();
+levelUpMenu();
 }
 
 function showSigilUpgradeMenu() {
