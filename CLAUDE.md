@@ -27,3 +27,65 @@ FROGGLE is a tactical turn-based dungeon crawler roguelike game built as a PWA. 
 - Single HTML file architecture with embedded JS/CSS
 - Mobile-first design with PWA capabilities
 - All changes should be developed on feature branches starting with `claude/` and pushed when complete
+
+## Planned Refactor: Code Modularization
+
+**Status:** Ready to implement (discussed with Preston, Nov 2025)
+
+### Current State
+- `index.html` is ~11,500 lines with ALL JS/CSS embedded
+- Works great for deployment (single file PWA) but hard to navigate
+- Code is well-organized with section comments but still a monolith
+
+### Recommended Approach: Light ES Module Split
+Split into 5-8 focused modules, then optionally concatenate for production.
+
+**Suggested module structure:**
+```
+src/
+├── constants.js      # HEROES, ENEMIES, SIGILS, DEATH_QUOTES, ANIMATION_TIMINGS
+├── sounds.js         # SoundFX object and all sound definitions
+├── state.js          # Game state `S`, save/load functions (savePermanent, loadPermanent, saveGame, loadGame)
+├── combat.js         # Combat engine (combat(), render(), executeAction, enemyTurn, checkCombatEnd)
+├── neutrals.js       # All 9 neutral encounters (buildNeutralHTML, shopkeeper, wizard, etc.)
+├── ui.js             # Animations, toasts, tooltips, modals, screen transitions
+├── screens.js        # Major screens (title, showRibbleton, showPond, showDeathScreen, levelUp, win)
+├── controller.js     # GamepadController for Steam Deck support
+└── main.js           # Entry point, initialization, event listeners
+```
+
+### Critical Shared Dependencies
+- **`S` (Game State)** - The global state object is used EVERYWHERE. Must be importable/exportable cleanly.
+- **`ANIMATION_TIMINGS`** and **`T()`** - Animation timing constants and speed multiplier helper
+- **`SoundFX`** - Sound system used throughout
+- **`toast()`** - Notification system called from many places
+- **Helper functions** - `getLevel()`, `rollDice()`, `render()`, `saveGame()` are called cross-module
+
+### Key Considerations
+1. **Deployment simplicity** - Preston values single-file deployment. Consider a simple build step (esbuild/rollup) to concatenate back to single file for production.
+2. **No framework** - Keep it vanilla JS. Don't introduce React/Vue/etc.
+3. **PWA must still work** - manifest.json, service worker, offline capability
+4. **Test thoroughly** - Many interconnected systems. Test combat, neutrals, save/load, controller support.
+
+### Code Section Reference (approximate line numbers as of Nov 2025)
+- CSS styles: lines 1-1650
+- Constants (HEROES, ENEMIES, etc.): 1650-2400
+- ANIMATION_TIMINGS: ~2400-2460
+- SoundFX: ~2575-2870
+- Game State S: ~2875-3020
+- Save/Load: ~3250-3550
+- Combat Engine: ~4750-6460
+- Level Up: ~6745-6900
+- Neutrals: ~7400-9100
+- The Pond: ~9130-9380
+- Death Screen: ~9385-9550
+- Win/Victory: ~9857-10050
+- Ribbleton Hub: ~10066-10140
+- Settings/Debug: ~10140-10400
+- Controller: ~10700-11200
+
+### Preston's Preferences
+- Likes clean, simple solutions over over-engineering
+- Values the "just works" single-file deployment
+- Game is near completion - this is polish/maintainability work
+- Balatro/Inscryption energy, not mobile game retention loops
