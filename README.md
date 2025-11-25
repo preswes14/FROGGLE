@@ -10,24 +10,24 @@ Works on desktop and mobile browsers!
 
 ## About
 
-FROGGLE is a (f)roguelike dungeon crawler featuring:
-- 4 unique hero classes (plus unlockable Tapo!)
-- 20 floors of challenging encounters
-- 10 unique upgradable sigils with powerful abilities
-- Permanent progression system
-- Two game modes: Standard and Effed Up
-- Strategic turn-based combat
-- Manual save system (via Settings menu)
+FROGGLE is a weirdly empowering (f)roguelike dungeon crawler featuring:
 - An adorable Tadpole named Tapo who you MUST SAVE!
+- 4 unique hero classes (can you unlock the secret 5th hero!?)
+- 9 encounters, each with a hidden unlockable second stage (find them all!)
+- 18 strategic combat floors, from punk goblins to the terrifying FLYDRA
+- 7 unique upgradable active abilities with powerful effects
+- 3 passive abilities that the whole team benefits from upgrading
+- Spend gold on death to buy PERMANENT upgrades for your party!
+- The chance to swing ANY battle at ANY time with a lucky roll!
+- A hidden game mode - FROGGED UP mode - (once you clear standard)
+- Rich, strategic turn-based combat
+- All kinds of secrets and easter eggs!
+
 
 ## For Beta Testers
 
 Just visit the link above and click "Play FROGGLE"!
 
-The game works great on:
-- Desktop browsers (Chrome, Firefox, Safari, Edge)
-- Mobile browsers (iOS Safari, Chrome)
-- **iOS tip:** Add to Home Screen for the best experience!
 
 ## Repository Structure
 
@@ -46,4 +46,4 @@ The game is a single HTML file with embedded JavaScript and CSS, using the asset
 
 ---
 
-Made with ❤️ by Preston
+Made by Preston and Claude, please don't steal it please!
