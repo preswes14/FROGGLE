@@ -2128,28 +2128,50 @@ function triggerScreenShake(heavy = false) {
     heavy ? ANIMATION_TIMINGS.SCREEN_SHAKE_HEAVY : ANIMATION_TIMINGS.SCREEN_SHAKE);
 }
 
-// Confetti celebration
+// Confetti celebration - with frog theme!
 function spawnConfetti(count = 50) {
   const container = document.createElement('div');
   container.className = 'confetti-container';
   document.body.appendChild(container);
 
-  const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3', '#1dd1a1'];
+  // Frog-friendly colors (greens, golds, lily pad colors)
+  const colors = ['#22c55e', '#16a34a', '#4ade80', '#fbbf24', '#84cc16', '#10b981', '#34d399', '#a3e635'];
+  const frogEmojis = ['🐸', '🐸', '🐸', '🪷', '💚', '✨'];
 
   for (let i = 0; i < count; i++) {
     const confetti = document.createElement('div');
     confetti.className = 'confetti';
     confetti.style.left = Math.random() * 100 + '%';
-    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
     confetti.style.animationDelay = Math.random() * 0.5 + 's';
     confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
 
-    // Random shapes
-    if (Math.random() > 0.5) {
-      confetti.style.borderRadius = '50%';
-    } else if (Math.random() > 0.5) {
-      confetti.style.width = '8px';
-      confetti.style.height = '14px';
+    const rand = Math.random();
+    if (rand < 0.2) {
+      // 20% chance: Frog emoji
+      confetti.style.backgroundColor = 'transparent';
+      confetti.style.width = 'auto';
+      confetti.style.height = 'auto';
+      confetti.style.fontSize = (16 + Math.random() * 16) + 'px';
+      confetti.textContent = frogEmojis[Math.floor(Math.random() * frogEmojis.length)];
+    } else if (rand < 0.35) {
+      // 15% chance: Tiny Tapo image
+      confetti.style.backgroundColor = 'transparent';
+      confetti.style.width = (20 + Math.random() * 15) + 'px';
+      confetti.style.height = 'auto';
+      const img = document.createElement('img');
+      img.src = 'assets/tapo-icon.png';
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      confetti.appendChild(img);
+    } else {
+      // 65% chance: Colored shapes
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      if (Math.random() > 0.5) {
+        confetti.style.borderRadius = '50%';
+      } else if (Math.random() > 0.5) {
+        confetti.style.width = '8px';
+        confetti.style.height = '14px';
+      }
     }
 
     container.appendChild(confetti);
@@ -2158,23 +2180,33 @@ function spawnConfetti(count = 50) {
   setTimeout(() => container.remove(), ANIMATION_TIMINGS.CONFETTI_DURATION + 500);
 }
 
-// Combo counter display
-function showCombo(hitNumber) {
-  if (hitNumber < 2) return;
+// Damage counter display - shows cumulative damage during a hero's turn
+function showDamageCounter(totalDamage) {
+  if (totalDamage < 5) return;
 
-  const combo = document.createElement('div');
-  combo.className = 'combo-counter';
-  combo.textContent = `${hitNumber}x HIT!`;
+  // Remove existing counter if any
+  const existing = document.querySelector('.combo-counter');
+  if (existing) existing.remove();
 
-  if (hitNumber >= 5) {
-    combo.style.fontSize = '5rem';
-    combo.style.color = '#ff6b6b';
-  } else if (hitNumber >= 3) {
-    combo.style.fontSize = '4.5rem';
+  const counter = document.createElement('div');
+  counter.className = 'combo-counter';
+  counter.textContent = `${totalDamage} DMG!`;
+
+  // Scale up for bigger damage
+  if (totalDamage >= 20) {
+    counter.style.fontSize = '6rem';
+    counter.style.color = '#ff6b6b';
+    counter.style.textShadow = '0 4px 8px rgba(0,0,0,0.8), 0 0 40px #ff6b6b';
+  } else if (totalDamage >= 15) {
+    counter.style.fontSize = '5.5rem';
+    counter.style.color = '#ff9f43';
+  } else if (totalDamage >= 10) {
+    counter.style.fontSize = '5rem';
+    counter.style.color = '#feca57';
   }
 
-  document.body.appendChild(combo);
-  setTimeout(() => combo.remove(), ANIMATION_TIMINGS.COMBO_DISPLAY);
+  document.body.appendChild(counter);
+  setTimeout(() => counter.remove(), ANIMATION_TIMINGS.COMBO_DISPLAY);
 }
 
 // Animate counter pop (for XP/gold changes)
@@ -2399,6 +2431,7 @@ encampmentEarlyKills: 0,           // Number of enemies to kill early
 d20HeroIdx: -1,     // Hero index for D20 action targeting
 grappleRepeats: 0,  // Number of grapple repeats for recoil calculation
 grappleLevel: 0,    // Grapple level for recoil calculation
+turnDamage: 0,      // Damage dealt during current hero's turn (for damage counter)
 
 // ===== NEUTRAL ENCOUNTER STATE (resets each encounter) =====
 neutralDeck: [],    // Deck of neutral encounter IDs
@@ -4282,7 +4315,7 @@ function combat(f) {
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
-S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0;
+S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -4961,12 +4994,6 @@ if(action === 'Attack') {
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
 
-// JUICE: Show combo counter for multi-hit attacks
-const currentHit = S.totalInstances - S.instancesRemaining;
-if(S.totalInstances > 1 && currentHit > 0) {
-showCombo(currentHit);
-}
-
 const targetDetails = [];
 const damagedEnemyIds = [];
 // First pass: Apply damage to all targets
@@ -4979,6 +5006,8 @@ damagedEnemyIds.push(e.id);
 applyDamageToTarget(e, pow, {isHero: false, skipRewards: false});
 const hpAfter = e.h;
 targetDetails.push({name: e.n, before: hpBefore, after: hpAfter});
+// Track turn damage for damage counter
+S.turnDamage += pow;
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && e.n === 'Wolf') {
 console.log('[TUTORIAL] Wolf took damage! HP now:', e.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
@@ -5000,6 +5029,8 @@ showFloatingNumber(id, `-${pow}`, isBigHit ? 'critical' : 'damage', idx * 15);
 if(damagedEnemyIds.length > 0) {
 SoundFX.play(pow >= 5 ? 'crit' : 'hit');
 if(pow >= 5) triggerScreenShake(pow >= 10);
+// Show cumulative damage counter for this hero's turn
+showDamageCounter(S.turnDamage);
 }
 // Third pass: Handle deaths and cleanup
 const deadEnemies = [];
@@ -5186,6 +5217,7 @@ S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
 S.totalInstances = 0;
 S.activeIdx = nextHeroIdx;
+S.turnDamage = 0; // Reset damage counter for next hero
 toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
 render();
 return;
@@ -5203,6 +5235,7 @@ S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
 S.totalInstances = 0;
 S.activeIdx = -1;
+S.turnDamage = 0; // Reset damage counter for next hero's turn
 
 // RIBBLETON TUTORIAL: Check advancement after action using TutorialManager
 const h = S.heroes[heroIdx];
