@@ -173,7 +173,7 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
 .game-area.fade-in { animation: fadeIn 0.2s ease forwards; }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; }
+.btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.2); }
 .btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .btn:active { transform: translateY(4px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15); }
@@ -211,11 +211,11 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   align-items: center;
   justify-content: center;
 }
-.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; }
+.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
 .choice:hover { transform: translateY(-2px); background: #f9f9f9; box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.15); }
 .choice:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .choice:active { transform: translateY(4px) scale(0.98); background: #f0f0f0; box-shadow: 0 0 0 rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.1); }
-.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 14px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15); transition: all 0.15s ease; }
+.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 14px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
 .neutral-btn:hover { transform: translateY(-1px); opacity: 0.95; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 10px rgba(0,0,0,0.2); }
 .neutral-btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15); }
@@ -322,7 +322,8 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   width: 100%;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-.card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; }
+.card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; overflow: hidden; word-wrap: break-word; }
+.card-stats { font-size: 0.8rem; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
 .card.hero { background: #2c63c7; color: white; width: 160px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 .card.enemy { background: #b64141; color: white; width: 160px; }
 .card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
@@ -965,6 +966,9 @@ body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b
   text-align: center;
   font-size: 0.8rem;
   margin-top: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .combat-header {
@@ -1483,13 +1487,31 @@ body.controller-active .toast {
   border: none;
   cursor: pointer;
   z-index: 20;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 .hero-select-btn:hover, .hero-select-btn:focus {
   background: rgba(251, 191, 36, 0.2);
 }
 .hero-select-btn.controller-focus {
-  background: rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.35);
+  box-shadow: inset 0 0 0 4px #fbbf24;
+}
+/* Show hero name label on controller focus */
+.hero-select-btn.controller-focus::after {
+  content: attr(data-hero);
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fbbf24;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: capitalize;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .hero-select-btn:nth-child(2) { left: 0; width: 25%; }
 .hero-select-btn:nth-child(3) { left: 25%; width: 25%; }
@@ -1888,10 +1910,9 @@ triggerHitAnimation(id);
 showFloatingNumber(id, `-${dmg}`, dmg >= 5 ? 'critical' : 'damage', idx * 15);
 });
 
-// JUICE: Sound and screen shake for enemy attacks
+// JUICE: Sound for enemy attacks (screen shake only on defeat/last stand)
 if(damagedIds.length > 0) {
 SoundFX.play(dmg >= 5 ? 'crit' : 'hit');
-if(dmg >= 5) triggerScreenShake(dmg >= 10);
 }
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 
@@ -2068,6 +2089,7 @@ if(options.isHero) {
 // Heroes enter Last Stand
 target.ls = true;
 target.lst = 0;
+triggerScreenShake(true); // Heavy shake on entering last stand
 if(!options.silent) {
 // LAYER 2: Extended toast duration (3000ms instead of default)
 toast(`${target.n} entered Last Stand!`, 3000);
@@ -5447,10 +5469,9 @@ const isBigHit = pow >= 5;
 showFloatingNumber(id, `-${pow}`, isBigHit ? 'critical' : 'damage', idx * 15);
 });
 
-// JUICE: Sound and screen shake
+// JUICE: Sound (screen shake only on defeat/last stand)
 if(damagedEnemyIds.length > 0) {
 SoundFX.play(pow >= 5 ? 'crit' : 'hit');
-if(pow >= 5) triggerScreenShake(pow >= 10);
 // Show cumulative damage counter for this hero's turn
 showDamageCounter(S.turnDamage);
 }
@@ -5474,6 +5495,7 @@ if(e.n === 'Goblin') tutorialState.goblinKilled = true;
 // Remove dead enemies after short delay for knockout animation
 if(deadEnemies.length > 0) {
 SoundFX.play('death');
+triggerScreenShake(true); // Heavy shake on enemy defeat
 setTimeout(() => {
 deadEnemies.forEach(e => {
 S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
@@ -5581,13 +5603,8 @@ const hpAfter = enemy.h;
 const isBigHit = dmg >= 10;
 showFloatingNumber(enemy.id, `-${dmg}`, isBigHit ? 'critical' : 'damage');
 
-// JUICE: Sound effect
+// JUICE: Sound effect (screen shake only on defeat/last stand)
 SoundFX.play(isBigHit ? 'crit' : 'hit');
-
-// JUICE: Screen shake for big hits
-if (isBigHit) {
-  triggerScreenShake(dmg >= 20);
-}
 
 // Show damage toast
 toast(`${getEnemyDisplayName(enemy)} took ${dmg} damage (❤${hpBefore}→❤${hpAfter})!`);
@@ -5606,6 +5623,7 @@ if(enemy.h <= 0 && enemy.g === 0) {
 // JUICE: Knockout animation and death sound
 triggerKnockout(enemy.id);
 SoundFX.play('death');
+triggerScreenShake(true); // Heavy shake on enemy defeat
 
 // RIBBLETON TUTORIAL: Track Wolf/Goblin kills
 if(tutorialState && S.floor === 0) {
