@@ -14,45 +14,60 @@ FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all g
 - Default to Sonnet for coding; use Opus for architecture/balance analysis
 - Keep it simple - no frameworks, no over-engineering
 
-## Planned: Code Modularization
+## Code Modularization
 
-**Status:** Ready to implement
+**Status:** Implemented ✓
 
-### The Plan
-Split monolith into ES modules, concatenate back to single file for production (best of both worlds).
+### Structure
+The monolith is now split into modular source files that concatenate back to `index.html` for production.
 
 ```
 src/
-├── constants.js      # HEROES, ENEMIES, SIGILS, DEATH_QUOTES, ANIMATION_TIMINGS
-├── sounds.js         # SoundFX object and all sound definitions
-├── state.js          # Game state `S`, save/load functions
-├── combat.js         # Combat engine, render(), enemy turns
-├── neutrals.js       # All 9 neutral encounters
-├── ui.js             # Animations, toasts, tooltips, modals
-├── screens.js        # title, Ribbleton, Pond, death, levelUp, win
-├── controller.js     # GamepadController (Steam Deck)
-└── main.js           # Entry point, init, event listeners
+├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (934 lines)
+├── sounds.js         # SoundFX Web Audio API system (286 lines)
+├── state.js          # Game state `S`, upd(), animations, toast, save/load (842 lines)
+├── neutrals.js       # Neutral deck, encounters, combat, title/hero select, level up (5394 lines)
+├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (1020 lines)
+├── settings.js       # Debug, Settings, FAQ (1579 lines)
+├── controller.js     # GamepadController for Steam Deck (761 lines)
+└── main.js           # Init and window.onload (67 lines)
+
+build/
+├── template_head.html  # HTML/CSS before <script>
+├── template_foot.html  # HTML after </script>
+└── combined.js         # Concatenated JS output
+
+build.sh              # Concatenate modules → index.html
+extract.sh            # Extract modules from index.html
 ```
 
-### Watch Out For
-- **`S`** - Global state object used everywhere
-- **`SoundFX`**, **`toast()`**, **`T()`** - Called cross-module
+### Build Commands
+```bash
+./build.sh            # Rebuild index.html from src/ modules
+./extract.sh          # Re-extract modules from index.html (if needed)
+```
+
+### Key Globals (used across modules)
+- **`S`** - Central game state object
+- **`SoundFX`** - Audio system
+- **`toast()`**, **`T()`** - UI helpers
 - **`getLevel()`, `rollDice()`, `render()`, `saveGame()`** - Shared helpers
 
-### Code Sections (approx line numbers, Nov 2025)
-| Section | Lines |
-|---------|-------|
-| CSS | 1-1650 |
-| Constants | 1650-2400 |
-| SoundFX | 2575-2870 |
-| Game State S | 2875-3020 |
-| Save/Load | 3250-3550 |
-| Combat | 4750-6460 |
-| Level Up | 6745-6900 |
-| Neutrals | 7400-9100 |
-| The Pond | 9130-9380 |
-| Death Screen | 9385-9550 |
-| Win/Victory | 9857-10050 |
-| Ribbleton | 10066-10140 |
-| Settings | 10140-10400 |
-| Controller | 10700-11200 |
+### Module Dependency Order
+1. constants.js (no deps)
+2. sounds.js (no deps)
+3. state.js (needs constants, sounds)
+4. neutrals.js (needs all above)
+5. screens.js (needs all above)
+6. settings.js (needs all above)
+7. controller.js (needs state)
+8. main.js (init, must be last)
+
+### Editing Workflow
+1. Edit files in `src/`
+2. Run `./build.sh` to rebuild `index.html`
+3. Test in browser
+4. Commit both `src/` and `index.html`
+
+### Note on neutrals.js
+The `neutrals.js` file is large (5394 lines) because it contains the combat engine, all 9 neutral encounters, title/hero selection, level up system, and floor progression. Future refactoring could split this further if needed.
