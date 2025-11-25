@@ -5217,7 +5217,7 @@ S.currentInstanceTargets = [];
 S.instancesRemaining = 0;
 S.totalInstances = 0;
 S.activeIdx = nextHeroIdx;
-S.turnDamage = 0; // Reset damage counter for next hero
+// Keep turnDamage - Alpha bonus turns count as same turn for damage counter
 toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
 render();
 return;
