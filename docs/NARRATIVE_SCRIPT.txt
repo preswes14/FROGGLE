@@ -1,0 +1,422 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    FROGGLE - COMPLETE NARRATIVE SCRIPT
+                   All story/dialogue content. Edit freely!
+═══════════════════════════════════════════════════════════════════════════════
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                           ACT 1: INTRO (New Player)
+═══════════════════════════════════════════════════════════════════════════════
+
+[SLIDE 1: Welcome to Ribbleton]
+───────────────────────────────
+"In the beautiful, tranquil town of Ribbleton, today is a very special day!!
+
+Why?"
+
+
+[SLIDE 2: Tapo's First Birthday]
+────────────────────────────────
+"The village's youngest tadpole, Tapo, turns one today!"
+
+
+[SLIDE 3: A Special Gift]
+─────────────────────────
+"Mage promised to teach Tapo how to catch flies as a birthday gift! Together
+they head to the village square to find some."
+
+
+[OVERLAY: Combat Tutorial]
+──────────────────────────
+"Two flies are buzzing around!
+
+Help Mage catch them for Tapo's birthday!"
+
+[BUTTON: "Let's catch flies!"]
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                          ACT 2: PORTAL INVASION
+═══════════════════════════════════════════════════════════════════════════════
+
+[After catching flies]
+──────────────────────
+"Mage and Tapo catch all the flies! Tapo squeals with delight as they share
+the tasty treats together."
+
+
+[SLIDE: DANGER!]
+────────────────
+"Suddenly, a dark portal tears open in the square! Tank, Warrior, and Healer
+rush to defend Tapo and Mage!"
+
+
+[COMBAT OVERLAY]
+────────────────
+"A Goblin and a Wolf appear from the portal!
+
+Tank and Mage stand guard around Tapo while Warrior and Healer charge toward
+the portal!"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                           ACT 3: TAPO MISSING
+═══════════════════════════════════════════════════════════════════════════════
+
+[SLIDE 1]
+─────────
+"The few enemies remaining around Ribbleton scamper back into the portal.
+Relieved, the frog heroes sheathe their weapons and look for Tapo - but he's
+missing!!"
+
+
+[SLIDE 2]
+─────────
+"As the Ribbletonians search high and low, the heroes realize there's only one
+possibility - the poor tadpole has squiggled his way through the portal!"
+
+
+[SLIDE 3]
+─────────
+"The townspeople gather around the heroes. 'You must bring him home!' they
+plead. The heroes nod solemnly - Ribbleton will be their sanctuary, and they'll
+return here between each rescue attempt."
+
+
+[TITLE CARD]
+────────────
+              FROGGLE
+          A Froggy Roguelike
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                      FLOOR NAMES (Combat Interstitials)
+═══════════════════════════════════════════════════════════════════════════════
+
+Floor 1  - Goblin Horde
+Floor 3  - Wolf Pack
+Floor 5  - Orc Wall
+Floor 7  - Giant's Descent
+Floor 9  - Troll Lair
+Floor 11 - Goblin Army
+Floor 13 - Wolf Swarm
+Floor 15 - Dragon's Nest
+Floor 17 - Chaos Legion
+Floor 19 - Lair of the Flydra
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                           DEATH (First Time)
+═══════════════════════════════════════════════════════════════════════════════
+
+[Death Boy appears]
+───────────────────
+"Oh hey, it's you! I'm the one who's been giving you tips along the way."
+
+"I'm supposed to take you to the next life… but you're not from this realm,
+are you?"
+
+
+[Player chooses: "Yes, I'm from Ribbleton!"]
+────────────────────────────────────────────
+"Ribbleton! I thought so. Not many travelers make it here from other realms."
+
+
+[Player chooses: "No, I sure am from this realm!"]
+──────────────────────────────────────────────────
+"Is that so? Well, regardless of where you're from..."
+
+
+[Continues - both paths]
+────────────────────────
+"Well, it might be more profitable for BOTH of us if I don't, you know… kill
+you. I have another arrangement in mind."
+
+(Then shows Death Boy's upgrade shop)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                      FIRST STANDARD VICTORY (8 slides)
+═══════════════════════════════════════════════════════════════════════════════
+
+[SLIDE 1]
+─────────
+"After 20 grueling floors, your heroes finally found him - Tapo the Tadpole,
+happily playing with a collection of strange glowing figurines!"
+
+
+[SLIDE 2]
+─────────
+"The little tadpole squeaked excitedly as the heroes approached. Around him lay
+scattered statues - each one depicting a heroic frog warrior."
+
+
+[SLIDE 3]
+─────────
+"The heroes carefully gathered the mysterious figurines. As they held them, the
+statues pulsed with magical energy..."
+
+
+[SLIDE 4]
+─────────
+"They found an ancient pedestal nearby, covered in glowing runes. Instinctively,
+they placed the figurines upon it - and felt power surge through them!"
+
+
+[SLIDE 5]
+─────────
+"With Tapo safely in the Warrior's arms and their new treasures secured, the
+heroes stepped back through the portal..."
+
+
+[SLIDE 6]
+─────────
+"The portal deposited them back in Ribbleton's square. The townspeople erupted
+in cheers as the heroes emerged victorious!"
+
+
+[SLIDE 7]
+─────────
+"Exhausted but triumphant, the heroes decided to rest and celebrate their
+victory. They set Tapo down for just a moment..."
+
+
+[SLIDE 8]
+─────────
+"But when they turned around... Tapo was gone! The portal behind them shimmered
+ominously. That mischievous little tadpole must have hopped back through!"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                       SUBSEQUENT STANDARD VICTORIES
+═══════════════════════════════════════════════════════════════════════════════
+
+"VICTORY!
+
+You saved Tapo the Tadpole!"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                   OLD TAPO ENCOUNTER (Floor 20, FU Mode)
+═══════════════════════════════════════════════════════════════════════════════
+
+[Old Tapo appears - title: "The Master of Space and Time"]
+──────────────────────────────────────────────────────────
+"Tapo, you say? Yes…. I was called Tapo once, before I mastered the mysteries
+of space and time. Save me? Why, I need no saving… In fact…."
+
+
+[Transforms]
+────────────
+"Tapo Unlocked!
+
+Baby Tapo has been added to your hero roster!
+Stats: 1 HP / 1 POW
+Starts with ALL active sigils!"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            FIRST FU VICTORY
+═══════════════════════════════════════════════════════════════════════════════
+
+"FROGGED UP MODE CONQUERED!
+
+You defeated the hardest challenge in FROGGLE.
+I genuinely did not think anyone would beat this.
+
+Thank you for playing. <3"
+
+
+[Credits]
+─────────
+"FROGGLE
+
+A game by Preston Wesner
+Design, Art, & Code: Preston
+Playtesting: [Your Name Here]
+Inspiration: Slay the Spire, Balatro, and too much coffee
+Made with love in 2024"
+
+
+[Tapo Unlock]
+─────────────
+"TAPO UNLOCKED!
+
+Tapo the Tadpole is now available as a playable hero!
+Stats: 1 POW, 1 HP - Has access to ALL sigils in the Sigilarium
+(Glass cannon mode activated)"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                         SUBSEQUENT FU VICTORIES
+═══════════════════════════════════════════════════════════════════════════════
+
+"VICTORY!
+
+You conquered the Frogged Up realm once again!
+Impressive."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                  TAPO IN PARTY VICTORY (First time with Tapo alive)
+═══════════════════════════════════════════════════════════════════════════════
+
+"VICTORY!
+
+Holy frog. I can't believe you put this much time into my silly little game.
+
+From the bottom of my heart, thank you for playing.
+
+I hope you had fun!
+
+-Preston
+
+<3"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            THE POND (Flavor)
+═══════════════════════════════════════════════════════════════════════════════
+
+[Header]
+────────
+"The Pond
+
+A quiet place to reflect on adventures past..."
+
+
+[If empty]
+──────────
+"The water is still... Your lily pads will appear here after your first
+adventure."
+
+
+═══════════════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════════════
+                         SUGGESTED ADDITIONS (NEW)
+═══════════════════════════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════════════
+
+
+───────────────────────────────────────────────────────────────────────────────
+ADDITION 1: FU MODE UNLOCK (After first Standard victory, before Champions)
+───────────────────────────────────────────────────────────────────────────────
+
+[SLIDE - appears after first victory cutscene ends]
+
+"As the heroes celebrated, an elder approached with a grave expression.
+
+'You've proven yourselves against the portal's minions,' she croaked. 'But
+there is another realm - one where the creatures are... different. Stronger.
+Meaner. We call it the Frogged Up realm.'
+
+She gestured toward the Champions' Hall. 'Should you ever wish to test
+yourselves against true madness, seek the orange portal within.'"
+
+[BUTTON: "I'll keep that in mind..."]
+
+
+───────────────────────────────────────────────────────────────────────────────
+ADDITION 2: DEATH BOY'S DEAL EXPLAINED
+───────────────────────────────────────────────────────────────────────────────
+
+[After "I have another arrangement in mind" - new slide]
+
+"Here's the deal: You give me some of that delicious experience you've
+gathered, and I'll... look the other way. Let you hop back to Ribbleton.
+
+The more XP you sacrifice, the more I can... enhance... your next attempt.
+Think of it as investing in your own resurrection. Everyone wins! Well, except
+whoever you took that XP from. They're very dead."
+
+[Shows XP sacrifice options]
+
+
+───────────────────────────────────────────────────────────────────────────────
+ADDITION 3: RIBBLETON HUB (Returning between runs)
+───────────────────────────────────────────────────────────────────────────────
+
+[First return to Ribbleton after a death]
+
+"The portal spat you back into Ribbleton's square. The townspeople pretended
+not to notice. They'd seen this before.
+
+A few nodded sympathetically. One handed you a warm fly pastry.
+
+'Rest up,' someone muttered. 'Tapo's still in there somewhere.'"
+
+
+[Subsequent returns - rotate randomly]
+
+Option A: "Home again. The lily pads look particularly peaceful today."
+
+Option B: "Ribbleton welcomes you back. The portal hums ominously in the
+distance."
+
+Option C: "Another day, another attempt. The frogs believe in you. Mostly."
+
+Option D: "The townspeople wave. 'Any luck?' You shake your head. They nod
+knowingly."
+
+
+───────────────────────────────────────────────────────────────────────────────
+ADDITION 4: CHAMPIONS HALL INTRO (First visit)
+───────────────────────────────────────────────────────────────────────────────
+
+[First time entering Champions menu]
+
+"Welcome to the Champions' Hall!
+
+This is where Ribbleton's greatest warriors prepare for battle. Choose your
+party wisely - each hero brings unique strengths.
+
+Starting out? Try Warrior and Healer. Warrior hits hard, Healer keeps everyone
+alive. A classic combo that's carried many adventurers to Floor 19 and beyond."
+
+
+───────────────────────────────────────────────────────────────────────────────
+ADDITION 5: PEDESTAL INTRO (First visit)
+───────────────────────────────────────────────────────────────────────────────
+
+[First time seeing Pedestal after earning figurines]
+
+"The ancient pedestal glows with mysterious runes.
+
+Heroes who survive victory may place figurines here - small statues imbued with
+their essence. Each figurine permanently strengthens that hero for all future
+adventures.
+
+A hero can earn up to two figurines per difficulty mode. Choose wisely whether
+to boost their Power or their Health."
+
+
+───────────────────────────────────────────────────────────────────────────────
+ADDITION 6: SKIP TUTORIAL (Improved)
+───────────────────────────────────────────────────────────────────────────────
+
+[Current - replace]
+
+OLD: "Alright champ! You're on your own - get going and save Tapo!"
+
+NEW: "Skipping the scenic route, eh? Can't blame you.
+
+Here's the gist: Tapo's lost in the portal. Bad guys everywhere. Click sigils
+to do things. Don't die.
+
+...Actually, dying's fine. You'll meet someone interesting.
+
+Good luck out there, champ!"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                              EDITING NOTES
+═══════════════════════════════════════════════════════════════════════════════
+
+- All current text is from: src/neutrals.js and src/screens.js
+- Floor names are in: src/combat.js -> getFloorName()
+- Death dialogue: src/neutrals.js -> showDeathIntroDialogue()
+- Victory screens: src/screens.js -> win(), showFirstVictoryCutscene(), etc.
+
+When you finalize edits, I can update the code to match!
+
+═══════════════════════════════════════════════════════════════════════════════
