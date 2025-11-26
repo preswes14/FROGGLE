@@ -47,7 +47,8 @@ wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shi
 orc: { n:'Orc', p:3, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
 giant: { n:'Giant', p:4, h:12, m:12, goldDrop:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
 caveTroll: { n:'Cave Troll', p:5, h:15, m:15, goldDrop:5, x:15, pool:'ANY', gainRate:1, startSigils:1 },
-dragon: { n:'Dragon', p:5, h:25, m:25, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
+dragon: { n:'Dragon', p:5, h:20, m:20, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:1, permSigils:[{s:'Expand',l:1}] },
+flydra: { n:'Flydra', p:5, h:25, m:25, goldDrop:15, x:50, pool:'ANY', gainRate:0, isFlydra:true }
 };
 
 // Enemy emoji icons
@@ -58,7 +59,8 @@ const ENEMY_EMOJI = {
 'Orc': '👹',
 'Giant': '🗿',
 'Cave Troll': '👹',
-'Dragon': '🐉'
+'Dragon': '🐉',
+'Flydra': '🐲'
 };
 
 // Sigil icons - now using extracted PNG images with transparent backgrounds
