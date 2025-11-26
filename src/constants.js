@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '10.0';
+const GAME_VERSION = '10.2';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -218,17 +218,19 @@ return {rolls, best};
 }
 
 // Get display name for enemy with A, B, C suffix if there are duplicates
+// Adds "FU " prefix in Frogged Up mode
 function getEnemyDisplayName(enemy) {
 if (!enemy || !S.enemies) return enemy?.n || '';
+const prefix = S.gameMode === 'fu' ? 'FU ' : '';
 // Count enemies with same base name
 const sameName = S.enemies.filter(e => e.n === enemy.n);
-if (sameName.length <= 1) return enemy.n;
+if (sameName.length <= 1) return prefix + enemy.n;
 // Find position of this enemy among same-named enemies
 const index = sameName.findIndex(e => e.id === enemy.id);
-if (index === -1) return enemy.n;
+if (index === -1) return prefix + enemy.n;
 // Add suffix: A, B, C, etc.
 const suffix = String.fromCharCode(65 + index); // 65 = 'A'
-return `${enemy.n} ${suffix}`;
+return `${prefix}${enemy.n} ${suffix}`;
 }
 
 // Helper for enemy attacks - handles targeting, damage, animations, and toast
