@@ -2046,6 +2046,8 @@ g: base.g,
 x: base.x,
 s: [],
 pool: base.pool,
+maxLevel: base.maxLevel || 1,
+sigilLevels: base.sigilLevels || {},
 gainRate: base.gainRate || 3,
 turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
@@ -2066,6 +2068,12 @@ base.startSigils.forEach(ss => straggler.s.push({sig:ss.s, level:ss.l, perm:fals
 for(let j = 0; j < base.startSigils; j++) {
 drawEnemyStartSigil(straggler, base);
 }
+}
+}
+// Handle startRandom: draw additional random L1 sigils
+if(base.startRandom) {
+for(let j = 0; j < base.startRandom; j++) {
+drawEnemyStartSigil(straggler, base, true);
 }
 }
 if(!S.recruits) S.recruits = [];
