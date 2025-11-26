@@ -547,30 +547,35 @@ toast(`Stole ${gold} Gold from ${getEnemyDisplayName(enemy)}!`);
 } else if(action === 'RECRUIT') {
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
-// Check if hero already has a recruit - if so, replace it
+const recruitName = getEnemyDisplayName(enemy);
+// Remove enemy from enemies array immediately
+S.enemies = S.enemies.filter(e => e.id !== enemyId);
+render();
+// Show confirmation popup
+showRecruitConfirm(recruitName, () => {
+// KEEP: Add recruit
 if(!S.recruits) S.recruits = [];
 const existingRecruitIdx = S.recruits.findIndex(r => r.recruitedBy === heroIdx);
 if(existingRecruitIdx >= 0) {
 const oldRecruit = S.recruits[existingRecruitIdx];
 S.recruits.splice(existingRecruitIdx, 1);
-toast(`${getEnemyDisplayName(enemy)} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
+toast(`${recruitName} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
 } else {
-toast(`${getEnemyDisplayName(enemy)} recruited by ${hero.n}!`, 1500);
+toast(`${recruitName} recruited by ${hero.n}!`, 1500);
 }
-// Remove enemy from enemies array
-S.enemies = S.enemies.filter(e => e.id !== enemyId);
-// Add new recruit to recruits array (max 10 recruits for performance)
 const MAX_RECRUITS = 10;
 if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
-} else {
-toast(`${getEnemyDisplayName(enemy)} recruited but recruits are full! (Max ${MAX_RECRUITS})`, 2000);
 }
-setTimeout(() => {
 render();
 checkCombatEnd();
-}, 300);
+}, () => {
+// DISMISS: Just continue without adding recruit
+toast(`${recruitName} dismissed.`, 1200);
+render();
+checkCombatEnd();
+});
 }
 }
 
@@ -2075,6 +2080,7 @@ v.innerHTML = `
 }
 
 function nextFloor() {
+S.pendingRecruitId = null; // Clear any pending recruit choice
 saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {

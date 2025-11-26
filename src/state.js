@@ -526,6 +526,30 @@ if(window.tutorialCallback) window.tutorialCallback = null;
 }, 50);
 }
 
+function showRecruitConfirm(recruitName, onKeep, onDismiss) {
+const backdrop = document.createElement('div');
+backdrop.className = 'tutorial-modal-backdrop';
+backdrop.innerHTML = `
+<div class="tutorial-modal">
+<h2>Recruit Joined!</h2>
+<p><strong>${recruitName}</strong> wants to fight for you. Keep them?</p>
+<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem">
+<button onclick="confirmRecruit(true)" style="background:#4a4;padding:0.5rem 1rem">Keep</button>
+<button onclick="confirmRecruit(false)" style="background:#c44;padding:0.5rem 1rem">Dismiss</button>
+</div>
+</div>`;
+document.body.appendChild(backdrop);
+window.recruitConfirmCallback = { onKeep, onDismiss };
+}
+
+function confirmRecruit(keep) {
+const callbacks = window.recruitConfirmCallback;
+document.querySelectorAll('.tutorial-modal-backdrop').forEach(b => b.remove());
+window.recruitConfirmCallback = null;
+if(keep && callbacks && callbacks.onKeep) callbacks.onKeep();
+else if(!keep && callbacks && callbacks.onDismiss) callbacks.onDismiss();
+}
+
 function savePermanent() {
 try {
 localStorage.setItem('froggle8_permanent', JSON.stringify({

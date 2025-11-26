@@ -2078,18 +2078,32 @@ drawEnemyStartSigil(straggler, base, true);
 }
 if(!S.recruits) S.recruits = [];
 S.recruits.push(straggler);
+S.pendingRecruitId = straggler.id; // Store for potential dismissal
 outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n} who joins ${hero.n}'s ranks!`;
 toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 1800);
 }
 
 const v = document.getElementById('gameView');
+const buttons = S.pendingRecruitId
+? `<button class="btn" onclick="nextFloor()">Keep Recruit</button><button class="btn" style="background:#c44;margin-left:0.5rem" onclick="dismissPendingRecruit()">Dismiss</button>`
+: `<button class="btn" onclick="nextFloor()">Continue</button>`;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past',
 diceRoll: rollText,
 outcomes: [outcome],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: buttons
 });
+}
+
+function dismissPendingRecruit() {
+if(!S.pendingRecruitId) { nextFloor(); return; }
+const recruit = S.recruits.find(r => r.id === S.pendingRecruitId);
+const recruitName = recruit ? recruit.n : 'Recruit';
+S.recruits = S.recruits.filter(r => r.id !== S.pendingRecruitId);
+S.pendingRecruitId = null;
+toast(`${recruitName} dismissed.`, 1200);
+nextFloor();
 }
 
 function engageEarlyEncampment(heroIdx) {
