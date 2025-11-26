@@ -1721,7 +1721,8 @@ wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shi
 orc: { n:'Orc', p:3, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack2','Shield2'], gainRate:2, startSigils:1 },
 giant: { n:'Giant', p:4, h:12, m:12, goldDrop:6, x:12, pool:'ANY', gainRate:1, startSigils:[{s:'Shield',l:1}] },
 caveTroll: { n:'Cave Troll', p:5, h:15, m:15, goldDrop:5, x:15, pool:'ANY', gainRate:1, startSigils:1 },
-dragon: { n:'Dragon', p:5, h:25, m:25, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:2, permSigils:[{s:'Attack',l:2},{s:'Expand',l:5}], startSigils:2 }
+dragon: { n:'Dragon', p:5, h:20, m:20, goldDrop:10, x:25, pool:'ANY_ADVANCED', gainRate:1, drawsPerTurn:1, permSigils:[{s:'Expand',l:1}] },
+flydra: { n:'Flydra', p:5, h:25, m:25, goldDrop:15, x:50, pool:'ANY', gainRate:0, isFlydra:true }
 };
 
 // Enemy emoji icons
@@ -1732,7 +1733,8 @@ const ENEMY_EMOJI = {
 'Orc': '👹',
 'Giant': '🗿',
 'Cave Troll': '👹',
-'Dragon': '🐉'
+'Dragon': '🐉',
+'Flydra': '🐲'
 };
 
 // Sigil icons - now using extracted PNG images with transparent backgrounds
@@ -3749,7 +3751,7 @@ const floorNames = {
 13: 'Wolf Swarm',
 15: 'Dragon\'s Nest',
 17: 'Chaos Legion',
-19: 'Dungeon of the Hydra'
+19: 'Lair of the Flydra'
 };
 return floorNames[f] || null;
 }
@@ -3825,7 +3827,7 @@ const comp = [];
 for(let i = 0; i < heroCount; i++) comp.push('caveTroll', 'giant', 'orc', 'wolf', 'goblin');
 return comp;
 }
-if(f===19) return Array(heroCount * 3).fill('dragon');
+if(f===19) return Array(heroCount).fill('flydra'); // 1 Flydra head per hero
 return ['goblin'];
 }
 
@@ -3887,6 +3889,17 @@ for(let j = 0; j < base.startSigils; j++) {
 drawEnemyStartSigil(enemy, base);
 }
 }
+}
+// FLYDRA: Special initialization - all sigils at level = hero count
+if(base.isFlydra) {
+enemy.isFlydra = true;
+enemy.flydraState = 'alive'; // 'alive', 'dying', 'reviving'
+enemy.flydraReviveTimer = 0;
+const sigilLevel = S.heroes.length; // L2 normal, L3 in Frogged Up
+const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
+allSigils.forEach(sig => {
+enemy.s.push({sig: sig, level: sigilLevel, perm: true});
+});
 }
 return enemy;
 });
@@ -4568,10 +4581,16 @@ showDamageCounter(S.turnDamage);
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 // Third pass: Handle deaths and cleanup
 const deadEnemies = [];
+const dyingFlydras = [];
 targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 if(e.h <= 0 && e.g === 0) {
+// FLYDRA: Special death handling
+if(e.isFlydra && e.flydraState === 'alive') {
+handleFlydraDeath(e);
+dyingFlydras.push(e);
+} else if(!e.isFlydra) {
 // JUICE: Knockout animation and death sound
 triggerKnockout(e.id);
 deadEnemies.push(e);
@@ -4579,6 +4598,7 @@ deadEnemies.push(e);
 if(tutorialState && S.floor === 0) {
 if(e.n === 'Wolf') tutorialState.wolfKilled = true;
 if(e.n === 'Goblin') tutorialState.goblinKilled = true;
+}
 }
 }
 });
@@ -4593,12 +4613,24 @@ S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
 render();
 }, 200);
 }
+// FLYDRA: Check if all heads are now dying (victory condition)
+if(dyingFlydras.length > 0 && isFlydraDefeated()) {
+SoundFX.play('croak');
+triggerScreenShake(true);
+setTimeout(() => {
+S.enemies = S.enemies.filter(e => !e.isFlydra);
+render();
+checkCombatEnd();
+}, 300);
+} else if(dyingFlydras.length > 0) {
+render(); // Re-render to show flipped cards
+}
 if(targetDetails.length > 0) {
 const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
 toast(`${h.n} attacked ${targetStrings.join(', ')}!`);
 }
 // Check if combat ended
-if(S.enemies.length === 0) {
+if(S.enemies.length === 0 || (S.enemies.every(e => e.isFlydra && e.flydraState !== 'alive'))) {
 render();
 checkCombatEnd();
 }
@@ -4710,6 +4742,22 @@ debugLog('[TUTORIAL] Set wolfDamaged = true');
 
 // Handle enemy death
 if(enemy.h <= 0 && enemy.g === 0) {
+// FLYDRA: Special death handling
+if(enemy.isFlydra && enemy.flydraState === 'alive') {
+handleFlydraDeath(enemy);
+// Check if all Flydra heads are now dying
+if(isFlydraDefeated()) {
+SoundFX.play('croak');
+triggerScreenShake(true);
+setTimeout(() => {
+S.enemies = S.enemies.filter(e => !e.isFlydra);
+render();
+checkCombatEnd();
+}, 300);
+} else {
+render(); // Re-render to show flipped card
+}
+} else if(!enemy.isFlydra) {
 // JUICE: Knockout animation and death sound
 triggerKnockout(enemy.id);
 SoundFX.play('death');
@@ -4727,6 +4775,7 @@ setTimeout(() => {
   render();
   checkCombatEnd();
 }, 300);
+}
 }
 }
 
@@ -4796,7 +4845,79 @@ setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRA
 }
 }
 
+// ===== FLYDRA MECHANICS =====
+/**
+ * Handle Flydra death - grants ghost charges to other heads, enters dying state
+ * Returns true if this was a Flydra (death handled specially), false otherwise
+ */
+function handleFlydraDeath(flydra) {
+if(!flydra.isFlydra) return false;
+
+// Grant ghost charges to all OTHER living Flydra heads
+const ghostCharges = S.heroes.length;
+const otherFlydras = S.enemies.filter(e => e.isFlydra && e.id !== flydra.id && e.flydraState === 'alive');
+
+otherFlydras.forEach(other => {
+other.g = Math.min((other.g || 0) + ghostCharges, 9);
+});
+
+if(otherFlydras.length > 0) {
+toast(`${flydra.n} falls! Grants ${ghostCharges} Ghost to ${otherFlydras.length} other head${otherFlydras.length > 1 ? 's' : ''}!`, 2000);
+}
+
+// Enter dying state - card will flip
+flydra.flydraState = 'dying';
+flydra.h = 0;
+
+return true;
+}
+
+/**
+ * Check if dying Flydras should revive (called at start of enemy turn)
+ */
+function checkFlydraRevival() {
+const dyingFlydras = S.enemies.filter(e => e.isFlydra && e.flydraState === 'dying');
+const aliveFlydras = S.enemies.filter(e => e.isFlydra && e.flydraState === 'alive');
+
+if(dyingFlydras.length === 0) return;
+
+// If any Flydras are still alive, revive the dying ones
+if(aliveFlydras.length > 0) {
+dyingFlydras.forEach(flydra => {
+const reviveHP = Math.ceil(flydra.m / 2); // 50% HP
+flydra.h = reviveHP;
+flydra.flydraState = 'alive';
+toast(`${flydra.n} regenerates with ${reviveHP} HP!`, 1800);
+triggerHealAnimation(flydra.id, reviveHP);
+});
+} else {
+// All Flydras are dying - they all die for real
+dyingFlydras.forEach(flydra => {
+flydra.flydraState = 'dead';
+});
+// Remove all dead Flydras
+S.enemies = S.enemies.filter(e => !e.isFlydra || e.flydraState !== 'dead');
+toast('All Flydra heads defeated!', 2000);
+checkCombatEnd();
+}
+}
+
+/**
+ * Check if Flydra fight is won (all heads dying/dead simultaneously)
+ */
+function isFlydraDefeated() {
+const flydras = S.enemies.filter(e => e.isFlydra);
+if(flydras.length === 0) return false; // No Flydras in this fight
+
+// Victory if all Flydras are in 'dying' state (none alive)
+const aliveFlydras = flydras.filter(f => f.flydraState === 'alive');
+return aliveFlydras.length === 0;
+}
+
 function enemyTurn() {
+// FLYDRA: Check for revival at start of enemy turn
+checkFlydraRevival();
+
 // Safety check: don't start enemy turn if combat has ended
 if(S.enemies.length === 0 || S.heroes.every(h => h.ls)) {
 checkCombatEnd();
@@ -5040,6 +5161,8 @@ setTimeout(() => endEnemyTurn(), delay + T(600));
 }
 
 function executeEnemyTurn(enemy) {
+// FLYDRA: Dying Flydras don't act
+if(enemy.isFlydra && enemy.flydraState === 'dying') { return; }
 if(enemy.st > 0) { toast(`${getEnemyDisplayName(enemy)} is stunned!`); return; }
 if(enemy.alphaActed) {
 toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
@@ -5482,7 +5605,41 @@ html += '</div></div>';
 }
 }
 
-const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+// LAST STAND: Flipped card visual (similar to dying Flydra)
+if(h.ls) {
+const isTargetable = S.pending && needsHeroTarget(S.pending);
+const hasActed = S.acted.includes(i);
+const isActive = S.activeIdx === i;
+let lsClasses = 'card hero last-stand-flipped';
+if(isActive) lsClasses += ' active';
+if(isTargetable) lsClasses += ' targetable';
+if(hasActed) lsClasses += ' acted';
+const isTargeted = S.targets.includes(h.id);
+if(isTargeted) lsClasses += ' targeted';
+let onclick = '';
+if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
+else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
+const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
+html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
+html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
+html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
+html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
+html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
+html += `<div>D20 only!</div>`;
+html += `<div style="font-size:0.65rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
+html += `</div>`;
+// Show shield/ghost if any
+const lsExtra = [];
+if(h.sh > 0) lsExtra.push(`${h.sh}🛡`);
+if(h.g > 0) lsExtra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(hasActed) lsExtra.push('✓');
+if(lsExtra.length > 0) html += `<div style="text-align:center;font-size:0.7rem;color:#f1f5f9">${lsExtra.join(' ')}</div>`;
+html += `</div>`;
+} else {
+// Normal hero card
+const hp = `${h.h}/${h.m}❤`;
 const isActive = S.activeIdx === i;
 const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
@@ -5490,7 +5647,6 @@ let cardClasses = 'card hero';
 if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';
-if(h.ls) cardClasses += ' last-stand';
 const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
@@ -5503,10 +5659,6 @@ if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
-// LAYER 3: Last Stand visual indicator
-if(h.ls) {
-html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem;background:#dc2626;color:white;padding:0.2rem;border-radius:4px;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
-}
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
@@ -5568,6 +5720,7 @@ row2Sigils.forEach(s => html += renderCombatSigil(s));
 html += '</div>';
 }
 html += '</div>';
+} // End of else (normal hero card)
 html += '</div>'; // Close hero section
 
 // Divider between heroes and enemies
@@ -5580,9 +5733,21 @@ if(laneEnemies.length === 0) {
 html += `<div style="flex:1;text-align:center;font-size:1.2rem;padding:1.5rem;background:rgba(0,0,0,0.1);border:3px dashed rgba(0,0,0,0.3);border-radius:8px;color:rgba(0,0,0,0.4);font-style:italic;display:flex;align-items:center;justify-content:center">No Enemies</div>`;
 } else {
 laneEnemies.forEach(e => {
+// FLYDRA: Check if this is a dying Flydra - render flipped card
+if(e.isFlydra && e.flydraState === 'dying') {
+html += `<div id="${e.id}" class="card enemy flydra-dying" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:3px solid #e94560;opacity:0.9">`;
+html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">⚠️ ${e.n} ⚠️</div>`;
+html += `<div style="text-align:center;font-size:2.5rem;margin:0.5rem 0;filter:grayscale(50%)">💀</div>`;
+html += `<div style="text-align:center;font-size:0.75rem;color:#f1f5f9;line-height:1.4;padding:0.5rem">`;
+html += `<div style="font-weight:bold;color:#fbbf24;margin-bottom:0.3rem">REGENERATING...</div>`;
+html += `<div>Revives at ${Math.ceil(e.m/2)} HP next turn unless ALL heads are defeated!</div>`;
+html += `</div></div>`;
+return;
+}
 const isTargetable = (S.pending && needsEnemyTarget(S.pending)) || S.pending === 'D20_TARGET';
 const selectCount = S.targets.filter(t => t === e.id).length;
 let cardClasses = 'card enemy';
+if(e.isFlydra) cardClasses += ' flydra';
 if(isTargetable) cardClasses += ' targetable';
 if(selectCount > 0) cardClasses += ' targeted';
 const extra = [];
@@ -8461,7 +8626,7 @@ outcome = `${hero.n} slips past quietly. The enemies remain unaware.`;
 const comp = getEnemyComp(S.floor + 1);
 const stragglerType = comp[Math.floor(Math.random() * comp.length)];
 const base = E[stragglerType];
-const fuMultiplier = S.gameMode === 'fu' ? 5 : 1;
+const fuMultiplier = S.gameMode === 'fu' ? 3 : 1;
 const straggler = {
 id: `recruit-${crypto.randomUUID()}`,
 n: base.n,

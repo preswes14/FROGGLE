@@ -2035,7 +2035,7 @@ outcome = `${hero.n} slips past quietly. The enemies remain unaware.`;
 const comp = getEnemyComp(S.floor + 1);
 const stragglerType = comp[Math.floor(Math.random() * comp.length)];
 const base = E[stragglerType];
-const fuMultiplier = S.gameMode === 'fu' ? 5 : 1;
+const fuMultiplier = S.gameMode === 'fu' ? 3 : 1;
 const straggler = {
 id: `recruit-${crypto.randomUUID()}`,
 n: base.n,
