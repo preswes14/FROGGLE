@@ -385,7 +385,18 @@ debugLog('[FROGGLE] Slide', currentIndex, 'rendered successfully');
 
 function continueNarrative() {
 const slides = window.currentNarrativeSlides;
+const currentSlide = slides[window.currentNarrativeIndex];
 const nextIndex = window.currentNarrativeIndex + 1;
+
+// Check if current slide has an action that needs to be handled
+if(currentSlide && currentSlide.action && window.firstVictorySlideAction) {
+const handled = window.firstVictorySlideAction(currentSlide.action, window.currentNarrativeIndex, () => {
+// Action complete, continue to next slide
+showNarrativeSlide(slides, nextIndex);
+});
+if(handled) return; // Action handler will call callback when done
+}
+
 showNarrativeSlide(slides, nextIndex);
 }
 
@@ -937,10 +948,10 @@ toggleHeroSelection(heroType);
 
 function updateHeroCards() {
 const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A balanced fighter with strong attacks', callouts: ['Starts with 2 POW', 'Starts with Attack and D20']},
-tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Starts with 10 HP', 'Starts with Shield and D20']},
-mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Attack, D20, and Expand']},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Gets +1 Expand innately (+1 target)', 'Starts with Heal, D20, and Expand']},
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A strong fighter with heavy attacks', callouts: ['Passive bonus: +1 POW', 'Starts with Attack and D20']},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Passive bonus: +5 HP', 'Starts with Shield and D20']},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets', callouts: ['Passive bonus: +1 Expand', 'Starts with Attack, D20, and Expand']},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Passive bonus: +1 Expand', 'Starts with Heal, D20, and Expand']},
 tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!', callouts: ['Starts with ALL 10 sigils', 'Only 1 HP - high risk, high reward!']}
 };
 
@@ -2036,13 +2047,58 @@ outcome = `As you try to sneak by, someone's foot catches on a loose stone! The 
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 1800);
+
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Sneaking Past',
+diceRoll: rollText,
+outcomes: [outcome],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 } else if(best >= 11 && best <= 19) {
 outcome = `You slip past quietly. The enemies remain unaware.`;
+
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Sneaking Past',
+diceRoll: rollText,
+outcomes: [outcome],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 } else {
-// Roll 20 - recruit a straggler
+// Roll 20 - recruit a straggler! Ask which hero should recruit them
 const comp = getEnemyComp(S.floor + 1);
 const stragglerType = comp[Math.floor(Math.random() * comp.length)];
 const base = E[stragglerType];
+
+// Store straggler data for selection
+window.pendingStragglerData = { base, stragglerType };
+
+outcome = `As you sneak by, you spy an enemy straggler who appears to be hiding from the group... It looks like they want to join your party!`;
+
+// Show hero selection for who should recruit
+const v = document.getElementById('gameView');
+let heroButtons = '';
+S.heroes.forEach((h, i) => {
+const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
+heroButtons += `<button class="neutral-btn safe" onclick="assignRecruitToHero(${i})">${h.n} - ${h.p}⚡ | ${hp}</button>`;
+});
+
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Sneaking Past - NAT 20!',
+diceRoll: rollText,
+description: `${outcome}<br><br><strong>Who should recruit the ${base.n}?</strong>`,
+buttons: heroButtons
+});
+}
+}
+
+function assignRecruitToHero(heroIdx) {
+const { base, stragglerType } = window.pendingStragglerData;
+const hero = S.heroes[heroIdx];
 const fuMultiplier = S.gameMode === 'fu' ? 3 : 1;
 const straggler = {
 id: `recruit-${crypto.randomUUID()}`,
@@ -2085,41 +2141,42 @@ drawEnemyStartSigil(straggler, base, true);
 }
 }
 if(!S.recruits) S.recruits = [];
+
 // Check if hero already has a recruit
 const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
 if(existingRecruit) {
 // Store both for replacement choice
 S.pendingNewRecruit = straggler;
 S.pendingOldRecruitId = existingRecruit.id;
-outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n}! But ${hero.n} already has ${existingRecruit.n}...`;
-} else {
-S.recruits.push(straggler);
-outcome = `As you sneak by, you spy an enemy straggler who appears to be hiding from the group... The Recruited ${base.n} looks glad to join ${hero.n}'s side and will fight loyally!`;
-toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 1800);
-}
-}
-
 const v = document.getElementById('gameView');
-let buttons;
-if(S.pendingNewRecruit) {
-const oldName = S.recruits.find(r => r.id === S.pendingOldRecruitId)?.n || 'current';
-const newName = S.pendingNewRecruit.n;
-buttons = `<button class="btn" onclick="keepCurrentRecruit()">Keep ${oldName}</button><button class="btn" style="background:#4a4;margin-left:0.5rem" onclick="replaceWithNewRecruit()">Replace with ${newName}</button>`;
-} else {
-buttons = `<button class="btn" onclick="nextFloor()">Continue</button>`;
-}
+const oldName = existingRecruit.n;
+const newName = straggler.n;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
-title: 'Sneaking Past',
-diceRoll: rollText,
-outcomes: [outcome],
-buttons: buttons
+title: 'Replace Recruit?',
+outcomes: [`${hero.n} already has ${oldName}... Replace them with the new ${newName}?`],
+buttons: `<button class="btn" onclick="keepCurrentRecruit()">Keep ${oldName}</button><button class="btn safe" style="margin-left:0.5rem" onclick="replaceWithNewRecruit()">Replace with ${newName}</button>`
 });
+} else {
+S.recruits.push(straggler);
+const outcome = `The Recruited ${base.n} looks glad to join ${hero.n}'s side and will fight loyally!`;
+toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 1800);
+window.pendingStragglerData = null;
+
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Recruit Joined!',
+outcomes: [outcome],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+}
 }
 
 function keepCurrentRecruit() {
 S.pendingNewRecruit = null;
 S.pendingOldRecruitId = null;
+window.pendingStragglerData = null;
 toast('Kept current recruit.', 1200);
 nextFloor();
 }
@@ -2132,6 +2189,7 @@ S.recruits.push(S.pendingNewRecruit);
 toast(`${S.pendingNewRecruit.n} replaces ${oldRecruit?.n || 'old recruit'}!`, 1500);
 S.pendingNewRecruit = null;
 S.pendingOldRecruitId = null;
+window.pendingStragglerData = null;
 nextFloor();
 }
 

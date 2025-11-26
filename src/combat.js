@@ -351,14 +351,14 @@ if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 12, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
-<strong style="font-size:1.2rem">✅ DC 12: CONFUSE</strong><br>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
+<strong style="font-size:1.2rem">✅ DC 10: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal this enemy's POW to all enemies</span>
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:14, name:'STARTLE', desc:'Stun for 1 turn'},
-{dc:16, name:'MEND', desc:'Heal self for POW'},
+{dc:12, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:15, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
@@ -389,9 +389,9 @@ const lsBonus = (h.lst + 1) * 2;
 html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
-{dc:12, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
-{dc:14, name:'STARTLE', desc:'Stun for 1 turn'},
-{dc:16, name:'MEND', desc:'Heal self for POW'},
+{dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
+{dc:12, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:15, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
