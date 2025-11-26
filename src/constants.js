@@ -34,7 +34,7 @@ const DEATH_QUOTES = [
     "Maybe try making a beer commercial or something?",
     "At least you don't have to cross a busy highway!",
     "Stay out of pots full of lukewarm water!",
-    "Mark Twain keeps my mornings busy *drum lick*",
+    "Mark Twain keeps my mornings busy *rimshot*",
     "\"Analyzing humor is like dissecting a frog\". Know why? Look it up.",
     "Where does \"frog in your throat\" come from? Do you guys know?",
     "Is this tadpole really worth it?",

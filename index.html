@@ -1708,7 +1708,7 @@ const DEATH_QUOTES = [
     "Maybe try making a beer commercial or something?",
     "At least you don't have to cross a busy highway!",
     "Stay out of pots full of lukewarm water!",
-    "Mark Twain keeps my mornings busy *drum lick*",
+    "Mark Twain keeps my mornings busy *rimshot*",
     "\"Analyzing humor is like dissecting a frog\". Know why? Look it up.",
     "Where does \"frog in your throat\" come from? Do you guys know?",
     "Is this tadpole really worth it?",
@@ -7954,7 +7954,7 @@ let goldGain = 0;
 let hpLoss = 0;
 
 if(best === 1) {
-outcome = 'You lose your grip and plummet, smacking your head on the stone! The landing is brutal, and some coins got knocked out of your pouch.';
+outcome = 'You lose your grip and plummet, smacking your head on the stone! The landing is brutal, and some coins get knocked out of your pouch.';
 hpLoss = 3;
 goldGain = -5;
 } else if(best >= 2 && best <= 10) {
@@ -8109,7 +8109,7 @@ if(trapBest === 1) {
 trapOutcome = 'It\'s a trap! Thick, noxious smoke fills the chamber.';
 trapDmg = 3;
 } else if(trapBest >= 2 && trapBest <= 9) {
-trapOutcome = 'It\'s a trap! A hidden dart flies from the wall and strikes you in the neck! Ouch';
+trapOutcome = 'It\'s a trap! A hidden dart flies from the wall and strikes you in the neck! Ouch.';
 trapDmg = 1;
 } else if(trapBest >= 10 && trapBest <= 18) {
 trapOutcome = 'You carefully open the chest without triggering any traps.';
@@ -8664,7 +8664,7 @@ const rollText = showD20Result(rolls, best);
 
 let outcome = '';
 if(best >= 1 && best <= 10) {
-outcome = `As you try to sneak by, someone's foot catches on a loose stone! The resulting clatter draws the enemies right to you before you can prepare. It's an ambush!`;
+outcome = `Well, that's why the enemies set up a trip wire. It worked. It's an ambush!`;
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 1800);
@@ -9144,7 +9144,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Escaping the Ghost Boys',
 diceRoll: rollText,
-outcomes: ['You clear your head and break free from the strange trance. The boys look sad to stop playing, but let you go. "Come back and play sometime... We\'re so lonely.."'],
+outcomes: ['You clear your head and break free from the strange trance. The boys look sad to stop playing, but let you go. "Come back and play sometime... We\'re so lonely..."'],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
@@ -9238,7 +9238,7 @@ title: 'Passing On',
 description: 'The ghost boys stare at each other, then at their translucent hands. "We\'re... we\'re dead. We\'re ghosts."',
 outcomes: [
 'Tears form in their spectral eyes. "We didn\'t know. We want to go home."',
-'They hold hands and embrace you in a ghostly hug. "We would have never figured it out without you. Thank you." They vanish peacefully.',
+'They hold hands and embrace you in a ghostly hug. "We would never have figured it out without you. Thank you." They vanish peacefully.',
 '<span style="color:#22c55e">This room is now an Empty Playroom - you can pass safely in future runs.</span>'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -9262,7 +9262,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
 title: 'Flummoxed Royal',
-description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a strategem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
+description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a stratagem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
 buttons: `
 <button class="btn" onclick="acceptRoyalQuest()">Accept the quest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -9350,7 +9350,7 @@ v.innerHTML = `
 <img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
-"Tapo, you say? Yes.... I was called Tapo once, wasn't I? That was 'Before'.... Before I mastered the speculae of space, the tesseracts of time... before I became one with the universe. You would save me? Why, I need no saving... In a universe of infinite and terrifying possibility, there need be no fear, no hate, no pain."
+"Tapo, you say? Yes... I was called Tapo once, wasn't I? That was 'Before'... Before I mastered the speculae of space, the tesseracts of time... before I became one with the universe. You would save me? Why, I need no saving... In a universe of infinite and terrifying possibility, there need be no fear, no hate, no pain."
 </div>
 <button class="btn" onclick="oldTapoSlide2()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
 </div>`;
@@ -9363,7 +9363,7 @@ v.innerHTML = `
 <img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
-"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood.. There is only love, and joy, and progress... And flies. I have transcended the need for food, but that Flydra sure looked yummy..."
+"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, but that Flydra sure looked yummy..."
 </div>
 <button class="btn" onclick="oldTapoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
 </div>`;
