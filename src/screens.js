@@ -125,9 +125,9 @@ A quiet place to reflect on adventures past...
 
 <!-- Legend -->
 <div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap;font-size:0.85rem">
-<span style="color:#22c55e">🟢 Journey</span>
-<span style="color:#fbbf24">🟡 Victory</span>
-<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">🌈 Frogged Up Win</span>
+<span style="color:#22c55e">🟢 Good Try</span>
+<span style="color:#fbbf24">🟡 Good Job</span>
+${S.fuUnlocked ? `<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">🌈 ${(S.pondHistory || []).some(r => r.gameMode === 'fu') ? 'Frogged Up Win' : 'What the Frog?'}</span>` : ''}
 <span style="color:#64748b;font-size:0.8rem">(bigger = higher floor)</span>
 </div>
 
@@ -135,7 +135,7 @@ ${history.length === 0 ? `
 <div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
 <p style="font-size:2rem;margin-bottom:1rem">🪷</p>
 <p style="color:#94a3b8;font-size:1.1rem">The water is still...</p>
-<p style="color:#64748b;margin-top:0.5rem">Your lily pads will appear here after your first adventure.</p>
+<p style="color:#64748b;margin-top:0.5rem">Lily pads will appear here after your first adventure and grow the further you progress.</p>
 </div>
 ` : `
 <div class="pond-water" style="border-radius:20px;border:3px solid rgba(59,130,246,0.3)">
@@ -376,7 +376,7 @@ if(S.ghostBoysConverted) {
 html += `
 <div style="border-top:2px solid rgba(255,255,255,0.2);padding-top:2rem;margin-top:2rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.5rem;color:#a855f7">The Death Boys</h2>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;font-style:italic;opacity:0.8">"We work for Death now! He's WAY cooler than being ghosts!"</p>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;font-style:italic;opacity:0.8">"We work for Death now! It's WAY cooler than being ghosts!"</p>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
 <!-- Boy 1: Sell Back -->
@@ -512,7 +512,7 @@ showDeathScreen(); // Refresh
 function restartAfterDeath() {
 // Check if player has unspent gold
 if(S.gold >= S.goingRate && !S.tutorialFlags.death_exit_warning) {
-showTutorialPop('death_exit_warning', "Are you sure? This is some great value, and you'll end up giving it to me sooner or later...", () => {
+showTutorialPop('death_exit_warning', "Are you sure? This is some <span style='font-size:0.7em'>great value</span> and you'll end up giving it to me sooner or later...", () => {
 // After tutorial, ask for confirmation
 showConfirmModal('Leave Death Screen with unspent gold?', () => {
 actuallyRestartAfterDeath();
@@ -981,7 +981,7 @@ ${bluePortalUnlocked ? `
 </div>
 
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.9);border:3px solid #22c55e;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
-  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Venture forth on a rescue mission!</p>
+  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Save Tapo!</p>
   ${bluePortalUnlocked ?
     `<p style="font-size:1.1rem;margin:0"><strong>🔵 Blue Portal:</strong> Visit the Champions Hall (Floor 20)</p>` :
     `<p style="font-size:0.9rem;margin:0;opacity:0.6"><em>A mysterious blue portal appears to be locked... Perhaps reaching Floor 20 will unlock it?</em></p>`
