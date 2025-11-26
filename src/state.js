@@ -526,28 +526,28 @@ if(window.tutorialCallback) window.tutorialCallback = null;
 }, 50);
 }
 
-function showRecruitConfirm(recruitName, onKeep, onDismiss) {
+function showRecruitReplaceConfirm(oldName, newName, onKeep, onReplace) {
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
 backdrop.innerHTML = `
 <div class="tutorial-modal">
-<h2>Recruit Joined!</h2>
-<p><strong>${recruitName}</strong> wants to fight for you. Keep them?</p>
+<h2>Replace Recruit?</h2>
+<p>You already have <strong>${oldName}</strong>. Replace with <strong>${newName}</strong>?</p>
 <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem">
-<button onclick="confirmRecruit(true)" style="background:#4a4;padding:0.5rem 1rem">Keep</button>
-<button onclick="confirmRecruit(false)" style="background:#c44;padding:0.5rem 1rem">Dismiss</button>
+<button onclick="confirmRecruitReplace(false)" style="background:#666;padding:0.5rem 1rem">Keep ${oldName}</button>
+<button onclick="confirmRecruitReplace(true)" style="background:#4a4;padding:0.5rem 1rem">Replace with ${newName}</button>
 </div>
 </div>`;
 document.body.appendChild(backdrop);
-window.recruitConfirmCallback = { onKeep, onDismiss };
+window.recruitReplaceCallback = { onKeep, onReplace };
 }
 
-function confirmRecruit(keep) {
-const callbacks = window.recruitConfirmCallback;
+function confirmRecruitReplace(replace) {
+const callbacks = window.recruitReplaceCallback;
 document.querySelectorAll('.tutorial-modal-backdrop').forEach(b => b.remove());
-window.recruitConfirmCallback = null;
-if(keep && callbacks && callbacks.onKeep) callbacks.onKeep();
-else if(!keep && callbacks && callbacks.onDismiss) callbacks.onDismiss();
+window.recruitReplaceCallback = null;
+if(replace && callbacks && callbacks.onReplace) callbacks.onReplace();
+else if(!replace && callbacks && callbacks.onKeep) callbacks.onKeep();
 }
 
 function savePermanent() {

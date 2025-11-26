@@ -550,32 +550,38 @@ const hero = S.heroes[heroIdx];
 const recruitName = getEnemyDisplayName(enemy);
 // Remove enemy from enemies array immediately
 S.enemies = S.enemies.filter(e => e.id !== enemyId);
-render();
-// Show confirmation popup
-showRecruitConfirm(recruitName, () => {
-// KEEP: Add recruit
 if(!S.recruits) S.recruits = [];
-const existingRecruitIdx = S.recruits.findIndex(r => r.recruitedBy === heroIdx);
-if(existingRecruitIdx >= 0) {
-const oldRecruit = S.recruits[existingRecruitIdx];
-S.recruits.splice(existingRecruitIdx, 1);
-toast(`${recruitName} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
+const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
+if(existingRecruit) {
+// Show choice popup: keep current or replace
+render();
+showRecruitReplaceConfirm(existingRecruit.n, recruitName, () => {
+// KEEP current
+toast(`Kept ${existingRecruit.n}.`, 1200);
+render();
+checkCombatEnd();
+}, () => {
+// REPLACE with new
+S.recruits = S.recruits.filter(r => r.recruitedBy !== heroIdx);
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+S.recruits.push(recruit);
+toast(`${recruitName} replaces ${existingRecruit.n}!`, 1500);
+render();
+checkCombatEnd();
+});
 } else {
-toast(`${recruitName} recruited by ${hero.n}!`, 1500);
-}
+// No existing recruit, just add
 const MAX_RECRUITS = 10;
 if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
+toast(`${recruitName} recruited by ${hero.n}!`, 1500);
 }
+setTimeout(() => {
 render();
 checkCombatEnd();
-}, () => {
-// DISMISS: Just continue without adding recruit
-toast(`${recruitName} dismissed.`, 1200);
-render();
-checkCombatEnd();
-});
+}, 300);
+}
 }
 }
 
@@ -2080,7 +2086,9 @@ v.innerHTML = `
 }
 
 function nextFloor() {
-S.pendingRecruitId = null; // Clear any pending recruit choice
+// Clear any pending recruit replacement choice
+S.pendingNewRecruit = null;
+S.pendingOldRecruitId = null;
 saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {

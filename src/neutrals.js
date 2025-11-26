@@ -2077,16 +2077,29 @@ drawEnemyStartSigil(straggler, base, true);
 }
 }
 if(!S.recruits) S.recruits = [];
+// Check if hero already has a recruit
+const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
+if(existingRecruit) {
+// Store both for replacement choice
+S.pendingNewRecruit = straggler;
+S.pendingOldRecruitId = existingRecruit.id;
+outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n}! But ${hero.n} already has ${existingRecruit.n}...`;
+} else {
 S.recruits.push(straggler);
-S.pendingRecruitId = straggler.id; // Store for potential dismissal
 outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n} who joins ${hero.n}'s ranks!`;
 toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 1800);
 }
+}
 
 const v = document.getElementById('gameView');
-const buttons = S.pendingRecruitId
-? `<button class="btn" onclick="nextFloor()">Keep Recruit</button><button class="btn" style="background:#c44;margin-left:0.5rem" onclick="dismissPendingRecruit()">Dismiss</button>`
-: `<button class="btn" onclick="nextFloor()">Continue</button>`;
+let buttons;
+if(S.pendingNewRecruit) {
+const oldName = S.recruits.find(r => r.id === S.pendingOldRecruitId)?.n || 'current';
+const newName = S.pendingNewRecruit.n;
+buttons = `<button class="btn" onclick="keepCurrentRecruit()">Keep ${oldName}</button><button class="btn" style="background:#4a4;margin-left:0.5rem" onclick="replaceWithNewRecruit()">Replace with ${newName}</button>`;
+} else {
+buttons = `<button class="btn" onclick="nextFloor()">Continue</button>`;
+}
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past',
@@ -2096,13 +2109,21 @@ buttons: buttons
 });
 }
 
-function dismissPendingRecruit() {
-if(!S.pendingRecruitId) { nextFloor(); return; }
-const recruit = S.recruits.find(r => r.id === S.pendingRecruitId);
-const recruitName = recruit ? recruit.n : 'Recruit';
-S.recruits = S.recruits.filter(r => r.id !== S.pendingRecruitId);
-S.pendingRecruitId = null;
-toast(`${recruitName} dismissed.`, 1200);
+function keepCurrentRecruit() {
+S.pendingNewRecruit = null;
+S.pendingOldRecruitId = null;
+toast('Kept current recruit.', 1200);
+nextFloor();
+}
+
+function replaceWithNewRecruit() {
+if(!S.pendingNewRecruit || !S.pendingOldRecruitId) { nextFloor(); return; }
+const oldRecruit = S.recruits.find(r => r.id === S.pendingOldRecruitId);
+S.recruits = S.recruits.filter(r => r.id !== S.pendingOldRecruitId);
+S.recruits.push(S.pendingNewRecruit);
+toast(`${S.pendingNewRecruit.n} replaces ${oldRecruit?.n || 'old recruit'}!`, 1500);
+S.pendingNewRecruit = null;
+S.pendingOldRecruitId = null;
 nextFloor();
 }
 
