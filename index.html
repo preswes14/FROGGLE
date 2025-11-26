@@ -1694,16 +1694,26 @@ const HERO_IMAGES = {
 // Death's dialogue lines (cycles through without repeating until all used)
 const DEATH_QUOTES = [
     "Some days you're the sticky tongue, some days you're the fly.",
-    "You must really like pain. Or do you like death? Weirdo.",
+    "You must really like pain or something. Weirdo.",
     "Next time bring me a smoothie or something",
     "Hey, have you met those ghost boys in the dungeon? I can't get them to make.. you know.. the transition. Help them out, would you?",
-    "Death death lemonade, 'round the coroner I parade",
+    "Death death lemonade, 'round the coroner I parade. Hehe!",
     "Ribbit? Ribbbbbit? Rib bit?",
     "Oh man, a classic green. You just know he's a jumper.",
     "Hello my baby, hello my honey.",
-    "If you refuse me, honey you'll lose me",
+    "If you refuse me, honey you'll lose me, and you'll be left alooooooone",
     "You guys should check out the Discovery Channel to see what normal frogs do",
-    "Toadally froggin died, huh?"
+    "Toadally froggin died, huh?",
+    "Send me a kiss by wire, honey my heart's on fire",
+    "Maybe try making a beer commercial or something?",
+    "At least you don't have to cross a busy highway!",
+    "Stay out of pots full of lukewarm water!",
+    "Mark Twain keeps my mornings busy *drum lick*",
+    "\"Analyzing humor is like dissecting a frog\". Know why? Look it up.",
+    "Where does \"frog in your throat\" come from? Do you guys know?",
+    "Is this tadpole really worth it?",
+    "Ohh, it's pronounced Ta-po like Tad-pole, not Tah-po. Duh.",
+    "Play other games by DubsPubs! If those ever exist."
 ];
 
 const H = {
@@ -2287,9 +2297,9 @@ tutorialState.stage = 'shield_sigil';
 upd();
 render();
 // PROMPT 5: Enemy Sigils + Shield (BATCHED)
-showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Defeat him before he can shield!", () => {
+showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Try to defeat him before he can shield!", () => {
 // PROMPT 6: Tooltip + Handoff (BATCHED)
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
 render();
 });
@@ -2303,7 +2313,7 @@ if(!tutorialState || S.floor !== 0) return;
 if(tutorialState.stage === 'enemy_turn_wait') {
 S.locked = true;
 tutorialState.stage = 'enemy_turn_explained';
-showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack every turn, and they attack straight across from them!", () => {
+showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack EVERY turn, and they usually attack straight across from them!", () => {
 S.locked = false;
 });
 }
@@ -3773,14 +3783,14 @@ toast('Warning: Game could not be saved', 2000);
 // ===== FLOOR MANAGEMENT =====
 function getFloorName(f) {
 const floorNames = {
-1: 'Goblin Horde',
+1: 'Goblin Stragglers',
 3: 'Wolf Pack',
 5: 'Orc Wall',
-7: 'Giant\'s Descent',
-9: 'Troll Lair',
-11: 'Goblin Army',
-13: 'Wolf Swarm',
-15: 'Dragon\'s Nest',
+7: 'Fe Fi Fo Fum',
+9: 'Just Trolling',
+11: 'Goblin Legion',
+13: 'Too Many Wolves',
+15: 'Territorial Dragon',
 17: 'Chaos Legion',
 19: 'Lair of the Flydra'
 };
@@ -7048,9 +7058,9 @@ html: `
 <div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-In the beautiful, tranquil town of <strong>Ribbleton</strong>,<br>
-today is a very special day!!<br><br>
-Why?
+Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
+Today is a very special day!!<br><br>
+Why, you ask?
 </p>
 </div>
 `
@@ -7063,7 +7073,7 @@ html: `
 <img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-The village's youngest tadpole, <strong>Tapo</strong>, turns one today!
+Today is Tapo's First birthday!
 </p>
 </div>
 <style>
@@ -7099,8 +7109,7 @@ html: `
 </div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-<strong>Mage</strong> promised to teach Tapo how to catch flies as a birthday gift!<br>
-Together they head to the village square to find some.
+As a birthday gift, <strong>Mage</strong> promised to teach Tapo how to catch flies.
 </p>
 </div>
 <style>
@@ -7133,10 +7142,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
-🪰 <strong>Two flies</strong> are buzzing around! 🪰
-</p>
-<p style="font-size:1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
-Help Mage catch them for Tapo's birthday!
+🪰 Here come two <strong>flies</strong> now - you're up! 🪰
 </p>
 <button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
 </div>`;
@@ -7151,7 +7157,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup
-showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to catch a fly!", () => {
+showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to attack a fly!", () => {
 tutorialState.stage = 'catching_flies';
 render();
 });
@@ -7196,8 +7202,8 @@ v.innerHTML = `
 <div style="text-align:center;padding:2rem">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Mage and Tapo catch all the flies!<br>
-Tapo squeals with delight as they share the tasty treats together. 🎉
+Tapo squeals with delight as you knock the flies out of the air!<br>
+Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton. 🎉
 </p>
 <button onclick="transitionToPortalInvasion()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1rem">Continue</button>
 </div>`;
@@ -7215,8 +7221,8 @@ html: `
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
 </div>
 <p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
-Suddenly, <strong>a dark portal</strong> tears open in the square!<br>
-Tank, Warrior, and Healer rush to defend Tapo and Mage!
+As Mage and Tapo enter Ribbleton, something seems off..<br>
+Whoa! <strong>A dark portal</strong> is open in the center of square!
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
 <div style="animation:enemyAppear 1s ease-out">👺</div>
@@ -7263,7 +7269,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-A Goblin and a Wolf appear from the portal!
+Wave after wave of foes spills out of the portal. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -7345,7 +7351,7 @@ remaining.forEach(r => r.remove());
 }
 
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "Welcome to combat! Click the Warrior's Attack sigil.", () => {
+showTutorialPop('ribbleton_warrior_attack', "Warrior hits harder than mage! Click the Warrior's Attack sigil.", () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -7414,9 +7420,9 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative
 const slides = [
-{text: "The few enemies remaining around Ribbleton scamper back into the portal. Relieved, the frog heroes sheathe their weapons and look for Tapo - but he's missing!!"},
-{text: "As the Ribbletonians search high and low, the heroes realize there's only one possibility - the poor tadpole has squiggled his way through the portal!"},
-{text: "The townspeople gather around the heroes. \"You must bring him home!\" they plead. The heroes nod solemnly - Ribbleton will be their sanctuary, and they'll return here between each rescue attempt."}
+{text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. Close call! At least Tapo is safe.... wait..."},
+{text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. No, Tapo, don't go in there!!"},
+{text: "But it is too late - the portal flares with dark energy. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -7765,7 +7771,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
 title: 'Potions for Sale',
-description: 'A hooded figure stands behind a small cart laden with vials and bottles. Their voice is raspy and businesslike: "Potions. Gold. Fair prices."',
+description: 'A cheerful gnome stands behind a small cart laden with vials and bottles. Their voice is excited and earnest: "Healing Potions for sale!"',
 buttons: `
 <button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>
 <button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>
@@ -7846,7 +7852,7 @@ const v = document.getElementById('gameView');
 const allSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'D20', 'Expand', 'Asterisk', 'Star', 'Alpha'];
 const available = allSigils.filter(s => (S.sig[s] || 0) < 4);
 const cost = S.goingRate;
-let description = `The shopkeeper pulls back their hood, revealing a skull grinning beneath. "I am Death's... associate. You've impressed me. Choose wisely."<br><br><p style="text-align:center;font-weight:bold;margin:1rem 0">Cost: ${cost} Gold</p>`;
+let description = `The cheerful gnome shopkeeper has been replaced by an ominous figure: your old friend, Death. "I sent the kid home. Thanks for supporting my side hustle. I can keep this one off the books."<br><br><p style="text-align:center;font-weight:bold;margin:1rem 0">Cost: ${cost} Gold</p>`;
 let buttons = '';
 let outcomes = [];
 
@@ -7854,7 +7860,7 @@ if(available.length === 0) {
 outcomes.push('All your sigils are already at maximum power. Death nods approvingly and fades away.');
 buttons = `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 } else if(S.gold < cost) {
-outcomes.push('<span style="color:#dc2626">You don\'t have enough Gold! Death shakes their head and fades away.</span>');
+outcomes.push('<span style="color:#dc2626">"Darn. Not enough gold. Maybe next time, I guess?"</span>');
 buttons = `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
 } else {
 description += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
@@ -7937,18 +7943,18 @@ let goldGain = 0;
 let hpLoss = 0;
 
 if(best === 1) {
-outcome = 'You slip on the wet stones and plummet! The landing is brutal.';
+outcome = 'You lose your grip and plummet, smacking your head on the stone! The landing is brutal, and some coins got knocked out of your pouch.';
 hpLoss = 3;
 goldGain = -5;
 } else if(best >= 2 && best <= 10) {
-outcome = 'You climb carefully but scrape yourself on the rough stones. You manage to grab a single coin.';
+outcome = 'You climb carefully and manage to grab a single coin, but scrape yourself climbing out of the well.';
 hpLoss = 1;
 goldGain = 1;
 } else if(best >= 11 && best <= 19) {
-outcome = 'Your climbing skills are impressive! You retrieve a small pouch of coins.';
+outcome = 'Your climbing skills are impressive! You retrieve a small cache of coins from the bottom.';
 goldGain = 3;
 } else if(best === 20) {
-outcome = 'Your descent is flawless! At the bottom, you discover a hidden cache of coins AND the well begins to overflow with crystal-clear water!';
+outcome = 'Your descent is flawless! At the bottom, you discover a hidden cache of coins. As you climb out, the well begins to fill with crystal-clear water!';
 goldGain = 2 * S.heroes.length;
 replaceStage1WithStage2('wishingwell');
 }
@@ -8036,7 +8042,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wishingwell2.png',
 title: 'Overflowing Crystal Waters',
-description: 'The well now overflows with sparkling, crystal-clear water that pools around its base. The water seems to pulse with restorative energy.',
+description: 'The well now overflows with sparkling, crystal-clear water that pools around its base. The water pulses with pure, restorative energy.',
 buttons: `<button class="btn safe" onclick="drinkCrystalWater()">Drink from the well</button>`
 });
 }
@@ -8060,7 +8066,7 @@ bgImage: 'assets/neutrals/wishingwell2.png',
 title: 'Fully Restored',
 outcomes: [
 'The water tastes impossibly pure and refreshing. Warmth spreads through your body as all wounds close and exhaustion fades. You feel completely restored.',
-'The well\'s glow fades as the water recedes to its normal level. Its magic has been spent.'
+'The well\'s glow fades as the water recedes to its normal level. Its magic has been spent, for now.'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -8072,7 +8078,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
 title: 'A Mysterious Chest',
-description: 'An ornate wooden chest sits against the far wall, its brass fittings gleaming in the torchlight. No lock is visible, but you sense this may not be as simple as it appears.',
+description: 'An unadorned wooden chest sits against the far wall, worn brass fittings gleaming in the torchlight. No lock is visible, but there are drops of blood around the chest.',
 buttons: `
 <button class="btn risky" onclick="openChest()">Open the chest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -8089,15 +8095,15 @@ let trapDmg = 0;
 let secretFound = false;
 
 if(trapBest === 1) {
-trapOutcome = 'A poison dart flies out and strikes you!';
+trapOutcome = 'It\'s a trap! Thick, noxious smoke fills the chamber.';
 trapDmg = 3;
 } else if(trapBest >= 2 && trapBest <= 9) {
-trapOutcome = 'A small dart grazes your arm.';
+trapOutcome = 'It\'s a trap! A hidden dart flies from the wall and strikes you in the neck! Ouch';
 trapDmg = 1;
 } else if(trapBest >= 10 && trapBest <= 18) {
 trapOutcome = 'You carefully open the chest without triggering any traps.';
 } else {
-trapOutcome = 'Your keen eyes spot a hidden compartment in the chest\'s lid!';
+trapOutcome = 'You open the chest without issue. Your keen eyes spot a hidden compartment in the chest\'s lid!';
 secretFound = true;
 }
 
@@ -8124,10 +8130,10 @@ if(contentBest >= 1 && contentBest <= 9) {
 contentOutcome = 'The chest is empty. Someone got here first.';
 } else if(contentBest >= 10 && contentBest <= 19) {
 goldGain = Math.ceil(Math.random() * 10);
-contentOutcome = `The chest contains ${goldGain} gold coins!`;
+contentOutcome = `The chest contains a small stack of ${goldGain} gold coins!`;
 } else {
 goldGain = Math.ceil(Math.random() * 10) * S.heroes.length;
-contentOutcome = `The chest is filled with ${goldGain} gold coins!`;
+contentOutcome = `The chest is filled to the brim with ${goldGain} gold coins!`;
 }
 
 if(secretFound && contentBest >= 10) {
@@ -8202,8 +8208,8 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest2.png',
 title: 'Small Silver Chest',
-description: 'A small silver chest sits on a stone pedestal, perfectly sized for the key you found earlier. You insert the key and it opens with a satisfying click.',
-outcomes: [`Inside you find ${goldGain} gold coins, perfectly arranged!`],
+description: 'A small, beautifully-adorned silver chest sits on a stone pedestal. The silver keyhole is perfectly sized for the key you found earlier.',
+outcomes: [`What a windfall! Gold coins overflow from the open chest. You gather and pocket ${goldGain} before moving on.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
@@ -8211,7 +8217,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 // ===== 4. MUMBLING WIZARD =====
 function showWizard1() {
 const v = document.getElementById('gameView');
-let description = 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters continuously: "Do you see it? Do you see it? Look closely..."<br><br>Choose which hero will approach the wizard:';
+let description = 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters to himself, but stops when you walk in. "Do you see it? CAN you see it? Look closely!" He pulls you toward the wall.<br><br>Choose which hero will approach the wizard:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
 buttons += `<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})">${h.n}</button>`;
@@ -8238,7 +8244,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText,
-outcomes: [`${h.n} stares at the glowing symbols but can't make sense of them. The wizard sighs heavily: "You don't see it. How unfortunate. Please leave."`],
+outcomes: [`${h.n} stares at the glowing symbols but can't make sense of them. The wizard sighs heavily: "You... you don't see it? Hmmm." The wizard turns back to the wall and continues mumbling to himself. He seems to have forgotten about you.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
@@ -8288,8 +8294,8 @@ bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText,
 outcomes: [
-`The hieroglyph reveals itself as the symbol for ${chosenSigil}! The wizard beams with pride.`,
-`But ${h.n} doesn't possess this sigil. The wizard's face falls: "You don't have it? Useless! Get out!"`
+`The hieroglyphs shift around, finally revealing the symbol for ${chosenSigil}! The wizard beams with pride.`,
+`But ${h.n} doesn't possess this sigil. The wizard's face falls: "Ah, shame. Not the outcome I expected. Return when you have become more powerful."`
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -8316,9 +8322,9 @@ bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
 diceRoll: rollText + critText,
 outcomes: [
-`The hieroglyph reveals itself as the symbol for ${chosenSigil}! ${h.n} feels power surge through them.`,
-`${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels}!`,
-'"Yes! YES! You understand!" The wizard\'s eyes gleam. "But... there is more I can offer you, if you dare..."'
+`The hieroglyph reveals itself as the symbol for ${chosenSigil}! "Yes! YES! You see! You understand!" The wizard touches the sigil, then reaches towards ${h.n}.`,
+`${h.n} feels power surge through them. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels}!`,
+'"Your journey has just begun... Seek me again this night." He disappears.'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -8341,8 +8347,8 @@ S.wizardUpgradedSigils = [];
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
-title: 'Trials of Power',
-description: 'The wizard\'s eyes gleam with arcane power: "You have potential... but can you prove it? I offer you a series of trials. Each success earns you greater strength. But you must attempt them all - there is no turning back!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#666">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
+title: 'Trials of Arcane Power',
+description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#666">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
 buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
 <button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
 });
@@ -8376,9 +8382,9 @@ bgImage: 'assets/neutrals/wizard2.png',
 title: `Trial ${challengeIndex + 1} - DC ${dc}`,
 diceRoll: rollText + ` - <span style="color:#dc2626">FAILED</span>`,
 outcomes: [
-`${h.n} could not meet the challenge!`,
+`${h.n} could not quite meet the challenge.`,
 outcomeText,
-'"You have reached your limit. Take what you have earned and go."'
+'"A good effort, but you have reached your limit. Take what you have earned and go."'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -8452,7 +8458,7 @@ bgImage: 'assets/neutrals/wizard2.png',
 outcomes: [
 `${h.n} has completed all trials!`,
 `Total upgrades: ${S.wizardUpgradedSigils.length}`,
-'"Impressive! You have proven yourself worthy. Now go forth with your newfound power!"'
+'"Merlin\'s Toad! You have proven yourself worthy. Now go forth with your newfound power, my disciple!"'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -8468,7 +8474,7 @@ removeNeutralFromDeck('wizard');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
-outcomes: ['The wizard\'s glow fades. "Coward! You lack the will to seize greatness!" He returns to mumbling at the wall.'],
+outcomes: ['The wizard\'s glow fades. "You would refuse my arcane boons? Very well." He grabs his books and disappears.'],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
@@ -8478,7 +8484,7 @@ function showOracle1() {
 // Mark tutorial as seen so future runs have random neutrals
 S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
-let description = 'A figure shrouded in mist sits cross-legged before a crystal sphere. Their voice echoes: "Step forward. I will read your fortune. Power or Life?" Choose a hero and their desired fortune:';
+let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, child, and I shall ponder your future within my orb. Tell me, child, crave you Power or Life?" Choose a hero and their desired fortune:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
 buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (+1⚡)</button>`;
@@ -8506,22 +8512,22 @@ let fortune = '';
 let stage2Effect = '';
 
 if(best === 1) {
-fortune = '"Terrible misfortune awaits you."';
+fortune = '"No...This cannot be! You are cursed! CURSED! Begone from me at once, and cross not my path again!"';
 stage2Effect = 'CURSE';
 replaceStage1WithStage2('oracle');
 } else if(best >= 2 && best <= 9) {
-fortune = '"What you hope for shall not come to pass."';
+fortune = '"Alas... The orb is cruel. Your desires shall not come to pass this night."';
 stage2Effect = 'NO UNLOCK';
 } else if(best >= 10 && best <= 15) {
-fortune = '"Great things in your future, but not what you want."';
+fortune = 'The Oracle gives a knowing smile. "Great things in your future, but perhaps not what you want."';
 stage2Effect = 'OPPOSITE';
 replaceStage1WithStage2('oracle');
 } else if(best >= 16 && best <= 19) {
-fortune = '"Your desired future shall come to pass."';
+fortune = 'The Oracle gives a kind wink. "Your desired future just may come to pass, if you are patient."';
 stage2Effect = 'DESIRED';
 replaceStage1WithStage2('oracle');
 } else {
-fortune = '"It happens before my eyes!"';
+fortune = `"Incredible.. Could it be... Now? Before my very eyes?!" A strange light emanates from the orb, infusing the room. ${h.n} feels ${stat === 'POW' ? 'stronger' : 'healthier'} already!`;
 stage2Effect = 'IMMEDIATE DOUBLE';
 replaceStage1WithStage2('oracle');
 }
@@ -8557,40 +8563,40 @@ if(roll === 1) {
 if(stat === 'HP') {
 h.m = Math.max(1, h.m - 5);
 if(h.h > h.m) h.h = h.m;
-outcome = `${h.n} feels weaker. Maximum HP reduced by 5!`;
+outcome = `"Cursed! Cursed!" Dark light surges from the orb, and ${h.n} feels weaker. Maximum HP reduced by 5!`;
 } else {
 h.p = Math.max(0, h.p - 1);
-outcome = `${h.n} feels their strength fade. POW reduced by 1!`;
+outcome = `"Cursed! Cursed!" Dark light surges from the orb, and ${h.n} feels their strength fade. POW reduced by 1!`;
 }
 } else if(roll >= 10 && roll <= 15) {
 // OPPOSITE
 if(stat === 'HP') {
 h.p++;
-outcome = `${h.n} gains unexpected Power! POW +1!`;
+outcome = `"We cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Power! POW +1!`;
 } else {
 h.m += 5;
 h.h += 5;
-outcome = `${h.n} feels vitality surge! Maximum HP +5!`;
+outcome = `"We cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Life! Maximum HP +5!`;
 }
 } else if(roll >= 16 && roll <= 19) {
 // DESIRED
 if(stat === 'HP') {
 h.m += 5;
 h.h += 5;
-outcome = `${h.n} feels strengthened! Maximum HP +5!`;
+outcome = `"I knew you were destined to grow healthier." The light coalesces around ${h.n}. ${h.n}'s Maximum HP +5! "Alas, the orb grows cloudy. What does the future hold for you, I wonder..."`;
 } else {
 h.p++;
-outcome = `${h.n} feels power awaken! POW +1!`;
+outcome = `"I knew you were destined to grow stronger." The light coalesces around ${h.n}. ${h.n}'s POW +1! "Alas, the orb grows cloudy. What does the future hold for you, I wonder..."`;
 }
 } else if(roll === 20) {
 // IMMEDIATE DOUBLE
 if(stat === 'HP') {
 h.m += 10;
 h.h += 10;
-outcome = `${h.n} surges with life force! Maximum HP +10!`;
+outcome = `Your blessings overflow! The Oracle's orb sends glittering light dancing around the room as ${h.n} surges with life force! Maximum HP +10!`;
 } else {
 h.p += 2;
-outcome = `${h.n} blazes with power! POW +2!`;
+outcome = `Your blessings overflow! The Oracle's orb sends glittering light dancing around the room as ${h.n} surges with power! POW +2!`;
 }
 } else {
 // Rolls 2-9 shouldn't reach Stage 2, but handle defensively
@@ -8602,9 +8608,9 @@ removeNeutralFromDeck('oracle');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/oracle2.png',
-title: 'Return to the Oracle',
+title: 'The Oracle\'s Promise',
 outcomes: [
-`${h.n} returns to the Oracle. The crystal sphere flares brightly!`,
+`The Oracle has been expecting ${h.n}. Strange chanting fills the room. As you enter her chamber, the crystal sphere flares brightly!`,
 outcome
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -8616,8 +8622,8 @@ function showEncampment1() {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
-title: 'Enemies Assembling Ahead',
-description: 'Through a crack in the wall ahead, you spy the enemies from your next encounter preparing for battle. They haven\'t noticed you yet.',
+title: 'Enemy Encampment',
+description: 'From the last chamber\'s exit, you spy some enemies in their encampment, preparing for their next battle. They haven\'t noticed you yet. You might be able to sneak by, or this could be a good chance to get the jump on them.',
 buttons: `
 <button class="btn risky" onclick="chooseEncampmentAction('sneak')">Sneak by?</button>
 <button class="btn risky" onclick="chooseEncampmentAction('engage')">Engage early</button>
@@ -8647,12 +8653,12 @@ const rollText = showD20Result(rolls, best);
 
 let outcome = '';
 if(best >= 1 && best <= 10) {
-outcome = `${hero.n}'s foot catches on loose stone! The enemies hear you and prepare an ambush!`;
+outcome = `As you try to sneak by, someone's foot catches on a loose stone! The resulting clatter draws the enemies right to you before you can prepare. It's an ambush!`;
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 1800);
 } else if(best >= 11 && best <= 19) {
-outcome = `${hero.n} slips past quietly. The enemies remain unaware.`;
+outcome = `You slip past quietly. The enemies remain unaware.`;
 } else {
 // Roll 20 - recruit a straggler
 const comp = getEnemyComp(S.floor + 1);
@@ -8709,7 +8715,7 @@ S.pendingOldRecruitId = existingRecruit.id;
 outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n}! But ${hero.n} already has ${existingRecruit.n}...`;
 } else {
 S.recruits.push(straggler);
-outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n} who joins ${hero.n}'s ranks!`;
+outcome = `As you sneak by, you spy an enemy straggler who appears to be hiding from the group... The Recruited ${base.n} looks glad to join ${hero.n}'s side and will fight loyally!`;
 toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 1800);
 }
 }
@@ -8762,18 +8768,27 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Engaging Early',
 diceRoll: rollText,
-outcomes: [`A scout spots ${hero.n} before they can strike! The enemies prepare an ambush!`],
+outcomes: [`As the heroes sneak up to the camp, a scout's horn sounds. You've been spotted, and you're surrounded! It's an ambush!`],
 buttons: `<button class="btn" onclick="finishEncampmentFail()">Continue</button>`
 });
-} else {
-const kills = best === 20 ? 2 : 1;
-S.encampmentEarlyKills = kills;
+} else if(best >= 16 && best <= 19) {
+S.encampmentEarlyKills = 1;
 replaceStage1WithStage2('encampment');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Engaging Early',
 diceRoll: rollText,
-outcomes: [`${hero.n} succeeds at picking off ${kills} enem${kills>1?'ies':'y'}! They're scrambling to form ranks - you'll see the battlefield and pick your targets...`],
+outcomes: [`Your frogs work together to lure one enemy away and take him out! He screams as he dies, though, and by the time you turn, the rest are scrambling to form ranks.`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+} else {
+S.encampmentEarlyKills = 2;
+replaceStage1WithStage2('encampment');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Engaging Early',
+diceRoll: rollText,
+outcomes: [`With an excellent ploy, you succeed at picking off 2 enemies! The next combat should be a walk in the pond!`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
@@ -8808,7 +8823,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment2.png',
 title: 'Abandoned Encampment',
-description: 'The enemy got cocky and left their base undefended. You enter and rest safely.',
+description: 'You spy another enemy encampment from a distance, but this one appears abandoned. The bedrolls stink and the tack is stale, but you are able to enter and rest safely.',
 outcomes: [
 `All heroes restored ${healAmt} HP!`,
 `Found ${goldGain} Gold in supplies!`
@@ -9042,8 +9057,8 @@ function showGhost1() {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
-title: 'Two Ghostly Boys Want to Play',
-description: 'Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.',
+title: 'The Haunted Playroom',
+description: 'Various toys and games litter a dusty playroom. Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.',
 buttons: `
 <button class="btn danger" onclick="playWithGhostBoys()">Play with the ghost boys</button>
 <button class="btn risky" onclick="nextFloor()">Avoid?</button>
@@ -9071,7 +9086,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Escaping the Ghost Boys',
 diceRoll: rollText,
-outcomes: ['You break free from their grip! The boys pout but let you go. "Come back and play sometime..."'],
+outcomes: ['You clear your head and break free from the strange trance. The boys look sad to stop playing, but let you go. "Come back and play sometime... We\'re so lonely.."'],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
@@ -9087,7 +9102,7 @@ bgImage: 'assets/neutrals/ghost1.png',
 title: 'Trapped with the Ghost Boys',
 diceRoll: rollText,
 description: 'Choose which hero takes 1 damage:',
-outcomes: ['You remain trapped! Time slips away...'],
+outcomes: ['You don\'t notice time passing, but pangs of hunger and fatigue make it clear you\'ve been here longer than it feels like. The boys are having a great time playing.'],
 buttons: heroButtons
 });
 }
@@ -9105,7 +9120,7 @@ hero.h = hero.m;
 // EASTER EGG: Ghost charge consumed during Ghost encounter triggers conversion
 if(hadGhostCharge) {
 replaceStage1WithStage2('ghost');
-toast(`${hero.n} used Ghost charge! The boys realize the truth!`, 1800);
+toast(`${hero.n}'s Ghost keeps them from entering Last Stand! The boys stare in awe...`, 1800);
 upd();
 // Trigger the full Ghost Boys conversion (showGhost2)
 showGhost2();
@@ -9120,8 +9135,8 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Escaping the Ghost Boys',
 outcomes: [
-`${hero.n} took 1 damage and entered Last Stand! The shock breaks the ghost boys' hold!`,
-'"Oops!" they say in unison, then fade away giggling.'
+`Unable to withstand the hunger, ${hero.n} takes 1 damage and enters Last Stand! The shock breaks the ghost boys' hold!`,
+'"Oops! We didn\'t realize..." they say in unison, staring at each other in horror. They begin to sob, and quickly disappear.'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -9161,11 +9176,11 @@ toast('Ghost Boys permanently converted to Empty Playroom!', 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost2.png',
-title: 'The Boys Realize the Truth',
+title: 'Passing On',
 description: 'The ghost boys stare at each other, then at their translucent hands. "We\'re... we\'re dead. We\'re ghosts."',
 outcomes: [
-'Tears form in their spectral eyes. "We want to go home. We want to see Mommy and Daddy."',
-'They hold hands and walk toward a light that appears. "Thank you for showing us." They vanish peacefully.',
+'Tears form in their spectral eyes. "We didn\'t know. We want to go home."',
+'They hold hands and embrace you in a ghostly hug. "We would have never figured it out without you. Thank you." They vanish peacefully.',
 '<span style="color:#22c55e">This room is now an Empty Playroom - you can pass safely in future runs.</span>'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -9189,7 +9204,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
 title: 'Flummoxed Royal',
-description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next room ate my engagement ring! If you can stun it on the first turn of battle, I can retrieve it!"`,
+description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a strategem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
 buttons: `
 <button class="btn" onclick="acceptRoyalQuest()">Accept the quest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -9252,7 +9267,7 @@ buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil2}')">
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal2.png',
 title: 'Royal Wedding',
-description: `The ${S.royalTitle} proposes to their beloved. A beautiful wedding ceremony unfolds before you!`,
+description: `The ${S.royalTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?"`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
 buttons
 });
@@ -9277,7 +9292,20 @@ v.innerHTML = `
 <img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
-"Tapo, you say? Yes…. I was called Tapo once, before I mastered the mysteries of space and time. Save me? Why, I need no saving… In fact…."
+"Tapo, you say? Yes.... I was called Tapo once, wasn't I? That was 'Before'.... Before I mastered the speculae of space, the tesseracts of time... before I became one with the universe. You would save me? Why, I need no saving... In a universe of infinite and terrifying possibility, there need be no fear, no hate, no pain."
+</div>
+<button class="btn" onclick="oldTapoSlide2()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
+</div>`;
+}
+
+function oldTapoSlide2() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-container">
+<img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
+<div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
+"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood.. There is only love, and joy, and progress... And flies. I have transcended the need for food, but that Flydra sure looked yummy..."
 </div>
 <button class="btn" onclick="oldTapoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
 </div>`;
@@ -9287,9 +9315,14 @@ function oldTapoTransform() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
+<div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0;text-align:center">
+"Ah! I know!" <em>*Poof*</em>
+</div>
 <div style="text-align:center;margin:2rem 0">
-<div style="font-size:3rem;animation:clap 0.5s ease-in-out 3;margin-bottom:2rem">👏</div>
 <img src="assets/tapo-nobg.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
+<div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;margin:1rem 0">
+<em>Squeals.</em> The heroes know this sound well - Baby Tapo is hungry for flies!
+</div>
 <div style="font-size:2.5rem;font-weight:bold;color:#3b82f6;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
 ✨ Tapo Unlocked! ✨
 </div>
@@ -9302,10 +9335,6 @@ Baby Tapo has been added to your hero roster!<br>
 <button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #3b82f6, #f97316);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
 </div>
 <style>
-@keyframes clap {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.5); }
-}
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
@@ -9501,9 +9530,9 @@ A quiet place to reflect on adventures past...
 
 <!-- Legend -->
 <div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap;font-size:0.85rem">
-<span style="color:#22c55e">🟢 Journey</span>
-<span style="color:#fbbf24">🟡 Victory</span>
-<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">🌈 Frogged Up Win</span>
+<span style="color:#22c55e">🟢 Good Try</span>
+<span style="color:#fbbf24">🟡 Good Job</span>
+${S.fuUnlocked ? `<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">🌈 ${(S.pondHistory || []).some(r => r.gameMode === 'fu') ? 'Frogged Up Win' : 'What the Frog?'}</span>` : ''}
 <span style="color:#64748b;font-size:0.8rem">(bigger = higher floor)</span>
 </div>
 
@@ -9511,7 +9540,7 @@ ${history.length === 0 ? `
 <div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
 <p style="font-size:2rem;margin-bottom:1rem">🪷</p>
 <p style="color:#94a3b8;font-size:1.1rem">The water is still...</p>
-<p style="color:#64748b;margin-top:0.5rem">Your lily pads will appear here after your first adventure.</p>
+<p style="color:#64748b;margin-top:0.5rem">Lily pads will appear here after your first adventure and grow the further you progress.</p>
 </div>
 ` : `
 <div class="pond-water" style="border-radius:20px;border:3px solid rgba(59,130,246,0.3)">
@@ -9752,7 +9781,7 @@ if(S.ghostBoysConverted) {
 html += `
 <div style="border-top:2px solid rgba(255,255,255,0.2);padding-top:2rem;margin-top:2rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.5rem;color:#a855f7">The Death Boys</h2>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;font-style:italic;opacity:0.8">"We work for Death now! He's WAY cooler than being ghosts!"</p>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;font-style:italic;opacity:0.8">"We work for Death now! It's WAY cooler than being ghosts!"</p>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
 <!-- Boy 1: Sell Back -->
@@ -9888,7 +9917,7 @@ showDeathScreen(); // Refresh
 function restartAfterDeath() {
 // Check if player has unspent gold
 if(S.gold >= S.goingRate && !S.tutorialFlags.death_exit_warning) {
-showTutorialPop('death_exit_warning', "Are you sure? This is some great value, and you'll end up giving it to me sooner or later...", () => {
+showTutorialPop('death_exit_warning', "Are you sure? This is some <span style='font-size:0.7em'>great value</span> and you'll end up giving it to me sooner or later...", () => {
 // After tutorial, ask for confirmation
 showConfirmModal('Leave Death Screen with unspent gold?', () => {
 actuallyRestartAfterDeath();
@@ -10357,7 +10386,7 @@ ${bluePortalUnlocked ? `
 </div>
 
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.9);border:3px solid #22c55e;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
-  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Venture forth on a rescue mission!</p>
+  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Save Tapo!</p>
   ${bluePortalUnlocked ?
     `<p style="font-size:1.1rem;margin:0"><strong>🔵 Blue Portal:</strong> Visit the Champions Hall (Floor 20)</p>` :
     `<p style="font-size:0.9rem;margin:0;opacity:0.6"><em>A mysterious blue portal appears to be locked... Perhaps reaching Floor 20 will unlock it?</em></p>`

@@ -1,14 +1,14 @@
 // ===== FLOOR MANAGEMENT =====
 function getFloorName(f) {
 const floorNames = {
-1: 'Goblin Horde',
+1: 'Goblin Stragglers',
 3: 'Wolf Pack',
 5: 'Orc Wall',
-7: 'Giant\'s Descent',
-9: 'Troll Lair',
-11: 'Goblin Army',
-13: 'Wolf Swarm',
-15: 'Dragon\'s Nest',
+7: 'Fe Fi Fo Fum',
+9: 'Just Trolling',
+11: 'Goblin Legion',
+13: 'Too Many Wolves',
+15: 'Territorial Dragon',
 17: 'Chaos Legion',
 19: 'Lair of the Flydra'
 };

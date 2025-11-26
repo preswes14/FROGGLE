@@ -20,16 +20,26 @@ const HERO_IMAGES = {
 // Death's dialogue lines (cycles through without repeating until all used)
 const DEATH_QUOTES = [
     "Some days you're the sticky tongue, some days you're the fly.",
-    "You must really like pain. Or do you like death? Weirdo.",
+    "You must really like pain or something. Weirdo.",
     "Next time bring me a smoothie or something",
     "Hey, have you met those ghost boys in the dungeon? I can't get them to make.. you know.. the transition. Help them out, would you?",
-    "Death death lemonade, 'round the coroner I parade",
+    "Death death lemonade, 'round the coroner I parade. Hehe!",
     "Ribbit? Ribbbbbit? Rib bit?",
     "Oh man, a classic green. You just know he's a jumper.",
     "Hello my baby, hello my honey.",
-    "If you refuse me, honey you'll lose me",
+    "If you refuse me, honey you'll lose me, and you'll be left alooooooone",
     "You guys should check out the Discovery Channel to see what normal frogs do",
-    "Toadally froggin died, huh?"
+    "Toadally froggin died, huh?",
+    "Send me a kiss by wire, honey my heart's on fire",
+    "Maybe try making a beer commercial or something?",
+    "At least you don't have to cross a busy highway!",
+    "Stay out of pots full of lukewarm water!",
+    "Mark Twain keeps my mornings busy *drum lick*",
+    "\"Analyzing humor is like dissecting a frog\". Know why? Look it up.",
+    "Where does \"frog in your throat\" come from? Do you guys know?",
+    "Is this tadpole really worth it?",
+    "Ohh, it's pronounced Ta-po like Tad-pole, not Tah-po. Duh.",
+    "Play other games by DubsPubs! If those ever exist."
 ];
 
 const H = {
@@ -613,9 +623,9 @@ tutorialState.stage = 'shield_sigil';
 upd();
 render();
 // PROMPT 5: Enemy Sigils + Shield (BATCHED)
-showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Defeat him before he can shield!", () => {
+showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Try to defeat him before he can shield!", () => {
 // PROMPT 6: Tooltip + Handoff (BATCHED)
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
 tutorialState.stage = 'free';
 render();
 });
@@ -629,7 +639,7 @@ if(!tutorialState || S.floor !== 0) return;
 if(tutorialState.stage === 'enemy_turn_wait') {
 S.locked = true;
 tutorialState.stage = 'enemy_turn_explained';
-showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack every turn, and they attack straight across from them!", () => {
+showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack EVERY turn, and they usually attack straight across from them!", () => {
 S.locked = false;
 });
 }
