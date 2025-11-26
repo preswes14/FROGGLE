@@ -133,11 +133,25 @@ p:base.p * fuMultiplier,
 h:base.h * fuMultiplier,
 m:base.m * fuMultiplier,
 goldDrop:(base.goldDrop || 0) * fuMultiplier, x:(base.x || 0) * fuMultiplier, s: [], pool: base.pool,
+maxLevel: base.maxLevel || 1, sigilLevels: base.sigilLevels || {},
 gainRate: base.gainRate || 3, turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
 st:0, li: i % S.heroes.length, sh:0, g:0, alphaActed: false
 };
-if(base.permSigils) base.permSigils.forEach(ps => enemy.s.push({sig:ps.s, level:ps.l, perm:true}));
+// FLYDRA: Set up state and use dynamic sigil level based on hero count
+if(base.isFlydra) {
+enemy.isFlydra = true;
+enemy.flydraState = 'alive'; // 'alive', 'dying', 'reviving'
+enemy.flydraReviveTimer = 0;
+enemy.flydraLevel = S.heroes.length; // L2 normal, L3 in Frogged Up
+}
+// Add permanent sigils (Flydra uses hero count for level)
+if(base.permSigils) {
+base.permSigils.forEach(ps => {
+const level = base.isFlydra ? S.heroes.length : ps.l;
+enemy.s.push({sig:ps.s, level:level, perm:true});
+});
+}
 if(base.startSigils) {
 if(Array.isArray(base.startSigils)) {
 // Array format: [{s:'Shield', l:1}]
@@ -149,16 +163,11 @@ drawEnemyStartSigil(enemy, base);
 }
 }
 }
-// FLYDRA: Special initialization - all sigils at level = hero count
-if(base.isFlydra) {
-enemy.isFlydra = true;
-enemy.flydraState = 'alive'; // 'alive', 'dying', 'reviving'
-enemy.flydraReviveTimer = 0;
-const sigilLevel = S.heroes.length; // L2 normal, L3 in Frogged Up
-const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
-allSigils.forEach(sig => {
-enemy.s.push({sig: sig, level: sigilLevel, perm: true});
-});
+// Handle startRandom: draw additional random L1 sigils (used by Troll)
+if(base.startRandom) {
+for(let j = 0; j < base.startRandom; j++) {
+drawEnemyStartSigil(enemy, base, true); // true = force level 1
+}
 }
 return enemy;
 });
@@ -538,30 +547,41 @@ toast(`Stole ${gold} Gold from ${getEnemyDisplayName(enemy)}!`);
 } else if(action === 'RECRUIT') {
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
-// Check if hero already has a recruit - if so, replace it
-if(!S.recruits) S.recruits = [];
-const existingRecruitIdx = S.recruits.findIndex(r => r.recruitedBy === heroIdx);
-if(existingRecruitIdx >= 0) {
-const oldRecruit = S.recruits[existingRecruitIdx];
-S.recruits.splice(existingRecruitIdx, 1);
-toast(`${getEnemyDisplayName(enemy)} replaces ${oldRecruit.n} as ${hero.n}'s recruit!`, 1800);
-} else {
-toast(`${getEnemyDisplayName(enemy)} recruited by ${hero.n}!`, 1500);
-}
-// Remove enemy from enemies array
+const recruitName = getEnemyDisplayName(enemy);
+// Remove enemy from enemies array immediately
 S.enemies = S.enemies.filter(e => e.id !== enemyId);
-// Add new recruit to recruits array (max 10 recruits for performance)
+if(!S.recruits) S.recruits = [];
+const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
+if(existingRecruit) {
+// Show choice popup: keep current or replace
+render();
+showRecruitReplaceConfirm(existingRecruit.n, recruitName, () => {
+// KEEP current
+toast(`Kept ${existingRecruit.n}.`, 1200);
+render();
+checkCombatEnd();
+}, () => {
+// REPLACE with new
+S.recruits = S.recruits.filter(r => r.recruitedBy !== heroIdx);
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+S.recruits.push(recruit);
+toast(`${recruitName} replaces ${existingRecruit.n}!`, 1500);
+render();
+checkCombatEnd();
+});
+} else {
+// No existing recruit, just add
 const MAX_RECRUITS = 10;
 if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
-} else {
-toast(`${getEnemyDisplayName(enemy)} recruited but recruits are full! (Max ${MAX_RECRUITS})`, 2000);
+toast(`${recruitName} recruited by ${hero.n}!`, 1500);
 }
 setTimeout(() => {
 render();
 checkCombatEnd();
 }, 300);
+}
 }
 }
 
@@ -1203,81 +1223,47 @@ r.turnsSinceGain++;
 setTimeout(() => executeAlphaPhase(), ANIMATION_TIMINGS.ALPHA_PHASE_START);
 }
 
-function drawEnemyStartSigil(enemy, base) {
+function drawEnemyStartSigil(enemy, base, forceLevel1 = false) {
 const pool = base.pool;
-if(!pool) return;
+if(!pool || !Array.isArray(pool) || pool.length === 0) return;
 const heldSigils = enemy.s.map(sigil => sigil.sig);
-if(pool === 'ANY') {
-const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
-const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+// Filter to available sigils (not already held)
+const availableSigils = pool.filter(s => !heldSigils.includes(s));
 if(availableSigils.length === 0) return;
+// Pick random sigil
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
-const level = enemy.n === 'Cave Troll' ? 2 : 1 + Math.floor(Math.random() * 3);
-enemy.s.push({sig, level, perm:false});
-} else if(pool === 'ANY_ADVANCED') {
-const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
-const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
-if(availableSigils.length === 0) return;
-const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
-const level = 2 + Math.floor(Math.random() * 3);
-enemy.s.push({sig, level, perm:false});
-} else if(Array.isArray(pool)) {
-const availablePool = pool.filter(sigName => {
-if(sigName === 'Attack2') return !heldSigils.includes('Attack');
-if(sigName === 'Shield2') return !heldSigils.includes('Shield');
-return !heldSigils.includes(sigName);
-});
-if(availablePool.length === 0) return;
-const pick = availablePool[Math.floor(Math.random() * availablePool.length)];
-if(pick === 'Attack2') {
-enemy.s.push({sig:'Attack', level:2, perm:false});
-} else if(pick === 'Shield2') {
-enemy.s.push({sig:'Shield', level:2, perm:false});
+// Calculate level: use sigilLevels override if defined, otherwise maxLevel
+let level;
+if(forceLevel1) {
+level = 1;
 } else {
-enemy.s.push({sig:pick, level:1, perm:false});
+const maxLvl = (base.sigilLevels && base.sigilLevels[sig]) || base.maxLevel || 1;
+level = maxLvl === 1 ? 1 : 1 + Math.floor(Math.random() * maxLvl);
 }
-}
+enemy.s.push({sig, level, perm:false});
 }
 
 function drawEnemySigil(enemy) {
 const pool = enemy.pool;
-if(!pool || pool.length === 0) return;
+if(!pool || !Array.isArray(pool) || pool.length === 0) return;
 const heldSigils = enemy.s.map(sigil => sigil.sig);
-if(pool === 'ANY') {
-const allSigils = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk', 'Expand'];
-const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
+// Filter pool: exclude held sigils AND Asterisk (only allowed turn 1)
+const availableSigils = pool.filter(s => !heldSigils.includes(s) && s !== 'Asterisk');
 if(availableSigils.length === 0) return;
+// Pick random sigil
 const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
-const level = enemy.n === 'Cave Troll' ? 2 : 1 + Math.floor(Math.random() * 3);
+// Calculate level based on enemy type
+let level;
+if(enemy.isFlydra) {
+// Flydra: level = number of heroes (L2 normal, L3 in Frogged Up)
+level = enemy.flydraLevel || S.heroes.length;
+} else {
+// Other enemies: use sigilLevels override if defined, otherwise maxLevel
+const maxLvl = (enemy.sigilLevels && enemy.sigilLevels[sig]) || enemy.maxLevel || 1;
+level = maxLvl === 1 ? 1 : 1 + Math.floor(Math.random() * maxLvl);
+}
 enemy.s.push({sig, level, perm:false});
 toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`);
-} else if(pool === 'ANY_ADVANCED') {
-const allSigils = ['Shield', 'Grapple', 'Heal', 'Ghost', 'Alpha', 'Asterisk'];
-const availableSigils = allSigils.filter(s => !heldSigils.includes(s));
-if(availableSigils.length === 0) return;
-const sig = availableSigils[Math.floor(Math.random() * availableSigils.length)];
-const level = 2 + Math.floor(Math.random() * 3);
-enemy.s.push({sig, level, perm:false});
-toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`);
-} else {
-const availablePool = pool.filter(sigName => {
-if(sigName === 'Attack2') return !heldSigils.includes('Attack');
-if(sigName === 'Shield2') return !heldSigils.includes('Shield');
-return !heldSigils.includes(sigName);
-});
-if(availablePool.length === 0) return;
-const pick = availablePool[Math.floor(Math.random() * availablePool.length)];
-if(pick === 'Attack2') {
-enemy.s.push({sig:'Attack', level:2, perm:false});
-toast(`${getEnemyDisplayName(enemy)} drew Attack L2!`);
-} else if(pick === 'Shield2') {
-enemy.s.push({sig:'Shield', level:2, perm:false});
-toast(`${getEnemyDisplayName(enemy)} drew Shield L2!`);
-} else {
-enemy.s.push({sig:pick, level:1, perm:false});
-toast(`${getEnemyDisplayName(enemy)} drew ${pick} L1!`);
-}
-}
 }
 
 /**
@@ -2100,6 +2086,9 @@ v.innerHTML = `
 }
 
 function nextFloor() {
+// Clear any pending recruit replacement choice
+S.pendingNewRecruit = null;
+S.pendingOldRecruitId = null;
 saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {

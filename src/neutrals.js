@@ -2046,6 +2046,8 @@ g: base.g,
 x: base.x,
 s: [],
 pool: base.pool,
+maxLevel: base.maxLevel || 1,
+sigilLevels: base.sigilLevels || {},
 gainRate: base.gainRate || 3,
 turnsSinceGain: 0,
 drawsPerTurn: base.drawsPerTurn || 1,
@@ -2068,20 +2070,61 @@ drawEnemyStartSigil(straggler, base);
 }
 }
 }
+// Handle startRandom: draw additional random L1 sigils
+if(base.startRandom) {
+for(let j = 0; j < base.startRandom; j++) {
+drawEnemyStartSigil(straggler, base, true);
+}
+}
 if(!S.recruits) S.recruits = [];
+// Check if hero already has a recruit
+const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
+if(existingRecruit) {
+// Store both for replacement choice
+S.pendingNewRecruit = straggler;
+S.pendingOldRecruitId = existingRecruit.id;
+outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n}! But ${hero.n} already has ${existingRecruit.n}...`;
+} else {
 S.recruits.push(straggler);
 outcome = `${hero.n} sneaks past perfectly AND discovers a rejected ${base.n} who joins ${hero.n}'s ranks!`;
 toast(`${base.n} recruited! Will fight in ${hero.n}'s lane!`, 1800);
 }
+}
 
 const v = document.getElementById('gameView');
+let buttons;
+if(S.pendingNewRecruit) {
+const oldName = S.recruits.find(r => r.id === S.pendingOldRecruitId)?.n || 'current';
+const newName = S.pendingNewRecruit.n;
+buttons = `<button class="btn" onclick="keepCurrentRecruit()">Keep ${oldName}</button><button class="btn" style="background:#4a4;margin-left:0.5rem" onclick="replaceWithNewRecruit()">Replace with ${newName}</button>`;
+} else {
+buttons = `<button class="btn" onclick="nextFloor()">Continue</button>`;
+}
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past',
 diceRoll: rollText,
 outcomes: [outcome],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: buttons
 });
+}
+
+function keepCurrentRecruit() {
+S.pendingNewRecruit = null;
+S.pendingOldRecruitId = null;
+toast('Kept current recruit.', 1200);
+nextFloor();
+}
+
+function replaceWithNewRecruit() {
+if(!S.pendingNewRecruit || !S.pendingOldRecruitId) { nextFloor(); return; }
+const oldRecruit = S.recruits.find(r => r.id === S.pendingOldRecruitId);
+S.recruits = S.recruits.filter(r => r.id !== S.pendingOldRecruitId);
+S.recruits.push(S.pendingNewRecruit);
+toast(`${S.pendingNewRecruit.n} replaces ${oldRecruit?.n || 'old recruit'}!`, 1500);
+S.pendingNewRecruit = null;
+S.pendingOldRecruitId = null;
+nextFloor();
 }
 
 function engageEarlyEncampment(heroIdx) {
