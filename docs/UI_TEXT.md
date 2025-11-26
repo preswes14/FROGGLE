@@ -25,6 +25,7 @@
 - Asterisk
 
 ### Common Buttons
+-Delve (for entering dungeon)
 - Continue
 - Do Not Engage
 - Walk away
@@ -113,20 +114,20 @@
 
 ## HERO DESCRIPTIONS (Selection Screen)
 
-**Warrior:** A balanced fighter with strong attacks
-- Starts with 2 POW
+**Warrior:** A strong fighter with heavy attacks
+- Passive bonus: +1 POW
 - Starts with Attack and D20
 
 **Tank:** A sturdy defender with high HP
-- Starts with 10 HP
+- Passive bonus: +5 HP
 - Starts with Shield and D20
 
 **Mage:** A versatile caster who can hit multiple targets
-- Gets +1 Expand innately (+1 target)
+- Passive bonus: Gets +1 Expand innately (+1 target)
 - Starts with Attack, D20, and Expand
 
 **Healer:** A support hero who can heal multiple allies
-- Gets +1 Expand innately (+1 target)
+- Passive bonus: Gets +1 Expand innately (+1 target)
 - Starts with Heal, D20, and Expand
 
 **Tapo:** The ultimate glass cannon - all sigils, minimal health!
@@ -168,7 +169,7 @@
 
 ## CHAMPIONS / PEDESTAL
 
-- Champions of Floor 20
+- The Flydra's Conquerors
 - Current Mode: Standard / FROGGED UP
 - Click the pedestal to manage figurines (X/8)
 - Click a portal to switch game modes
@@ -195,9 +196,9 @@
 ## D20 GAMBIT OPTIONS
 
 - Confuse (DC 10) - Deal enemy POW to all enemies
-- Startle (DC 15) - Stun target for 1 turn
-- Mend (DC 10) - Heal self for 2xPOW
-- Steal (DC 15) - Steal gold from target
+- Startle (DC 12) - Stun target for 1 turn
+- Mend (DC 15) - Heal self for 2xPOW
+- Steal (DC 18) - Steal gold from target
 - Recruit (DC 20) - Target joins your team!
 
 ---
