@@ -369,7 +369,6 @@ You have a few turns to heal your Last Stand heroes before they become useless!`
 q: "How many recruits can I have? What happens to them?",
 a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<br><br>
 • Each hero can have <strong>1 recruit</strong> (recruiting another replaces the first)<br>
-• Maximum <strong>10 total recruits</strong> across all heroes<br>
 • Recruits persist between battles until killed<br>
 • Recruits fight in their hero's lane and attack enemies<br>
 • Recruits can gain sigils and act during enemy turns<br><br>
@@ -395,14 +394,6 @@ a: `There are TWO types of sigil upgrades:<br><br>
 <strong>Your displayed sigil level = Permanent + Temporary upgrades combined</strong>`
 },
 {
-q: "Why is Mage/Healer better than Warrior/Tank?",
-a: `Mage and Healer get +1 Expand for free, which means their actions hit 1 extra target from the start. This is incredibly powerful early game!<br><br>
-<strong>Example Floor 1 (2 Goblins):</strong><br>
-• Warrior Attack L1: Hits 1 enemy (takes 2 turns to clear)<br>
-• Mage Attack L1 + free Expand: Hits 2 enemies (takes 1 turn to clear!)<br><br>
-This built-in advantage makes Mage/Healer objectively stronger early game. However, Warrior/Tank can scale well with the right upgrades!`
-},
-{
 q: "What are Star and Asterisk sigils?",
 a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5× XP bonus per Star level.<br>
 • 2 heroes with Star L1 = +1.0× bonus = 2× total XP<br>
@@ -413,29 +404,6 @@ a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5�
 • Works with ANY action: Attack, Shield, Heal, D20 gambits, etc.<br>
 • No activation needed - happens automatically on your first action<br>
 • Can be combined with Alpha for devastating combos!`
-},
-{
-q: "How does enemy difficulty scale?",
-a: `Enemies scale based on floor number and game mode:<br><br>
-<strong>Standard Mode:</strong><br>
-• Floor 1-5: Goblins (1 POW), Wolves (2 POW), Orcs (3 POW)<br>
-• Floor 9: First Dragon (5 POW, 25 HP, draws 2 sigils/turn)<br>
-• Floor 15: Three Dragons (brutal difficulty spike!)<br>
-• Floor 11: Goblin Ambush (stunned Turn 1)<br><br>
-<strong>Frogged Up Mode:</strong><br>
-• All enemy stats ×3!<br>
-• Floor 1 Goblins have 5 POW and 25 HP<br>
-• Designed for masochists only 🐸`
-},
-{
-q: "What's the best strategy for surviving Dragon floors?",
-a: `Dragons (Floors 9, 15, 19) are massive difficulty spikes. Here's how to survive:<br><br>
-<strong>1. Stack Grapple:</strong> Dragons have high HP but Grapple stuns them for multiple turns<br>
-<strong>2. Shield Early:</strong> Dragons deal 5 base damage (more with Attack sigils) - shields save lives<br>
-<strong>3. Recruit Help:</strong> Recruited enemies can tank hits and deal damage<br>
-<strong>4. Asterisk + Attack:</strong> Burst damage before they gain too many sigils<br>
-<strong>5. Use Mend:</strong> D20 Mend can heal your heroes mid-combat to survive longer<br><br>
-Dragons gain 2 sigils per turn and have permanent Attack L2 + Expand L5. Don't let combat drag on!`
 }
 ];
 
@@ -770,7 +738,7 @@ const GamepadController = {
   lastFocusedId: null, // For focus restoration after render
   lastMouseX: null, // For tracking mouse movement delta
   lastMouseY: null, // For tracking mouse movement delta
-  mouseMovementThreshold: 15, // Minimum pixels to move before switching to mouse mode
+  mouseMovementThreshold: 25, // Minimum pixels to move before switching to mouse mode
 
   // Button indices (standard gamepad mapping)
   BUTTONS: {

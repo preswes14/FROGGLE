@@ -401,7 +401,7 @@ showNarrativeSlide(slides, nextIndex);
 }
 
 function showSkipTutorialConfirmation(proceedCallback) {
-// Show friendly skip confirmation
+// Show friendly skip confirmation with visual indicators for FAQ/Sigilarium
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
@@ -410,11 +410,23 @@ overlay.innerHTML = `
 <p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
 You're on your own - get going and save Tapo!
 </p>
-<p style="font-size:0.95rem;line-height:1.5;text-align:center;margin-bottom:0.5rem;opacity:0.9">
-Need help? Check out the <strong>FAQ</strong> and <strong>Sigilarium</strong> buttons at the top of the screen anytime!
+<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:12px;padding:1rem;margin-bottom:1.5rem">
+<p style="font-size:0.95rem;line-height:1.5;text-align:center;margin-bottom:0.75rem">
+Need help? Look for these buttons:
 </p>
+<div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap">
+<div style="text-align:center">
+<div style="font-size:1.5rem;margin-bottom:0.25rem">👇</div>
+<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">❓ Help/FAQ</div>
+</div>
+<div style="text-align:center">
+<div style="font-size:1.5rem;margin-bottom:0.25rem">👇</div>
+<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">📖 Sigilarium</div>
+</div>
+</div>
+</div>
 <p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
-(Help/tips can be disabled in the Settings menu)
+(Help/tips can be disabled in ⚙️ Settings)
 </p>
 <button onclick="confirmSkipTutorial()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's go!</button>
 </div>`;
@@ -1112,6 +1124,47 @@ startFloor(1);
 
 
 // ===== NEUTRAL ENCOUNTERS =====
+// Neutral encounter display names for floor interstitials
+const NEUTRAL_NAMES = {
+shopkeeper1: 'Potions for Sale',
+shopkeeper2: "Death's Bargain",
+wishingwell1: 'The Old Wishing Well',
+wishingwell2: 'Crystal Waters',
+treasurechest1: 'A Mysterious Chest',
+treasurechest2: 'The Silver Key',
+wizard1: 'Trials of Arcane Power',
+wizard2: 'The Hieroglyphs',
+oracle1: 'Consult the Oracle',
+oracle2: "The Oracle's Promise",
+encampment1: 'Enemy Encampment',
+encampment2: 'Abandoned Encampment',
+gambling1: 'Between the 20s',
+gambling2: 'Between the 20s Extreme',
+ghost1: 'The Haunted Playroom',
+ghost2: 'Passing On',
+royal1: 'The Flummoxed Royal',
+royal2: 'Royal Wedding'
+};
+
+function showNeutralInterstitial(f, encName, callback) {
+const displayName = NEUTRAL_NAMES[encName] || encName;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
+<div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem;font-family:'Fredoka One',cursive">Floor ${f}</div>
+<div style="font-size:1.8rem;font-style:italic;font-family:'Fredoka One',cursive">${displayName}</div>
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>`;
+setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
+}
+
 function neutral(f) {
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
@@ -1125,6 +1178,8 @@ showEmptyPlayroom();
 return;
 }
 
+// Show interstitial then launch encounter
+const launchEncounter = () => {
 if(enc === 'shopkeeper1') showShopkeeper1();
 else if(enc === 'shopkeeper2') showShopkeeper2();
 else if(enc === 'wishingwell1') showWishingWell1();
@@ -1150,6 +1205,9 @@ v.innerHTML = `
 <p style="text-align:center;margin-bottom:2rem">${enc}</p>
 <button class="btn" onclick="nextFloor()">Continue</button>`;
 }
+};
+
+showNeutralInterstitial(f, enc, launchEncounter);
 }
 
 // ===== 1. SHOPKEEPER =====
