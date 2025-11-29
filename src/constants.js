@@ -38,8 +38,7 @@ const DEATH_QUOTES = [
     "\"Analyzing humor is like dissecting a frog\". Know why? Look it up.",
     "Where does \"frog in your throat\" come from? Do you guys know?",
     "Is this tadpole really worth it?",
-    "Ohh, it's pronounced Ta-po like Tad-pole, not Tah-po. Duh.",
-    "Play other games by DubsPubs! If those ever exist."
+    "Ohh, it's pronounced Ta-po like Tad-pole, not Tah-po. Duh."
 ];
 
 const H = {
@@ -113,17 +112,18 @@ return icon;
 }
 
 // Sigil descriptions for tooltips
+// Format: scaling values use <b class="sig-scale">ONE</b> to indicate level-dependent values
 const SIGIL_DESCRIPTIONS = {
-'Attack': 'Deal POW damage to target. L2: Attack twice. L3: Attack 3 times. L4: Attack 4 times. Stacks with Asterisk.',
-'Shield': 'Grant target 2×POW shield. L2: 4×POW. L3: 6×POW. L4: 8×POW. Shield persists between battles (capped at hero max HP).',
-'Heal': 'Restore 2×POW HP to target. L2: 4×POW. L3: 6×POW. L4: 8×POW. Cannot exceed max HP.',
-'D20': 'Roll 1d20 per level, take highest. Need 10+ to succeed. L1: 55%, L2: 80%, L3: 91%, L4: 96%. Effects: Confuse (deal enemy POW to all), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team).',
-'Expand': 'PASSIVE: Permanently add +1 target per level to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 Expand built-in.',
-'Grapple': 'Stun target for (Level) turns. You take damage equal to target\'s POW.',
-'Ghost': 'Cancel the next lethal hit. Each charge prevents one death. Charges shown on card (max 9 charges). Ghost charges PERSIST between combats.',
-'Asterisk': 'PASSIVE: Next action triggers +(Level+1) times! Resets after each battle. Works with any action type.',
-'Star': 'PASSIVE: Multiply combat XP by (1 + Level×0.5). Works automatically. Stacks across heroes. L4 = 3× XP!',
-'Alpha': 'Grant target hero an extra action this turn. Higher levels grant more actions.'
+'Attack': 'Deal POW damage to target <b class="sig-scale">ONE</b> time. L2: twice. L3: 3×. L4: 4×.',
+'Shield': 'Grant target <b class="sig-scale">2×POW</b> shield. L2: 4×. L3: 6×. L4: 8×. Shields persist between battles (capped at max HP).',
+'Heal': 'Restore <b class="sig-scale">2×POW</b> HP to target. L2: 4×. L3: 6×. L4: 8×. Cannot exceed max HP.',
+'D20': 'Attempt a gambit! Roll <b class="sig-scale">ONE</b> d20. L2: 2 dice (take best). L3: 3 dice. L4: 4 dice.',
+'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to Attack/Shield/Heal. Mage/Healer get +1 built-in.',
+'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. You take recoil damage equal to target\'s POW.',
+'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
+'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
+'Star': 'PASSIVE (works automatically): Multiply combat XP by <b class="sig-scale">1.5×</b>. L2: 2×. L3: 2.5×. L4: 3×. Stacks across all heroes!',
+'Alpha': 'Grant target hero <b class="sig-scale">ONE</b> extra action this turn. L2: 2 actions. L3: 3 actions. L4: 4 actions.'
 };
 
 // ===== SIGIL ORDERING =====
