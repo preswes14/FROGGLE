@@ -833,7 +833,7 @@ showNarrativeSlide(slides, 0);
 function showTitleCard() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div class="interstitial-screen">
 <div style="text-align:center;color:#fff">
 <div style="font-size:3rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
 <div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
@@ -1168,7 +1168,7 @@ function showNeutralInterstitial(f, encName, callback) {
 const displayName = NEUTRAL_NAMES[encName] || encName;
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div class="interstitial-screen">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
 <div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem;font-family:'Fredoka One',cursive">Floor ${f}</div>
 <div style="font-size:1.8rem;font-style:italic;font-family:'Fredoka One',cursive">${displayName}</div>
@@ -1192,7 +1192,8 @@ showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities
 const enc = getNeutralEncounter();
 
 if(S.ghostBoysConverted && enc.startsWith('ghost')) {
-showEmptyPlayroom();
+// Show interstitial before empty playroom for consistency
+showNeutralInterstitial(f, 'emptyplayroom', showEmptyPlayroom);
 return;
 }
 

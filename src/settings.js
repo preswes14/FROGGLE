@@ -6,7 +6,7 @@ toast(enabled ? 'Debug Mode ON' : 'Debug Mode OFF', 1200);
 const debugBtn = document.getElementById('debugBtn');
 if(debugBtn) debugBtn.style.display = enabled ? 'block' : 'none';
 // Refresh settings menu if open to show/hide debug tools button
-const settingsMenu = document.querySelector('[style*="z-index:30000"]');
+const settingsMenu = document.querySelector('.modal-container');
 if(settingsMenu) {
 closeSettingsMenu();
 showSettingsMenu();
@@ -17,7 +17,7 @@ function toggleOopsAll20s(enabled) {
 S.oopsAll20s = enabled;
 toast(enabled ? '🎲 Oops All 20s: ON (All D20 rolls = 20!)' : '🎲 Oops All 20s: OFF', 1500);
 // Refresh debug menu to update checkbox
-const debugMenu = document.querySelector('[style*="z-index:30000"]');
+const debugMenu = document.querySelector('.modal-container');
 if(debugMenu && debugMenu.textContent.includes('DEBUG MENU')) {
 closeDebugMenu();
 showDebugMenu();
@@ -94,7 +94,7 @@ v.insertAdjacentHTML('beforeend', html);
 
 function closeDebugMenu() {
 // Remove debug menu elements
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 menus.forEach(m => m.remove());
 }
 
@@ -165,7 +165,7 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSettingsMenu() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 menus.forEach(m => m.remove());
 }
 
@@ -505,7 +505,7 @@ arrow.textContent = '▼';
 }
 
 function closeFAQ() {
-const overlays = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const overlays = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 overlays.forEach(el => el.remove());
 }
 
@@ -623,7 +623,7 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSigilarium() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 menus.forEach(m => m.remove());
 }
 

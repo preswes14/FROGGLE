@@ -23,7 +23,7 @@ return;
 }
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div class="interstitial-screen">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
 <div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem">Floor ${f}</div>
 <div style="font-size:1.8rem;font-style:italic">${floorName}</div>
@@ -1874,7 +1874,7 @@ if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" st
 html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
-html += `<div>D20 only!</div>`;
+html += `<div style="color:#ef4444;font-weight:bold">DCs +${(h.lst + 1) * 2}</div>`;
 html += `<div style="font-size:0.65rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
 html += `</div>`;
 // Show shield/ghost if any

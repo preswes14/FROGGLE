@@ -614,11 +614,10 @@ const GamepadController = {
   saveFocusState() {
     if (this.focusedElement) {
       this.lastFocusedId = this.focusedElement.id || null;
-      // Also try to save a descriptor for non-id elements
-      if (!this.lastFocusedId && this.focusedElement.classList.contains('card')) {
-        const heroId = this.focusedElement.id;
-        if (heroId) this.lastFocusedId = heroId;
-      }
+      // For elements without IDs, save index and text content as fallback
+      this.lastFocusedIndex = this.focusableElements.indexOf(this.focusedElement);
+      this.lastFocusedText = this.focusedElement.textContent?.trim().substring(0, 50) || null;
+      this.lastFocusedClass = this.focusedElement.className || null;
     }
   },
 
@@ -629,13 +628,31 @@ const GamepadController = {
     setTimeout(() => {
       this.updateFocusableElements();
 
-      // Try to restore by ID
+      // Try to restore by ID first
       if (this.lastFocusedId) {
         const el = document.getElementById(this.lastFocusedId);
         if (el && this.focusableElements.includes(el)) {
           this.setFocus(el);
           return;
         }
+      }
+
+      // Try to restore by matching text content and class
+      if (this.lastFocusedText && this.lastFocusedClass) {
+        const match = this.focusableElements.find(el =>
+          el.className === this.lastFocusedClass &&
+          el.textContent?.trim().substring(0, 50) === this.lastFocusedText
+        );
+        if (match) {
+          this.setFocus(match);
+          return;
+        }
+      }
+
+      // Try to restore by same index position
+      if (this.lastFocusedIndex >= 0 && this.lastFocusedIndex < this.focusableElements.length) {
+        this.setFocus(this.focusableElements[this.lastFocusedIndex]);
+        return;
       }
 
       // Fallback to first focusable

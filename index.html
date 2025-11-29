@@ -143,6 +143,19 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   background: linear-gradient(#fff, #f7f1e3);
   border: 3px solid #f97316;
 }
+/* Full-screen interstitials (floor transitions, title screen, etc.) */
+.interstitial-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30000;
+}
 .modal-title {
   text-align: center;
   margin-bottom: 1rem;
@@ -3813,7 +3826,7 @@ return;
 }
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div class="interstitial-screen">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
 <div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem">Floor ${f}</div>
 <div style="font-size:1.8rem;font-style:italic">${floorName}</div>
@@ -5664,7 +5677,7 @@ if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" st
 html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
-html += `<div>D20 only!</div>`;
+html += `<div style="color:#ef4444;font-weight:bold">DCs +${(h.lst + 1) * 2}</div>`;
 html += `<div style="font-size:0.65rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
 html += `</div>`;
 // Show shield/ghost if any
@@ -7474,7 +7487,7 @@ showNarrativeSlide(slides, 0);
 function showTitleCard() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div class="interstitial-screen">
 <div style="text-align:center;color:#fff">
 <div style="font-size:3rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
 <div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
@@ -7809,7 +7822,7 @@ function showNeutralInterstitial(f, encName, callback) {
 const displayName = NEUTRAL_NAMES[encName] || encName;
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div class="interstitial-screen">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
 <div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem;font-family:'Fredoka One',cursive">Floor ${f}</div>
 <div style="font-size:1.8rem;font-style:italic;font-family:'Fredoka One',cursive">${displayName}</div>
@@ -7833,7 +7846,8 @@ showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities
 const enc = getNeutralEncounter();
 
 if(S.ghostBoysConverted && enc.startsWith('ghost')) {
-showEmptyPlayroom();
+// Show interstitial before empty playroom for consistency
+showNeutralInterstitial(f, 'emptyplayroom', showEmptyPlayroom);
 return;
 }
 
@@ -10687,7 +10701,7 @@ toast(enabled ? 'Debug Mode ON' : 'Debug Mode OFF', 1200);
 const debugBtn = document.getElementById('debugBtn');
 if(debugBtn) debugBtn.style.display = enabled ? 'block' : 'none';
 // Refresh settings menu if open to show/hide debug tools button
-const settingsMenu = document.querySelector('[style*="z-index:30000"]');
+const settingsMenu = document.querySelector('.modal-container');
 if(settingsMenu) {
 closeSettingsMenu();
 showSettingsMenu();
@@ -10698,7 +10712,7 @@ function toggleOopsAll20s(enabled) {
 S.oopsAll20s = enabled;
 toast(enabled ? '🎲 Oops All 20s: ON (All D20 rolls = 20!)' : '🎲 Oops All 20s: OFF', 1500);
 // Refresh debug menu to update checkbox
-const debugMenu = document.querySelector('[style*="z-index:30000"]');
+const debugMenu = document.querySelector('.modal-container');
 if(debugMenu && debugMenu.textContent.includes('DEBUG MENU')) {
 closeDebugMenu();
 showDebugMenu();
@@ -10775,7 +10789,7 @@ v.insertAdjacentHTML('beforeend', html);
 
 function closeDebugMenu() {
 // Remove debug menu elements
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 menus.forEach(m => m.remove());
 }
 
@@ -10846,7 +10860,7 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSettingsMenu() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 menus.forEach(m => m.remove());
 }
 
@@ -11186,7 +11200,7 @@ arrow.textContent = '▼';
 }
 
 function closeFAQ() {
-const overlays = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const overlays = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 overlays.forEach(el => el.remove());
 }
 
@@ -11304,7 +11318,7 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSigilarium() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container, .modal-overlay, .interstitial-screen');
 menus.forEach(m => m.remove());
 }
 
@@ -12843,11 +12857,10 @@ const GamepadController = {
   saveFocusState() {
     if (this.focusedElement) {
       this.lastFocusedId = this.focusedElement.id || null;
-      // Also try to save a descriptor for non-id elements
-      if (!this.lastFocusedId && this.focusedElement.classList.contains('card')) {
-        const heroId = this.focusedElement.id;
-        if (heroId) this.lastFocusedId = heroId;
-      }
+      // For elements without IDs, save index and text content as fallback
+      this.lastFocusedIndex = this.focusableElements.indexOf(this.focusedElement);
+      this.lastFocusedText = this.focusedElement.textContent?.trim().substring(0, 50) || null;
+      this.lastFocusedClass = this.focusedElement.className || null;
     }
   },
 
@@ -12858,13 +12871,31 @@ const GamepadController = {
     setTimeout(() => {
       this.updateFocusableElements();
 
-      // Try to restore by ID
+      // Try to restore by ID first
       if (this.lastFocusedId) {
         const el = document.getElementById(this.lastFocusedId);
         if (el && this.focusableElements.includes(el)) {
           this.setFocus(el);
           return;
         }
+      }
+
+      // Try to restore by matching text content and class
+      if (this.lastFocusedText && this.lastFocusedClass) {
+        const match = this.focusableElements.find(el =>
+          el.className === this.lastFocusedClass &&
+          el.textContent?.trim().substring(0, 50) === this.lastFocusedText
+        );
+        if (match) {
+          this.setFocus(match);
+          return;
+        }
+      }
+
+      // Try to restore by same index position
+      if (this.lastFocusedIndex >= 0 && this.lastFocusedIndex < this.focusableElements.length) {
+        this.setFocus(this.focusableElements[this.lastFocusedIndex]);
+        return;
       }
 
       // Fallback to first focusable
