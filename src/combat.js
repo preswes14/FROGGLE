@@ -1867,7 +1867,9 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
-html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
+const lsIsChosen = h.n === S.chosenHeroName;
+const lsChosenBadge = lsIsChosen ? ' <span style="color:#fbbf24" title="Chosen: +1G per floor">★</span>' : '';
+html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}${lsChosenBadge}</div>`;
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
 html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
@@ -1904,8 +1906,10 @@ if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
-// Name at top
-html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
+// Name at top (with Chosen indicator if applicable)
+const isChosen = h.n === S.chosenHeroName;
+const chosenBadge = isChosen ? ' <span style="color:#fbbf24" title="Chosen: +1G per floor">★</span>' : '';
+html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}${chosenBadge}</div>`;
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
@@ -2089,6 +2093,14 @@ function nextFloor() {
 // Clear any pending recruit replacement choice
 S.pendingNewRecruit = null;
 S.pendingOldRecruitId = null;
+
+// Award +1G if "Chosen" hero is alive
+const chosenHero = S.heroes.find(h => h.n === S.chosenHeroName);
+if(chosenHero && chosenHero.h > 0 && !chosenHero.ls) {
+S.gold += 1;
+toast(`+1G (${S.chosenHeroName} is Chosen)`, 'gold');
+}
+
 saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {

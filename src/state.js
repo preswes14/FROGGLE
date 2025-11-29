@@ -48,6 +48,7 @@ ambushed: false,    // Whether current combat is an ambush
 
 // ===== TEMPORARY NEUTRAL STATE (resets on death) =====
 silverKeyHeld: false,     // Silver key from Ghost Boys
+chosenHeroName: null,     // "Chosen" hero for this run - least used hero grants +1G per floor
 oracleHero: null,         // Hero chosen at Oracle
 oracleRoll: null,         // Roll result at Oracle
 oracleStat: null,         // Stat chosen at Oracle

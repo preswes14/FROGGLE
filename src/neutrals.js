@@ -1111,6 +1111,24 @@ hero.m += 5;
 hero.h += 5;
 }
 });
+
+// Determine "Chosen" hero - least used hero grants +1G per floor cleared
+// Count hero usage from pond history
+const heroUsage = {};
+S.heroes.forEach(h => { heroUsage[h.n] = 0; });
+S.pondHistory.forEach(run => {
+run.heroes.forEach(name => {
+if(heroUsage.hasOwnProperty(name)) heroUsage[name]++;
+});
+});
+// Find hero(es) with minimum usage
+const minUsage = Math.min(...Object.values(heroUsage));
+const leastUsed = S.heroes.filter(h => heroUsage[h.n] === minUsage);
+// Pick randomly if tied
+S.chosenHeroName = leastUsed[Math.floor(Math.random() * leastUsed.length)].n;
+// Notify player (delayed so it appears after floor interstitial)
+setTimeout(() => toast(`${S.chosenHeroName} is Chosen (+1G per floor)`, 'gold'), 2500);
+
 initNeutralDeck();
 upd();
 // Check if player has starting XP from Death Boy sacrifices
