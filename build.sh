@@ -27,7 +27,7 @@ if [ ! -f "build/template_head.html" ] || [ ! -f "build/template_foot.html" ]; t
     SCRIPT_END=$(grep -n "^</script>$" index.html | tail -1 | cut -d: -f1)
 
     head -n $((SCRIPT_START - 1)) index.html > build/template_head.html
-    tail -n +$SCRIPT_END index.html > build/template_foot.html
+    tail -n +$((SCRIPT_END+1)) index.html > build/template_foot.html
     echo "  ✓ Templates extracted"
 fi
 
