@@ -72,9 +72,11 @@ const GamepadController = {
       }
     }
 
-    // Switch to mouse mode on significant mouse movement or click
+    // Switch to mouse mode on significant sustained mouse movement
+    // NOTE: Don't deactivate on click - Steam Deck touchscreen generates clicks
+    // and we want controller mode to persist even when occasionally tapping screen
     document.addEventListener('mousemove', (e) => {
-      // Only deactivate on significant mouse movement (not just hover)
+      // Only deactivate on significant mouse movement (not just hover or small jitter)
       if (this.lastMouseX === null) {
         this.lastMouseX = e.clientX;
         this.lastMouseY = e.clientY;
@@ -82,13 +84,14 @@ const GamepadController = {
       }
       const dx = Math.abs(e.clientX - this.lastMouseX);
       const dy = Math.abs(e.clientY - this.lastMouseY);
-      if (dx > this.mouseMovementThreshold || dy > this.mouseMovementThreshold) {
+      // Require more significant movement (50px) before switching to mouse mode
+      if (dx > 50 || dy > 50) {
         this.lastMouseX = e.clientX;
         this.lastMouseY = e.clientY;
         this.deactivateControllerMode();
       }
     });
-    document.addEventListener('click', () => this.deactivateControllerMode());
+    // Don't deactivate on click - let controller mode persist
   },
 
   onGamepadConnected(e) {

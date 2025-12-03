@@ -544,7 +544,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
-🪰 Here come two <strong>flies</strong> now - you're up! 🪰
+🪰 Here come three <strong>flies</strong> now - you're up! 🪰
 </p>
 <button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
 </div>`;
