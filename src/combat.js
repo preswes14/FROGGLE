@@ -106,6 +106,9 @@ return ['goblin'];
  * @param {number} f - Floor number (1-19, or 0 for tutorial)
  */
 function combat(f) {
+// Show header during combat
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately

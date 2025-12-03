@@ -439,11 +439,11 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   0% { transform: translate(0, 0); opacity: 0.7; }
   100% { transform: translate(50px, -20px); opacity: 0; }
 }
-.sigil-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 4px; max-width: 100%; }
+.sigil-row { display: flex !important; flex-direction: row !important; flex-wrap: wrap; gap: 4px; justify-content: center; align-items: center; margin-top: 4px; max-width: 100%; }
 .sigil-row.compact { gap: 2px; }
 .sigil-row.compact .sigil { padding: 4px; font-size: 0.65rem; min-width: 24px; min-height: 24px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: none; border-radius: 6px; padding: 8px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 36px; min-height: 36px; font-weight: 900; background: transparent; text-shadow: none; }
+.sigil { border: none; border-radius: 6px; padding: 8px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 36px; min-height: 36px; max-width: 48px; width: auto; font-weight: 900; background: transparent; text-shadow: none; flex-shrink: 0; }
 .sigil img { width: auto; height: 1.5em; object-fit: contain; }
 .sigil.passive { opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
@@ -451,8 +451,8 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
 .sigil.l0 { color: #666; opacity: 0.5; }
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.35); }
-.sigil.l1 { color: #1e40af; }
-.sigil.l1 img { filter: invert(18%) sepia(89%) saturate(2106%) hue-rotate(219deg) brightness(91%) contrast(95%); }
+.sigil.l1 { color: #3b82f6; }
+.sigil.l1 img { filter: invert(42%) sepia(98%) saturate(1284%) hue-rotate(199deg) brightness(102%) contrast(96%); }
 .sigil.l2 { color: #0d9488; }
 .sigil.l2 img { filter: invert(41%) sepia(52%) saturate(1249%) hue-rotate(133deg) brightness(93%) contrast(91%); }
 .sigil.l3 { color: #9333ea; }
@@ -1816,7 +1816,7 @@ tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alp
 // - sigilLevels: override max level for specific sigils {Attack:2, Shield:2, etc}
 // - Star and D20 are NEVER available to enemies
 const E = {
-fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:1, pool:[], gainRate:999 },
+fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:1, pool:[], gainRate:999, startSigils:[{s:'Attack',l:1}] },
 goblin: { n:'Goblin', p:1, h:5, m:5, goldDrop:1, x:2, pool:['Asterisk','Expand','Shield'], maxLevel:1, gainRate:3 },
 wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], maxLevel:1, gainRate:2 },
 orc: { n:'Orc', p:3, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack'], maxLevel:1, sigilLevels:{Attack:2}, gainRate:2, startSigils:1 },
@@ -4005,6 +4005,9 @@ return ['goblin'];
  * @param {number} f - Floor number (1-19, or 0 for tutorial)
  */
 function combat(f) {
+// Show header during combat
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
@@ -7585,6 +7588,10 @@ let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
 debugLog('[FROGGLE] title() called - Hero selection screen');
+// Show header on hero selection
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+upd();
 // Reset selection first
 sel = [];
 
@@ -7900,6 +7907,10 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 }
 
 function neutral(f) {
+// Show header during neutral encounters
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
 showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities! You can walk straight through, or take a risk for potential rewards.");
@@ -10923,6 +10934,10 @@ ${inGame ? `
 <p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Progress is saved at the start of each floor. Current floor progress will be lost.</p>
 ` : ''}
 
+<h3 class="modal-section-title" style="color:#6b7280">Exit</h3>
+<button class="btn" onclick="confirmExitGame()" style="margin-bottom:0.5rem;background:#374151">🚪 Exit Game</button>
+<p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Return to title screen (permanent progress is always saved)</p>
+
 <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu()"></div>
@@ -10972,6 +10987,28 @@ S.combatGold = 0;
 S.inRibbleton = true;
 setTimeout(() => {
 showRibbleton();
+}, 500);
+});
+}
+
+function confirmExitGame() {
+showConfirmModal('Exit to title screen? Your permanent progress (gold, sigil upgrades, etc.) is always saved.', () => {
+closeSettingsMenu();
+toast('Returning to title...', 1200);
+// Reset ALL game state
+S.heroes = [];
+S.floor = 0;
+S.round = 0;
+S.enemies = [];
+S.recruits = [];
+S.combatXP = 0;
+S.combatGold = 0;
+S.inRibbleton = false;
+S.inTutorial = false;
+// Save permanent progress
+savePermanent();
+setTimeout(() => {
+mainTitlePage();
 }, 500);
 });
 }
@@ -11563,7 +11600,10 @@ const GamepadController = {
     }
 
     // Listen for gamepad connections
-    window.addEventListener('gamepadconnected', (e) => this.onGamepadConnected(e));
+    window.addEventListener('gamepadconnected', (e) => {
+      console.log('[GAMEPAD] gamepadconnected event fired!');
+      this.onGamepadConnected(e);
+    });
     window.addEventListener('gamepaddisconnected', (e) => this.onGamepadDisconnected(e));
 
     // Check for already-connected gamepads (Steam Deck may have controller pre-connected)
@@ -11576,6 +11616,18 @@ const GamepadController = {
         this.onGamepadConnected({ gamepad: gp });
         break;
       }
+    }
+
+    // CRITICAL: Steam Deck fix - Start continuous polling regardless of event
+    // Steam Deck's gamepad may not fire 'gamepadconnected' event but still be available
+    // Poll every 500ms to check for newly available gamepads
+    this.gamepadCheckInterval = setInterval(() => this.checkForGamepads(), 500);
+    console.log('[GAMEPAD] Started continuous gamepad check interval');
+
+    // Also start the main polling loop immediately - it will no-op if no gamepad
+    if (!this.pollInterval) {
+      this.pollInterval = setInterval(() => this.poll(), 16);
+      console.log('[GAMEPAD] Started main polling loop (will activate when gamepad found)');
     }
 
     // Switch to mouse mode on significant sustained mouse movement
@@ -11598,6 +11650,24 @@ const GamepadController = {
       }
     });
     // Don't deactivate on click - let controller mode persist
+  },
+
+  // Continuously check for gamepads (Steam Deck fix)
+  checkForGamepads() {
+    if (this.gamepadIndex !== null) return; // Already have a gamepad
+
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (let i = 0; i < gamepads.length; i++) {
+      const gp = gamepads[i];
+      if (gp && gp.connected) {
+        console.log('[GAMEPAD] Found gamepad via polling at index', i, ':', gp.id);
+        console.log('[GAMEPAD] Buttons:', gp.buttons.length, 'Axes:', gp.axes.length);
+        this.gamepadIndex = i;
+        this.activateControllerMode();
+        toast('🎮 Controller detected! Use D-pad to navigate.', 2500);
+        return;
+      }
+    }
   },
 
   onGamepadConnected(e) {
@@ -11671,23 +11741,42 @@ const GamepadController = {
 
   // Main polling loop
   poll() {
-    if (this.gamepadIndex === null) return;
+    // Try to find a gamepad if we don't have one
+    if (this.gamepadIndex === null) {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (let i = 0; i < gamepads.length; i++) {
+        if (gamepads[i] && gamepads[i].connected) {
+          this.gamepadIndex = i;
+          console.log('[GAMEPAD] Poll found gamepad at index', i);
+          this.activateControllerMode();
+          break;
+        }
+      }
+      if (this.gamepadIndex === null) return;
+    }
 
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     const gp = gamepads[this.gamepadIndex];
-    if (!gp) return;
+    if (!gp) {
+      // Gamepad disconnected
+      this.gamepadIndex = null;
+      return;
+    }
 
     const now = Date.now();
-    if (now - this.lastInputTime < this.inputCooldown) return;
 
-    // Check buttons
+    // Check buttons ALWAYS (don't skip due to cooldown - we need to track state)
     for (let i = 0; i < gp.buttons.length; i++) {
-      const pressed = gp.buttons[i].pressed;
+      const pressed = gp.buttons[i].pressed || gp.buttons[i].value > 0.5;
       const wasPressed = this.buttonStates[i] || false;
 
       if (pressed && !wasPressed) {
-        this.onButtonPress(i);
-        this.lastInputTime = now;
+        // Only process if cooldown elapsed
+        if (now - this.lastInputTime >= this.inputCooldown) {
+          console.log('[GAMEPAD] Button', i, 'pressed!');
+          this.onButtonPress(i);
+          this.lastInputTime = now;
+        }
       }
 
       this.buttonStates[i] = pressed;
@@ -11698,17 +11787,21 @@ const GamepadController = {
     const leftY = gp.axes[1] || 0;
 
     if (Math.abs(leftX) > this.axisDeadzone || Math.abs(leftY) > this.axisDeadzone) {
-      // Determine primary direction
-      if (Math.abs(leftX) > Math.abs(leftY)) {
-        this.onDirection(leftX > 0 ? 'right' : 'left');
-      } else {
-        this.onDirection(leftY > 0 ? 'down' : 'up');
+      if (now - this.lastInputTime >= this.inputCooldown) {
+        // Determine primary direction
+        if (Math.abs(leftX) > Math.abs(leftY)) {
+          this.onDirection(leftX > 0 ? 'right' : 'left');
+        } else {
+          this.onDirection(leftY > 0 ? 'down' : 'up');
+        }
+        this.lastInputTime = now;
       }
-      this.lastInputTime = now;
     }
   },
 
   onButtonPress(buttonIndex) {
+    console.log('[GAMEPAD] onButtonPress called with button:', buttonIndex);
+
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();

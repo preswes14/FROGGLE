@@ -57,7 +57,10 @@ const GamepadController = {
     }
 
     // Listen for gamepad connections
-    window.addEventListener('gamepadconnected', (e) => this.onGamepadConnected(e));
+    window.addEventListener('gamepadconnected', (e) => {
+      console.log('[GAMEPAD] gamepadconnected event fired!');
+      this.onGamepadConnected(e);
+    });
     window.addEventListener('gamepaddisconnected', (e) => this.onGamepadDisconnected(e));
 
     // Check for already-connected gamepads (Steam Deck may have controller pre-connected)
@@ -70,6 +73,18 @@ const GamepadController = {
         this.onGamepadConnected({ gamepad: gp });
         break;
       }
+    }
+
+    // CRITICAL: Steam Deck fix - Start continuous polling regardless of event
+    // Steam Deck's gamepad may not fire 'gamepadconnected' event but still be available
+    // Poll every 500ms to check for newly available gamepads
+    this.gamepadCheckInterval = setInterval(() => this.checkForGamepads(), 500);
+    console.log('[GAMEPAD] Started continuous gamepad check interval');
+
+    // Also start the main polling loop immediately - it will no-op if no gamepad
+    if (!this.pollInterval) {
+      this.pollInterval = setInterval(() => this.poll(), 16);
+      console.log('[GAMEPAD] Started main polling loop (will activate when gamepad found)');
     }
 
     // Switch to mouse mode on significant sustained mouse movement
@@ -92,6 +107,24 @@ const GamepadController = {
       }
     });
     // Don't deactivate on click - let controller mode persist
+  },
+
+  // Continuously check for gamepads (Steam Deck fix)
+  checkForGamepads() {
+    if (this.gamepadIndex !== null) return; // Already have a gamepad
+
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (let i = 0; i < gamepads.length; i++) {
+      const gp = gamepads[i];
+      if (gp && gp.connected) {
+        console.log('[GAMEPAD] Found gamepad via polling at index', i, ':', gp.id);
+        console.log('[GAMEPAD] Buttons:', gp.buttons.length, 'Axes:', gp.axes.length);
+        this.gamepadIndex = i;
+        this.activateControllerMode();
+        toast('🎮 Controller detected! Use D-pad to navigate.', 2500);
+        return;
+      }
+    }
   },
 
   onGamepadConnected(e) {
@@ -165,23 +198,42 @@ const GamepadController = {
 
   // Main polling loop
   poll() {
-    if (this.gamepadIndex === null) return;
+    // Try to find a gamepad if we don't have one
+    if (this.gamepadIndex === null) {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (let i = 0; i < gamepads.length; i++) {
+        if (gamepads[i] && gamepads[i].connected) {
+          this.gamepadIndex = i;
+          console.log('[GAMEPAD] Poll found gamepad at index', i);
+          this.activateControllerMode();
+          break;
+        }
+      }
+      if (this.gamepadIndex === null) return;
+    }
 
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     const gp = gamepads[this.gamepadIndex];
-    if (!gp) return;
+    if (!gp) {
+      // Gamepad disconnected
+      this.gamepadIndex = null;
+      return;
+    }
 
     const now = Date.now();
-    if (now - this.lastInputTime < this.inputCooldown) return;
 
-    // Check buttons
+    // Check buttons ALWAYS (don't skip due to cooldown - we need to track state)
     for (let i = 0; i < gp.buttons.length; i++) {
-      const pressed = gp.buttons[i].pressed;
+      const pressed = gp.buttons[i].pressed || gp.buttons[i].value > 0.5;
       const wasPressed = this.buttonStates[i] || false;
 
       if (pressed && !wasPressed) {
-        this.onButtonPress(i);
-        this.lastInputTime = now;
+        // Only process if cooldown elapsed
+        if (now - this.lastInputTime >= this.inputCooldown) {
+          console.log('[GAMEPAD] Button', i, 'pressed!');
+          this.onButtonPress(i);
+          this.lastInputTime = now;
+        }
       }
 
       this.buttonStates[i] = pressed;
@@ -192,17 +244,21 @@ const GamepadController = {
     const leftY = gp.axes[1] || 0;
 
     if (Math.abs(leftX) > this.axisDeadzone || Math.abs(leftY) > this.axisDeadzone) {
-      // Determine primary direction
-      if (Math.abs(leftX) > Math.abs(leftY)) {
-        this.onDirection(leftX > 0 ? 'right' : 'left');
-      } else {
-        this.onDirection(leftY > 0 ? 'down' : 'up');
+      if (now - this.lastInputTime >= this.inputCooldown) {
+        // Determine primary direction
+        if (Math.abs(leftX) > Math.abs(leftY)) {
+          this.onDirection(leftX > 0 ? 'right' : 'left');
+        } else {
+          this.onDirection(leftY > 0 ? 'down' : 'up');
+        }
+        this.lastInputTime = now;
       }
-      this.lastInputTime = now;
     }
   },
 
   onButtonPress(buttonIndex) {
+    console.log('[GAMEPAD] onButtonPress called with button:', buttonIndex);
+
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();

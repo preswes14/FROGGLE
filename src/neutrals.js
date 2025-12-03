@@ -851,6 +851,10 @@ let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
 debugLog('[FROGGLE] title() called - Hero selection screen');
+// Show header on hero selection
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+upd();
 // Reset selection first
 sel = [];
 
@@ -1166,6 +1170,10 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 }
 
 function neutral(f) {
+// Show header during neutral encounters
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
 showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities! You can walk straight through, or take a risk for potential rewards.");
