@@ -141,19 +141,19 @@ localStorage.setItem('froggle8_current_slot', '1');
 debugLog('[SAVE] Set currentSlot to 1 after migration');
 }
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
-<!-- Green mat container -->
-<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:90%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
-<!-- Title image with version label -->
-<div style="position:relative;margin-bottom:1.5rem">
-<img src="assets/title-screen.png" style="width:100%;height:auto;border-radius:8px;border:3px solid #000;display:block;box-shadow:0 4px 8px rgba(0,0,0,0.3)">
-<div style="position:absolute;top:0.3rem;right:0.3rem;background:rgba(0,0,0,0.85);padding:0.25rem 0.5rem;border-radius:6px;border:2px solid rgba(251,191,36,0.7)">
-<p style="font-size:0.7rem;color:#3b82f6;font-weight:bold;text-align:right;margin:0">v${GAME_VERSION}</p>
-</div>
-</div>
+<div class="title-screen">
+<!-- Background image - landscape for wide screens, portrait for narrow -->
+<picture>
+<source media="(min-aspect-ratio: 1/1)" srcset="assets/froggle_title_wide.jpeg">
+<img src="assets/froggle_title.png" alt="FROGGLE" class="title-bg-image">
+</picture>
 
-<!-- Single Play button -->
-<button class="btn" onclick="showSaveSlotSelection()" style="width:100%;font-size:1.2rem;padding:1rem;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🐸 PLAY 🐸</button>
+<!-- Version badge -->
+<div class="title-version">v${GAME_VERSION}</div>
+
+<!-- Play button container at bottom -->
+<div class="title-button-container">
+<button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
 </div>
 </div>`;
 }
