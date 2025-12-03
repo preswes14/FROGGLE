@@ -4,7 +4,7 @@
 FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all game logic runs in the browser with vanilla JavaScript. Think Balatro/Inscryption vibes, not mobile retention loops.
 
 ## Tech Stack
-- Single HTML file (~11,500 lines) with embedded JS/CSS
+- Single HTML file (~12,200 lines) with embedded JS/CSS
 - localStorage for saves (no backend/cloud sync)
 - Mobile-first, PWA installable
 - Steam Deck controller support
@@ -23,13 +23,13 @@ The monolith is now split into modular source files that concatenate back to `in
 
 ```
 src/
-├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (934 lines)
+├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (953 lines)
 ├── sounds.js         # SoundFX Web Audio API system (286 lines)
-├── state.js          # Game state `S`, upd(), animations, toast, save/load (842 lines)
-├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (2686 lines)
-├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (2709 lines)
-├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (1020 lines)
-├── settings.js       # Debug, Settings, FAQ (1579 lines)
+├── state.js          # Game state `S`, upd(), animations, toast, save/load (866 lines)
+├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (2838 lines)
+├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (2899 lines)
+├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (1121 lines)
+├── settings.js       # Debug, Settings, FAQ (720 lines)
 ├── controller.js     # GamepadController for Steam Deck (761 lines)
 └── main.js           # Init and window.onload (67 lines)
 
