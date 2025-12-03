@@ -71,6 +71,8 @@ toastLogVisible: true,          // Whether toast log is shown
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
 helpTipsDisabled: false,        // Whether tutorial help tips are disabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
+controllerDisabled: false,      // Whether gamepad/controller support is disabled
+inRibbleton: false,             // Whether player is in Ribbleton hub
 
 // ===== DEBUG STATE =====
 debugMode: false,       // Debug mode toggle
