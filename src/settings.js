@@ -157,6 +157,12 @@ ${inGame ? `
 </label>
 ${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">🛠️ Open Debug Tools</button>` : ''}
 
+${inGame ? `
+<h3 class="modal-section-title" style="color:#dc2626">Quit</h3>
+<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-bottom:0.5rem;background:#dc2626">🚪 Quit to Ribbleton</button>
+<p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Progress is saved at the start of each floor. Current floor progress will be lost.</p>
+` : ''}
+
 <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu()"></div>
@@ -187,6 +193,25 @@ combat(S.floor);
 // Even floor = neutral
 startFloor(S.floor);
 }
+}, 500);
+});
+}
+
+function confirmQuitToRibbleton() {
+showConfirmModal('Quit to Ribbleton? Your progress is saved at the start of each floor. Any progress on the current floor will be lost.', () => {
+closeSettingsMenu();
+toast('Returning to Ribbleton...', 1200);
+// Reset game state but preserve permanent progression
+S.heroes = [];
+S.floor = 0;
+S.round = 0;
+S.enemies = [];
+S.recruits = [];
+S.combatXP = 0;
+S.combatGold = 0;
+S.inRibbleton = true;
+setTimeout(() => {
+showRibbleton();
 }, 500);
 });
 }

@@ -342,12 +342,11 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 <div class="sigil-row">`;
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 if(!hasAttackSigil) {
-html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
@@ -449,6 +448,20 @@ toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 // Death/Last Stand
 target.h = 0;
 if(options.isHero) {
+// TUTORIAL PHASE 1: Override Last Stand with Tapo rescue
+if(tutorialState && S.floor === 0 && tutorialState.phase === 1) {
+// Tapo saves the day! Auto-win tutorial
+target.h = 1; // Prevent actual death
+toast("Tapo reaches out his sticky tongue and swallows the last fly whole!", 3000);
+SoundFX.play('ribbit');
+// Clear all remaining enemies
+S.enemies = [];
+// Trigger victory after short delay
+setTimeout(() => {
+checkCombatEnd();
+}, 500);
+return {hpLost: 0, shieldLost, totalDamage: rawDamage};
+}
 // Heroes enter Last Stand
 target.ls = true;
 target.lst = 0;
@@ -561,23 +574,15 @@ if(!tutorialState || S.floor !== 0) return;
 
 debugLog('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
 
-// PHASE 1 (Fly Catching): Round 2 - Add Expand ability to Mage
-if(tutorialState.phase === 1 && round === 2 && !S.tutorialFlags.tapo_expand_tutorial) {
-debugLog('[TUTORIAL] Phase 1 Round 2 - Adding Expand to Mage');
-S.tutorialFlags.tapo_expand_tutorial = true;
-// Add Expand to Mage's sigils
-const mage = S.heroes[0];
-if(!mage.s.includes('Expand')) {
-mage.s.push('Expand');
-}
-showTutorialPop('tapo_expand_tutorial', "Mage also has the Expand sigil! Hover / long-press it to learn more. Then click Attack and try selecting both flies!", () => {
+// PHASE 1 (Fly Catching): Round 2 - Mage already has Expand, just continue
+if(tutorialState.phase === 1 && round === 2) {
+debugLog('[TUTORIAL] Phase 1 Round 2 - Continuing combat (Mage already has Expand)');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
 upd();
 render();
-});
 return;
 }
 

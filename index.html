@@ -443,37 +443,31 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil-row.compact { gap: 2px; }
 .sigil-row.compact .sigil { padding: 4px; font-size: 0.65rem; min-width: 24px; min-height: 24px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: 2px solid transparent; border-radius: 6px; padding: 6px; font-size: 0.85rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 32px; min-height: 32px; font-weight: 900; background: transparent; text-shadow: none; }
-.sigil img { width: auto; height: 1.2em; object-fit: contain; }
+.sigil { border: none; border-radius: 6px; padding: 8px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 36px; min-height: 36px; font-weight: 900; background: transparent; text-shadow: none; }
+.sigil img { width: auto; height: 1.5em; object-fit: contain; }
 .sigil.passive { opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
-.sigil.l0 { color: #666; border-color: #666; opacity: 0.6; }
-.sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.4); }
-.sigil.l1 { color: #1e40af; border-color: #1e40af; }
+.sigil.l0 { color: #666; opacity: 0.5; }
+.sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.35); }
+.sigil.l1 { color: #1e40af; }
 .sigil.l1 img { filter: invert(18%) sepia(89%) saturate(2106%) hue-rotate(219deg) brightness(91%) contrast(95%); }
-.sigil.l2 { color: #0d9488; border-color: #0d9488; }
+.sigil.l2 { color: #0d9488; }
 .sigil.l2 img { filter: invert(41%) sepia(52%) saturate(1249%) hue-rotate(133deg) brightness(93%) contrast(91%); }
-.sigil.l3 { color: #9333ea; border-color: #9333ea; }
+.sigil.l3 { color: #9333ea; }
 .sigil.l3 img { filter: invert(28%) sepia(97%) saturate(6144%) hue-rotate(262deg) brightness(82%) contrast(100%); }
-.sigil.l4 { color: #d97706; border-color: #d97706; text-shadow: 0 0 8px rgba(217,119,6,0.4); }
-.sigil.l4 img { filter: invert(44%) sepia(97%) saturate(950%) hue-rotate(22deg) brightness(97%) contrast(92%); }
+.sigil.l4 { color: #d97706; }
+.sigil.l4 img { filter: invert(44%) sepia(97%) saturate(950%) hue-rotate(22deg) brightness(97%) contrast(92%) drop-shadow(0 0 6px rgba(217,119,6,0.5)); }
 .sigil.l5 {
-  border-color: transparent;
-  background: linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #ff0080);
-  background-size: 300% 100%;
-  animation: rainbow-shift 3s linear infinite;
-  color: white;
-  text-shadow: 0 0 12px rgba(255,255,255,0.8), 0 0 24px rgba(255,0,128,0.6);
-  font-weight: bold;
+  background: transparent;
+  color: #ff0080;
 }
-.sigil.l5 img { filter: brightness(0) invert(1) drop-shadow(0 0 4px rgba(255,0,128,0.8)); }
-@keyframes rainbow-shift {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 300% 50%; }
+.sigil.l5 img { filter: invert(24%) sepia(99%) saturate(6143%) hue-rotate(316deg) brightness(101%) contrast(102%) drop-shadow(0 0 6px rgba(255,0,128,0.8)); animation: rainbow-pulse 2s ease-in-out infinite; }
+@keyframes rainbow-pulse {
+  0%, 100% { filter: invert(24%) sepia(99%) saturate(6143%) hue-rotate(316deg) brightness(101%) contrast(102%) drop-shadow(0 0 6px rgba(255,0,128,0.8)); }
+  50% { filter: invert(69%) sepia(88%) saturate(1053%) hue-rotate(166deg) brightness(90%) contrast(88%) drop-shadow(0 0 8px rgba(64,224,208,0.8)); }
 }
-.sigil.engraved { color: #6b7280; border-color: #9ca3af; font-style: italic; opacity: 0.7; background: rgba(107,114,128,0.1); }
 .sigil.asterisk-primed { box-shadow: 0 0 8px #a855f7; animation: pulse-asterisk 1s infinite; }
 @keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #a855f7; } 50% { box-shadow: 0 0 16px #a855f7; } }
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #3b82f6; } 50% { box-shadow: 0 0 20px #3b82f6; } }
@@ -1743,13 +1737,13 @@ body.controller-active .controller-prompts {
 </div>
 
 <div class="header" id="gameHeader">
-<div>Floor <span id="floor">1</span> | Round <span id="round">1</span></div>
+<div id="locationInfo"><span id="locationLabel">Floor</span> <span id="floor">1</span><span id="roundInfo"> | Round <span id="round">1</span></span></div>
 <div style="display:flex;gap:0.25rem">
-<button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🌀</button>
-<button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🪵</button>
-<button onclick="showFAQ()" style="padding:0.25rem 0.5rem;background:#f97316;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">❓</button>
-<button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">⚙️</button>
-<div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer">🛠️</button></div>
+<button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Sigilarium">🌀</button>
+<button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Combat Log">🪵</button>
+<button onclick="showFAQ()" style="padding:0.25rem 0.5rem;background:#f97316;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="FAQ/Help">❓</button>
+<button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Settings">⚙️</button>
+<div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Debug">🛠️</button></div>
 </div>
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
@@ -2109,12 +2103,11 @@ html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')"
 <div class="sigil-row">`;
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');
 if(!hasAttackSigil) {
-html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
@@ -2216,6 +2209,20 @@ toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 // Death/Last Stand
 target.h = 0;
 if(options.isHero) {
+// TUTORIAL PHASE 1: Override Last Stand with Tapo rescue
+if(tutorialState && S.floor === 0 && tutorialState.phase === 1) {
+// Tapo saves the day! Auto-win tutorial
+target.h = 1; // Prevent actual death
+toast("Tapo reaches out his sticky tongue and swallows the last fly whole!", 3000);
+SoundFX.play('ribbit');
+// Clear all remaining enemies
+S.enemies = [];
+// Trigger victory after short delay
+setTimeout(() => {
+checkCombatEnd();
+}, 500);
+return {hpLost: 0, shieldLost, totalDamage: rawDamage};
+}
 // Heroes enter Last Stand
 target.ls = true;
 target.lst = 0;
@@ -2328,23 +2335,15 @@ if(!tutorialState || S.floor !== 0) return;
 
 debugLog('[TUTORIAL] Round transition - Round:', round, 'Stage:', tutorialState.stage);
 
-// PHASE 1 (Fly Catching): Round 2 - Add Expand ability to Mage
-if(tutorialState.phase === 1 && round === 2 && !S.tutorialFlags.tapo_expand_tutorial) {
-debugLog('[TUTORIAL] Phase 1 Round 2 - Adding Expand to Mage');
-S.tutorialFlags.tapo_expand_tutorial = true;
-// Add Expand to Mage's sigils
-const mage = S.heroes[0];
-if(!mage.s.includes('Expand')) {
-mage.s.push('Expand');
-}
-showTutorialPop('tapo_expand_tutorial', "Mage also has the Expand sigil! Hover / long-press it to learn more. Then click Attack and try selecting both flies!", () => {
+// PHASE 1 (Fly Catching): Round 2 - Mage already has Expand, just continue
+if(tutorialState.phase === 1 && round === 2) {
+debugLog('[TUTORIAL] Phase 1 Round 2 - Continuing combat (Mage already has Expand)');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
 upd();
 render();
-});
 return;
 }
 
@@ -3163,8 +3162,31 @@ return `<div class="card hero hero-selectable" onclick="${onclickHandler}" style
 }
 
 function upd() {
-document.getElementById('floor').textContent = S.floor;
-document.getElementById('round').textContent = S.round || '-';
+const floorEl = document.getElementById('floor');
+const roundEl = document.getElementById('round');
+const roundInfoEl = document.getElementById('roundInfo');
+const locationLabelEl = document.getElementById('locationLabel');
+
+// Update location display based on game state
+if(S.floor === 0 && tutorialState) {
+// Tutorial mode
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Tutorial';
+roundInfoEl.style.display = S.round > 0 ? '' : 'none';
+roundEl.textContent = S.round || '';
+} else if(S.inRibbleton) {
+// In Ribbleton hub (before entering dungeon)
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Ribbleton';
+roundInfoEl.style.display = 'none';
+} else {
+// Normal floor display
+floorEl.textContent = S.floor;
+locationLabelEl.textContent = 'Floor';
+roundInfoEl.style.display = '';
+roundEl.textContent = S.round || '-';
+}
+
 document.getElementById('gold').textContent = S.gold;
 // Show combat XP during combat, cumulative XP otherwise
 if(S.combatXP !== undefined && S.combatXP > 0) {
@@ -3939,7 +3961,7 @@ const heroCount = S.heroes.length;
 if(f===0) {
 // Tutorial floor - check phase
 if(tutorialState && tutorialState.phase === 1) {
-return ['fly', 'fly']; // Phase 1: Tapo's Birthday (2 flies)
+return ['fly', 'fly', 'fly']; // Phase 1: Tapo's Birthday (3 flies)
 } else {
 return ['goblin', 'wolf']; // Phase 2: Portal Invasion
 }
@@ -4765,6 +4787,8 @@ deadEnemies.forEach(e => {
 S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
 });
 render();
+// Check combat end AFTER enemies are removed
+checkCombatEnd();
 }, 200);
 }
 // FLYDRA: Check if all heads are now dying (victory condition)
@@ -4783,11 +4807,7 @@ if(targetDetails.length > 0) {
 const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
 toast(`${h.n} attacked ${targetStrings.join(', ')}!`);
 }
-// Check if combat ended
-if(S.enemies.length === 0 || (S.enemies.every(e => e.isFlydra && e.flydraState !== 'alive'))) {
-render();
-checkCombatEnd();
-}
+// Combat end check now happens inside the setTimeout after enemies are removed
 } else if(action === 'Shield') {
 const targetNames = [];
 const shieldedIds = [];
@@ -5715,11 +5735,10 @@ html += '<div class="sigil-divider"></div>';
 const recruitTotalSigils = recruit.s.length + 1;
 const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">
-<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 }
@@ -5895,12 +5914,11 @@ const totalSigils = e.s.length + (hasAttackSigil ? 0 : 1);
 const compactClass = totalSigils >= 4 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">`;
 if(!hasAttackSigil) {
-html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
@@ -7272,20 +7290,20 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 } catch (error) {
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
-// Show first tutorial popup
-showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to attack a fly!", () => {
+// Show first tutorial popup - explain Expand from the start
+showTutorialPop('tapo_first_attack', "Mage has two sigils: Attack deals damage, and Expand lets him target +1 enemy! Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
 render();
 });
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 2 Flies - Mage gets Expand on Turn 2
+// Phase 1: Mage vs 3 Flies - Mage starts with Attack and Expand (no D20, too confusing)
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanent passives (Asterisk, Star)
@@ -7504,7 +7522,7 @@ S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Attack','Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
@@ -10649,9 +10667,11 @@ v.innerHTML = html;
 
 // ===== RIBBLETON HUB =====
 function showRibbleton() {
-// Hide game header in Ribbleton
+// Show game header in Ribbleton with location label
+S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
-if(header) header.style.display = 'none';
+if(header) header.style.display = 'flex';
+upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
 const bluePortalUnlocked = S.hasReachedFloor20;
@@ -10717,6 +10737,7 @@ v.innerHTML = html;
 }
 
 function enterRedPortal() {
+S.inRibbleton = false;
 SoundFX.play('portal');
 toast('Entering the Red Portal...', 1200);
 setTimeout(() => transitionScreen(title), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -10728,6 +10749,7 @@ toast('The Blue Portal is locked!');
 SoundFX.play('error');
 return;
 }
+S.inRibbleton = false;
 SoundFX.play('portal');
 toast('Entering the Blue Portal...', 1200);
 setTimeout(() => transitionScreen(showChampionsMenu), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -10893,6 +10915,12 @@ ${inGame ? `
 </label>
 ${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">🛠️ Open Debug Tools</button>` : ''}
 
+${inGame ? `
+<h3 class="modal-section-title" style="color:#dc2626">Quit</h3>
+<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-bottom:0.5rem;background:#dc2626">🚪 Quit to Ribbleton</button>
+<p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Progress is saved at the start of each floor. Current floor progress will be lost.</p>
+` : ''}
+
 <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu()"></div>
@@ -10923,6 +10951,25 @@ combat(S.floor);
 // Even floor = neutral
 startFloor(S.floor);
 }
+}, 500);
+});
+}
+
+function confirmQuitToRibbleton() {
+showConfirmModal('Quit to Ribbleton? Your progress is saved at the start of each floor. Any progress on the current floor will be lost.', () => {
+closeSettingsMenu();
+toast('Returning to Ribbleton...', 1200);
+// Reset game state but preserve permanent progression
+S.heroes = [];
+S.floor = 0;
+S.round = 0;
+S.enemies = [];
+S.recruits = [];
+S.combatXP = 0;
+S.combatGold = 0;
+S.inRibbleton = true;
+setTimeout(() => {
+showRibbleton();
 }, 500);
 });
 }
@@ -12285,7 +12332,6 @@ window.addEventListener('unhandledrejection', (e) => {
 console.error('[FROGGLE] UNHANDLED PROMISE REJECTION:', e.reason);
 });
 
-</script>
 </script>
 </body>
 </html>

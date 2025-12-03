@@ -64,7 +64,7 @@ const heroCount = S.heroes.length;
 if(f===0) {
 // Tutorial floor - check phase
 if(tutorialState && tutorialState.phase === 1) {
-return ['fly', 'fly']; // Phase 1: Tapo's Birthday (2 flies)
+return ['fly', 'fly', 'fly']; // Phase 1: Tapo's Birthday (3 flies)
 } else {
 return ['goblin', 'wolf']; // Phase 2: Portal Invasion
 }
@@ -890,6 +890,8 @@ deadEnemies.forEach(e => {
 S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
 });
 render();
+// Check combat end AFTER enemies are removed
+checkCombatEnd();
 }, 200);
 }
 // FLYDRA: Check if all heads are now dying (victory condition)
@@ -908,11 +910,7 @@ if(targetDetails.length > 0) {
 const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
 toast(`${h.n} attacked ${targetStrings.join(', ')}!`);
 }
-// Check if combat ended
-if(S.enemies.length === 0 || (S.enemies.every(e => e.isFlydra && e.flydraState !== 'alive'))) {
-render();
-checkCombatEnd();
-}
+// Combat end check now happens inside the setTimeout after enemies are removed
 } else if(action === 'Shield') {
 const targetNames = [];
 const shieldedIds = [];
@@ -1840,11 +1838,10 @@ html += '<div class="sigil-divider"></div>';
 const recruitTotalSigils = recruit.s.length + 1;
 const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">
-<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 }
@@ -2020,12 +2017,11 @@ const totalSigils = e.s.length + (hasAttackSigil ? 0 : 1);
 const compactClass = totalSigils >= 4 ? 'compact' : '';
 html += `<div class="sigil-row ${compactClass}">`;
 if(!hasAttackSigil) {
-html += `<span class="sigil engraved">${sigilIconOnly('Attack')}</span>`;
+html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-const permStyle = sigil.perm ? 'engraved' : cl;
-html += `<span class="sigil ${permStyle}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
 });
 html += '</div></div>';
 });
