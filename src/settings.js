@@ -163,6 +163,10 @@ ${inGame ? `
 <p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Progress is saved at the start of each floor. Current floor progress will be lost.</p>
 ` : ''}
 
+<h3 class="modal-section-title" style="color:#6b7280">Exit</h3>
+<button class="btn" onclick="confirmExitGame()" style="margin-bottom:0.5rem;background:#374151">🚪 Exit Game</button>
+<p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Return to title screen (permanent progress is always saved)</p>
+
 <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu()"></div>
@@ -212,6 +216,28 @@ S.combatGold = 0;
 S.inRibbleton = true;
 setTimeout(() => {
 showRibbleton();
+}, 500);
+});
+}
+
+function confirmExitGame() {
+showConfirmModal('Exit to title screen? Your permanent progress (gold, sigil upgrades, etc.) is always saved.', () => {
+closeSettingsMenu();
+toast('Returning to title...', 1200);
+// Reset ALL game state
+S.heroes = [];
+S.floor = 0;
+S.round = 0;
+S.enemies = [];
+S.recruits = [];
+S.combatXP = 0;
+S.combatGold = 0;
+S.inRibbleton = false;
+S.inTutorial = false;
+// Save permanent progress
+savePermanent();
+setTimeout(() => {
+mainTitlePage();
 }, 500);
 });
 }

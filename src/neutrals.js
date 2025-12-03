@@ -544,7 +544,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
-🪰 Here come two <strong>flies</strong> now - you're up! 🪰
+🪰 Here come three <strong>flies</strong> now - you're up! 🪰
 </p>
 <button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
 </div>`;
@@ -851,6 +851,10 @@ let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
 debugLog('[FROGGLE] title() called - Hero selection screen');
+// Show header on hero selection
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+upd();
 // Reset selection first
 sel = [];
 
@@ -1166,6 +1170,10 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 }
 
 function neutral(f) {
+// Show header during neutral encounters
+const header = document.getElementById('gameHeader');
+if(header) header.style.display = 'flex';
+upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
 showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities! You can walk straight through, or take a risk for potential rewards.");

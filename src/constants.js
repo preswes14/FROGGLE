@@ -55,7 +55,7 @@ tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alp
 // - sigilLevels: override max level for specific sigils {Attack:2, Shield:2, etc}
 // - Star and D20 are NEVER available to enemies
 const E = {
-fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:1, pool:[], gainRate:999 },
+fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:1, pool:[], gainRate:999, startSigils:[{s:'Attack',l:1}] },
 goblin: { n:'Goblin', p:1, h:5, m:5, goldDrop:1, x:2, pool:['Asterisk','Expand','Shield'], maxLevel:1, gainRate:3 },
 wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], maxLevel:1, gainRate:2 },
 orc: { n:'Orc', p:3, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack'], maxLevel:1, sigilLevels:{Attack:2}, gainRate:2, startSigils:1 },
