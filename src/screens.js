@@ -1035,9 +1035,11 @@ v.innerHTML = html;
 
 // ===== RIBBLETON HUB =====
 function showRibbleton() {
-// Hide game header in Ribbleton
+// Show game header in Ribbleton with location label
+S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
-if(header) header.style.display = 'none';
+if(header) header.style.display = 'flex';
+upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
 const bluePortalUnlocked = S.hasReachedFloor20;
@@ -1103,6 +1105,7 @@ v.innerHTML = html;
 }
 
 function enterRedPortal() {
+S.inRibbleton = false;
 SoundFX.play('portal');
 toast('Entering the Red Portal...', 1200);
 setTimeout(() => transitionScreen(title), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -1114,6 +1117,7 @@ toast('The Blue Portal is locked!');
 SoundFX.play('error');
 return;
 }
+S.inRibbleton = false;
 SoundFX.play('portal');
 toast('Entering the Blue Portal...', 1200);
 setTimeout(() => transitionScreen(showChampionsMenu), T(ANIMATION_TIMINGS.ACTION_COMPLETE));

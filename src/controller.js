@@ -42,11 +42,17 @@ const GamepadController = {
 
   // Initialize controller system
   init() {
-    debugLog('[GAMEPAD] Initializing controller support');
+    console.log('[GAMEPAD] Initializing controller support...');
 
     // Check if controller support is disabled
     if (typeof S !== 'undefined' && S.controllerDisabled) {
-      debugLog('[GAMEPAD] Controller support disabled by user setting');
+      console.log('[GAMEPAD] Controller support disabled by user setting');
+      return;
+    }
+
+    // Check if gamepad API is available
+    if (!navigator.getGamepads) {
+      console.log('[GAMEPAD] Gamepad API not available in this browser');
       return;
     }
 
@@ -54,10 +60,13 @@ const GamepadController = {
     window.addEventListener('gamepadconnected', (e) => this.onGamepadConnected(e));
     window.addEventListener('gamepaddisconnected', (e) => this.onGamepadDisconnected(e));
 
-    // Check for already-connected gamepads
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    for (const gp of gamepads) {
+    // Check for already-connected gamepads (Steam Deck may have controller pre-connected)
+    const gamepads = navigator.getGamepads();
+    console.log('[GAMEPAD] Checking for pre-connected gamepads:', gamepads.length, 'slots');
+    for (let i = 0; i < gamepads.length; i++) {
+      const gp = gamepads[i];
       if (gp) {
+        console.log('[GAMEPAD] Found pre-connected gamepad at index', i, ':', gp.id);
         this.onGamepadConnected({ gamepad: gp });
         break;
       }
@@ -83,11 +92,15 @@ const GamepadController = {
   },
 
   onGamepadConnected(e) {
-    debugLog('[GAMEPAD] Connected:', e.gamepad.id, 'Index:', e.gamepad.index);
+    console.log('[GAMEPAD] Controller connected!');
+    console.log('[GAMEPAD] ID:', e.gamepad.id);
+    console.log('[GAMEPAD] Index:', e.gamepad.index);
+    console.log('[GAMEPAD] Buttons:', e.gamepad.buttons.length);
+    console.log('[GAMEPAD] Axes:', e.gamepad.axes.length);
 
     // Check if controller support is disabled
     if (typeof S !== 'undefined' && S.controllerDisabled) {
-      debugLog('[GAMEPAD] Controller connected but support is disabled');
+      console.log('[GAMEPAD] Controller connected but support is disabled by user');
       return;
     }
 
@@ -97,9 +110,10 @@ const GamepadController = {
     // Start polling loop
     if (!this.pollInterval) {
       this.pollInterval = setInterval(() => this.poll(), 16); // ~60fps
+      console.log('[GAMEPAD] Started polling loop');
     }
 
-    toast('🎮 Controller connected! Use D-pad to navigate.', 2000);
+    toast('🎮 Controller connected! Use D-pad to navigate, START for menu.', 2500);
   },
 
   onGamepadDisconnected(e) {

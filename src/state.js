@@ -71,6 +71,8 @@ toastLogVisible: true,          // Whether toast log is shown
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
 helpTipsDisabled: false,        // Whether tutorial help tips are disabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
+controllerDisabled: false,      // Whether gamepad/controller support is disabled
+inRibbleton: false,             // Whether player is in Ribbleton hub
 
 // ===== DEBUG STATE =====
 debugMode: false,       // Debug mode toggle
@@ -155,8 +157,31 @@ return `<div class="card hero hero-selectable" onclick="${onclickHandler}" style
 }
 
 function upd() {
-document.getElementById('floor').textContent = S.floor;
-document.getElementById('round').textContent = S.round || '-';
+const floorEl = document.getElementById('floor');
+const roundEl = document.getElementById('round');
+const roundInfoEl = document.getElementById('roundInfo');
+const locationLabelEl = document.getElementById('locationLabel');
+
+// Update location display based on game state
+if(S.floor === 0 && tutorialState) {
+// Tutorial mode
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Tutorial';
+roundInfoEl.style.display = S.round > 0 ? '' : 'none';
+roundEl.textContent = S.round || '';
+} else if(S.inRibbleton) {
+// In Ribbleton hub (before entering dungeon)
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Ribbleton';
+roundInfoEl.style.display = 'none';
+} else {
+// Normal floor display
+floorEl.textContent = S.floor;
+locationLabelEl.textContent = 'Floor';
+roundInfoEl.style.display = '';
+roundEl.textContent = S.round || '-';
+}
+
 document.getElementById('gold').textContent = S.gold;
 // Show combat XP during combat, cumulative XP otherwise
 if(S.combatXP !== undefined && S.combatXP > 0) {

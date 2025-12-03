@@ -558,20 +558,20 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 } catch (error) {
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
-// Show first tutorial popup
-showTutorialPop('tapo_first_attack', "Click Mage's Attack sigil to attack a fly!", () => {
+// Show first tutorial popup - explain Expand from the start
+showTutorialPop('tapo_first_attack', "Mage has two sigils: Attack deals damage, and Expand lets him target +1 enemy! Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
 render();
 });
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 2 Flies - Mage gets Expand on Turn 2
+// Phase 1: Mage vs 3 Flies - Mage starts with Attack and Expand (no D20, too confusing)
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanent passives (Asterisk, Star)
@@ -790,7 +790,7 @@ S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Attack','Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
