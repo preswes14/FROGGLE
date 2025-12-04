@@ -91,6 +91,40 @@ const GamepadController = {
       console.log('[GAMEPAD] Started main polling loop (will activate when gamepad found)');
     }
 
+    // Watch for DOM changes to update focusable elements (screen transitions)
+    this.domObserver = new MutationObserver((mutations) => {
+      // Only update if controller mode is active and we have significant DOM changes
+      if (this.active) {
+        let significantChange = false;
+        for (const mutation of mutations) {
+          if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+            // Check if added/removed nodes contain buttons or interactive elements
+            for (const node of mutation.addedNodes) {
+              if (node.nodeType === 1 && (node.classList?.contains('btn') || node.querySelector?.('.btn'))) {
+                significantChange = true;
+                break;
+              }
+            }
+            if (significantChange) break;
+          }
+        }
+        if (significantChange) {
+          setTimeout(() => {
+            this.updateFocusableElements();
+            // Re-establish focus if lost
+            if (this.focusableElements.length > 0 && !document.body.contains(this.focusedElement)) {
+              this.setFocus(this.focusableElements[0]);
+            }
+          }, 100);
+        }
+      }
+    });
+    this.domObserver.observe(document.getElementById('gameView') || document.body, {
+      childList: true,
+      subtree: true
+    });
+    console.log('[GAMEPAD] DOM observer initialized for focus management');
+
     // Switch to mouse mode on significant sustained mouse movement
     // NOTE: Don't deactivate on click - Steam Deck touchscreen generates clicks
     // and we want controller mode to persist even when occasionally tapping screen
@@ -159,6 +193,19 @@ const GamepadController = {
         case 'Enter':
         case ' ': // Space
           this.activateControllerMode();
+          // Special handling for title screen
+          const titleScreen = document.querySelector('.title-screen');
+          if (titleScreen) {
+            const playBtn = document.querySelector('.title-play-btn');
+            if (playBtn) {
+              if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+                SoundFX.play('click');
+              }
+              playBtn.click();
+              handled = true;
+              break;
+            }
+          }
           this.confirmSelection();
           handled = true;
           break;
@@ -298,6 +345,26 @@ const GamepadController = {
 
   // Main polling loop
   poll() {
+    // Skip if game is suspended (but still allow button to resume)
+    if (typeof S !== 'undefined' && S.suspended) {
+      // Check for any button press to resume
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (let i = 0; i < gamepads.length; i++) {
+        const gp = gamepads[i];
+        if (gp) {
+          for (let b = 0; b < gp.buttons.length; b++) {
+            if (gp.buttons[b].pressed && !this.buttonStates[b]) {
+              if (typeof resumeGame === 'function') resumeGame();
+              this.buttonStates[b] = true;
+              return;
+            }
+            this.buttonStates[b] = gp.buttons[b].pressed;
+          }
+        }
+      }
+      return;
+    }
+
     // Try to find a gamepad if we don't have one
     if (this.gamepadIndex === null) {
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -392,6 +459,32 @@ const GamepadController = {
     }
 
     const context = this.getNavigationContext();
+
+    // Special handling for title screen - A or START should trigger PLAY
+    const titleScreen = document.querySelector('.title-screen');
+    if (titleScreen && (buttonIndex === this.BUTTONS.A || buttonIndex === this.BUTTONS.START)) {
+      const playBtn = document.querySelector('.title-play-btn');
+      if (playBtn) {
+        if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+          SoundFX.play('click');
+        }
+        playBtn.click();
+        return;
+      }
+    }
+
+    // Special handling for save slot selection - A should click focused slot or first available
+    const saveSlotScreen = document.querySelector('[onclick*="continueSlot"], [onclick*="createNewSlot"]');
+    if (saveSlotScreen && buttonIndex === this.BUTTONS.A && !this.focusedElement) {
+      const firstSlotBtn = document.querySelector('[onclick*="continueSlot"], [onclick*="createNewSlot"]');
+      if (firstSlotBtn) {
+        if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+          SoundFX.play('click');
+        }
+        firstSlotBtn.click();
+        return;
+      }
+    }
 
     switch (buttonIndex) {
       case this.BUTTONS.A:

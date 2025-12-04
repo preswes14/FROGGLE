@@ -154,7 +154,7 @@ v.innerHTML = `
 <!-- Button container at bottom -->
 <div class="title-button-container">
 <button class="btn title-credits-btn" onclick="showCredits()">Credits</button>
-<button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
+<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 </div>
 </div>`;
 }
