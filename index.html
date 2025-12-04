@@ -12236,19 +12236,6 @@ const GamepadController = {
         case 'Enter':
         case ' ': // Space
           this.activateControllerMode();
-          // Special handling for title screen
-          const titleScreen = document.querySelector('.title-screen');
-          if (titleScreen) {
-            const playBtn = document.querySelector('.title-play-btn');
-            if (playBtn) {
-              if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-                SoundFX.play('click');
-              }
-              playBtn.click();
-              handled = true;
-              break;
-            }
-          }
           this.confirmSelection();
           handled = true;
           break;
@@ -12503,44 +12490,33 @@ const GamepadController = {
 
     const context = this.getNavigationContext();
 
-    // Special handling for title screen - A or START should trigger PLAY
-    const titleScreen = document.querySelector('.title-screen');
-    if (titleScreen && (buttonIndex === this.BUTTONS.A || buttonIndex === this.BUTTONS.START)) {
-      const playBtn = document.querySelector('.title-play-btn');
-      if (playBtn) {
-        if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-          SoundFX.play('click');
-        }
-        playBtn.click();
-        return;
-      }
-    }
-
-    // Special handling for save slot selection - A should click focused slot or first available
-    const saveSlotScreen = document.querySelector('[onclick*="continueSlot"], [onclick*="createNewSlot"]');
-    if (saveSlotScreen && buttonIndex === this.BUTTONS.A && !this.focusedElement) {
-      const firstSlotBtn = document.querySelector('[onclick*="continueSlot"], [onclick*="createNewSlot"]');
-      if (firstSlotBtn) {
-        if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-          SoundFX.play('click');
-        }
-        firstSlotBtn.click();
-        return;
-      }
-    }
-
     switch (buttonIndex) {
       case this.BUTTONS.A:
         this.confirmSelection();
+        break;
+      case this.BUTTONS.START:
+        // START on title/menu screens should also advance (like A)
+        // Only open settings if we're in combat or other gameplay screens
+        if (context === 'combat' || context === 'targeting') {
+          this.openMenu();
+        } else {
+          // Try to find primary action first, fall back to menu
+          const primaryBtn = this.findPrimaryAction();
+          if (primaryBtn) {
+            if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+              SoundFX.play('click');
+            }
+            primaryBtn.click();
+          } else {
+            this.openMenu();
+          }
+        }
         break;
       case this.BUTTONS.B:
         this.goBack();
         break;
       case this.BUTTONS.Y:
         this.toggleTooltip();
-        break;
-      case this.BUTTONS.START:
-        this.openMenu();
         break;
       case this.BUTTONS.DPAD_UP:
       case this.BUTTONS.DPAD_DOWN:
@@ -12773,7 +12749,18 @@ const GamepadController = {
       return;
     }
 
+    // If no focused element, try to find and click an obvious primary action
     if (!this.focusedElement) {
+      const primaryBtn = this.findPrimaryAction();
+      if (primaryBtn) {
+        if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+          SoundFX.play('click');
+        }
+        primaryBtn.click();
+        setTimeout(() => this.updateFocusableElements(), 100);
+        return;
+      }
+      // No primary action found, just focus first element
       this.updateFocusableElements();
       if (this.focusableElements.length > 0) {
         this.setFocus(this.focusableElements[0]);
@@ -13267,6 +13254,67 @@ const GamepadController = {
       }
       return rectA.left - rectB.left;
     });
+  },
+
+  // Find an obvious primary action button (Continue, Next, OK, PLAY, etc.)
+  findPrimaryAction() {
+    // Priority order of selectors to find primary action
+    const primarySelectors = [
+      // Title screen PLAY button
+      '.title-play-btn',
+      // Save slot continue/new game buttons
+      '[onclick*="continueSlot"]',
+      '[onclick*="createNewSlot"]',
+      // Narrative continue buttons
+      '[onclick*="continueNarrative"]',
+      '[onclick*="transitionToPortalInvasion"]',
+      // Common advancement buttons by text content
+      'button.btn:not(.secondary)',
+      '.btn:not(.secondary):not(.title-credits-btn)',
+    ];
+
+    // Common action text patterns
+    const actionPatterns = [
+      /continue/i,
+      /next\s*floor/i,
+      /^play$/i,
+      /start\s*run/i,
+      /begin/i,
+      /^ok$/i,
+      /^\s*▶/,  // Play icon
+    ];
+
+    // First try specific selectors
+    for (const selector of primarySelectors) {
+      const btn = document.querySelector(selector);
+      if (btn && btn.offsetParent !== null && !btn.classList.contains('disabled')) {
+        // For generic .btn selector, check text content matches action patterns
+        if (selector.includes(':not')) {
+          const text = btn.textContent || '';
+          for (const pattern of actionPatterns) {
+            if (pattern.test(text)) {
+              return btn;
+            }
+          }
+        } else {
+          return btn;
+        }
+      }
+    }
+
+    // Try finding any visible button with action text
+    const allBtns = document.querySelectorAll('.btn:not(.disabled):not(.secondary), button:not(.disabled)');
+    for (const btn of allBtns) {
+      if (btn.offsetParent === null) continue; // Not visible
+      const text = btn.textContent || '';
+      for (const pattern of actionPatterns) {
+        if (pattern.test(text)) {
+          return btn;
+        }
+      }
+    }
+
+    return null;
   },
 
   updatePrompts() {
