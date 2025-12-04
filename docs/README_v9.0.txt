@@ -1,6 +1,6 @@
 ================================================================================
                     FROGGLE v9.0 - BETA RELEASE
-                   A Froggy Roguelike by Preston Wesner
+              A Froggy Roguelike by Preston Wesley Evans
 ================================================================================
 
 WHAT'S NEW IN VERSION 9.0
@@ -139,13 +139,12 @@ TECHNICAL DETAILS
 CREDITS
 -------
 
-Design, Art, & Code: Preston Wesner
-Tutorial System: Implemented with Claude Code
-Playtesting: [Your Name Here]
+A DubsPubs game by Preston Wesley Evans
+Design, Art, & Code: Preston + Claude
 
-Inspiration: Slay the Spire, Balatro, and too much coffee
+Inspiration: Inscryption, Slay the Spire, Balatro, and too much coffee
 
-Made with love in 2024 ❤️
+Made with love in 2025 ❤️
 
 
 VERSION HISTORY
