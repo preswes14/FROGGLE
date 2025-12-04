@@ -334,6 +334,78 @@ autoFocusTargetForController(heroIdx, 'hero');
 }
 }
 
+// Right-click on sigil: select action AND auto-target
+function actAndAutoTarget(sig, heroIdx) {
+// First, select the action normally
+act(sig, heroIdx);
+
+// Then auto-target after a brief delay to let state update
+setTimeout(() => {
+if (!S.pending) return; // Action didn't set pending (e.g., Ghost completes instantly)
+
+const hero = S.heroes[heroIdx];
+if (!hero) return;
+
+// Calculate targets needed
+const expandLevel = getLevel('Expand', heroIdx);
+const hasBuiltInExpand = hero.c === 'Mage' || hero.c === 'Healer';
+const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
+const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
+
+if (['Attack', 'Grapple'].includes(S.pending)) {
+  // Target enemies - prioritize lowest HP
+  const aliveEnemies = S.enemies.filter(e => e.h > 0);
+  if (aliveEnemies.length === 0) return;
+
+  aliveEnemies.sort((a, b) => {
+    if (a.h !== b.h) return a.h - b.h;
+    const aLaneDist = Math.abs((a.li !== undefined ? a.li : 0) - heroIdx);
+    const bLaneDist = Math.abs((b.li !== undefined ? b.li : 0) - heroIdx);
+    return aLaneDist - bLaneDist;
+  });
+
+  const toTarget = aliveEnemies.slice(0, targetsNeeded);
+  for (const enemy of toTarget) {
+    const card = document.getElementById(enemy.id);
+    if (card) card.click();
+  }
+  if (toTarget.length > 0) {
+    toast(`Auto-targeted ${toTarget.length} enem${toTarget.length === 1 ? 'y' : 'ies'}!`, 1200);
+  }
+
+} else if (['Heal', 'Shield', 'Alpha'].includes(S.pending)) {
+  let aliveHeroes = S.heroes.filter(h => h.h > 0 || h.ls);
+  if (aliveHeroes.length === 0) return;
+
+  if (S.pending === 'Heal') {
+    aliveHeroes.sort((a, b) => {
+      if (a.ls && !b.ls) return -1;
+      if (!a.ls && b.ls) return 1;
+      return (a.h / a.m) - (b.h / b.m);
+    });
+  } else if (S.pending === 'Shield') {
+    aliveHeroes.sort((a, b) => {
+      const aShield = a.sh || 0;
+      const bShield = b.sh || 0;
+      if (aShield !== bShield) return aShield - bShield;
+      return a.h - b.h;
+    });
+  } else if (S.pending === 'Alpha') {
+    aliveHeroes.sort((a, b) => b.p - a.p);
+  }
+
+  const toTarget = aliveHeroes.slice(0, targetsNeeded);
+  for (const h of toTarget) {
+    const card = document.getElementById(h.id);
+    if (card) card.click();
+  }
+  if (toTarget.length > 0) {
+    toast(`Auto-targeted ${toTarget.length} hero${toTarget.length === 1 ? '' : 'es'}!`, 1200);
+  }
+}
+}, 50);
+}
+
 function d20Menu(heroIdx) {
 if(S.locked) return;
 
@@ -633,6 +705,18 @@ render();
 
 function cancelAction() {
 if(S.locked) return;
+// If we have targets selected, just clear targets (stay in pending mode)
+if(S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+// Remove targets from S.targets as well
+S.currentInstanceTargets.forEach(id => {
+  const idx = S.targets.indexOf(id);
+  if(idx > -1) S.targets.splice(idx, 1);
+});
+S.currentInstanceTargets = [];
+render();
+return;
+}
+// No targets - fully cancel the action
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
@@ -641,84 +725,124 @@ S.totalInstances = 0;
 render();
 }
 
+// Confirm and execute the currently selected targets
+function confirmTargets() {
+if(S.locked) return;
+if(!S.pending) return;
+if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
+toast('Select at least one target first!');
+return;
+}
+const heroIdx = S.activeIdx;
+
+if(S.pending === 'D20_TARGET') {
+// D20 targeting uses S.targets directly
+if(S.targets.length === 0) {
+  toast('Select at least one target first!');
+  return;
+}
+rollD20();
+return;
+}
+
+if(S.pending === 'Attack') {
+executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
+S.instancesRemaining--;
+S.currentInstanceTargets = [];
+if(S.instancesRemaining <= 0) {
+  setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
+} else {
+  setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
+}
+} else if(S.pending === 'Grapple') {
+// Safety check for grapple
+const hero = S.heroes[heroIdx];
+const totalRecoil = S.currentInstanceTargets.reduce((sum, tgtId) => {
+  const enemy = S.enemies.find(e => e.id === tgtId);
+  return sum + (enemy ? enemy.p : 0);
+}, 0) * S.grappleRepeats;
+const effectiveHP = (hero.h || 0) + (hero.sh || 0);
+if(totalRecoil >= effectiveHP && !hero.g && !hero.ls) {
+  toast('Grapple would kill you! Pick weaker targets.', 2000);
+  return;
+}
+for(let i = 0; i < S.grappleRepeats; i++) executeGrapple(heroIdx, [...S.currentInstanceTargets], S.grappleLevel);
+S.currentInstanceTargets = [];
+finishAction(heroIdx);
+} else if(S.pending === 'Shield' || S.pending === 'Heal') {
+executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
+S.instancesRemaining--;
+S.currentInstanceTargets = [];
+if(S.instancesRemaining <= 0) {
+  setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
+} else {
+  setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
+}
+} else if(S.pending === 'Alpha') {
+executeAlpha(heroIdx, [...S.currentInstanceTargets]);
+S.currentInstanceTargets = [];
+finishAction(heroIdx);
+}
+}
+
 function tgtEnemy(id) {
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
 const maxTargets = 1 + getLevel('Expand', heroIdx);
-if(S.targets.includes(id)) { toast('Already targeted!'); return; }
-S.targets.push(id);
-const slotsFilled = S.targets.length >= maxTargets;
-const allEnemiesSelected = S.targets.length >= S.enemies.length;
-if(slotsFilled || allEnemiesSelected) {
-if(allEnemiesSelected && S.targets.length < maxTargets) {
-const wasted = maxTargets - S.targets.length;
-toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
+// Toggle: if already targeted, remove it
+if(S.targets.includes(id)) {
+  S.targets = S.targets.filter(t => t !== id);
+  render();
+  return;
 }
-rollD20();
-} else render();
+// Check if we can add more
+if(S.targets.length >= maxTargets) {
+  toast(`Max ${maxTargets} targets! Click a target to remove it.`);
+  return;
+}
+S.targets.push(id);
+// Don't auto-execute, require confirmation
+render();
 return;
 }
 if(!S.pending || !needsEnemyTarget(S.pending)) return;
 const heroIdx = S.activeIdx;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
 if(S.pending === 'Attack') {
-if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
+// Toggle: if already targeted, remove it
+if(S.currentInstanceTargets.includes(id)) {
+  S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
+  S.targets = S.targets.filter(t => t !== id);
+  render();
+  return;
+}
+// Check if we can add more
+if(S.currentInstanceTargets.length >= targetsPerInstance) {
+  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+  return;
+}
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-const availableEnemies = S.enemies.length;
-const slotsFilled = S.currentInstanceTargets.length >= targetsPerInstance;
-const allEnemiesSelected = S.currentInstanceTargets.length >= availableEnemies;
-if(slotsFilled || allEnemiesSelected) {
-if(allEnemiesSelected && S.currentInstanceTargets.length < targetsPerInstance) {
-const wasted = targetsPerInstance - S.currentInstanceTargets.length;
-toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
-// PHASE 1 TUTORIAL: Explain wasted Expand slots
-if(tutorialState && tutorialState.phase === 1 && !S.tutorialFlags.tapo_wasted_expand) {
-S.tutorialFlags.tapo_wasted_expand = true;
-showTutorialPop('tapo_wasted_expand', "One slot wasted - but that's okay! Expand shines when you have multiple targets.", () => {
-upd();
+// Don't auto-execute, require confirmation
 render();
-});
-}
-}
-executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
-S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) {
-// Delay finishAction to allow attack animation to complete
-setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
-} else {
-// Delay render to allow attack animation to complete
-setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
-}
-} else render();
 } else if(S.pending === 'Grapple') {
-if(S.targets.includes(id)) { toast('Already targeted!'); return; }
+// Toggle: if already targeted, remove it
+if(S.currentInstanceTargets.includes(id)) {
+  S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
+  S.targets = S.targets.filter(t => t !== id);
+  render();
+  return;
+}
+// Check if we can add more
+if(S.currentInstanceTargets.length >= targetsPerInstance) {
+  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+  return;
+}
 S.targets.push(id);
-const slotsFilled = S.targets.length >= targetsPerInstance;
-const allEnemiesSelected = S.targets.length >= S.enemies.length;
-if(slotsFilled || allEnemiesSelected) {
-if(allEnemiesSelected && S.targets.length < targetsPerInstance) {
-const wasted = targetsPerInstance - S.targets.length;
-toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
-}
-// Safety check: prevent suicidal grapple (heroes cannot grapple if it would kill them)
-const hero = S.heroes[heroIdx];
-const totalRecoil = S.targets.reduce((sum, tgtId) => {
-const enemy = S.enemies.find(e => e.id === tgtId);
-return sum + (enemy ? enemy.p : 0);
-}, 0) * S.grappleRepeats;
-const effectiveHP = (hero.h || 0) + (hero.sh || 0);
-if(totalRecoil >= effectiveHP && !hero.g && !hero.ls) {
-toast('Grapple would kill you! Pick weaker targets.', 2000);
-S.targets = [];
+S.currentInstanceTargets.push(id);
+// Don't auto-execute, require confirmation
 render();
-return;
-}
-for(let i = 0; i < S.grappleRepeats; i++) executeGrapple(heroIdx, [...S.targets], S.grappleLevel);
-finishAction(heroIdx);
-} else render();
 }
 }
 
@@ -730,57 +854,45 @@ const h = S.heroes[heroIdx];
 const target = S.heroes.find(x => x.id === id);
 if(!target) return;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
-if(S.pending === 'Shield') {
-if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
+if(S.pending === 'Shield' || S.pending === 'Heal') {
+// Toggle: if already targeted, remove it
+if(S.currentInstanceTargets.includes(id)) {
+  S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
+  S.targets = S.targets.filter(t => t !== id);
+  render();
+  return;
+}
+// Check if we can add more
+if(S.currentInstanceTargets.length >= targetsPerInstance) {
+  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+  return;
+}
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-const slotsFilled = S.currentInstanceTargets.length >= targetsPerInstance;
-const allHeroesSelected = S.currentInstanceTargets.length >= S.heroes.length;
-if(slotsFilled || allHeroesSelected) {
-if(allHeroesSelected && S.currentInstanceTargets.length < targetsPerInstance) {
-const wasted = targetsPerInstance - S.currentInstanceTargets.length;
-toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
-}
-executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
-S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) {
-setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
-} else {
-setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
-}
-} else render();
-} else if(S.pending === 'Heal') {
-if(S.currentInstanceTargets.includes(id)) { toast('Already targeted in this instance!'); return; }
-S.targets.push(id);
-S.currentInstanceTargets.push(id);
-const slotsFilled = S.currentInstanceTargets.length >= targetsPerInstance;
-const allHeroesSelected = S.currentInstanceTargets.length >= S.heroes.length;
-if(slotsFilled || allHeroesSelected) {
-if(allHeroesSelected && S.currentInstanceTargets.length < targetsPerInstance) {
-const wasted = targetsPerInstance - S.currentInstanceTargets.length;
-toast(`${wasted} target slot${wasted>1?'s':''} wasted!`);
-}
-executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
-S.currentInstanceTargets = [];
-if(S.instancesRemaining <= 0) {
-setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
-} else {
-setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
-}
-} else render();
+// Don't auto-execute, require confirmation
+render();
 } else if(S.pending === 'Alpha') {
 // Alpha: can't target self or already-acted heroes
 const alphaUser = S.heroes[S.activeIdx];
 if(id === alphaUser.id) { toast('Cannot Alpha yourself!'); return; }
 const targetIdx = S.heroes.findIndex(x => x.id === id);
 if(S.acted.includes(targetIdx)) { toast('That hero already acted!'); return; }
-if(S.targets.includes(id)) { toast('Already targeted!'); return; }
+// Toggle: if already targeted, remove it
+if(S.currentInstanceTargets.includes(id)) {
+  S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
+  S.targets = S.targets.filter(t => t !== id);
+  render();
+  return;
+}
+// Check if we can add more
+if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded) {
+  toast(`Max ${S.alphaTargetsNeeded} targets! Click a target to remove it.`);
+  return;
+}
 S.targets.push(id);
-if(S.targets.length >= S.alphaTargetsNeeded) {
-executeAlphaAction(S.activeIdx, S.targets);
-} else render();
+S.currentInstanceTargets.push(id);
+// Don't auto-execute, require confirmation
+render();
 }
 }
 
@@ -1983,7 +2095,7 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Alpha'].includes(s);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
-return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})"`:''}
+return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
 };
