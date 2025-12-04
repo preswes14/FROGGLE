@@ -401,6 +401,15 @@ else html += `${h.n}'s Turn`;
 }
 }
 html += '</div>';
+
+// Add confirm/cancel button bar when we have targets selected
+if(S.turn === 'player' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+html += '<div class="target-action-bar" style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.5rem">';
+html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm</button>`;
+html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
+html += '</div>';
+}
+
 return html;
 }
 

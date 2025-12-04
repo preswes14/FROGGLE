@@ -626,6 +626,17 @@ const GamepadController = {
   },
 
   confirmSelection() {
+    // If we have targets selected, confirm them directly
+    if (typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+      if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+        SoundFX.play('click');
+      }
+      if (typeof confirmTargets === 'function') {
+        confirmTargets();
+      }
+      return;
+    }
+
     if (!this.focusedElement) {
       this.updateFocusableElements();
       if (this.focusableElements.length > 0) {
