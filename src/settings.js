@@ -148,7 +148,7 @@ ${inGame ? `
 <input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
 <span>🎮 Controller Support</span>
 </label>
-<p style="font-size:0.8rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">D-pad/Left Stick: Navigate | A: Select | B: Back | Y: Tooltip</p>
+<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
@@ -361,6 +361,76 @@ GamepadController.pollInterval = null;
 }
 }
 savePermanent();
+}
+
+function showControlsGuide() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+
+const controls = [
+{ section: 'Navigation', items: [
+  { btn: 'D-Pad / Left Stick', desc: 'Navigate menus and UI elements' },
+  { btn: 'Right Stick', desc: 'Cycle through characters (up/down)' },
+  { btn: 'A', desc: 'Confirm / Select' },
+  { btn: 'B', desc: 'Back / Cancel action' },
+  { btn: 'START (☰)', desc: 'Open Settings menu' }
+]},
+{ section: 'Combat', items: [
+  { btn: 'D-Pad Up/Down', desc: 'Cycle through heroes and enemies' },
+  { btn: 'D-Pad Left/Right', desc: 'Cycle through sigils on focused unit' },
+  { btn: 'LB / RB', desc: 'Previous / Next character' },
+  { btn: 'LT / RT', desc: 'Previous / Next sigil (with tooltip)' },
+  { btn: 'Y', desc: 'Toggle sigil tooltip' },
+  { btn: 'X', desc: 'Switch sides (jump to opposite side of board)' },
+  { btn: 'SELECT', desc: 'Auto-target (smart targeting for current action)' }
+]},
+{ section: 'Keyboard Fallback', items: [
+  { btn: 'Arrow Keys / WASD', desc: 'Navigate' },
+  { btn: 'Enter / Space', desc: 'Confirm / Select' },
+  { btn: 'Escape / Backspace', desc: 'Back / Cancel' },
+  { btn: 'Tab', desc: 'Cycle through elements' }
+]}
+];
+
+let html = `
+<div class="modal-container dark">
+<h2 class="modal-title blue" style="margin-bottom:1rem">🎮 CONTROLS GUIDE 🎮</h2>
+`;
+
+controls.forEach(section => {
+html += `<h3 class="modal-section-title green" style="margin-top:1rem">${section.section}</h3>`;
+html += `<div style="display:flex;flex-direction:column;gap:0.4rem">`;
+section.items.forEach(item => {
+html += `
+<div style="display:flex;align-items:center;gap:0.75rem;padding:0.4rem 0.5rem;background:rgba(255,255,255,0.05);border-radius:6px">
+<span style="min-width:140px;font-weight:bold;color:#60a5fa;font-size:0.9rem">${item.btn}</span>
+<span style="color:#e5e7eb;font-size:0.85rem">${item.desc}</span>
+</div>`;
+});
+html += `</div>`;
+});
+
+html += `
+<div style="margin-top:1.5rem;padding:1rem;background:rgba(99,102,241,0.15);border:2px solid #6366f1;border-radius:8px">
+<h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">💡 Pro Tips</h4>
+<ul style="margin:0;padding-left:1.25rem;color:#c7d2fe;font-size:0.85rem;line-height:1.5">
+<li><strong>Auto-Target (SELECT)</strong> picks the smartest targets: lowest HP enemies for attacks, most damaged heroes for heals</li>
+<li><strong>Switch Sides (X)</strong> is great for quickly jumping between your hero and the enemy across from them</li>
+<li><strong>Sigil cycling (LT/RT)</strong> automatically shows tooltips as you browse</li>
+</ul>
+</div>
+
+<button class="btn" onclick="closeControlsGuide()" style="margin-top:1.5rem;background:#888">Close</button>
+</div>
+<div class="modal-overlay" onclick="closeControlsGuide()"></div>
+`;
+
+v.insertAdjacentHTML('beforeend', html);
+}
+
+function closeControlsGuide() {
+const menus = document.querySelectorAll('.modal-container, .modal-overlay');
+menus.forEach(m => m.remove());
 }
 
 function showFAQ() {

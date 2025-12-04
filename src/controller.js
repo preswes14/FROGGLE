@@ -356,10 +356,10 @@ const GamepadController = {
       }
     }
 
-    // Right stick: Sigil navigation only (up/down cycles sigils)
+    // Right stick: Character navigation (up/down cycles characters)
     if (Math.abs(rightY) > this.axisDeadzone) {
       if (now - this.lastInputTime >= this.inputCooldown) {
-        this.cycleSigil(rightY > 0 ? 'next' : 'prev');
+        this.cycleUnit(rightY > 0 ? 'next' : 'prev');
         this.lastInputTime = now;
       }
     }
@@ -373,11 +373,11 @@ const GamepadController = {
       // In targeting mode: cycle through valid targets
       this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
     } else if (context === 'combat') {
-      // In combat: left/right cycles units, up/down cycles sigils
-      if (dir === 'left' || dir === 'right') {
-        this.cycleUnit(dir === 'right' ? 'next' : 'prev');
+      // In combat: up/down cycles units, left/right cycles sigils
+      if (dir === 'up' || dir === 'down') {
+        this.cycleUnit(dir === 'down' ? 'next' : 'prev');
       } else {
-        this.cycleSigil(dir === 'down' ? 'next' : 'prev');
+        this.cycleSigil(dir === 'right' ? 'next' : 'prev');
       }
     } else {
       // In menus: standard spatial navigation
@@ -417,11 +417,11 @@ const GamepadController = {
         if (context === 'targeting') {
           this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
         } else if (context === 'combat') {
-          // D-pad left/right cycles characters in combat
-          if (dir === 'left' || dir === 'right') {
-            this.cycleUnit(dir === 'right' ? 'next' : 'prev');
+          // D-pad up/down cycles characters, left/right cycles sigils
+          if (dir === 'up' || dir === 'down') {
+            this.cycleUnit(dir === 'down' ? 'next' : 'prev');
           } else {
-            this.cycleSigil(dir === 'down' ? 'next' : 'prev');
+            this.cycleSigil(dir === 'right' ? 'next' : 'prev');
           }
         } else {
           this.onDirection(dir);
@@ -446,6 +446,12 @@ const GamepadController = {
         break;
       case this.BUTTONS.RT:
         this.cycleSigil('next');
+        break;
+      case this.BUTTONS.X:
+        this.switchSides();
+        break;
+      case this.BUTTONS.SELECT:
+        this.autoTarget();
         break;
     }
   },
@@ -862,6 +868,164 @@ const GamepadController = {
     }
   },
 
+  // Switch sides: jump to the unit across from current selection (X button)
+  switchSides() {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Hide tooltip when switching
+    this.hideActiveTooltip();
+
+    const context = this.getNavigationContext();
+    if (context !== 'combat' && context !== 'targeting') return;
+
+    // Find current focused card
+    let currentCard = this.focusedElement;
+    if (!currentCard) return;
+    if (!currentCard.classList.contains('card')) {
+      currentCard = currentCard.closest('.card');
+    }
+    if (!currentCard) return;
+
+    const isHero = currentCard.classList.contains('hero');
+    const isEnemy = currentCard.classList.contains('enemy');
+
+    if (!isHero && !isEnemy) return;
+
+    // Get all cards on both sides
+    const heroCards = Array.from(document.querySelectorAll('.card.hero'));
+    const enemyCards = Array.from(document.querySelectorAll('.card.enemy'));
+
+    if (isHero) {
+      // Currently on hero, switch to enemy across or nearest
+      const heroIdx = heroCards.indexOf(currentCard);
+      if (enemyCards.length === 0) return;
+      // Try to find enemy at same lane index, or nearest
+      const targetIdx = Math.min(heroIdx, enemyCards.length - 1);
+      this.setFocus(enemyCards[targetIdx]);
+    } else {
+      // Currently on enemy, switch to hero across or nearest
+      const enemyIdx = enemyCards.indexOf(currentCard);
+      if (heroCards.length === 0) return;
+      // Try to find hero at same lane index, or nearest
+      const targetIdx = Math.min(enemyIdx, heroCards.length - 1);
+      this.setFocus(heroCards[targetIdx]);
+    }
+  },
+
+  // Auto target: automatically select targets using AI logic (SELECT button)
+  autoTarget() {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Only works when we have a pending action that needs targets
+    if (typeof S === 'undefined' || !S.pending) {
+      toast('No action selected - choose a sigil first!', 1500);
+      return;
+    }
+
+    const pending = S.pending;
+    const heroIdx = S.activeIdx;
+    const hero = S.heroes[heroIdx];
+    if (!hero) return;
+
+    // Determine how many targets we need
+    let targetsNeeded = 1;
+    if (S.instancesRemaining > 0) {
+      // Multi-instance action, need targets for current instance
+      targetsNeeded = 1; // Usually 1 per instance for expand
+    }
+
+    // Calculate total targets based on expand
+    const expandLevel = typeof getLevel === 'function' ? getLevel('Expand') : 0;
+    const hasBuiltInExpand = hero.c === 'Mage' || hero.c === 'Healer';
+    const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
+    targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
+
+    // Different targeting logic based on action type
+    if (['Attack', 'Grapple', 'D20_TARGET'].includes(pending)) {
+      // Target enemies - prioritize lowest HP, then by lane proximity
+      const aliveEnemies = S.enemies.filter(e => e.h > 0);
+      if (aliveEnemies.length === 0) {
+        toast('No valid enemy targets!', 1500);
+        return;
+      }
+
+      // Sort by HP (lowest first), then by lane proximity to acting hero
+      aliveEnemies.sort((a, b) => {
+        if (a.h !== b.h) return a.h - b.h; // Lowest HP first
+        // If same HP, prefer enemies in same lane
+        const aLaneDist = Math.abs((a.li !== undefined ? a.li : 0) - heroIdx);
+        const bLaneDist = Math.abs((b.li !== undefined ? b.li : 0) - heroIdx);
+        return aLaneDist - bLaneDist;
+      });
+
+      // Click targets up to targetsNeeded
+      const toTarget = aliveEnemies.slice(0, targetsNeeded);
+      for (const enemy of toTarget) {
+        const card = document.getElementById(enemy.id);
+        if (card) {
+          card.click();
+        }
+      }
+
+      if (toTarget.length > 0) {
+        toast(`Auto-targeted ${toTarget.length} enem${toTarget.length === 1 ? 'y' : 'ies'}!`, 1200);
+      }
+
+    } else if (['Heal', 'Shield', 'Alpha'].includes(pending)) {
+      // Target heroes - prioritize based on action
+      let aliveHeroes = S.heroes.filter(h => h.h > 0 || h.ls); // Include Last Stand heroes for heal
+
+      if (aliveHeroes.length === 0) {
+        toast('No valid hero targets!', 1500);
+        return;
+      }
+
+      if (pending === 'Heal') {
+        // For heal: prioritize Last Stand heroes, then lowest HP ratio
+        aliveHeroes.sort((a, b) => {
+          // Last Stand heroes first
+          if (a.ls && !b.ls) return -1;
+          if (!a.ls && b.ls) return 1;
+          // Then by HP ratio (most damaged first)
+          const aRatio = a.h / a.m;
+          const bRatio = b.h / b.m;
+          return aRatio - bRatio;
+        });
+      } else if (pending === 'Shield') {
+        // For shield: prioritize lowest current shield, then lowest HP
+        aliveHeroes.sort((a, b) => {
+          const aShield = a.sh || 0;
+          const bShield = b.sh || 0;
+          if (aShield !== bShield) return aShield - bShield; // Lowest shield first
+          return a.h - b.h; // Then lowest HP
+        });
+      } else if (pending === 'Alpha') {
+        // For Alpha: prioritize highest POW heroes (for multiplying damage)
+        aliveHeroes.sort((a, b) => b.p - a.p);
+      }
+
+      // Click targets up to targetsNeeded
+      const toTarget = aliveHeroes.slice(0, targetsNeeded);
+      for (const hero of toTarget) {
+        const card = document.getElementById(hero.id);
+        if (card) {
+          card.click();
+        }
+      }
+
+      if (toTarget.length > 0) {
+        toast(`Auto-targeted ${toTarget.length} hero${toTarget.length === 1 ? '' : 'es'}!`, 1200);
+      }
+
+    } else {
+      toast('Auto-target not available for this action', 1500);
+    }
+  },
+
   // Save focus state before DOM updates
   saveFocusState() {
     if (this.focusedElement) {
@@ -991,10 +1155,14 @@ const GamepadController = {
 
     // Combat-specific controls
     if (inCombat && !hasModal) {
-      prompts.push({ btn: 'lb', label: '←Unit' });
-      prompts.push({ btn: 'rb', label: 'Unit→' });
+      prompts.push({ btn: 'lb', label: '↑Unit' });
+      prompts.push({ btn: 'rb', label: 'Unit↓' });
       prompts.push({ btn: 'lt', label: '←Sigil' });
       prompts.push({ btn: 'rt', label: 'Sigil→' });
+      prompts.push({ btn: 'x', label: 'Switch' });
+      if (hasPending) {
+        prompts.push({ btn: 'select', label: 'Auto' });
+      }
     }
 
     // Build HTML
@@ -1006,7 +1174,9 @@ const GamepadController = {
         'rb': 'RB',
         'lt': 'LT',
         'rt': 'RT',
-        'start': '☰'
+        'start': '☰',
+        'x': 'X',
+        'select': 'SEL'
       }[p.btn] || p.btn.toUpperCase();
 
       return `<div class="controller-prompt"><span class="controller-btn ${btnClass}">${displayLabel}</span> ${p.label}</div>`;
