@@ -50,9 +50,13 @@ const GamepadController = {
       return;
     }
 
+    // ALWAYS set up keyboard fallback (works even if gamepad API unavailable)
+    this.initKeyboardFallback();
+
     // Check if gamepad API is available
     if (!navigator.getGamepads) {
       console.log('[GAMEPAD] Gamepad API not available in this browser');
+      console.log('[GAMEPAD] Keyboard fallback is active (Arrow keys, Enter, Escape)');
       return;
     }
 
@@ -107,6 +111,85 @@ const GamepadController = {
       }
     });
     // Don't deactivate on click - let controller mode persist
+  },
+
+  // Keyboard fallback for when gamepad isn't detected (Steam mapping to keyboard, etc.)
+  initKeyboardFallback() {
+    console.log('[GAMEPAD] Initializing keyboard fallback...');
+
+    document.addEventListener('keydown', (e) => {
+      // Skip if controller support is disabled
+      if (typeof S !== 'undefined' && S.controllerDisabled) return;
+
+      // Skip if typing in an input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      // Check for navigation keys
+      let handled = false;
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          this.activateControllerMode();
+          this.onDirection('up');
+          handled = true;
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          this.activateControllerMode();
+          this.onDirection('down');
+          handled = true;
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          this.activateControllerMode();
+          this.onDirection('left');
+          handled = true;
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          this.activateControllerMode();
+          this.onDirection('right');
+          handled = true;
+          break;
+        case 'Enter':
+        case ' ': // Space
+          this.activateControllerMode();
+          this.confirmSelection();
+          handled = true;
+          break;
+        case 'Escape':
+        case 'Backspace':
+          this.activateControllerMode();
+          this.goBack();
+          handled = true;
+          break;
+        case 'Tab':
+          // Tab cycles through focusable elements
+          this.activateControllerMode();
+          this.updateFocusableElements();
+          if (this.focusableElements.length > 0) {
+            const currentIdx = this.focusableElements.indexOf(this.focusedElement);
+            const nextIdx = e.shiftKey
+              ? (currentIdx - 1 + this.focusableElements.length) % this.focusableElements.length
+              : (currentIdx + 1) % this.focusableElements.length;
+            this.setFocus(this.focusableElements[nextIdx]);
+          }
+          handled = true;
+          break;
+      }
+
+      if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
+    console.log('[GAMEPAD] Keyboard fallback initialized (Arrow keys/WASD, Enter/Space, Escape)');
   },
 
   // Continuously check for gamepads (Steam Deck fix)
