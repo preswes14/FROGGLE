@@ -1809,7 +1809,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.0';
+const GAME_VERSION = '11.01';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3203,7 +3203,12 @@ first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false
 },
-usedDeathQuotes: [] // Track which death quotes have been shown
+usedDeathQuotes: [], // Track which death quotes have been shown
+
+// ===== SUSPEND/AUTOSAVE STATE =====
+suspended: false,         // Whether game is currently suspended
+lastAutosave: 0,          // Timestamp of last autosave
+inCombat: false           // Whether player is in active combat (for autosave)
 };
 
 let sel = [];
@@ -4002,6 +4007,139 @@ toast('Warning: Game could not be saved', 2000);
 }
 };
 
+// ===== AUTOSAVE SYSTEM =====
+const AUTOSAVE_THROTTLE = 5000; // Minimum 5 seconds between autosaves
+
+function autosave() {
+// Only autosave if we have an active slot and are in combat
+if(!S.currentSlot || !S.inCombat) return;
+
+// Throttle autosaves
+const now = Date.now();
+if(now - S.lastAutosave < AUTOSAVE_THROTTLE) return;
+
+S.lastAutosave = now;
+saveGame();
+debugLog('[AUTOSAVE] Game autosaved');
+}
+
+// ===== SUSPEND/RESUME SYSTEM =====
+function suspendGame() {
+if(S.suspended) return;
+S.suspended = true;
+
+// Immediately save if we have an active run
+if(S.currentSlot && S.heroes.length > 0) {
+saveGame();
+debugLog('[SUSPEND] Game saved on suspend');
+}
+
+// Show suspend overlay
+showSuspendOverlay();
+}
+
+function resumeGame() {
+if(!S.suspended) return;
+S.suspended = false;
+
+// Hide suspend overlay
+hideSuspendOverlay();
+
+// Resume audio context if needed
+if(typeof SoundFX !== 'undefined' && SoundFX.ctx && SoundFX.ctx.state === 'suspended') {
+SoundFX.ctx.resume();
+}
+
+debugLog('[RESUME] Game resumed');
+}
+
+function showSuspendOverlay() {
+// Remove any existing overlay
+hideSuspendOverlay();
+
+const overlay = document.createElement('div');
+overlay.id = 'suspend-overlay';
+overlay.style.cssText = `
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.9);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+z-index: 10000;
+color: white;
+font-family: inherit;
+`;
+overlay.innerHTML = `
+<div style="text-align:center">
+<div style="font-size:3rem;margin-bottom:1rem">🐸</div>
+<h2 style="font-size:1.5rem;margin:0 0 0.5rem 0;color:#22c55e">FROGGLE SUSPENDED</h2>
+<p style="font-size:1rem;opacity:0.8;margin:0 0 1.5rem 0">Game saved. Tap or press any button to resume.</p>
+<div style="font-size:0.9rem;opacity:0.6">Progress has been saved automatically.</div>
+</div>
+`;
+
+// Resume on any interaction
+overlay.addEventListener('click', resumeGame);
+overlay.addEventListener('touchstart', resumeGame);
+
+// Also handle keyboard for Steam Deck
+const keyHandler = (e) => {
+resumeGame();
+document.removeEventListener('keydown', keyHandler);
+};
+document.addEventListener('keydown', keyHandler);
+
+// Store handler reference for cleanup
+overlay._keyHandler = keyHandler;
+
+document.body.appendChild(overlay);
+}
+
+function hideSuspendOverlay() {
+const overlay = document.getElementById('suspend-overlay');
+if(overlay) {
+// Clean up keyboard handler
+if(overlay._keyHandler) {
+document.removeEventListener('keydown', overlay._keyHandler);
+}
+overlay.remove();
+}
+}
+
+// Initialize visibility change listener
+function initSuspendSystem() {
+// Handle page visibility changes (tab switch, minimize, Steam Deck suspend)
+document.addEventListener('visibilitychange', () => {
+if(document.hidden) {
+suspendGame();
+} else {
+resumeGame();
+}
+});
+
+// Handle page unload (close tab, navigate away)
+window.addEventListener('pagehide', () => {
+if(S.currentSlot && S.heroes.length > 0) {
+saveGame();
+debugLog('[PAGEHIDE] Game saved before unload');
+}
+});
+
+// Also handle beforeunload for older browsers
+window.addEventListener('beforeunload', () => {
+if(S.currentSlot && S.heroes.length > 0) {
+saveGame();
+}
+});
+
+debugLog('[SUSPEND] Suspend system initialized');
+}
+
 
 // ===== FLOOR MANAGEMENT =====
 function getFloorName(f) {
@@ -4114,6 +4252,7 @@ function combat(f) {
 // Show header during combat
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+S.inCombat = true; // Mark that we're in active combat for autosave
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
@@ -5251,6 +5390,9 @@ S.turnDamage = 0; // Reset damage counter for next hero's turn
 const h = S.heroes[heroIdx];
 TutorialManager.advanceStage({action: 'finish', hero: h.n, round: S.round});
 
+// Autosave after each hero action
+autosave();
+
 checkTurnEnd();
 render();
 }
@@ -5807,6 +5949,10 @@ S.acted.push(idx);
 toast(`${h.n} is stunned and skips their turn!`);
 }
 });
+
+// Autosave at start of each new round (after enemy turn completes)
+autosave();
+
 checkTurnEnd();
 render();
 }
@@ -5829,6 +5975,7 @@ function checkCombatEnd() {
 // Clean up any lingering tooltips when combat ends
 if(typeof hideTooltip === 'function') hideTooltip();
 if(S.enemies.length === 0) {
+S.inCombat = false; // Combat ended - disable autosave
 // Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
 S.combatXP = 0;
@@ -5874,6 +6021,7 @@ return true;
 }
 const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
+S.inCombat = false; // Combat ended - disable autosave
 // Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // Record to The Pond - determine what killed the heroes
@@ -13136,6 +13284,7 @@ loadPermanent(); // No last slot, use old format
 }
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
 initToastLog(); // Initialize toast log UI
+initSuspendSystem(); // Initialize autosave and suspend/resume system
 GamepadController.init(); // Initialize Steam Deck / controller support
 mainTitlePage();
 debugLog('[FROGGLE] mainTitlePage called');
