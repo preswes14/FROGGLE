@@ -279,6 +279,23 @@ const GamepadController = {
     debugLog('[GAMEPAD] Controller mode deactivated (mouse input detected)');
   },
 
+  // Determine current navigation context
+  getNavigationContext() {
+    // Check if we're in targeting mode
+    if (typeof S !== 'undefined' && S.pending) {
+      return 'targeting';
+    }
+    // Check if we're in combat (heroes and enemies present)
+    if (typeof S !== 'undefined' && S.heroes && S.heroes.length > 0 && S.enemies && S.enemies.length > 0) {
+      return 'combat';
+    }
+    // Check if there's a modal
+    if (document.querySelector('.modal-container')) {
+      return 'modal';
+    }
+    return 'menu';
+  },
+
   // Main polling loop
   poll() {
     // Try to find a gamepad if we don't have one
@@ -313,7 +330,6 @@ const GamepadController = {
       if (pressed && !wasPressed) {
         // Only process if cooldown elapsed
         if (now - this.lastInputTime >= this.inputCooldown) {
-          console.log('[GAMEPAD] Button', i, 'pressed!');
           this.onButtonPress(i);
           this.lastInputTime = now;
         }
@@ -322,30 +338,60 @@ const GamepadController = {
       this.buttonStates[i] = pressed;
     }
 
-    // Check analog sticks (left stick for navigation)
+    // Check analog sticks
     const leftX = gp.axes[0] || 0;
     const leftY = gp.axes[1] || 0;
+    const rightX = gp.axes[2] || 0;
+    const rightY = gp.axes[3] || 0;
 
+    // Left stick: Navigate (context-aware)
     if (Math.abs(leftX) > this.axisDeadzone || Math.abs(leftY) > this.axisDeadzone) {
       if (now - this.lastInputTime >= this.inputCooldown) {
-        // Determine primary direction
         if (Math.abs(leftX) > Math.abs(leftY)) {
-          this.onDirection(leftX > 0 ? 'right' : 'left');
+          this.onLeftStick(leftX > 0 ? 'right' : 'left');
         } else {
-          this.onDirection(leftY > 0 ? 'down' : 'up');
+          this.onLeftStick(leftY > 0 ? 'down' : 'up');
         }
+        this.lastInputTime = now;
+      }
+    }
+
+    // Right stick: Sigil navigation only (up/down cycles sigils)
+    if (Math.abs(rightY) > this.axisDeadzone) {
+      if (now - this.lastInputTime >= this.inputCooldown) {
+        this.cycleSigil(rightY > 0 ? 'next' : 'prev');
         this.lastInputTime = now;
       }
     }
   },
 
-  onButtonPress(buttonIndex) {
-    console.log('[GAMEPAD] onButtonPress called with button:', buttonIndex);
+  // Left stick handler (context-aware)
+  onLeftStick(dir) {
+    const context = this.getNavigationContext();
 
+    if (context === 'targeting') {
+      // In targeting mode: cycle through valid targets
+      this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
+    } else if (context === 'combat') {
+      // In combat: left/right cycles units, up/down cycles sigils
+      if (dir === 'left' || dir === 'right') {
+        this.cycleUnit(dir === 'right' ? 'next' : 'prev');
+      } else {
+        this.cycleSigil(dir === 'down' ? 'next' : 'prev');
+      }
+    } else {
+      // In menus: standard spatial navigation
+      this.onDirection(dir);
+    }
+  },
+
+  onButtonPress(buttonIndex) {
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();
     }
+
+    const context = this.getNavigationContext();
 
     switch (buttonIndex) {
       case this.BUTTONS.A:
@@ -355,36 +401,99 @@ const GamepadController = {
         this.goBack();
         break;
       case this.BUTTONS.Y:
-        this.toggleTooltip(); // Y = toggle tooltip on focused element
+        this.toggleTooltip();
         break;
       case this.BUTTONS.START:
-        this.openMenu(); // Start = open settings menu
+        this.openMenu();
         break;
       case this.BUTTONS.DPAD_UP:
-        this.onDirection('up');
-        break;
       case this.BUTTONS.DPAD_DOWN:
-        this.onDirection('down');
-        break;
       case this.BUTTONS.DPAD_LEFT:
-        this.onDirection('left');
-        break;
       case this.BUTTONS.DPAD_RIGHT:
-        this.onDirection('right');
+        // D-pad behavior depends on context
+        const dir = buttonIndex === this.BUTTONS.DPAD_UP ? 'up' :
+                    buttonIndex === this.BUTTONS.DPAD_DOWN ? 'down' :
+                    buttonIndex === this.BUTTONS.DPAD_LEFT ? 'left' : 'right';
+        if (context === 'targeting') {
+          this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
+        } else if (context === 'combat') {
+          // D-pad left/right cycles characters in combat
+          if (dir === 'left' || dir === 'right') {
+            this.cycleUnit(dir === 'right' ? 'next' : 'prev');
+          } else {
+            this.cycleSigil(dir === 'down' ? 'next' : 'prev');
+          }
+        } else {
+          this.onDirection(dir);
+        }
         break;
       case this.BUTTONS.LB:
-        this.cycleUnit('prev'); // LB = previous unit (hero/enemy)
+        if (context === 'targeting') {
+          this.cycleTargets('prev');
+        } else {
+          this.cycleUnit('prev');
+        }
         break;
       case this.BUTTONS.RB:
-        this.cycleUnit('next'); // RB = next unit (hero/enemy)
+        if (context === 'targeting') {
+          this.cycleTargets('next');
+        } else {
+          this.cycleUnit('next');
+        }
         break;
       case this.BUTTONS.LT:
-        this.cycleSigil('prev'); // LT = previous sigil on focused unit
+        this.cycleSigil('prev');
         break;
       case this.BUTTONS.RT:
-        this.cycleSigil('next'); // RT = next sigil on focused unit
+        this.cycleSigil('next');
         break;
     }
+  },
+
+  // Cycle through valid targets (enemies or heroes depending on action)
+  cycleTargets(direction) {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Hide tooltip when cycling
+    this.hideActiveTooltip();
+
+    // Determine what we're targeting
+    let targetCards = [];
+    if (typeof S !== 'undefined' && S.pending) {
+      if (['Attack', 'Grapple', 'D20_TARGET'].includes(S.pending)) {
+        // Targeting enemies
+        targetCards = Array.from(document.querySelectorAll('.card.enemy.targetable, .card.enemy:not(.dead)'));
+      } else if (['Heal', 'Shield', 'Alpha'].includes(S.pending)) {
+        // Targeting heroes
+        targetCards = Array.from(document.querySelectorAll('.card.hero.targetable, .card.hero:not(.dead)'));
+      }
+    }
+
+    if (targetCards.length === 0) {
+      // Fallback to all cards
+      targetCards = Array.from(document.querySelectorAll('.card.targetable, .card:not(.dead)'));
+    }
+
+    if (targetCards.length === 0) return;
+
+    // Find current target
+    let currentIdx = targetCards.findIndex(el =>
+      el === this.focusedElement || el.contains(this.focusedElement)
+    );
+
+    if (currentIdx === -1) {
+      currentIdx = 0;
+    } else {
+      if (direction === 'next') {
+        currentIdx = (currentIdx + 1) % targetCards.length;
+      } else {
+        currentIdx = (currentIdx - 1 + targetCards.length) % targetCards.length;
+      }
+    }
+
+    this.setFocus(targetCards[currentIdx]);
   },
 
   onDirection(dir) {
@@ -580,12 +689,10 @@ const GamepadController = {
   },
 
   openMenu() {
-    // Play menu sound
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
     }
 
-    // Open settings menu
     if (typeof showSettingsMenu === 'function') {
       showSettingsMenu();
       setTimeout(() => {
@@ -597,6 +704,37 @@ const GamepadController = {
     }
   },
 
+  // Helper to hide any active tooltip
+  hideActiveTooltip() {
+    if (this.tooltipVisible) {
+      if (typeof hideTooltip === 'function') hideTooltip();
+      if (this.tooltipElement) {
+        this.tooltipElement.classList.remove('controller-tooltip-active');
+      }
+      this.tooltipVisible = false;
+      this.tooltipElement = null;
+    }
+  },
+
+  // Show tooltip for a sigil element
+  showSigilTooltip(sigilEl) {
+    if (!sigilEl) return;
+
+    const mouseEnter = sigilEl.getAttribute('onmouseenter');
+    if (mouseEnter) {
+      const match = mouseEnter.match(/showTooltip\('([^']+)'/);
+      if (match && typeof showTooltip === 'function') {
+        const sigilName = match[1];
+        const levelMatch = mouseEnter.match(/,\s*(\d+)\)/);
+        const level = levelMatch ? parseInt(levelMatch[1]) : undefined;
+        showTooltip(sigilName, sigilEl, level);
+        this.tooltipVisible = true;
+        this.tooltipElement = sigilEl;
+        sigilEl.classList.add('controller-tooltip-active');
+      }
+    }
+  },
+
   // Toggle tooltip on focused element (Y button)
   toggleTooltip() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
@@ -605,72 +743,30 @@ const GamepadController = {
 
     // If tooltip is already visible, hide it
     if (this.tooltipVisible) {
-      if (typeof hideTooltip === 'function') {
-        hideTooltip();
-      }
-      if (this.tooltipElement) {
-        this.tooltipElement.classList.remove('controller-tooltip-active');
-      }
-      this.tooltipVisible = false;
-      this.tooltipElement = null;
+      this.hideActiveTooltip();
       return;
     }
 
     // Try to show tooltip for focused element
     if (!this.focusedElement) return;
 
-    // Check if focused element is a sigil or has tooltip data
+    // Check if focused element is a sigil
     const sigilEl = this.focusedElement.classList.contains('sigil') ? this.focusedElement :
                     this.focusedElement.querySelector('.sigil');
 
     if (sigilEl) {
-      // Extract sigil name from the element's onmouseenter or data
-      const mouseEnter = sigilEl.getAttribute('onmouseenter');
-      if (mouseEnter) {
-        const match = mouseEnter.match(/showTooltip\('([^']+)'/);
-        if (match && typeof showTooltip === 'function') {
-          const sigilName = match[1];
-          // Extract level if present
-          const levelMatch = mouseEnter.match(/,\s*(\d+)\)/);
-          const level = levelMatch ? parseInt(levelMatch[1]) : undefined;
-          showTooltip(sigilName, sigilEl, level);
-          this.tooltipVisible = true;
-          this.tooltipElement = sigilEl;
-          sigilEl.classList.add('controller-tooltip-active');
-          return;
-        }
-      }
-    }
-
-    // Check for card with sigils (show first sigil's tooltip)
-    const cardSigil = this.focusedElement.querySelector('.sigil');
-    if (cardSigil) {
-      const mouseEnter = cardSigil.getAttribute('onmouseenter');
-      if (mouseEnter) {
-        const match = mouseEnter.match(/showTooltip\('([^']+)'/);
-        if (match && typeof showTooltip === 'function') {
-          showTooltip(match[1], cardSigil);
-          this.tooltipVisible = true;
-          this.tooltipElement = cardSigil;
-          cardSigil.classList.add('controller-tooltip-active');
-        }
-      }
+      this.showSigilTooltip(sigilEl);
     }
   },
 
-  // Cycle between units: heroes and enemies (LB/RB)
+  // Cycle between units: heroes and enemies (LB/RB/D-pad left/right)
   cycleUnit(direction) {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
     }
 
     // Hide any active tooltip when switching units
-    if (this.tooltipVisible) {
-      if (typeof hideTooltip === 'function') hideTooltip();
-      if (this.tooltipElement) this.tooltipElement.classList.remove('controller-tooltip-active');
-      this.tooltipVisible = false;
-      this.tooltipElement = null;
-    }
+    this.hideActiveTooltip();
 
     // Collect all unit cards (heroes first, then enemies)
     const heroCards = Array.from(document.querySelectorAll('.card.hero'));
@@ -781,6 +877,9 @@ const GamepadController = {
   // Restore focus after DOM updates
   restoreFocusState() {
     if (!this.active) return;
+
+    // Always hide tooltips on DOM changes to prevent persistence issues
+    this.hideActiveTooltip();
 
     setTimeout(() => {
       this.updateFocusableElements();

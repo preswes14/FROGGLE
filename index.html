@@ -446,10 +446,11 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil { border: none; border-radius: 6px; padding: 10px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 44px; min-height: 44px; max-width: 56px; width: auto; font-weight: 900; background: transparent; text-shadow: none; flex-shrink: 0; }
 .sigil img { width: auto; height: 1.6em; object-fit: contain; }
 .sigil sup { font-size: 0.55em; font-weight: bold; margin-left: 1px; vertical-align: super; }
-.sigil.passive { opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
+
+/* Active sigils: transparent background, colored icon */
 .sigil.l0 { color: #666; opacity: 0.5; }
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.35); }
 .sigil.l1 { color: #1a1a1a; }
@@ -465,6 +466,20 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   color: #ff0080;
 }
 .sigil.l5 img { filter: invert(24%) sepia(99%) saturate(6143%) hue-rotate(316deg) brightness(101%) contrast(102%) drop-shadow(0 0 6px rgba(255,0,128,0.8)); animation: rainbow-pulse 2s ease-in-out infinite; }
+
+/* Passive sigils: colored background, white icon */
+.sigil.passive { border: 2px solid rgba(0,0,0,0.3); }
+.sigil.passive img { filter: brightness(0) invert(1) !important; } /* White icon */
+.sigil.passive.l0 { background: #9ca3af; opacity: 0.6; } /* Gray */
+.sigil.passive.l1 { background: #374151; } /* Dark gray */
+.sigil.passive.l2 { background: #0d9488; } /* Teal */
+.sigil.passive.l3 { background: #9333ea; } /* Purple */
+.sigil.passive.l4 { background: #d97706; box-shadow: 0 0 6px rgba(217,119,6,0.5); } /* Orange with glow */
+.sigil.passive.l5 { background: linear-gradient(135deg, #ff0080, #7c3aed, #06b6d4); animation: rainbow-bg 2s ease-in-out infinite; } /* Rainbow gradient */
+@keyframes rainbow-bg {
+  0%, 100% { background: linear-gradient(135deg, #ff0080, #7c3aed, #06b6d4); }
+  50% { background: linear-gradient(135deg, #06b6d4, #ff0080, #7c3aed); }
+}
 @keyframes rainbow-pulse {
   0%, 100% { filter: invert(24%) sepia(99%) saturate(6143%) hue-rotate(316deg) brightness(101%) contrast(102%) drop-shadow(0 0 6px rgba(255,0,128,0.8)); }
   50% { filter: invert(69%) sepia(88%) saturate(1053%) hue-rotate(166deg) brightness(90%) contrast(88%) drop-shadow(0 0 8px rgba(64,224,208,0.8)); }
@@ -2035,9 +2050,10 @@ triggerHitAnimation(id);
 showFloatingNumber(id, `-${dmg}`, dmg >= 5 ? 'critical' : 'damage', idx * 15);
 });
 
-// JUICE: Sound for enemy attacks (screen shake only on defeat/last stand)
+// JUICE: Sinister sound for enemy attacks on heroes + screen shake
 if(damagedIds.length > 0) {
-SoundFX.play(dmg >= 5 ? 'crit' : 'hit');
+SoundFX.play(dmg >= 5 ? 'enemyCrit' : 'enemyHit');
+triggerScreenShake(dmg >= 5); // Heavy shake for big hits
 }
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 
@@ -2770,6 +2786,28 @@ const SoundFX = {
         osc.type = 'sawtooth';
         osc.start(now);
         osc.stop(now + 0.25);
+        break;
+
+      case 'enemyHit':
+        // Sinister low rumble for enemy attacks on heroes
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+        gain.gain.setValueAtTime(this.volume * 1.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.25);
+        break;
+
+      case 'enemyCrit':
+        // Heavy sinister impact for enemy crits
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+        gain.gain.setValueAtTime(this.volume * 1.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.35);
         break;
 
       case 'heal':
@@ -4229,6 +4267,12 @@ S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
 render();
+// Auto-focus target for controller users
+if(sig === 'Attack') {
+autoFocusTargetForController(heroIdx, 'enemy');
+} else {
+autoFocusTargetForController(heroIdx, 'hero');
+}
 } else if(sig === 'Grapple') {
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
@@ -4237,6 +4281,7 @@ S.grappleRepeats = repeats;
 S.grappleLevel = level;
 S.targets = [];
 render();
+autoFocusTargetForController(heroIdx, 'enemy');
 } else if(sig === 'Alpha') {
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
@@ -4248,6 +4293,7 @@ S.alphaTargetsNeeded = targetsNeeded;
 S.targets = [];
 toast(`Alpha: Grant ${level} action${level>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
 render();
+autoFocusTargetForController(heroIdx, 'hero');
 }
 }
 
@@ -4394,6 +4440,31 @@ return;
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
+// Auto-focus the enemy across from the active hero for controller users
+autoFocusTargetForController(S.d20HeroIdx);
+}
+
+// Auto-focus an enemy/hero target for controller navigation
+function autoFocusTargetForController(heroIdx, targetType = 'enemy') {
+if (typeof GamepadController === 'undefined' || !GamepadController.active) return;
+
+setTimeout(() => {
+if (targetType === 'enemy') {
+// Find the enemy at the same index as the hero (or first enemy)
+const enemyCards = Array.from(document.querySelectorAll('.card.enemy:not(.dead)'));
+if (enemyCards.length > 0) {
+const targetIdx = Math.min(heroIdx || 0, enemyCards.length - 1);
+GamepadController.setFocus(enemyCards[targetIdx]);
+}
+} else {
+// For hero targeting (Heal, Shield, Alpha), focus the hero themselves or first other hero
+const heroCards = Array.from(document.querySelectorAll('.card.hero:not(.dead)'));
+if (heroCards.length > 0) {
+// Try to focus the acting hero first (for self-targeting like Heal)
+GamepadController.setFocus(heroCards[heroIdx] || heroCards[0]);
+}
+}
+}, 100);
 }
 
 function rollD20() {
@@ -10928,9 +10999,7 @@ ${inGame ? `
 <input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
 <span>🎮 Controller Support</span>
 </label>
-<p style="font-size:0.8rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Enable gamepad/controller navigation (auto-detects Steam Deck)</p>
-<button class="btn" onclick="showControllerTest()" style="margin-bottom:0.5rem;background:#3b82f6">🎮 Test Controller</button>
-<p style="font-size:0.8rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Opens live controller test to diagnose input issues</p>
+<p style="font-size:0.8rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">D-pad/Left Stick: Navigate | A: Select | B: Back | Y: Tooltip</p>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
@@ -11551,162 +11620,6 @@ closeDebugMenu();
 render();
 }
 
-// ===== CONTROLLER TEST PANEL =====
-let controllerTestInterval = null;
-
-function showControllerTest() {
-closeSettingsMenu();
-const v = document.getElementById('gameView');
-
-let html = `
-<div class="modal-container dark" style="max-width:600px">
-<h2 class="modal-title blue" style="margin-bottom:1rem">🎮 Controller Test 🎮</h2>
-
-<div id="controllerTestStatus" style="background:#1e293b;border:2px solid #475569;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="font-size:1.1rem;margin-bottom:0.5rem">Status: <span id="ctStatusText" style="color:#ef4444">Checking...</span></div>
-<div style="font-size:0.85rem;opacity:0.8">Gamepad ID: <span id="ctGamepadId">-</span></div>
-<div style="font-size:0.85rem;opacity:0.8">Buttons: <span id="ctButtonCount">-</span> | Axes: <span id="ctAxisCount">-</span></div>
-</div>
-
-<div style="background:#1e293b;border:2px solid #475569;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="font-size:0.95rem;font-weight:bold;margin-bottom:0.75rem;color:#22c55e">Buttons (press any button)</div>
-<div id="ctButtons" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;font-size:0.8rem">
-${['A(0)','B(1)','X(2)','Y(3)','LB(4)','RB(5)','LT(6)','RT(7)','Select(8)','Start(9)','L3(10)','R3(11)','Up(12)','Down(13)','Left(14)','Right(15)'].map((name, i) =>
-  `<div id="ctBtn${i}" style="background:#374151;border:2px solid #6b7280;border-radius:4px;padding:0.4rem;text-align:center">${name}</div>`
-).join('')}
-</div>
-</div>
-
-<div style="background:#1e293b;border:2px solid #475569;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="font-size:0.95rem;font-weight:bold;margin-bottom:0.75rem;color:#22c55e">Axes (move sticks)</div>
-<div id="ctAxes" style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
-<div style="text-align:center">
-<div style="font-size:0.85rem;margin-bottom:0.5rem">Left Stick</div>
-<div style="position:relative;width:80px;height:80px;margin:0 auto;background:#374151;border:2px solid #6b7280;border-radius:50%">
-<div id="ctLeftStick" style="position:absolute;width:16px;height:16px;background:#22c55e;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
-</div>
-<div style="font-size:0.75rem;margin-top:0.25rem">X: <span id="ctAxis0">0.00</span> Y: <span id="ctAxis1">0.00</span></div>
-</div>
-<div style="text-align:center">
-<div style="font-size:0.85rem;margin-bottom:0.5rem">Right Stick</div>
-<div style="position:relative;width:80px;height:80px;margin:0 auto;background:#374151;border:2px solid #6b7280;border-radius:50%">
-<div id="ctRightStick" style="position:absolute;width:16px;height:16px;background:#3b82f6;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
-</div>
-<div style="font-size:0.75rem;margin-top:0.25rem">X: <span id="ctAxis2">0.00</span> Y: <span id="ctAxis3">0.00</span></div>
-</div>
-</div>
-</div>
-
-<div style="background:rgba(251,191,36,0.1);border:2px solid #f59e0b;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="font-size:0.9rem;font-weight:bold;margin-bottom:0.5rem;color:#f59e0b">⚠️ No gamepad detected?</div>
-<ul style="font-size:0.85rem;margin:0;padding-left:1.25rem;line-height:1.5">
-<li><strong>Press any button</strong> on your controller first (browser security requires this)</li>
-<li>Make sure Steam Input is set to <strong>"Gamepad"</strong> not "Desktop"</li>
-<li>Try pressing Steam button → Controller → <strong>Gamepad with Joystick Trackpad</strong></li>
-<li>If using desktop browser, make sure the game window has focus</li>
-</ul>
-</div>
-
-<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="font-size:0.9rem;font-weight:bold;margin-bottom:0.5rem;color:#22c55e">✅ Keyboard Fallback</div>
-<div style="font-size:0.85rem;line-height:1.5">
-Arrow keys or WASD = Navigate | Enter/Space = Select | Escape = Back
-</div>
-</div>
-
-<button class="btn" onclick="closeControllerTest()" style="width:100%;background:#888">Close</button>
-</div>
-<div class="modal-overlay" onclick="closeControllerTest()"></div>
-`;
-
-v.insertAdjacentHTML('beforeend', html);
-
-// Start real-time update loop
-controllerTestInterval = setInterval(updateControllerTest, 50);
-updateControllerTest(); // Initial update
-}
-
-function updateControllerTest() {
-const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-let gp = null;
-
-// Find first connected gamepad
-for (let i = 0; i < gamepads.length; i++) {
-if (gamepads[i] && gamepads[i].connected) {
-gp = gamepads[i];
-break;
-}
-}
-
-const statusText = document.getElementById('ctStatusText');
-const gamepadId = document.getElementById('ctGamepadId');
-const buttonCount = document.getElementById('ctButtonCount');
-const axisCount = document.getElementById('ctAxisCount');
-
-if (!gp) {
-if (statusText) {
-statusText.textContent = '❌ No Gamepad Detected';
-statusText.style.color = '#ef4444';
-}
-if (gamepadId) gamepadId.textContent = '-';
-if (buttonCount) buttonCount.textContent = '-';
-if (axisCount) axisCount.textContent = '-';
-return;
-}
-
-// Gamepad found!
-if (statusText) {
-statusText.textContent = '✅ Gamepad Connected!';
-statusText.style.color = '#22c55e';
-}
-if (gamepadId) gamepadId.textContent = gp.id.substring(0, 50) + (gp.id.length > 50 ? '...' : '');
-if (buttonCount) buttonCount.textContent = gp.buttons.length;
-if (axisCount) axisCount.textContent = gp.axes.length;
-
-// Update buttons
-for (let i = 0; i < 16; i++) {
-const btnEl = document.getElementById(`ctBtn${i}`);
-if (btnEl && gp.buttons[i]) {
-const pressed = gp.buttons[i].pressed || gp.buttons[i].value > 0.5;
-btnEl.style.background = pressed ? '#22c55e' : '#374151';
-btnEl.style.borderColor = pressed ? '#16a34a' : '#6b7280';
-btnEl.style.color = pressed ? '#000' : '#fff';
-}
-}
-
-// Update axes
-for (let i = 0; i < 4; i++) {
-const axisEl = document.getElementById(`ctAxis${i}`);
-if (axisEl && gp.axes[i] !== undefined) {
-axisEl.textContent = gp.axes[i].toFixed(2);
-}
-}
-
-// Update stick visualizations
-const leftStick = document.getElementById('ctLeftStick');
-const rightStick = document.getElementById('ctRightStick');
-
-if (leftStick && gp.axes.length >= 2) {
-const x = (gp.axes[0] || 0) * 30; // 30px max movement
-const y = (gp.axes[1] || 0) * 30;
-leftStick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-}
-
-if (rightStick && gp.axes.length >= 4) {
-const x = (gp.axes[2] || 0) * 30;
-const y = (gp.axes[3] || 0) * 30;
-rightStick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-}
-}
-
-function closeControllerTest() {
-if (controllerTestInterval) {
-clearInterval(controllerTestInterval);
-controllerTestInterval = null;
-}
-const menus = document.querySelectorAll('.modal-container, .modal-overlay');
-menus.forEach(m => m.remove());
-}
 
 
 // ===== STEAM DECK / CONTROLLER SUPPORT SYSTEM =====
@@ -11990,6 +11903,23 @@ const GamepadController = {
     debugLog('[GAMEPAD] Controller mode deactivated (mouse input detected)');
   },
 
+  // Determine current navigation context
+  getNavigationContext() {
+    // Check if we're in targeting mode
+    if (typeof S !== 'undefined' && S.pending) {
+      return 'targeting';
+    }
+    // Check if we're in combat (heroes and enemies present)
+    if (typeof S !== 'undefined' && S.heroes && S.heroes.length > 0 && S.enemies && S.enemies.length > 0) {
+      return 'combat';
+    }
+    // Check if there's a modal
+    if (document.querySelector('.modal-container')) {
+      return 'modal';
+    }
+    return 'menu';
+  },
+
   // Main polling loop
   poll() {
     // Try to find a gamepad if we don't have one
@@ -12024,7 +11954,6 @@ const GamepadController = {
       if (pressed && !wasPressed) {
         // Only process if cooldown elapsed
         if (now - this.lastInputTime >= this.inputCooldown) {
-          console.log('[GAMEPAD] Button', i, 'pressed!');
           this.onButtonPress(i);
           this.lastInputTime = now;
         }
@@ -12033,30 +11962,60 @@ const GamepadController = {
       this.buttonStates[i] = pressed;
     }
 
-    // Check analog sticks (left stick for navigation)
+    // Check analog sticks
     const leftX = gp.axes[0] || 0;
     const leftY = gp.axes[1] || 0;
+    const rightX = gp.axes[2] || 0;
+    const rightY = gp.axes[3] || 0;
 
+    // Left stick: Navigate (context-aware)
     if (Math.abs(leftX) > this.axisDeadzone || Math.abs(leftY) > this.axisDeadzone) {
       if (now - this.lastInputTime >= this.inputCooldown) {
-        // Determine primary direction
         if (Math.abs(leftX) > Math.abs(leftY)) {
-          this.onDirection(leftX > 0 ? 'right' : 'left');
+          this.onLeftStick(leftX > 0 ? 'right' : 'left');
         } else {
-          this.onDirection(leftY > 0 ? 'down' : 'up');
+          this.onLeftStick(leftY > 0 ? 'down' : 'up');
         }
+        this.lastInputTime = now;
+      }
+    }
+
+    // Right stick: Sigil navigation only (up/down cycles sigils)
+    if (Math.abs(rightY) > this.axisDeadzone) {
+      if (now - this.lastInputTime >= this.inputCooldown) {
+        this.cycleSigil(rightY > 0 ? 'next' : 'prev');
         this.lastInputTime = now;
       }
     }
   },
 
-  onButtonPress(buttonIndex) {
-    console.log('[GAMEPAD] onButtonPress called with button:', buttonIndex);
+  // Left stick handler (context-aware)
+  onLeftStick(dir) {
+    const context = this.getNavigationContext();
 
+    if (context === 'targeting') {
+      // In targeting mode: cycle through valid targets
+      this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
+    } else if (context === 'combat') {
+      // In combat: left/right cycles units, up/down cycles sigils
+      if (dir === 'left' || dir === 'right') {
+        this.cycleUnit(dir === 'right' ? 'next' : 'prev');
+      } else {
+        this.cycleSigil(dir === 'down' ? 'next' : 'prev');
+      }
+    } else {
+      // In menus: standard spatial navigation
+      this.onDirection(dir);
+    }
+  },
+
+  onButtonPress(buttonIndex) {
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();
     }
+
+    const context = this.getNavigationContext();
 
     switch (buttonIndex) {
       case this.BUTTONS.A:
@@ -12066,36 +12025,99 @@ const GamepadController = {
         this.goBack();
         break;
       case this.BUTTONS.Y:
-        this.toggleTooltip(); // Y = toggle tooltip on focused element
+        this.toggleTooltip();
         break;
       case this.BUTTONS.START:
-        this.openMenu(); // Start = open settings menu
+        this.openMenu();
         break;
       case this.BUTTONS.DPAD_UP:
-        this.onDirection('up');
-        break;
       case this.BUTTONS.DPAD_DOWN:
-        this.onDirection('down');
-        break;
       case this.BUTTONS.DPAD_LEFT:
-        this.onDirection('left');
-        break;
       case this.BUTTONS.DPAD_RIGHT:
-        this.onDirection('right');
+        // D-pad behavior depends on context
+        const dir = buttonIndex === this.BUTTONS.DPAD_UP ? 'up' :
+                    buttonIndex === this.BUTTONS.DPAD_DOWN ? 'down' :
+                    buttonIndex === this.BUTTONS.DPAD_LEFT ? 'left' : 'right';
+        if (context === 'targeting') {
+          this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
+        } else if (context === 'combat') {
+          // D-pad left/right cycles characters in combat
+          if (dir === 'left' || dir === 'right') {
+            this.cycleUnit(dir === 'right' ? 'next' : 'prev');
+          } else {
+            this.cycleSigil(dir === 'down' ? 'next' : 'prev');
+          }
+        } else {
+          this.onDirection(dir);
+        }
         break;
       case this.BUTTONS.LB:
-        this.cycleUnit('prev'); // LB = previous unit (hero/enemy)
+        if (context === 'targeting') {
+          this.cycleTargets('prev');
+        } else {
+          this.cycleUnit('prev');
+        }
         break;
       case this.BUTTONS.RB:
-        this.cycleUnit('next'); // RB = next unit (hero/enemy)
+        if (context === 'targeting') {
+          this.cycleTargets('next');
+        } else {
+          this.cycleUnit('next');
+        }
         break;
       case this.BUTTONS.LT:
-        this.cycleSigil('prev'); // LT = previous sigil on focused unit
+        this.cycleSigil('prev');
         break;
       case this.BUTTONS.RT:
-        this.cycleSigil('next'); // RT = next sigil on focused unit
+        this.cycleSigil('next');
         break;
     }
+  },
+
+  // Cycle through valid targets (enemies or heroes depending on action)
+  cycleTargets(direction) {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Hide tooltip when cycling
+    this.hideActiveTooltip();
+
+    // Determine what we're targeting
+    let targetCards = [];
+    if (typeof S !== 'undefined' && S.pending) {
+      if (['Attack', 'Grapple', 'D20_TARGET'].includes(S.pending)) {
+        // Targeting enemies
+        targetCards = Array.from(document.querySelectorAll('.card.enemy.targetable, .card.enemy:not(.dead)'));
+      } else if (['Heal', 'Shield', 'Alpha'].includes(S.pending)) {
+        // Targeting heroes
+        targetCards = Array.from(document.querySelectorAll('.card.hero.targetable, .card.hero:not(.dead)'));
+      }
+    }
+
+    if (targetCards.length === 0) {
+      // Fallback to all cards
+      targetCards = Array.from(document.querySelectorAll('.card.targetable, .card:not(.dead)'));
+    }
+
+    if (targetCards.length === 0) return;
+
+    // Find current target
+    let currentIdx = targetCards.findIndex(el =>
+      el === this.focusedElement || el.contains(this.focusedElement)
+    );
+
+    if (currentIdx === -1) {
+      currentIdx = 0;
+    } else {
+      if (direction === 'next') {
+        currentIdx = (currentIdx + 1) % targetCards.length;
+      } else {
+        currentIdx = (currentIdx - 1 + targetCards.length) % targetCards.length;
+      }
+    }
+
+    this.setFocus(targetCards[currentIdx]);
   },
 
   onDirection(dir) {
@@ -12291,12 +12313,10 @@ const GamepadController = {
   },
 
   openMenu() {
-    // Play menu sound
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
     }
 
-    // Open settings menu
     if (typeof showSettingsMenu === 'function') {
       showSettingsMenu();
       setTimeout(() => {
@@ -12308,6 +12328,37 @@ const GamepadController = {
     }
   },
 
+  // Helper to hide any active tooltip
+  hideActiveTooltip() {
+    if (this.tooltipVisible) {
+      if (typeof hideTooltip === 'function') hideTooltip();
+      if (this.tooltipElement) {
+        this.tooltipElement.classList.remove('controller-tooltip-active');
+      }
+      this.tooltipVisible = false;
+      this.tooltipElement = null;
+    }
+  },
+
+  // Show tooltip for a sigil element
+  showSigilTooltip(sigilEl) {
+    if (!sigilEl) return;
+
+    const mouseEnter = sigilEl.getAttribute('onmouseenter');
+    if (mouseEnter) {
+      const match = mouseEnter.match(/showTooltip\('([^']+)'/);
+      if (match && typeof showTooltip === 'function') {
+        const sigilName = match[1];
+        const levelMatch = mouseEnter.match(/,\s*(\d+)\)/);
+        const level = levelMatch ? parseInt(levelMatch[1]) : undefined;
+        showTooltip(sigilName, sigilEl, level);
+        this.tooltipVisible = true;
+        this.tooltipElement = sigilEl;
+        sigilEl.classList.add('controller-tooltip-active');
+      }
+    }
+  },
+
   // Toggle tooltip on focused element (Y button)
   toggleTooltip() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
@@ -12316,72 +12367,30 @@ const GamepadController = {
 
     // If tooltip is already visible, hide it
     if (this.tooltipVisible) {
-      if (typeof hideTooltip === 'function') {
-        hideTooltip();
-      }
-      if (this.tooltipElement) {
-        this.tooltipElement.classList.remove('controller-tooltip-active');
-      }
-      this.tooltipVisible = false;
-      this.tooltipElement = null;
+      this.hideActiveTooltip();
       return;
     }
 
     // Try to show tooltip for focused element
     if (!this.focusedElement) return;
 
-    // Check if focused element is a sigil or has tooltip data
+    // Check if focused element is a sigil
     const sigilEl = this.focusedElement.classList.contains('sigil') ? this.focusedElement :
                     this.focusedElement.querySelector('.sigil');
 
     if (sigilEl) {
-      // Extract sigil name from the element's onmouseenter or data
-      const mouseEnter = sigilEl.getAttribute('onmouseenter');
-      if (mouseEnter) {
-        const match = mouseEnter.match(/showTooltip\('([^']+)'/);
-        if (match && typeof showTooltip === 'function') {
-          const sigilName = match[1];
-          // Extract level if present
-          const levelMatch = mouseEnter.match(/,\s*(\d+)\)/);
-          const level = levelMatch ? parseInt(levelMatch[1]) : undefined;
-          showTooltip(sigilName, sigilEl, level);
-          this.tooltipVisible = true;
-          this.tooltipElement = sigilEl;
-          sigilEl.classList.add('controller-tooltip-active');
-          return;
-        }
-      }
-    }
-
-    // Check for card with sigils (show first sigil's tooltip)
-    const cardSigil = this.focusedElement.querySelector('.sigil');
-    if (cardSigil) {
-      const mouseEnter = cardSigil.getAttribute('onmouseenter');
-      if (mouseEnter) {
-        const match = mouseEnter.match(/showTooltip\('([^']+)'/);
-        if (match && typeof showTooltip === 'function') {
-          showTooltip(match[1], cardSigil);
-          this.tooltipVisible = true;
-          this.tooltipElement = cardSigil;
-          cardSigil.classList.add('controller-tooltip-active');
-        }
-      }
+      this.showSigilTooltip(sigilEl);
     }
   },
 
-  // Cycle between units: heroes and enemies (LB/RB)
+  // Cycle between units: heroes and enemies (LB/RB/D-pad left/right)
   cycleUnit(direction) {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
     }
 
     // Hide any active tooltip when switching units
-    if (this.tooltipVisible) {
-      if (typeof hideTooltip === 'function') hideTooltip();
-      if (this.tooltipElement) this.tooltipElement.classList.remove('controller-tooltip-active');
-      this.tooltipVisible = false;
-      this.tooltipElement = null;
-    }
+    this.hideActiveTooltip();
 
     // Collect all unit cards (heroes first, then enemies)
     const heroCards = Array.from(document.querySelectorAll('.card.hero'));
@@ -12492,6 +12501,9 @@ const GamepadController = {
   // Restore focus after DOM updates
   restoreFocusState() {
     if (!this.active) return;
+
+    // Always hide tooltips on DOM changes to prevent persistence issues
+    this.hideActiveTooltip();
 
     setTimeout(() => {
       this.updateFocusableElements();

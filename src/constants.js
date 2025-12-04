@@ -273,9 +273,10 @@ triggerHitAnimation(id);
 showFloatingNumber(id, `-${dmg}`, dmg >= 5 ? 'critical' : 'damage', idx * 15);
 });
 
-// JUICE: Sound for enemy attacks (screen shake only on defeat/last stand)
+// JUICE: Sinister sound for enemy attacks on heroes + screen shake
 if(damagedIds.length > 0) {
-SoundFX.play(dmg >= 5 ? 'crit' : 'hit');
+SoundFX.play(dmg >= 5 ? 'enemyCrit' : 'enemyHit');
+triggerScreenShake(dmg >= 5); // Heavy shake for big hits
 }
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 

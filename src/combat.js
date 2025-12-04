@@ -304,6 +304,12 @@ S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
 render();
+// Auto-focus target for controller users
+if(sig === 'Attack') {
+autoFocusTargetForController(heroIdx, 'enemy');
+} else {
+autoFocusTargetForController(heroIdx, 'hero');
+}
 } else if(sig === 'Grapple') {
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
@@ -312,6 +318,7 @@ S.grappleRepeats = repeats;
 S.grappleLevel = level;
 S.targets = [];
 render();
+autoFocusTargetForController(heroIdx, 'enemy');
 } else if(sig === 'Alpha') {
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
@@ -323,6 +330,7 @@ S.alphaTargetsNeeded = targetsNeeded;
 S.targets = [];
 toast(`Alpha: Grant ${level} action${level>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
 render();
+autoFocusTargetForController(heroIdx, 'hero');
 }
 }
 
@@ -469,6 +477,31 @@ return;
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
+// Auto-focus the enemy across from the active hero for controller users
+autoFocusTargetForController(S.d20HeroIdx);
+}
+
+// Auto-focus an enemy/hero target for controller navigation
+function autoFocusTargetForController(heroIdx, targetType = 'enemy') {
+if (typeof GamepadController === 'undefined' || !GamepadController.active) return;
+
+setTimeout(() => {
+if (targetType === 'enemy') {
+// Find the enemy at the same index as the hero (or first enemy)
+const enemyCards = Array.from(document.querySelectorAll('.card.enemy:not(.dead)'));
+if (enemyCards.length > 0) {
+const targetIdx = Math.min(heroIdx || 0, enemyCards.length - 1);
+GamepadController.setFocus(enemyCards[targetIdx]);
+}
+} else {
+// For hero targeting (Heal, Shield, Alpha), focus the hero themselves or first other hero
+const heroCards = Array.from(document.querySelectorAll('.card.hero:not(.dead)'));
+if (heroCards.length > 0) {
+// Try to focus the acting hero first (for self-targeting like Heal)
+GamepadController.setFocus(heroCards[heroIdx] || heroCards[0]);
+}
+}
+}, 100);
 }
 
 function rollD20() {
