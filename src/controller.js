@@ -499,15 +499,21 @@ const GamepadController = {
       case this.BUTTONS.LB:
         if (context === 'targeting') {
           this.cycleTargets('prev');
-        } else {
+        } else if (context === 'combat') {
           this.cycleUnit('prev');
+        } else {
+          // Page scroll up in modals/scrollable areas
+          this.pageScroll('up');
         }
         break;
       case this.BUTTONS.RB:
         if (context === 'targeting') {
           this.cycleTargets('next');
-        } else {
+        } else if (context === 'combat') {
           this.cycleUnit('next');
+        } else {
+          // Page scroll down in modals/scrollable areas
+          this.pageScroll('down');
         }
         break;
       case this.BUTTONS.LT:
@@ -579,7 +585,13 @@ const GamepadController = {
 
     this.updateFocusableElements();
 
-    if (this.focusableElements.length === 0) return;
+    // If no focusable elements, try scrolling instead
+    if (this.focusableElements.length === 0) {
+      if (dir === 'up' || dir === 'down') {
+        this.scrollContainer(dir);
+      }
+      return;
+    }
 
     // Play navigation sound
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
@@ -596,6 +608,9 @@ const GamepadController = {
     const next = this.findNextElement(dir);
     if (next) {
       this.setFocus(next);
+    } else if (dir === 'up' || dir === 'down') {
+      // No element found in direction - try scrolling
+      this.scrollContainer(dir);
     }
   },
 
@@ -1325,6 +1340,51 @@ const GamepadController = {
     return null;
   },
 
+  // Find the nearest scrollable container
+  findScrollableContainer() {
+    // Check for modal containers first (FAQ, Sigilarium, etc.)
+    const modal = document.querySelector('.modal-container');
+    if (modal && modal.scrollHeight > modal.clientHeight) {
+      return modal;
+    }
+
+    // Check neutral-left panel
+    const neutralLeft = document.querySelector('.neutral-left');
+    if (neutralLeft && neutralLeft.scrollHeight > neutralLeft.clientHeight) {
+      return neutralLeft;
+    }
+
+    // Check game area
+    const gameArea = document.querySelector('.game-area');
+    if (gameArea && gameArea.scrollHeight > gameArea.clientHeight) {
+      return gameArea;
+    }
+
+    return null;
+  },
+
+  // Scroll a container
+  scrollContainer(direction, amount = 100) {
+    const container = this.findScrollableContainer();
+    if (!container) return false;
+
+    const scrollAmount = direction === 'up' ? -amount : amount;
+    const beforeScroll = container.scrollTop;
+    container.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+
+    // Return true if we actually scrolled
+    return true;
+  },
+
+  // Page scroll (larger amount for LB/RB)
+  pageScroll(direction) {
+    const container = this.findScrollableContainer();
+    if (!container) return false;
+
+    const pageAmount = container.clientHeight * 0.8; // 80% of visible height
+    return this.scrollContainer(direction, pageAmount);
+  },
+
   updatePrompts() {
     const promptsEl = document.getElementById('controllerPrompts');
     if (!promptsEl) return;
@@ -1403,13 +1463,18 @@ const GamepadController = {
         { btn: 'b', label: 'Skip' }
       ];
     }
-    // Modal/popup
+    // Modal/popup (FAQ, Sigilarium, etc.)
     else if (hasModal) {
+      const isScrollable = hasModal.scrollHeight > hasModal.clientHeight;
       prompts = [
         { btn: 'dpad', label: 'Navigate' },
         { btn: 'a', label: 'Confirm' },
         { btn: 'b', label: 'Close' }
       ];
+      if (isScrollable) {
+        prompts.push({ btn: 'lb', label: '↑Scroll' });
+        prompts.push({ btn: 'rb', label: 'Scroll↓' });
+      }
     }
     // Default
     else {

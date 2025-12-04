@@ -1761,6 +1761,34 @@ body.controller-active .toast {
     transform: scale(1.5);
     margin-right: 0.75rem;
   }
+
+  /* Reduce death screen scrolling */
+  .death-screen-container {
+    padding: 1rem !important;
+  }
+  .death-screen-container img {
+    max-width: 250px !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .death-screen-container h1 {
+    font-size: 1.8rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .going-rate-marquee {
+    padding: 0.75rem !important;
+    margin: 0.75rem 0 !important;
+  }
+  .death-screen-container h3, .death-screen-container h4 {
+    margin: 0.5rem 0 0.25rem 0 !important;
+    font-size: 1rem !important;
+  }
+  .death-screen-sigil-grid {
+    gap: 0.5rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  .death-screen-sigil-card {
+    padding: 0.5rem !important;
+  }
 }
 
 /* Focusable elements - add data attribute for controller navigation */
@@ -10378,7 +10406,7 @@ let html = `
   margin: 1.5rem 0;
 }
 </style>
-<div style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+<div class="death-screen-container" style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
 <img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#666;font-style:italic">"${deathQuote}"</p>` : ''}
@@ -10415,7 +10443,7 @@ const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 
 cards += `
-<div style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
@@ -10431,19 +10459,19 @@ return cards;
 
 // Core Sigils
 html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">⚔️ Core Sigils</h4>`;
-html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(coreSigils);
 html += `</div>`;
 
 // Advanced Sigils
 html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">🔥 Advanced Sigils</h4>`;
-html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(advancedSigils);
 html += `</div>`;
 
 // Passive Sigils
 html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">✨ Passive Sigils</h4>`;
-html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(passiveSigils);
 html += `</div>`;
 }
@@ -12544,15 +12572,21 @@ const GamepadController = {
       case this.BUTTONS.LB:
         if (context === 'targeting') {
           this.cycleTargets('prev');
-        } else {
+        } else if (context === 'combat') {
           this.cycleUnit('prev');
+        } else {
+          // Page scroll up in modals/scrollable areas
+          this.pageScroll('up');
         }
         break;
       case this.BUTTONS.RB:
         if (context === 'targeting') {
           this.cycleTargets('next');
-        } else {
+        } else if (context === 'combat') {
           this.cycleUnit('next');
+        } else {
+          // Page scroll down in modals/scrollable areas
+          this.pageScroll('down');
         }
         break;
       case this.BUTTONS.LT:
@@ -12624,7 +12658,13 @@ const GamepadController = {
 
     this.updateFocusableElements();
 
-    if (this.focusableElements.length === 0) return;
+    // If no focusable elements, try scrolling instead
+    if (this.focusableElements.length === 0) {
+      if (dir === 'up' || dir === 'down') {
+        this.scrollContainer(dir);
+      }
+      return;
+    }
 
     // Play navigation sound
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
@@ -12641,6 +12681,9 @@ const GamepadController = {
     const next = this.findNextElement(dir);
     if (next) {
       this.setFocus(next);
+    } else if (dir === 'up' || dir === 'down') {
+      // No element found in direction - try scrolling
+      this.scrollContainer(dir);
     }
   },
 
@@ -13370,6 +13413,51 @@ const GamepadController = {
     return null;
   },
 
+  // Find the nearest scrollable container
+  findScrollableContainer() {
+    // Check for modal containers first (FAQ, Sigilarium, etc.)
+    const modal = document.querySelector('.modal-container');
+    if (modal && modal.scrollHeight > modal.clientHeight) {
+      return modal;
+    }
+
+    // Check neutral-left panel
+    const neutralLeft = document.querySelector('.neutral-left');
+    if (neutralLeft && neutralLeft.scrollHeight > neutralLeft.clientHeight) {
+      return neutralLeft;
+    }
+
+    // Check game area
+    const gameArea = document.querySelector('.game-area');
+    if (gameArea && gameArea.scrollHeight > gameArea.clientHeight) {
+      return gameArea;
+    }
+
+    return null;
+  },
+
+  // Scroll a container
+  scrollContainer(direction, amount = 100) {
+    const container = this.findScrollableContainer();
+    if (!container) return false;
+
+    const scrollAmount = direction === 'up' ? -amount : amount;
+    const beforeScroll = container.scrollTop;
+    container.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+
+    // Return true if we actually scrolled
+    return true;
+  },
+
+  // Page scroll (larger amount for LB/RB)
+  pageScroll(direction) {
+    const container = this.findScrollableContainer();
+    if (!container) return false;
+
+    const pageAmount = container.clientHeight * 0.8; // 80% of visible height
+    return this.scrollContainer(direction, pageAmount);
+  },
+
   updatePrompts() {
     const promptsEl = document.getElementById('controllerPrompts');
     if (!promptsEl) return;
@@ -13448,13 +13536,18 @@ const GamepadController = {
         { btn: 'b', label: 'Skip' }
       ];
     }
-    // Modal/popup
+    // Modal/popup (FAQ, Sigilarium, etc.)
     else if (hasModal) {
+      const isScrollable = hasModal.scrollHeight > hasModal.clientHeight;
       prompts = [
         { btn: 'dpad', label: 'Navigate' },
         { btn: 'a', label: 'Confirm' },
         { btn: 'b', label: 'Close' }
       ];
+      if (isScrollable) {
+        prompts.push({ btn: 'lb', label: '↑Scroll' });
+        prompts.push({ btn: 'rb', label: 'Scroll↓' });
+      }
     }
     // Default
     else {
