@@ -1837,7 +1837,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.02';
+const GAME_VERSION = '11.03';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -12868,15 +12868,6 @@ const GamepadController = {
       backBtn.click();
       setTimeout(() => this.updateFocusableElements(), 100);
       return;
-    }
-
-    // Credits screen - go back to title
-    if (document.querySelector('[onclick*="showCredits"]')?.closest('div')?.style.display !== 'none' === false) {
-      const creditsBack = document.querySelector('[onclick*="mainTitlePage"]');
-      if (creditsBack) {
-        creditsBack.click();
-        return;
-      }
     }
 
     // Hero selection - go back to Ribbleton
