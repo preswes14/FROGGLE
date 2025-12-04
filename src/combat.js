@@ -109,6 +109,7 @@ function combat(f) {
 // Show header during combat
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+S.inCombat = true; // Mark that we're in active combat for autosave
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
@@ -1246,6 +1247,9 @@ S.turnDamage = 0; // Reset damage counter for next hero's turn
 const h = S.heroes[heroIdx];
 TutorialManager.advanceStage({action: 'finish', hero: h.n, round: S.round});
 
+// Autosave after each hero action
+autosave();
+
 checkTurnEnd();
 render();
 }
@@ -1802,6 +1806,10 @@ S.acted.push(idx);
 toast(`${h.n} is stunned and skips their turn!`);
 }
 });
+
+// Autosave at start of each new round (after enemy turn completes)
+autosave();
+
 checkTurnEnd();
 render();
 }
@@ -1824,6 +1832,7 @@ function checkCombatEnd() {
 // Clean up any lingering tooltips when combat ends
 if(typeof hideTooltip === 'function') hideTooltip();
 if(S.enemies.length === 0) {
+S.inCombat = false; // Combat ended - disable autosave
 // Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
 S.combatXP = 0;
@@ -1869,6 +1878,7 @@ return true;
 }
 const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
+S.inCombat = false; // Combat ended - disable autosave
 // Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // Record to The Pond - determine what killed the heroes

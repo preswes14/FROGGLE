@@ -43,6 +43,7 @@ loadPermanent(); // No last slot, use old format
 }
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
 initToastLog(); // Initialize toast log UI
+initSuspendSystem(); // Initialize autosave and suspend/resume system
 GamepadController.init(); // Initialize Steam Deck / controller support
 mainTitlePage();
 debugLog('[FROGGLE] mainTitlePage called');

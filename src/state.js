@@ -115,7 +115,12 @@ first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false
 },
-usedDeathQuotes: [] // Track which death quotes have been shown
+usedDeathQuotes: [], // Track which death quotes have been shown
+
+// ===== SUSPEND/AUTOSAVE STATE =====
+suspended: false,         // Whether game is currently suspended
+lastAutosave: 0,          // Timestamp of last autosave
+inCombat: false           // Whether player is in active combat (for autosave)
 };
 
 let sel = [];
@@ -913,4 +918,137 @@ console.warn('[SAVE] Failed to save game:', e);
 toast('Warning: Game could not be saved', 2000);
 }
 };
+
+// ===== AUTOSAVE SYSTEM =====
+const AUTOSAVE_THROTTLE = 5000; // Minimum 5 seconds between autosaves
+
+function autosave() {
+// Only autosave if we have an active slot and are in combat
+if(!S.currentSlot || !S.inCombat) return;
+
+// Throttle autosaves
+const now = Date.now();
+if(now - S.lastAutosave < AUTOSAVE_THROTTLE) return;
+
+S.lastAutosave = now;
+saveGame();
+debugLog('[AUTOSAVE] Game autosaved');
+}
+
+// ===== SUSPEND/RESUME SYSTEM =====
+function suspendGame() {
+if(S.suspended) return;
+S.suspended = true;
+
+// Immediately save if we have an active run
+if(S.currentSlot && S.heroes.length > 0) {
+saveGame();
+debugLog('[SUSPEND] Game saved on suspend');
+}
+
+// Show suspend overlay
+showSuspendOverlay();
+}
+
+function resumeGame() {
+if(!S.suspended) return;
+S.suspended = false;
+
+// Hide suspend overlay
+hideSuspendOverlay();
+
+// Resume audio context if needed
+if(typeof SoundFX !== 'undefined' && SoundFX.ctx && SoundFX.ctx.state === 'suspended') {
+SoundFX.ctx.resume();
+}
+
+debugLog('[RESUME] Game resumed');
+}
+
+function showSuspendOverlay() {
+// Remove any existing overlay
+hideSuspendOverlay();
+
+const overlay = document.createElement('div');
+overlay.id = 'suspend-overlay';
+overlay.style.cssText = `
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.9);
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+z-index: 10000;
+color: white;
+font-family: inherit;
+`;
+overlay.innerHTML = `
+<div style="text-align:center">
+<div style="font-size:3rem;margin-bottom:1rem">🐸</div>
+<h2 style="font-size:1.5rem;margin:0 0 0.5rem 0;color:#22c55e">FROGGLE SUSPENDED</h2>
+<p style="font-size:1rem;opacity:0.8;margin:0 0 1.5rem 0">Game saved. Tap or press any button to resume.</p>
+<div style="font-size:0.9rem;opacity:0.6">Progress has been saved automatically.</div>
+</div>
+`;
+
+// Resume on any interaction
+overlay.addEventListener('click', resumeGame);
+overlay.addEventListener('touchstart', resumeGame);
+
+// Also handle keyboard for Steam Deck
+const keyHandler = (e) => {
+resumeGame();
+document.removeEventListener('keydown', keyHandler);
+};
+document.addEventListener('keydown', keyHandler);
+
+// Store handler reference for cleanup
+overlay._keyHandler = keyHandler;
+
+document.body.appendChild(overlay);
+}
+
+function hideSuspendOverlay() {
+const overlay = document.getElementById('suspend-overlay');
+if(overlay) {
+// Clean up keyboard handler
+if(overlay._keyHandler) {
+document.removeEventListener('keydown', overlay._keyHandler);
+}
+overlay.remove();
+}
+}
+
+// Initialize visibility change listener
+function initSuspendSystem() {
+// Handle page visibility changes (tab switch, minimize, Steam Deck suspend)
+document.addEventListener('visibilitychange', () => {
+if(document.hidden) {
+suspendGame();
+} else {
+resumeGame();
+}
+});
+
+// Handle page unload (close tab, navigate away)
+window.addEventListener('pagehide', () => {
+if(S.currentSlot && S.heroes.length > 0) {
+saveGame();
+debugLog('[PAGEHIDE] Game saved before unload');
+}
+});
+
+// Also handle beforeunload for older browsers
+window.addEventListener('beforeunload', () => {
+if(S.currentSlot && S.heroes.length > 0) {
+saveGame();
+}
+});
+
+debugLog('[SUSPEND] Suspend system initialized');
+}
 
