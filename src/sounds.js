@@ -51,6 +51,28 @@ const SoundFX = {
         osc.stop(now + 0.25);
         break;
 
+      case 'enemyHit':
+        // Sinister low rumble for enemy attacks on heroes
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.2);
+        gain.gain.setValueAtTime(this.volume * 1.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.25);
+        break;
+
+      case 'enemyCrit':
+        // Heavy sinister impact for enemy crits
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+        gain.gain.setValueAtTime(this.volume * 1.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.35);
+        break;
+
       case 'heal':
         osc.frequency.setValueAtTime(400, now);
         osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
