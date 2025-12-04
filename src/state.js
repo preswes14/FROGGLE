@@ -120,7 +120,8 @@ usedDeathQuotes: [], // Track which death quotes have been shown
 // ===== SUSPEND/AUTOSAVE STATE =====
 suspended: false,         // Whether game is currently suspended
 lastAutosave: 0,          // Timestamp of last autosave
-inCombat: false           // Whether player is in active combat (for autosave)
+inCombat: false,          // Whether player is in active combat (for autosave)
+combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
 };
 
 let sel = [];
@@ -216,7 +217,10 @@ function triggerHitAnimation(targetId) {
 const card = document.getElementById(targetId);
 if(card) {
 card.classList.add('hit-flash');
-setTimeout(() => card.classList.remove('hit-flash'), ANIMATION_TIMINGS.DAMAGE_FLASH);
+setTimeout(() => {
+const el = document.getElementById(targetId);
+if(el) el.classList.remove('hit-flash');
+}, ANIMATION_TIMINGS.DAMAGE_FLASH);
 }
 }
 
@@ -224,7 +228,10 @@ function triggerAttackAnimation(attackerId) {
 const card = document.getElementById(attackerId);
 if(card) {
 card.classList.add('attack-slide');
-setTimeout(() => card.classList.remove('attack-slide'), ANIMATION_TIMINGS.ATTACK_SLIDE);
+setTimeout(() => {
+const el = document.getElementById(attackerId);
+if(el) el.classList.remove('attack-slide');
+}, ANIMATION_TIMINGS.ATTACK_SLIDE);
 }
 }
 
@@ -232,7 +239,10 @@ function triggerEnemyAttackAnimation(attackerId) {
 const card = document.getElementById(attackerId);
 if(card) {
 card.classList.add('enemy-attack-slide');
-setTimeout(() => card.classList.remove('enemy-attack-slide'), ANIMATION_TIMINGS.ATTACK_SLIDE);
+setTimeout(() => {
+const el = document.getElementById(attackerId);
+if(el) el.classList.remove('enemy-attack-slide');
+}, ANIMATION_TIMINGS.ATTACK_SLIDE);
 }
 }
 
@@ -253,7 +263,8 @@ cross.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-5
 cross.textContent = '✚';
 card.appendChild(cross);
 setTimeout(() => {
-card.classList.remove('heal-flash');
+const el = document.getElementById(targetId);
+if(el) el.classList.remove('heal-flash');
 if(cross.parentNode) cross.remove();
 }, ANIMATION_TIMINGS.HEAL_FLASH);
 }
@@ -270,7 +281,10 @@ setTimeout(() => SoundFX.play('shield'), 80);
 if (shieldAmount > 0) {
   showFloatingNumber(targetId, `+${shieldAmount}🛡`, 'shield');
 }
-setTimeout(() => card.classList.remove('shield-flash'), ANIMATION_TIMINGS.SHIELD_FLASH);
+setTimeout(() => {
+const el = document.getElementById(targetId);
+if(el) el.classList.remove('shield-flash');
+}, ANIMATION_TIMINGS.SHIELD_FLASH);
 }
 }
 
@@ -632,7 +646,11 @@ pondHistory: S.pondHistory
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Progress could not be saved', 2000);
+}
 }
 }
 
@@ -696,7 +714,11 @@ gameMode: S.gameMode
 savePermanent();
 } catch(e) {
 console.warn('[SAVE] Failed to save game:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Game could not be saved', 2000);
+}
 }
 }
 
@@ -893,7 +915,11 @@ controllerDisabled: S.controllerDisabled
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Progress could not be saved', 2000);
+}
 }
 };
 
@@ -916,7 +942,11 @@ gameMode: S.gameMode
 savePermanent();
 } catch(e) {
 console.warn('[SAVE] Failed to save game:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Game could not be saved', 2000);
+}
 }
 };
 
@@ -966,6 +996,9 @@ SoundFX.ctx.resume();
 debugLog('[RESUME] Game resumed');
 }
 
+// Global reference for suspend keyboard handler cleanup
+let suspendKeyHandler = null;
+
 function showSuspendOverlay() {
 // Remove any existing overlay
 hideSuspendOverlay();
@@ -1001,22 +1034,26 @@ overlay.addEventListener('click', resumeGame);
 overlay.addEventListener('touchstart', resumeGame);
 
 // Also handle keyboard for Steam Deck
-const keyHandler = (e) => {
+suspendKeyHandler = (e) => {
 resumeGame();
-document.removeEventListener('keydown', keyHandler);
 };
-document.addEventListener('keydown', keyHandler);
+document.addEventListener('keydown', suspendKeyHandler);
 
-// Store handler reference for cleanup
-overlay._keyHandler = keyHandler;
+// Store handler reference for cleanup (backup)
+overlay._keyHandler = suspendKeyHandler;
 
 document.body.appendChild(overlay);
 }
 
 function hideSuspendOverlay() {
+// Clean up keyboard handler using global reference (most reliable)
+if(suspendKeyHandler) {
+document.removeEventListener('keydown', suspendKeyHandler);
+suspendKeyHandler = null;
+}
 const overlay = document.getElementById('suspend-overlay');
 if(overlay) {
-// Clean up keyboard handler
+// Backup cleanup via overlay reference
 if(overlay._keyHandler) {
 document.removeEventListener('keydown', overlay._keyHandler);
 }

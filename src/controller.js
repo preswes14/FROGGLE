@@ -599,8 +599,10 @@ const GamepadController = {
     }
 
     if (!this.focusedElement || !document.body.contains(this.focusedElement)) {
-      // No focus or element removed - focus first element
-      this.setFocus(this.focusableElements[0]);
+      // No focus or element removed - focus first element if available
+      if (this.focusableElements.length > 0) {
+        this.setFocus(this.focusableElements[0]);
+      }
       return;
     }
 
@@ -615,7 +617,7 @@ const GamepadController = {
   },
 
   findNextElement(dir) {
-    if (!this.focusedElement) return this.focusableElements[0];
+    if (!this.focusedElement) return this.focusableElements.length > 0 ? this.focusableElements[0] : null;
 
     const current = this.focusedElement.getBoundingClientRect();
     const currentCenter = {
@@ -1077,7 +1079,8 @@ const GamepadController = {
 
     // Calculate total targets based on expand
     const expandLevel = typeof getLevel === 'function' ? getLevel('Expand') : 0;
-    const hasBuiltInExpand = hero.c === 'Mage' || hero.c === 'Healer';
+    const heroClass = hero.c || '';
+    const hasBuiltInExpand = (heroClass === 'Mage' || heroClass === 'Healer');
     const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
     targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 

@@ -35,7 +35,8 @@ const isStandardVictory = isVictory && run.gameMode !== 'fu';
 // Size based on floor reached (40px base + up to 60px more for floor 20)
 const baseSize = 45;
 const maxBonus = 55;
-const floorProgress = Math.min(run.floorReached, 20) / 20;
+const floorReached = Math.max(1, run.floorReached || 1); // Guard against undefined/NaN
+const floorProgress = Math.min(floorReached, 20) / 20;
 const size = Math.round(baseSize + (maxBonus * floorProgress));
 
 // Colors: green (defeat), gold (standard win), prismatic (FU win)
