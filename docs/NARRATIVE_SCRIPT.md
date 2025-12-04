@@ -449,15 +449,17 @@ Thank you for playing.
 ### [Credits]
 **FROGGLE**
 
-A game by Preston Wesner
+A DubsPubs game by Preston Wesley Evans
 
-Design, Art, & Code: Preston
+Design, Art, & Code: Preston + Claude
 
-Playtesting: [Your Name Here]
+Playtesting: Michael Griffin, Charlie Schmidt, Carolyn Powell, Matt Sutz, Ryan Evertz, Noel McKillip, Ray Willess
 
-Inspiration: Slay the Spire, Balatro, and too much coffee
+Inspiration: Inscryption, Slay the Spire, Balatro, and too much coffee
 
-Made with love in 2024
+Sanity: Erin Keif, Adal Rfai, JPC, Odell Brewing
+
+Support: Lisa Evans
 
 ### [Tapo Unlock]
 TAPO UNLOCKED!
