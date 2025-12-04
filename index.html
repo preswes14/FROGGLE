@@ -10929,6 +10929,8 @@ ${inGame ? `
 <span>🎮 Controller Support</span>
 </label>
 <p style="font-size:0.8rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Enable gamepad/controller navigation (auto-detects Steam Deck)</p>
+<button class="btn" onclick="showControllerTest()" style="margin-bottom:0.5rem;background:#3b82f6">🎮 Test Controller</button>
+<p style="font-size:0.8rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Opens live controller test to diagnose input issues</p>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
@@ -11549,6 +11551,163 @@ closeDebugMenu();
 render();
 }
 
+// ===== CONTROLLER TEST PANEL =====
+let controllerTestInterval = null;
+
+function showControllerTest() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+
+let html = `
+<div class="modal-container dark" style="max-width:600px">
+<h2 class="modal-title blue" style="margin-bottom:1rem">🎮 Controller Test 🎮</h2>
+
+<div id="controllerTestStatus" style="background:#1e293b;border:2px solid #475569;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="font-size:1.1rem;margin-bottom:0.5rem">Status: <span id="ctStatusText" style="color:#ef4444">Checking...</span></div>
+<div style="font-size:0.85rem;opacity:0.8">Gamepad ID: <span id="ctGamepadId">-</span></div>
+<div style="font-size:0.85rem;opacity:0.8">Buttons: <span id="ctButtonCount">-</span> | Axes: <span id="ctAxisCount">-</span></div>
+</div>
+
+<div style="background:#1e293b;border:2px solid #475569;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="font-size:0.95rem;font-weight:bold;margin-bottom:0.75rem;color:#22c55e">Buttons (press any button)</div>
+<div id="ctButtons" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;font-size:0.8rem">
+${['A(0)','B(1)','X(2)','Y(3)','LB(4)','RB(5)','LT(6)','RT(7)','Select(8)','Start(9)','L3(10)','R3(11)','Up(12)','Down(13)','Left(14)','Right(15)'].map((name, i) =>
+  `<div id="ctBtn${i}" style="background:#374151;border:2px solid #6b7280;border-radius:4px;padding:0.4rem;text-align:center">${name}</div>`
+).join('')}
+</div>
+</div>
+
+<div style="background:#1e293b;border:2px solid #475569;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="font-size:0.95rem;font-weight:bold;margin-bottom:0.75rem;color:#22c55e">Axes (move sticks)</div>
+<div id="ctAxes" style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+<div style="text-align:center">
+<div style="font-size:0.85rem;margin-bottom:0.5rem">Left Stick</div>
+<div style="position:relative;width:80px;height:80px;margin:0 auto;background:#374151;border:2px solid #6b7280;border-radius:50%">
+<div id="ctLeftStick" style="position:absolute;width:16px;height:16px;background:#22c55e;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+</div>
+<div style="font-size:0.75rem;margin-top:0.25rem">X: <span id="ctAxis0">0.00</span> Y: <span id="ctAxis1">0.00</span></div>
+</div>
+<div style="text-align:center">
+<div style="font-size:0.85rem;margin-bottom:0.5rem">Right Stick</div>
+<div style="position:relative;width:80px;height:80px;margin:0 auto;background:#374151;border:2px solid #6b7280;border-radius:50%">
+<div id="ctRightStick" style="position:absolute;width:16px;height:16px;background:#3b82f6;border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
+</div>
+<div style="font-size:0.75rem;margin-top:0.25rem">X: <span id="ctAxis2">0.00</span> Y: <span id="ctAxis3">0.00</span></div>
+</div>
+</div>
+</div>
+
+<div style="background:rgba(251,191,36,0.1);border:2px solid #f59e0b;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="font-size:0.9rem;font-weight:bold;margin-bottom:0.5rem;color:#f59e0b">⚠️ No gamepad detected?</div>
+<ul style="font-size:0.85rem;margin:0;padding-left:1.25rem;line-height:1.5">
+<li><strong>Press any button</strong> on your controller first (browser security requires this)</li>
+<li>Make sure Steam Input is set to <strong>"Gamepad"</strong> not "Desktop"</li>
+<li>Try pressing Steam button → Controller → <strong>Gamepad with Joystick Trackpad</strong></li>
+<li>If using desktop browser, make sure the game window has focus</li>
+</ul>
+</div>
+
+<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-bottom:1rem">
+<div style="font-size:0.9rem;font-weight:bold;margin-bottom:0.5rem;color:#22c55e">✅ Keyboard Fallback</div>
+<div style="font-size:0.85rem;line-height:1.5">
+Arrow keys or WASD = Navigate | Enter/Space = Select | Escape = Back
+</div>
+</div>
+
+<button class="btn" onclick="closeControllerTest()" style="width:100%;background:#888">Close</button>
+</div>
+<div class="modal-overlay" onclick="closeControllerTest()"></div>
+`;
+
+v.insertAdjacentHTML('beforeend', html);
+
+// Start real-time update loop
+controllerTestInterval = setInterval(updateControllerTest, 50);
+updateControllerTest(); // Initial update
+}
+
+function updateControllerTest() {
+const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+let gp = null;
+
+// Find first connected gamepad
+for (let i = 0; i < gamepads.length; i++) {
+if (gamepads[i] && gamepads[i].connected) {
+gp = gamepads[i];
+break;
+}
+}
+
+const statusText = document.getElementById('ctStatusText');
+const gamepadId = document.getElementById('ctGamepadId');
+const buttonCount = document.getElementById('ctButtonCount');
+const axisCount = document.getElementById('ctAxisCount');
+
+if (!gp) {
+if (statusText) {
+statusText.textContent = '❌ No Gamepad Detected';
+statusText.style.color = '#ef4444';
+}
+if (gamepadId) gamepadId.textContent = '-';
+if (buttonCount) buttonCount.textContent = '-';
+if (axisCount) axisCount.textContent = '-';
+return;
+}
+
+// Gamepad found!
+if (statusText) {
+statusText.textContent = '✅ Gamepad Connected!';
+statusText.style.color = '#22c55e';
+}
+if (gamepadId) gamepadId.textContent = gp.id.substring(0, 50) + (gp.id.length > 50 ? '...' : '');
+if (buttonCount) buttonCount.textContent = gp.buttons.length;
+if (axisCount) axisCount.textContent = gp.axes.length;
+
+// Update buttons
+for (let i = 0; i < 16; i++) {
+const btnEl = document.getElementById(`ctBtn${i}`);
+if (btnEl && gp.buttons[i]) {
+const pressed = gp.buttons[i].pressed || gp.buttons[i].value > 0.5;
+btnEl.style.background = pressed ? '#22c55e' : '#374151';
+btnEl.style.borderColor = pressed ? '#16a34a' : '#6b7280';
+btnEl.style.color = pressed ? '#000' : '#fff';
+}
+}
+
+// Update axes
+for (let i = 0; i < 4; i++) {
+const axisEl = document.getElementById(`ctAxis${i}`);
+if (axisEl && gp.axes[i] !== undefined) {
+axisEl.textContent = gp.axes[i].toFixed(2);
+}
+}
+
+// Update stick visualizations
+const leftStick = document.getElementById('ctLeftStick');
+const rightStick = document.getElementById('ctRightStick');
+
+if (leftStick && gp.axes.length >= 2) {
+const x = (gp.axes[0] || 0) * 30; // 30px max movement
+const y = (gp.axes[1] || 0) * 30;
+leftStick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+}
+
+if (rightStick && gp.axes.length >= 4) {
+const x = (gp.axes[2] || 0) * 30;
+const y = (gp.axes[3] || 0) * 30;
+rightStick.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+}
+}
+
+function closeControllerTest() {
+if (controllerTestInterval) {
+clearInterval(controllerTestInterval);
+controllerTestInterval = null;
+}
+const menus = document.querySelectorAll('.modal-container, .modal-overlay');
+menus.forEach(m => m.remove());
+}
+
 
 // ===== STEAM DECK / CONTROLLER SUPPORT SYSTEM =====
 const GamepadController = {
@@ -11602,9 +11761,13 @@ const GamepadController = {
       return;
     }
 
+    // ALWAYS set up keyboard fallback (works even if gamepad API unavailable)
+    this.initKeyboardFallback();
+
     // Check if gamepad API is available
     if (!navigator.getGamepads) {
       console.log('[GAMEPAD] Gamepad API not available in this browser');
+      console.log('[GAMEPAD] Keyboard fallback is active (Arrow keys, Enter, Escape)');
       return;
     }
 
@@ -11659,6 +11822,85 @@ const GamepadController = {
       }
     });
     // Don't deactivate on click - let controller mode persist
+  },
+
+  // Keyboard fallback for when gamepad isn't detected (Steam mapping to keyboard, etc.)
+  initKeyboardFallback() {
+    console.log('[GAMEPAD] Initializing keyboard fallback...');
+
+    document.addEventListener('keydown', (e) => {
+      // Skip if controller support is disabled
+      if (typeof S !== 'undefined' && S.controllerDisabled) return;
+
+      // Skip if typing in an input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      // Check for navigation keys
+      let handled = false;
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          this.activateControllerMode();
+          this.onDirection('up');
+          handled = true;
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          this.activateControllerMode();
+          this.onDirection('down');
+          handled = true;
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          this.activateControllerMode();
+          this.onDirection('left');
+          handled = true;
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          this.activateControllerMode();
+          this.onDirection('right');
+          handled = true;
+          break;
+        case 'Enter':
+        case ' ': // Space
+          this.activateControllerMode();
+          this.confirmSelection();
+          handled = true;
+          break;
+        case 'Escape':
+        case 'Backspace':
+          this.activateControllerMode();
+          this.goBack();
+          handled = true;
+          break;
+        case 'Tab':
+          // Tab cycles through focusable elements
+          this.activateControllerMode();
+          this.updateFocusableElements();
+          if (this.focusableElements.length > 0) {
+            const currentIdx = this.focusableElements.indexOf(this.focusedElement);
+            const nextIdx = e.shiftKey
+              ? (currentIdx - 1 + this.focusableElements.length) % this.focusableElements.length
+              : (currentIdx + 1) % this.focusableElements.length;
+            this.setFocus(this.focusableElements[nextIdx]);
+          }
+          handled = true;
+          break;
+      }
+
+      if (handled) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
+    console.log('[GAMEPAD] Keyboard fallback initialized (Arrow keys/WASD, Enter/Space, Escape)');
   },
 
   // Continuously check for gamepads (Steam Deck fix)
