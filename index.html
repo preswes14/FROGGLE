@@ -1837,7 +1837,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.03';
+const GAME_VERSION = '11.04';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3236,7 +3236,8 @@ usedDeathQuotes: [], // Track which death quotes have been shown
 // ===== SUSPEND/AUTOSAVE STATE =====
 suspended: false,         // Whether game is currently suspended
 lastAutosave: 0,          // Timestamp of last autosave
-inCombat: false           // Whether player is in active combat (for autosave)
+inCombat: false,          // Whether player is in active combat (for autosave)
+combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
 };
 
 let sel = [];
@@ -3332,7 +3333,10 @@ function triggerHitAnimation(targetId) {
 const card = document.getElementById(targetId);
 if(card) {
 card.classList.add('hit-flash');
-setTimeout(() => card.classList.remove('hit-flash'), ANIMATION_TIMINGS.DAMAGE_FLASH);
+setTimeout(() => {
+const el = document.getElementById(targetId);
+if(el) el.classList.remove('hit-flash');
+}, ANIMATION_TIMINGS.DAMAGE_FLASH);
 }
 }
 
@@ -3340,7 +3344,10 @@ function triggerAttackAnimation(attackerId) {
 const card = document.getElementById(attackerId);
 if(card) {
 card.classList.add('attack-slide');
-setTimeout(() => card.classList.remove('attack-slide'), ANIMATION_TIMINGS.ATTACK_SLIDE);
+setTimeout(() => {
+const el = document.getElementById(attackerId);
+if(el) el.classList.remove('attack-slide');
+}, ANIMATION_TIMINGS.ATTACK_SLIDE);
 }
 }
 
@@ -3348,7 +3355,10 @@ function triggerEnemyAttackAnimation(attackerId) {
 const card = document.getElementById(attackerId);
 if(card) {
 card.classList.add('enemy-attack-slide');
-setTimeout(() => card.classList.remove('enemy-attack-slide'), ANIMATION_TIMINGS.ATTACK_SLIDE);
+setTimeout(() => {
+const el = document.getElementById(attackerId);
+if(el) el.classList.remove('enemy-attack-slide');
+}, ANIMATION_TIMINGS.ATTACK_SLIDE);
 }
 }
 
@@ -3369,7 +3379,8 @@ cross.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-5
 cross.textContent = '✚';
 card.appendChild(cross);
 setTimeout(() => {
-card.classList.remove('heal-flash');
+const el = document.getElementById(targetId);
+if(el) el.classList.remove('heal-flash');
 if(cross.parentNode) cross.remove();
 }, ANIMATION_TIMINGS.HEAL_FLASH);
 }
@@ -3386,7 +3397,10 @@ setTimeout(() => SoundFX.play('shield'), 80);
 if (shieldAmount > 0) {
   showFloatingNumber(targetId, `+${shieldAmount}🛡`, 'shield');
 }
-setTimeout(() => card.classList.remove('shield-flash'), ANIMATION_TIMINGS.SHIELD_FLASH);
+setTimeout(() => {
+const el = document.getElementById(targetId);
+if(el) el.classList.remove('shield-flash');
+}, ANIMATION_TIMINGS.SHIELD_FLASH);
 }
 }
 
@@ -3748,7 +3762,11 @@ pondHistory: S.pondHistory
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Progress could not be saved', 2000);
+}
 }
 }
 
@@ -3812,7 +3830,11 @@ gameMode: S.gameMode
 savePermanent();
 } catch(e) {
 console.warn('[SAVE] Failed to save game:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Game could not be saved', 2000);
+}
 }
 }
 
@@ -4009,7 +4031,11 @@ controllerDisabled: S.controllerDisabled
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Progress could not be saved', 2000);
+}
 }
 };
 
@@ -4032,7 +4058,11 @@ gameMode: S.gameMode
 savePermanent();
 } catch(e) {
 console.warn('[SAVE] Failed to save game:', e);
+if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
+toast('Storage full! Try clearing old save slots.', 3000);
+} else {
 toast('Warning: Game could not be saved', 2000);
+}
 }
 };
 
@@ -4082,6 +4112,9 @@ SoundFX.ctx.resume();
 debugLog('[RESUME] Game resumed');
 }
 
+// Global reference for suspend keyboard handler cleanup
+let suspendKeyHandler = null;
+
 function showSuspendOverlay() {
 // Remove any existing overlay
 hideSuspendOverlay();
@@ -4117,22 +4150,26 @@ overlay.addEventListener('click', resumeGame);
 overlay.addEventListener('touchstart', resumeGame);
 
 // Also handle keyboard for Steam Deck
-const keyHandler = (e) => {
+suspendKeyHandler = (e) => {
 resumeGame();
-document.removeEventListener('keydown', keyHandler);
 };
-document.addEventListener('keydown', keyHandler);
+document.addEventListener('keydown', suspendKeyHandler);
 
-// Store handler reference for cleanup
-overlay._keyHandler = keyHandler;
+// Store handler reference for cleanup (backup)
+overlay._keyHandler = suspendKeyHandler;
 
 document.body.appendChild(overlay);
 }
 
 function hideSuspendOverlay() {
+// Clean up keyboard handler using global reference (most reliable)
+if(suspendKeyHandler) {
+document.removeEventListener('keydown', suspendKeyHandler);
+suspendKeyHandler = null;
+}
 const overlay = document.getElementById('suspend-overlay');
 if(overlay) {
-// Clean up keyboard handler
+// Backup cleanup via overlay reference
 if(overlay._keyHandler) {
 document.removeEventListener('keydown', overlay._keyHandler);
 }
@@ -4282,6 +4319,7 @@ function combat(f) {
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
+S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
@@ -4521,7 +4559,7 @@ if (!hero) return;
 
 // Calculate targets needed
 const expandLevel = getLevel('Expand', heroIdx);
-const hasBuiltInExpand = hero.c === 'Mage' || hero.c === 'Healer';
+const hasBuiltInExpand = (hero.c === 'Mage' || hero.c === 'Healer');
 const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
 const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
@@ -4857,6 +4895,8 @@ if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
 toast(`${recruitName} recruited by ${hero.n}!`, 1500);
+} else {
+toast(`Squad full! Cannot recruit ${recruitName}.`, 1500);
 }
 setTimeout(() => {
 render();
@@ -5047,6 +5087,7 @@ render();
 } else if(S.pending === 'Alpha') {
 // Alpha: can't target self or already-acted heroes
 const alphaUser = S.heroes[S.activeIdx];
+if(!alphaUser) return; // Guard against invalid activeIdx
 if(id === alphaUser.id) { toast('Cannot Alpha yourself!'); return; }
 const targetIdx = S.heroes.findIndex(x => x.id === id);
 if(S.acted.includes(targetIdx)) { toast('That hero already acted!'); return; }
@@ -6001,9 +6042,13 @@ render();
  * @returns {boolean} - True if combat ended (victory or defeat), false if ongoing
  */
 function checkCombatEnd() {
+// Guard against multiple simultaneous calls (race condition from async death handling)
+if(S.combatEnding) return false;
+
 // Clean up any lingering tooltips when combat ends
 if(typeof hideTooltip === 'function') hideTooltip();
 if(S.enemies.length === 0) {
+S.combatEnding = true; // Prevent duplicate victory handling
 S.inCombat = false; // Combat ended - disable autosave
 // Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
@@ -6050,6 +6095,7 @@ return true;
 }
 const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
+S.combatEnding = true; // Prevent duplicate defeat handling
 S.inCombat = false; // Combat ended - disable autosave
 // Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
@@ -6082,6 +6128,8 @@ return false;
  * @param {Function} callback - Function to call during fade (updates screen content)
  */
 function transitionScreen(callback) {
+// Clean up tooltips before screen transition
+if(typeof hideTooltip === 'function') hideTooltip();
 const v = document.getElementById('gameView');
 v.classList.add('fade-out');
 setTimeout(() => {
@@ -10140,7 +10188,8 @@ const isStandardVictory = isVictory && run.gameMode !== 'fu';
 // Size based on floor reached (40px base + up to 60px more for floor 20)
 const baseSize = 45;
 const maxBonus = 55;
-const floorProgress = Math.min(run.floorReached, 20) / 20;
+const floorReached = Math.max(1, run.floorReached || 1); // Guard against undefined/NaN
+const floorProgress = Math.min(floorReached, 20) / 20;
 const size = Math.round(baseSize + (maxBonus * floorProgress));
 
 // Colors: green (defeat), gold (standard win), prismatic (FU win)
@@ -12672,8 +12721,10 @@ const GamepadController = {
     }
 
     if (!this.focusedElement || !document.body.contains(this.focusedElement)) {
-      // No focus or element removed - focus first element
-      this.setFocus(this.focusableElements[0]);
+      // No focus or element removed - focus first element if available
+      if (this.focusableElements.length > 0) {
+        this.setFocus(this.focusableElements[0]);
+      }
       return;
     }
 
@@ -12688,7 +12739,7 @@ const GamepadController = {
   },
 
   findNextElement(dir) {
-    if (!this.focusedElement) return this.focusableElements[0];
+    if (!this.focusedElement) return this.focusableElements.length > 0 ? this.focusableElements[0] : null;
 
     const current = this.focusedElement.getBoundingClientRect();
     const currentCenter = {
@@ -13150,7 +13201,8 @@ const GamepadController = {
 
     // Calculate total targets based on expand
     const expandLevel = typeof getLevel === 'function' ? getLevel('Expand') : 0;
-    const hasBuiltInExpand = hero.c === 'Mage' || hero.c === 'Healer';
+    const heroClass = hero.c || '';
+    const hasBuiltInExpand = (heroClass === 'Mage' || heroClass === 'Healer');
     const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
     targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 

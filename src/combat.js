@@ -110,6 +110,7 @@ function combat(f) {
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
+S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
@@ -349,7 +350,7 @@ if (!hero) return;
 
 // Calculate targets needed
 const expandLevel = getLevel('Expand', heroIdx);
-const hasBuiltInExpand = hero.c === 'Mage' || hero.c === 'Healer';
+const hasBuiltInExpand = (hero.c === 'Mage' || hero.c === 'Healer');
 const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
 const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
@@ -685,6 +686,8 @@ if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
 toast(`${recruitName} recruited by ${hero.n}!`, 1500);
+} else {
+toast(`Squad full! Cannot recruit ${recruitName}.`, 1500);
 }
 setTimeout(() => {
 render();
@@ -875,6 +878,7 @@ render();
 } else if(S.pending === 'Alpha') {
 // Alpha: can't target self or already-acted heroes
 const alphaUser = S.heroes[S.activeIdx];
+if(!alphaUser) return; // Guard against invalid activeIdx
 if(id === alphaUser.id) { toast('Cannot Alpha yourself!'); return; }
 const targetIdx = S.heroes.findIndex(x => x.id === id);
 if(S.acted.includes(targetIdx)) { toast('That hero already acted!'); return; }
@@ -1829,9 +1833,13 @@ render();
  * @returns {boolean} - True if combat ended (victory or defeat), false if ongoing
  */
 function checkCombatEnd() {
+// Guard against multiple simultaneous calls (race condition from async death handling)
+if(S.combatEnding) return false;
+
 // Clean up any lingering tooltips when combat ends
 if(typeof hideTooltip === 'function') hideTooltip();
 if(S.enemies.length === 0) {
+S.combatEnding = true; // Prevent duplicate victory handling
 S.inCombat = false; // Combat ended - disable autosave
 // Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
@@ -1878,6 +1886,7 @@ return true;
 }
 const allDead = S.heroes.every(h => h.ls);
 if(allDead) {
+S.combatEnding = true; // Prevent duplicate defeat handling
 S.inCombat = false; // Combat ended - disable autosave
 // Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
@@ -1910,6 +1919,8 @@ return false;
  * @param {Function} callback - Function to call during fade (updates screen content)
  */
 function transitionScreen(callback) {
+// Clean up tooltips before screen transition
+if(typeof hideTooltip === 'function') hideTooltip();
 const v = document.getElementById('gameView');
 v.classList.add('fade-out');
 setTimeout(() => {
