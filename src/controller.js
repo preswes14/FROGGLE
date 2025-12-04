@@ -759,7 +759,9 @@ const GamepadController = {
     const closeBtn = document.querySelector('.modal-container .btn[onclick*="close"]') ||
                      document.querySelector('.modal-container .btn[onclick*="Close"]') ||
                      document.querySelector('[onclick*="closeSettingsMenu"]') ||
-                     document.querySelector('[onclick*="closeDebugMenu"]');
+                     document.querySelector('[onclick*="closeDebugMenu"]') ||
+                     document.querySelector('[onclick*="closeFAQ"]') ||
+                     document.querySelector('[onclick*="closeSigilarium"]');
 
     if (closeBtn) {
       closeBtn.click();
@@ -767,21 +769,59 @@ const GamepadController = {
       return;
     }
 
-    // Check for cancel button
-    const cancelBtn = document.querySelector('.btn[onclick*="cancel"]') ||
-                      document.querySelector('.btn[onclick*="Cancel"]') ||
-                      document.querySelector('.btn.secondary[onclick*="Back"]');
+    // Check for any visible "Back" or "Close" button
+    const backBtn = document.querySelector('.btn[onclick*="Back"]') ||
+                    document.querySelector('.btn[onclick*="back"]') ||
+                    document.querySelector('.btn.secondary[onclick]') ||
+                    document.querySelector('[onclick*="mainTitlePage"]') ||
+                    document.querySelector('[onclick*="showRibbleton"]');
 
-    if (cancelBtn) {
-      cancelBtn.click();
+    if (backBtn && backBtn.offsetParent !== null) {
+      backBtn.click();
       setTimeout(() => this.updateFocusableElements(), 100);
       return;
+    }
+
+    // Credits screen - go back to title
+    if (document.querySelector('[onclick*="showCredits"]')?.closest('div')?.style.display !== 'none' === false) {
+      const creditsBack = document.querySelector('[onclick*="mainTitlePage"]');
+      if (creditsBack) {
+        creditsBack.click();
+        return;
+      }
+    }
+
+    // Hero selection - go back to Ribbleton
+    if (document.getElementById('hero-select-container')) {
+      if (typeof showRibbleton === 'function') {
+        showRibbleton();
+        return;
+      }
+    }
+
+    // Death screen - go to Ribbleton (with confirmation if gold remaining)
+    const deathScreen = document.querySelector('[onclick*="purchaseSigilUpgrade"]');
+    if (deathScreen) {
+      const ribbletonBtn = document.querySelector('[onclick*="showRibbleton"]');
+      if (ribbletonBtn) {
+        ribbletonBtn.click();
+        return;
+      }
     }
 
     // If in combat with pending action, call cancelAction
     if (typeof S !== 'undefined' && S.pending && typeof cancelAction === 'function') {
       cancelAction();
       setTimeout(() => this.updateFocusableElements(), 100);
+      return;
+    }
+
+    // Neutral encounter - look for continue or skip button
+    const neutralContinue = document.querySelector('.neutral-content .btn:not(.secondary)');
+    if (neutralContinue && neutralContinue.offsetParent !== null) {
+      // Don't auto-click continue on neutral, just focus it
+      this.setFocus(neutralContinue);
+      return;
     }
   },
 
@@ -1222,9 +1262,17 @@ const GamepadController = {
       // Save slot continue/new game buttons
       '[onclick*="continueSlot"]',
       '[onclick*="createNewSlot"]',
+      // Hero selection start button
+      '#start',
+      '[onclick*="start()"]',
       // Narrative continue buttons
       '[onclick*="continueNarrative"]',
       '[onclick*="transitionToPortalInvasion"]',
+      // Next floor / level up
+      '[onclick*="nextFloor"]',
+      '[onclick*="levelUp"]',
+      // Ribbleton portal
+      '[onclick*="showRibbleton"]',
       // Common advancement buttons by text content
       'button.btn:not(.secondary)',
       '.btn:not(.secondary):not(.title-credits-btn)',
@@ -1235,10 +1283,13 @@ const GamepadController = {
       /continue/i,
       /next\s*floor/i,
       /^play$/i,
-      /start\s*run/i,
+      /start/i,
+      /delve/i,
       /begin/i,
       /^ok$/i,
       /^\s*▶/,  // Play icon
+      /place\s*figurine/i,
+      /return/i,
     ];
 
     // First try specific selectors
@@ -1278,60 +1329,115 @@ const GamepadController = {
     const promptsEl = document.getElementById('controllerPrompts');
     if (!promptsEl) return;
 
-    // Determine context and update prompts
+    // Determine screen context
     const hasModal = document.querySelector('.modal-container');
-    const inCombat = typeof S !== 'undefined' && S.heroes && S.enemies && S.enemies.length > 0;
+    const inCombat = typeof S !== 'undefined' && S.heroes && S.heroes.length > 0 && S.enemies && S.enemies.length > 0;
     const hasPending = typeof S !== 'undefined' && S.pending;
     const hasCards = document.querySelectorAll('.card').length > 0;
+    const isTitleScreen = !!document.querySelector('.title-screen');
+    const isHeroSelect = !!document.getElementById('hero-select-container');
+    const isDeathScreen = !!document.querySelector('[onclick*="purchaseSigilUpgrade"]');
+    const isNeutralScreen = !!document.querySelector('.neutral-content');
+    const isLevelUp = !!document.querySelector('[onclick*="levelUpMenu"]') || !!document.querySelector('[onclick*="nextFloor"]');
 
-    let prompts = [
-      { btn: 'dpad', label: 'Move' },
-      { btn: 'a', label: 'Select' }
-    ];
+    let prompts = [];
 
-    if (hasModal) {
-      prompts.push({ btn: 'b', label: 'Close' });
-    } else if (hasPending) {
-      prompts.push({ btn: 'b', label: 'Cancel' });
-    } else {
-      prompts.push({ btn: 'b', label: 'Back' });
+    // Title screen - simple prompts
+    if (isTitleScreen) {
+      prompts = [
+        { btn: 'a', label: 'Play' },
+        { btn: 'dpad', label: 'Navigate' }
+      ];
     }
-
-    // Y = tooltip (only show when cards/sigils visible)
-    if (hasCards || inCombat) {
-      prompts.push({ btn: 'y', label: 'Tooltip' });
+    // Hero selection
+    else if (isHeroSelect) {
+      prompts = [
+        { btn: 'dpad', label: 'Select Hero' },
+        { btn: 'a', label: 'Toggle' },
+        { btn: 'b', label: 'Back' },
+        { btn: 'start', label: 'Start Game' }
+      ];
     }
-
-    // Start = menu
-    prompts.push({ btn: 'start', label: 'Menu' });
-
-    // Combat-specific controls
-    if (inCombat && !hasModal) {
-      prompts.push({ btn: 'lb', label: '↑Unit' });
-      prompts.push({ btn: 'rb', label: 'Unit↓' });
-      prompts.push({ btn: 'lt', label: '←Sigil' });
-      prompts.push({ btn: 'rt', label: 'Sigil→' });
-      prompts.push({ btn: 'x', label: 'Switch' });
+    // Combat
+    else if (inCombat && !hasModal) {
       if (hasPending) {
-        prompts.push({ btn: 'select', label: 'Auto' });
+        prompts = [
+          { btn: 'dpad', label: 'Target' },
+          { btn: 'a', label: 'Confirm' },
+          { btn: 'b', label: 'Cancel' },
+          { btn: 'select', label: 'Auto' }
+        ];
+      } else {
+        prompts = [
+          { btn: 'dpad', label: 'Navigate' },
+          { btn: 'a', label: 'Select' },
+          { btn: 'lb', label: '↑Hero' },
+          { btn: 'rb', label: 'Hero↓' },
+          { btn: 'x', label: 'Switch' },
+          { btn: 'y', label: 'Info' }
+        ];
       }
+    }
+    // Death screen
+    else if (isDeathScreen) {
+      prompts = [
+        { btn: 'dpad', label: 'Browse' },
+        { btn: 'a', label: 'Purchase' },
+        { btn: 'b', label: 'Leave' },
+        { btn: 'y', label: 'Info' }
+      ];
+    }
+    // Neutral encounters
+    else if (isNeutralScreen) {
+      prompts = [
+        { btn: 'dpad', label: 'Choose' },
+        { btn: 'a', label: 'Select' },
+        { btn: 'b', label: 'Skip' }
+      ];
+    }
+    // Level up
+    else if (isLevelUp) {
+      prompts = [
+        { btn: 'dpad', label: 'Choose' },
+        { btn: 'a', label: 'Select' },
+        { btn: 'b', label: 'Skip' }
+      ];
+    }
+    // Modal/popup
+    else if (hasModal) {
+      prompts = [
+        { btn: 'dpad', label: 'Navigate' },
+        { btn: 'a', label: 'Confirm' },
+        { btn: 'b', label: 'Close' }
+      ];
+    }
+    // Default
+    else {
+      prompts = [
+        { btn: 'dpad', label: 'Navigate' },
+        { btn: 'a', label: 'Select' },
+        { btn: 'b', label: 'Back' },
+        { btn: 'start', label: 'Menu' }
+      ];
     }
 
     // Build HTML
     promptsEl.innerHTML = prompts.map(p => {
-      const btnClass = p.btn;
       const displayLabel = {
-        'dpad': 'D-Pad',
+        'dpad': '✚',
         'lb': 'LB',
         'rb': 'RB',
         'lt': 'LT',
         'rt': 'RT',
         'start': '☰',
         'x': 'X',
-        'select': 'SEL'
+        'y': 'Y',
+        'select': '⊡',
+        'a': 'Ⓐ',
+        'b': 'Ⓑ'
       }[p.btn] || p.btn.toUpperCase();
 
-      return `<div class="controller-prompt"><span class="controller-btn ${btnClass}">${displayLabel}</span> ${p.label}</div>`;
+      return `<div class="controller-prompt"><span class="controller-btn ${p.btn}">${displayLabel}</span> ${p.label}</div>`;
     }).join('');
   }
 };
