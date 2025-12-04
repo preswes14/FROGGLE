@@ -1048,7 +1048,7 @@ const bluePortalUnlocked = S.hasReachedFloor20;
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
 if(isFirstVisit && !S.helpTipsDisabled) {
   setTimeout(() => {
-    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal whenever you're ready to begin your next rescue mission!", () => {
+    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing portal whenever you're ready to begin your next rescue mission!", () => {
       // Tutorial dismissed, player can now explore
     });
   }, 500);
@@ -1084,19 +1084,18 @@ ${bluePortalUnlocked ? `
 </div>
 
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.9);border:3px solid #22c55e;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
-  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Save Tapo!</p>
+  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Adventure Portal:</strong> Save Tapo!</p>
   ${bluePortalUnlocked ?
-    `<p style="font-size:1.1rem;margin:0"><strong>🔵 Blue Portal:</strong> Visit the Champions Hall (Floor 20)</p>` :
-    `<p style="font-size:0.9rem;margin:0;opacity:0.6"><em>A mysterious blue portal appears to be locked... Perhaps reaching Floor 20 will unlock it?</em></p>`
+    `<p style="font-size:1.1rem;margin:0"><strong>🔵 Path to Statue Room:</strong> Visit the Champions Hall</p>` :
+    ``
   }
 </div>
 
 ${S.pondHistory && S.pondHistory.length > 0 ? `
-<div style="text-align:center;margin-top:1rem">
-<button class="btn" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;padding:0.75rem 1.5rem;font-size:1rem">
-🪷 Visit The Pond
+<div style="text-align:center;margin-top:0.75rem">
+<button class="btn" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;padding:0.5rem 1rem;font-size:0.9rem">
+🪷 The Pond
 </button>
-<p style="font-size:0.8rem;color:#666;margin-top:0.3rem">Reflect on your past journeys</p>
 </div>
 ` : ''}
 </div>`;
@@ -1107,7 +1106,7 @@ v.innerHTML = html;
 function enterRedPortal() {
 S.inRibbleton = false;
 SoundFX.play('portal');
-toast('Entering the Red Portal...', 1200);
+toast('Preparing to enter the dungeon...', 1200);
 setTimeout(() => transitionScreen(title), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 

@@ -103,10 +103,10 @@ function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
 if (!imgPath) return `<span>${name}</span>`;
 // CSS handles coloring via .sigil.l0 img, .sigil.l1 img, etc.
-const icon = `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;" alt="${name}">`;
-// Add level number for L2+ (superscript style)
-if (level !== null && level >= 2) {
-return `${icon}<sup style="font-size:0.7em;font-weight:bold;margin-left:2px;">${level}</sup>`;
+const icon = `<img src="${imgPath}" style="height:1.4em;vertical-align:middle;display:inline-block;" alt="${name}">`;
+// Add level number as superscript for all levels >= 1
+if (level !== null && level >= 1) {
+return `${icon}<sup>${level}</sup>`;
 }
 return icon;
 }
@@ -346,7 +346,7 @@ html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 });
