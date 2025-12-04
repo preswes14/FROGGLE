@@ -2,7 +2,8 @@
 # ===== FROGGLE BUILD SCRIPT =====
 # Concatenates modular source files back into a single index.html
 #
-# Usage: ./build.sh
+# Usage: ./build.sh           - Build and auto-increment version by 0.01
+#        ./build.sh --no-bump - Build without incrementing version
 #
 # This script takes the HTML template and concatenates all JS modules
 # in the correct dependency order to produce the final index.html
@@ -19,6 +20,20 @@ if [ ! -d "src" ]; then
 fi
 
 mkdir -p build
+
+# Auto-increment version unless --no-bump flag is passed
+if [ "$1" != "--no-bump" ]; then
+    # Extract current version
+    CURRENT_VERSION=$(grep "const GAME_VERSION" src/constants.js | sed "s/.*'\([^']*\)'.*/\1/")
+
+    # Increment by 0.01
+    NEW_VERSION=$(echo "$CURRENT_VERSION + 0.01" | bc | sed 's/^\./0./')
+
+    # Update the file
+    sed -i "s/const GAME_VERSION = '[^']*'/const GAME_VERSION = '$NEW_VERSION'/" src/constants.js
+
+    echo "→ Version bumped: $CURRENT_VERSION → $NEW_VERSION"
+fi
 
 # Check if templates exist, if not extract them
 if [ ! -f "build/template_head.html" ] || [ ! -f "build/template_foot.html" ]; then
