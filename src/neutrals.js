@@ -154,7 +154,7 @@ v.innerHTML = `
 <!-- Button container at bottom -->
 <div class="title-button-container">
 <button class="btn title-credits-btn" onclick="showCredits()">Credits</button>
-<button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
+<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 </div>
 </div>`;
 }
@@ -423,6 +423,7 @@ ${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem
 <button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
+<div style="text-align:center;margin-top:1rem;font-size:0.85rem;opacity:0.6">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>`;
 
 window.currentNarrativeSlides = slides;

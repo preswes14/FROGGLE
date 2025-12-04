@@ -527,6 +527,7 @@ backdrop.innerHTML = `
 <h2>Tip!</h2>
 <p>${message}</p>
 <button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
+<div class="controller-hint" style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7">Ⓐ to continue</div>
 </div>`;
 document.body.appendChild(backdrop);
 debugLog('[TUTORIAL] Backdrop created and appended, total backdrops now:', document.querySelectorAll('.tutorial-modal-backdrop').length);

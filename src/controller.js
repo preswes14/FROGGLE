@@ -91,6 +91,40 @@ const GamepadController = {
       console.log('[GAMEPAD] Started main polling loop (will activate when gamepad found)');
     }
 
+    // Watch for DOM changes to update focusable elements (screen transitions)
+    this.domObserver = new MutationObserver((mutations) => {
+      // Only update if controller mode is active and we have significant DOM changes
+      if (this.active) {
+        let significantChange = false;
+        for (const mutation of mutations) {
+          if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+            // Check if added/removed nodes contain buttons or interactive elements
+            for (const node of mutation.addedNodes) {
+              if (node.nodeType === 1 && (node.classList?.contains('btn') || node.querySelector?.('.btn'))) {
+                significantChange = true;
+                break;
+              }
+            }
+            if (significantChange) break;
+          }
+        }
+        if (significantChange) {
+          setTimeout(() => {
+            this.updateFocusableElements();
+            // Re-establish focus if lost
+            if (this.focusableElements.length > 0 && !document.body.contains(this.focusedElement)) {
+              this.setFocus(this.focusableElements[0]);
+            }
+          }, 100);
+        }
+      }
+    });
+    this.domObserver.observe(document.getElementById('gameView') || document.body, {
+      childList: true,
+      subtree: true
+    });
+    console.log('[GAMEPAD] DOM observer initialized for focus management');
+
     // Switch to mouse mode on significant sustained mouse movement
     // NOTE: Don't deactivate on click - Steam Deck touchscreen generates clicks
     // and we want controller mode to persist even when occasionally tapping screen
@@ -298,6 +332,26 @@ const GamepadController = {
 
   // Main polling loop
   poll() {
+    // Skip if game is suspended (but still allow button to resume)
+    if (typeof S !== 'undefined' && S.suspended) {
+      // Check for any button press to resume
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (let i = 0; i < gamepads.length; i++) {
+        const gp = gamepads[i];
+        if (gp) {
+          for (let b = 0; b < gp.buttons.length; b++) {
+            if (gp.buttons[b].pressed && !this.buttonStates[b]) {
+              if (typeof resumeGame === 'function') resumeGame();
+              this.buttonStates[b] = true;
+              return;
+            }
+            this.buttonStates[b] = gp.buttons[b].pressed;
+          }
+        }
+      }
+      return;
+    }
+
     // Try to find a gamepad if we don't have one
     if (this.gamepadIndex === null) {
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -397,14 +451,29 @@ const GamepadController = {
       case this.BUTTONS.A:
         this.confirmSelection();
         break;
+      case this.BUTTONS.START:
+        // START on title/menu screens should also advance (like A)
+        // Only open settings if we're in combat or other gameplay screens
+        if (context === 'combat' || context === 'targeting') {
+          this.openMenu();
+        } else {
+          // Try to find primary action first, fall back to menu
+          const primaryBtn = this.findPrimaryAction();
+          if (primaryBtn) {
+            if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+              SoundFX.play('click');
+            }
+            primaryBtn.click();
+          } else {
+            this.openMenu();
+          }
+        }
+        break;
       case this.BUTTONS.B:
         this.goBack();
         break;
       case this.BUTTONS.Y:
         this.toggleTooltip();
-        break;
-      case this.BUTTONS.START:
-        this.openMenu();
         break;
       case this.BUTTONS.DPAD_UP:
       case this.BUTTONS.DPAD_DOWN:
@@ -430,15 +499,21 @@ const GamepadController = {
       case this.BUTTONS.LB:
         if (context === 'targeting') {
           this.cycleTargets('prev');
-        } else {
+        } else if (context === 'combat') {
           this.cycleUnit('prev');
+        } else {
+          // Page scroll up in modals/scrollable areas
+          this.pageScroll('up');
         }
         break;
       case this.BUTTONS.RB:
         if (context === 'targeting') {
           this.cycleTargets('next');
-        } else {
+        } else if (context === 'combat') {
           this.cycleUnit('next');
+        } else {
+          // Page scroll down in modals/scrollable areas
+          this.pageScroll('down');
         }
         break;
       case this.BUTTONS.LT:
@@ -510,7 +585,13 @@ const GamepadController = {
 
     this.updateFocusableElements();
 
-    if (this.focusableElements.length === 0) return;
+    // If no focusable elements, try scrolling instead
+    if (this.focusableElements.length === 0) {
+      if (dir === 'up' || dir === 'down') {
+        this.scrollContainer(dir);
+      }
+      return;
+    }
 
     // Play navigation sound
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
@@ -527,6 +608,9 @@ const GamepadController = {
     const next = this.findNextElement(dir);
     if (next) {
       this.setFocus(next);
+    } else if (dir === 'up' || dir === 'down') {
+      // No element found in direction - try scrolling
+      this.scrollContainer(dir);
     }
   },
 
@@ -637,7 +721,18 @@ const GamepadController = {
       return;
     }
 
+    // If no focused element, try to find and click an obvious primary action
     if (!this.focusedElement) {
+      const primaryBtn = this.findPrimaryAction();
+      if (primaryBtn) {
+        if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+          SoundFX.play('click');
+        }
+        primaryBtn.click();
+        setTimeout(() => this.updateFocusableElements(), 100);
+        return;
+      }
+      // No primary action found, just focus first element
       this.updateFocusableElements();
       if (this.focusableElements.length > 0) {
         this.setFocus(this.focusableElements[0]);
@@ -679,7 +774,9 @@ const GamepadController = {
     const closeBtn = document.querySelector('.modal-container .btn[onclick*="close"]') ||
                      document.querySelector('.modal-container .btn[onclick*="Close"]') ||
                      document.querySelector('[onclick*="closeSettingsMenu"]') ||
-                     document.querySelector('[onclick*="closeDebugMenu"]');
+                     document.querySelector('[onclick*="closeDebugMenu"]') ||
+                     document.querySelector('[onclick*="closeFAQ"]') ||
+                     document.querySelector('[onclick*="closeSigilarium"]');
 
     if (closeBtn) {
       closeBtn.click();
@@ -687,21 +784,59 @@ const GamepadController = {
       return;
     }
 
-    // Check for cancel button
-    const cancelBtn = document.querySelector('.btn[onclick*="cancel"]') ||
-                      document.querySelector('.btn[onclick*="Cancel"]') ||
-                      document.querySelector('.btn.secondary[onclick*="Back"]');
+    // Check for any visible "Back" or "Close" button
+    const backBtn = document.querySelector('.btn[onclick*="Back"]') ||
+                    document.querySelector('.btn[onclick*="back"]') ||
+                    document.querySelector('.btn.secondary[onclick]') ||
+                    document.querySelector('[onclick*="mainTitlePage"]') ||
+                    document.querySelector('[onclick*="showRibbleton"]');
 
-    if (cancelBtn) {
-      cancelBtn.click();
+    if (backBtn && backBtn.offsetParent !== null) {
+      backBtn.click();
       setTimeout(() => this.updateFocusableElements(), 100);
       return;
+    }
+
+    // Credits screen - go back to title
+    if (document.querySelector('[onclick*="showCredits"]')?.closest('div')?.style.display !== 'none' === false) {
+      const creditsBack = document.querySelector('[onclick*="mainTitlePage"]');
+      if (creditsBack) {
+        creditsBack.click();
+        return;
+      }
+    }
+
+    // Hero selection - go back to Ribbleton
+    if (document.getElementById('hero-select-container')) {
+      if (typeof showRibbleton === 'function') {
+        showRibbleton();
+        return;
+      }
+    }
+
+    // Death screen - go to Ribbleton (with confirmation if gold remaining)
+    const deathScreen = document.querySelector('[onclick*="purchaseSigilUpgrade"]');
+    if (deathScreen) {
+      const ribbletonBtn = document.querySelector('[onclick*="showRibbleton"]');
+      if (ribbletonBtn) {
+        ribbletonBtn.click();
+        return;
+      }
     }
 
     // If in combat with pending action, call cancelAction
     if (typeof S !== 'undefined' && S.pending && typeof cancelAction === 'function') {
       cancelAction();
       setTimeout(() => this.updateFocusableElements(), 100);
+      return;
+    }
+
+    // Neutral encounter - look for continue or skip button
+    const neutralContinue = document.querySelector('.neutral-content .btn:not(.secondary)');
+    if (neutralContinue && neutralContinue.offsetParent !== null) {
+      // Don't auto-click continue on neutral, just focus it
+      this.setFocus(neutralContinue);
+      return;
     }
   },
 
@@ -1133,64 +1268,241 @@ const GamepadController = {
     });
   },
 
+  // Find an obvious primary action button (Continue, Next, OK, PLAY, etc.)
+  findPrimaryAction() {
+    // Priority order of selectors to find primary action
+    const primarySelectors = [
+      // Title screen PLAY button
+      '.title-play-btn',
+      // Save slot continue/new game buttons
+      '[onclick*="continueSlot"]',
+      '[onclick*="createNewSlot"]',
+      // Hero selection start button
+      '#start',
+      '[onclick*="start()"]',
+      // Narrative continue buttons
+      '[onclick*="continueNarrative"]',
+      '[onclick*="transitionToPortalInvasion"]',
+      // Next floor / level up
+      '[onclick*="nextFloor"]',
+      '[onclick*="levelUp"]',
+      // Ribbleton portal
+      '[onclick*="showRibbleton"]',
+      // Common advancement buttons by text content
+      'button.btn:not(.secondary)',
+      '.btn:not(.secondary):not(.title-credits-btn)',
+    ];
+
+    // Common action text patterns
+    const actionPatterns = [
+      /continue/i,
+      /next\s*floor/i,
+      /^play$/i,
+      /start/i,
+      /delve/i,
+      /begin/i,
+      /^ok$/i,
+      /^\s*▶/,  // Play icon
+      /place\s*figurine/i,
+      /return/i,
+    ];
+
+    // First try specific selectors
+    for (const selector of primarySelectors) {
+      const btn = document.querySelector(selector);
+      if (btn && btn.offsetParent !== null && !btn.classList.contains('disabled')) {
+        // For generic .btn selector, check text content matches action patterns
+        if (selector.includes(':not')) {
+          const text = btn.textContent || '';
+          for (const pattern of actionPatterns) {
+            if (pattern.test(text)) {
+              return btn;
+            }
+          }
+        } else {
+          return btn;
+        }
+      }
+    }
+
+    // Try finding any visible button with action text
+    const allBtns = document.querySelectorAll('.btn:not(.disabled):not(.secondary), button:not(.disabled)');
+    for (const btn of allBtns) {
+      if (btn.offsetParent === null) continue; // Not visible
+      const text = btn.textContent || '';
+      for (const pattern of actionPatterns) {
+        if (pattern.test(text)) {
+          return btn;
+        }
+      }
+    }
+
+    return null;
+  },
+
+  // Find the nearest scrollable container
+  findScrollableContainer() {
+    // Check for modal containers first (FAQ, Sigilarium, etc.)
+    const modal = document.querySelector('.modal-container');
+    if (modal && modal.scrollHeight > modal.clientHeight) {
+      return modal;
+    }
+
+    // Check neutral-left panel
+    const neutralLeft = document.querySelector('.neutral-left');
+    if (neutralLeft && neutralLeft.scrollHeight > neutralLeft.clientHeight) {
+      return neutralLeft;
+    }
+
+    // Check game area
+    const gameArea = document.querySelector('.game-area');
+    if (gameArea && gameArea.scrollHeight > gameArea.clientHeight) {
+      return gameArea;
+    }
+
+    return null;
+  },
+
+  // Scroll a container
+  scrollContainer(direction, amount = 100) {
+    const container = this.findScrollableContainer();
+    if (!container) return false;
+
+    const scrollAmount = direction === 'up' ? -amount : amount;
+    const beforeScroll = container.scrollTop;
+    container.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+
+    // Return true if we actually scrolled
+    return true;
+  },
+
+  // Page scroll (larger amount for LB/RB)
+  pageScroll(direction) {
+    const container = this.findScrollableContainer();
+    if (!container) return false;
+
+    const pageAmount = container.clientHeight * 0.8; // 80% of visible height
+    return this.scrollContainer(direction, pageAmount);
+  },
+
   updatePrompts() {
     const promptsEl = document.getElementById('controllerPrompts');
     if (!promptsEl) return;
 
-    // Determine context and update prompts
+    // Determine screen context
     const hasModal = document.querySelector('.modal-container');
-    const inCombat = typeof S !== 'undefined' && S.heroes && S.enemies && S.enemies.length > 0;
+    const inCombat = typeof S !== 'undefined' && S.heroes && S.heroes.length > 0 && S.enemies && S.enemies.length > 0;
     const hasPending = typeof S !== 'undefined' && S.pending;
     const hasCards = document.querySelectorAll('.card').length > 0;
+    const isTitleScreen = !!document.querySelector('.title-screen');
+    const isHeroSelect = !!document.getElementById('hero-select-container');
+    const isDeathScreen = !!document.querySelector('[onclick*="purchaseSigilUpgrade"]');
+    const isNeutralScreen = !!document.querySelector('.neutral-content');
+    const isLevelUp = !!document.querySelector('[onclick*="levelUpMenu"]') || !!document.querySelector('[onclick*="nextFloor"]');
 
-    let prompts = [
-      { btn: 'dpad', label: 'Move' },
-      { btn: 'a', label: 'Select' }
-    ];
+    let prompts = [];
 
-    if (hasModal) {
-      prompts.push({ btn: 'b', label: 'Close' });
-    } else if (hasPending) {
-      prompts.push({ btn: 'b', label: 'Cancel' });
-    } else {
-      prompts.push({ btn: 'b', label: 'Back' });
+    // Title screen - simple prompts
+    if (isTitleScreen) {
+      prompts = [
+        { btn: 'a', label: 'Play' },
+        { btn: 'dpad', label: 'Navigate' }
+      ];
     }
-
-    // Y = tooltip (only show when cards/sigils visible)
-    if (hasCards || inCombat) {
-      prompts.push({ btn: 'y', label: 'Tooltip' });
+    // Hero selection
+    else if (isHeroSelect) {
+      prompts = [
+        { btn: 'dpad', label: 'Select Hero' },
+        { btn: 'a', label: 'Toggle' },
+        { btn: 'b', label: 'Back' },
+        { btn: 'start', label: 'Start Game' }
+      ];
     }
-
-    // Start = menu
-    prompts.push({ btn: 'start', label: 'Menu' });
-
-    // Combat-specific controls
-    if (inCombat && !hasModal) {
-      prompts.push({ btn: 'lb', label: '↑Unit' });
-      prompts.push({ btn: 'rb', label: 'Unit↓' });
-      prompts.push({ btn: 'lt', label: '←Sigil' });
-      prompts.push({ btn: 'rt', label: 'Sigil→' });
-      prompts.push({ btn: 'x', label: 'Switch' });
+    // Combat
+    else if (inCombat && !hasModal) {
       if (hasPending) {
-        prompts.push({ btn: 'select', label: 'Auto' });
+        prompts = [
+          { btn: 'dpad', label: 'Target' },
+          { btn: 'a', label: 'Confirm' },
+          { btn: 'b', label: 'Cancel' },
+          { btn: 'select', label: 'Auto' }
+        ];
+      } else {
+        prompts = [
+          { btn: 'dpad', label: 'Navigate' },
+          { btn: 'a', label: 'Select' },
+          { btn: 'lb', label: '↑Hero' },
+          { btn: 'rb', label: 'Hero↓' },
+          { btn: 'x', label: 'Switch' },
+          { btn: 'y', label: 'Info' }
+        ];
       }
+    }
+    // Death screen
+    else if (isDeathScreen) {
+      prompts = [
+        { btn: 'dpad', label: 'Browse' },
+        { btn: 'a', label: 'Purchase' },
+        { btn: 'b', label: 'Leave' },
+        { btn: 'y', label: 'Info' }
+      ];
+    }
+    // Neutral encounters
+    else if (isNeutralScreen) {
+      prompts = [
+        { btn: 'dpad', label: 'Choose' },
+        { btn: 'a', label: 'Select' },
+        { btn: 'b', label: 'Skip' }
+      ];
+    }
+    // Level up
+    else if (isLevelUp) {
+      prompts = [
+        { btn: 'dpad', label: 'Choose' },
+        { btn: 'a', label: 'Select' },
+        { btn: 'b', label: 'Skip' }
+      ];
+    }
+    // Modal/popup (FAQ, Sigilarium, etc.)
+    else if (hasModal) {
+      const isScrollable = hasModal.scrollHeight > hasModal.clientHeight;
+      prompts = [
+        { btn: 'dpad', label: 'Navigate' },
+        { btn: 'a', label: 'Confirm' },
+        { btn: 'b', label: 'Close' }
+      ];
+      if (isScrollable) {
+        prompts.push({ btn: 'lb', label: '↑Scroll' });
+        prompts.push({ btn: 'rb', label: 'Scroll↓' });
+      }
+    }
+    // Default
+    else {
+      prompts = [
+        { btn: 'dpad', label: 'Navigate' },
+        { btn: 'a', label: 'Select' },
+        { btn: 'b', label: 'Back' },
+        { btn: 'start', label: 'Menu' }
+      ];
     }
 
     // Build HTML
     promptsEl.innerHTML = prompts.map(p => {
-      const btnClass = p.btn;
       const displayLabel = {
-        'dpad': 'D-Pad',
+        'dpad': '✚',
         'lb': 'LB',
         'rb': 'RB',
         'lt': 'LT',
         'rt': 'RT',
         'start': '☰',
         'x': 'X',
-        'select': 'SEL'
+        'y': 'Y',
+        'select': '⊡',
+        'a': 'Ⓐ',
+        'b': 'Ⓑ'
       }[p.btn] || p.btn.toUpperCase();
 
-      return `<div class="controller-prompt"><span class="controller-btn ${btnClass}">${displayLabel}</span> ${p.label}</div>`;
+      return `<div class="controller-prompt"><span class="controller-btn ${p.btn}">${displayLabel}</span> ${p.label}</div>`;
     }).join('');
   }
 };

@@ -301,7 +301,7 @@ let html = `
   margin: 1.5rem 0;
 }
 </style>
-<div style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+<div class="death-screen-container" style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
 <img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#666;font-style:italic">"${deathQuote}"</p>` : ''}
@@ -338,7 +338,7 @@ const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 
 cards += `
-<div style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
@@ -354,19 +354,19 @@ return cards;
 
 // Core Sigils
 html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">⚔️ Core Sigils</h4>`;
-html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(coreSigils);
 html += `</div>`;
 
 // Advanced Sigils
 html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">🔥 Advanced Sigils</h4>`;
-html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(advancedSigils);
 html += `</div>`;
 
 // Passive Sigils
 html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">✨ Passive Sigils</h4>`;
-html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(passiveSigils);
 html += `</div>`;
 }
