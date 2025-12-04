@@ -1415,10 +1415,7 @@ toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
-// PHASE 1 TUTORIAL: Flies don't attack (they're just targets for practice)
-if(tutorialState && tutorialState.phase === 1 && enemy.n === 'Fly') {
-return; // Flies are passive in the birthday fly-catching game
-}
+// PHASE 1 TUTORIAL: Flies attack back to teach players that enemies fight back!
 executeEnemyBaseAttack(enemy);
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
 
@@ -1679,6 +1676,8 @@ render();
  * @returns {boolean} - True if combat ended (victory or defeat), false if ongoing
  */
 function checkCombatEnd() {
+// Clean up any lingering tooltips when combat ends
+if(typeof hideTooltip === 'function') hideTooltip();
 if(S.enemies.length === 0) {
 // Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
@@ -1844,7 +1843,7 @@ html += `<div class="sigil-row ${compactClass}">
 <span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 }
@@ -2024,7 +2023,7 @@ html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 });

@@ -458,8 +458,8 @@ const slides = [
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Welcome to Ribbleton</h2>
+<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
 Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
 Today is a very special day!!<br><br>
 Why, you ask?
@@ -470,11 +470,11 @@ Why, you ask?
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
+<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:280px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
 </div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
 Today is Tapo's First birthday!
 </p>
 </div>
@@ -542,11 +542,11 @@ function showTaposBirthdayOverlay() {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:550px">
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+<div class="tutorial-modal" style="max-width:600px">
+<p style="font-size:1.5rem;line-height:1.7;margin-bottom:2rem;text-align:center">
 🪰 Here come three <strong>flies</strong> now - you're up! 🪰
 </p>
-<button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
+<button onclick="dismissTaposBirthdayOverlay()" style="padding:1rem 2.5rem;font-size:1.3rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
 </div>`;
 document.body.appendChild(overlay);
 }
@@ -864,24 +864,10 @@ const maxSlots = 8;
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
-<h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v${GAME_VERSION}</p>
-<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
+<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP 🔥' : 'FROGGLE 🐸'}</h1>
 
-<div style="text-align:center;margin-bottom:1rem">
-<button class="btn secondary" onclick="showFAQ()" style="padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold">
-❓ Help/FAQ
-</button>
-</div>
-
-${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
-<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#3b82f6,#f97316);font-weight:bold">
-🏆 Champions of Floor 20 🏆
-</button></div>` : ''}
-
-<div style="max-width:600px;margin:0 auto">
-<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose ${requiredHeroes} Heroes</h2>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
+<div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
+<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
 <!-- Controller-friendly hero selection buttons -->
@@ -904,12 +890,11 @@ ${S.tapoUnlocked ? `
 </div>` : ''}
 
 <!-- Selection display -->
-<div style="text-align:center;margin:1.5rem 0;padding:1rem;background:rgba(0,0,0,0.05);border-radius:8px">
-<strong>Selected Heroes:</strong>
-<div id="selection-display" style="margin-top:0.5rem;font-size:1.1rem;color:#2563eb"></div>
+<div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
+<strong>Selected:</strong> <span id="selection-display" style="font-size:1rem;color:#2563eb"></span>
 </div>
 
-<button class="btn" id="start" onclick="start()" style="width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
+<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Delve into Floor 1</button>
 </div>`;
 
 debugLog('[FROGGLE] title() innerHTML set successfully');

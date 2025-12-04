@@ -174,12 +174,22 @@ roundEl.textContent = S.round || '';
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Ribbleton';
 roundInfoEl.style.display = 'none';
-} else {
-// Normal floor display
+} else if(!S.heroes || S.heroes.length === 0) {
+// Hero selection screen (no heroes chosen yet)
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Hero Select';
+roundInfoEl.style.display = 'none';
+} else if(S.enemies && S.enemies.length > 0) {
+// In combat
 floorEl.textContent = S.floor;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
-roundEl.textContent = S.round || '-';
+roundEl.textContent = S.round || '1';
+} else {
+// Between combats (neutral floors, level up, etc.)
+floorEl.textContent = S.floor;
+locationLabelEl.textContent = 'Floor';
+roundInfoEl.style.display = 'none';
 }
 
 document.getElementById('gold').textContent = S.gold;
@@ -320,6 +330,9 @@ addBonusTurnStack(cardId, count);
 }
 }
 
+// Track active toasts for stacking
+let activeToasts = [];
+
 function toast(msg, dur=1200) {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
@@ -329,12 +342,24 @@ updateToastLog();
 // Show toast popup (supports HTML)
 const t = document.createElement('div');
 t.className = 'toast';
-t.innerHTML = msg; // Changed from textContent to innerHTML to support HTML
+t.innerHTML = msg;
+// Calculate offset based on existing toasts
+const toastHeight = 50; // Approximate height + gap
+const offset = activeToasts.length * toastHeight;
+t.style.bottom = `${20 + offset}px`;
 document.body.appendChild(t);
+activeToasts.push(t);
 setTimeout(() => t.classList.add('show'), 10);
 setTimeout(() => {
 t.classList.remove('show');
-setTimeout(() => t.remove(), ANIMATION_TIMINGS.TOAST_FADE);
+setTimeout(() => {
+t.remove();
+activeToasts = activeToasts.filter(toast => toast !== t);
+// Reposition remaining toasts
+activeToasts.forEach((toast, idx) => {
+toast.style.bottom = `${20 + idx * toastHeight}px`;
+});
+}, ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
 }
 

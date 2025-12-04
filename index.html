@@ -439,20 +439,21 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   0% { transform: translate(0, 0); opacity: 0.7; }
   100% { transform: translate(50px, -20px); opacity: 0; }
 }
-.sigil-row { display: flex !important; flex-direction: row !important; flex-wrap: wrap; gap: 4px; justify-content: center; align-items: center; margin-top: 4px; max-width: 100%; }
-.sigil-row.compact { gap: 2px; }
-.sigil-row.compact .sigil { padding: 4px; font-size: 0.65rem; min-width: 24px; min-height: 24px; }
+.sigil-row { display: flex !important; flex-direction: row !important; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; margin-top: 4px; max-width: 100%; }
+.sigil-row.compact { gap: 3px; }
+.sigil-row.compact .sigil { padding: 6px; font-size: 0.75rem; min-width: 32px; min-height: 32px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: none; border-radius: 6px; padding: 8px; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 36px; min-height: 36px; max-width: 48px; width: auto; font-weight: 900; background: transparent; text-shadow: none; flex-shrink: 0; }
-.sigil img { width: auto; height: 1.5em; object-fit: contain; }
+.sigil { border: none; border-radius: 6px; padding: 10px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 44px; min-height: 44px; max-width: 56px; width: auto; font-weight: 900; background: transparent; text-shadow: none; flex-shrink: 0; }
+.sigil img { width: auto; height: 1.6em; object-fit: contain; }
+.sigil sup { font-size: 0.55em; font-weight: bold; margin-left: 1px; vertical-align: super; }
 .sigil.passive { opacity: 0.85; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
 .sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
 .sigil.l0 { color: #666; opacity: 0.5; }
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.35); }
-.sigil.l1 { color: #3b82f6; }
-.sigil.l1 img { filter: invert(42%) sepia(98%) saturate(1284%) hue-rotate(199deg) brightness(102%) contrast(96%); }
+.sigil.l1 { color: #1a1a1a; }
+.sigil.l1 img { filter: brightness(0) saturate(100%); }
 .sigil.l2 { color: #0d9488; }
 .sigil.l2 img { filter: invert(41%) sepia(52%) saturate(1249%) hue-rotate(133deg) brightness(93%) contrast(91%); }
 .sigil.l3 { color: #9333ea; }
@@ -1864,10 +1865,10 @@ function sigilIconOnly(name, level = null) {
 const imgPath = SIGIL_IMAGES[name];
 if (!imgPath) return `<span>${name}</span>`;
 // CSS handles coloring via .sigil.l0 img, .sigil.l1 img, etc.
-const icon = `<img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;" alt="${name}">`;
-// Add level number for L2+ (superscript style)
-if (level !== null && level >= 2) {
-return `${icon}<sup style="font-size:0.7em;font-weight:bold;margin-left:2px;">${level}</sup>`;
+const icon = `<img src="${imgPath}" style="height:1.4em;vertical-align:middle;display:inline-block;" alt="${name}">`;
+// Add level number as superscript for all levels >= 1
+if (level !== null && level >= 1) {
+return `${icon}<sup>${level}</sup>`;
 }
 return icon;
 }
@@ -2107,7 +2108,7 @@ html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 });
@@ -3181,12 +3182,22 @@ roundEl.textContent = S.round || '';
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Ribbleton';
 roundInfoEl.style.display = 'none';
-} else {
-// Normal floor display
+} else if(!S.heroes || S.heroes.length === 0) {
+// Hero selection screen (no heroes chosen yet)
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Hero Select';
+roundInfoEl.style.display = 'none';
+} else if(S.enemies && S.enemies.length > 0) {
+// In combat
 floorEl.textContent = S.floor;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
-roundEl.textContent = S.round || '-';
+roundEl.textContent = S.round || '1';
+} else {
+// Between combats (neutral floors, level up, etc.)
+floorEl.textContent = S.floor;
+locationLabelEl.textContent = 'Floor';
+roundInfoEl.style.display = 'none';
 }
 
 document.getElementById('gold').textContent = S.gold;
@@ -3327,6 +3338,9 @@ addBonusTurnStack(cardId, count);
 }
 }
 
+// Track active toasts for stacking
+let activeToasts = [];
+
 function toast(msg, dur=1200) {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
@@ -3336,12 +3350,24 @@ updateToastLog();
 // Show toast popup (supports HTML)
 const t = document.createElement('div');
 t.className = 'toast';
-t.innerHTML = msg; // Changed from textContent to innerHTML to support HTML
+t.innerHTML = msg;
+// Calculate offset based on existing toasts
+const toastHeight = 50; // Approximate height + gap
+const offset = activeToasts.length * toastHeight;
+t.style.bottom = `${20 + offset}px`;
 document.body.appendChild(t);
+activeToasts.push(t);
 setTimeout(() => t.classList.add('show'), 10);
 setTimeout(() => {
 t.classList.remove('show');
-setTimeout(() => t.remove(), ANIMATION_TIMINGS.TOAST_FADE);
+setTimeout(() => {
+t.remove();
+activeToasts = activeToasts.filter(toast => toast !== t);
+// Reposition remaining toasts
+activeToasts.forEach((toast, idx) => {
+toast.style.bottom = `${20 + idx * toastHeight}px`;
+});
+}, ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
 }
 
@@ -5314,10 +5340,7 @@ toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
-// PHASE 1 TUTORIAL: Flies don't attack (they're just targets for practice)
-if(tutorialState && tutorialState.phase === 1 && enemy.n === 'Fly') {
-return; // Flies are passive in the birthday fly-catching game
-}
+// PHASE 1 TUTORIAL: Flies attack back to teach players that enemies fight back!
 executeEnemyBaseAttack(enemy);
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
 
@@ -5578,6 +5601,8 @@ render();
  * @returns {boolean} - True if combat ended (victory or defeat), false if ongoing
  */
 function checkCombatEnd() {
+// Clean up any lingering tooltips when combat ends
+if(typeof hideTooltip === 'function') hideTooltip();
 if(S.enemies.length === 0) {
 // Tutorial Floor 0: Special ending (no XP/Gold rewards)
 if(S.floor === 0) {
@@ -5743,7 +5768,7 @@ html += `<div class="sigil-row ${compactClass}">
 <span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 recruit.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 }
@@ -5923,7 +5948,7 @@ html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig)}${sigil.level}</span>`;
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 });
@@ -7195,8 +7220,8 @@ const slides = [
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Welcome to Ribbleton</h2>
+<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
 Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
 Today is a very special day!!<br><br>
 Why, you ask?
@@ -7207,11 +7232,11 @@ Why, you ask?
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Tapo's First Birthday!</h2>
+<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Tapo's First Birthday!</h2>
 <div style="margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:280px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
 </div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
 Today is Tapo's First birthday!
 </p>
 </div>
@@ -7279,11 +7304,11 @@ function showTaposBirthdayOverlay() {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:550px">
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+<div class="tutorial-modal" style="max-width:600px">
+<p style="font-size:1.5rem;line-height:1.7;margin-bottom:2rem;text-align:center">
 🪰 Here come three <strong>flies</strong> now - you're up! 🪰
 </p>
-<button onclick="dismissTaposBirthdayOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
+<button onclick="dismissTaposBirthdayOverlay()" style="padding:1rem 2.5rem;font-size:1.3rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
 </div>`;
 document.body.appendChild(overlay);
 }
@@ -7601,24 +7626,10 @@ const maxSlots = 8;
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
-<h1 style="text-align:center;margin:2rem 0;font-size:2rem">FROGGLE 🐸</h1>
-<p style="text-align:center;margin-bottom:0.5rem;font-size:0.9rem">v${GAME_VERSION}</p>
-<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;font-weight:bold">Mode: <span style="color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
+<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP 🔥' : 'FROGGLE 🐸'}</h1>
 
-<div style="text-align:center;margin-bottom:1rem">
-<button class="btn secondary" onclick="showFAQ()" style="padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold">
-❓ Help/FAQ
-</button>
-</div>
-
-${S.fuUnlocked ? `<div style="text-align:center;margin-bottom:1rem">
-<button class="btn" onclick="showChampionsMenu()" style="padding:0.75rem 1.5rem;background:linear-gradient(135deg,#3b82f6,#f97316);font-weight:bold">
-🏆 Champions of Floor 20 🏆
-</button></div>` : ''}
-
-<div style="max-width:600px;margin:0 auto">
-<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Choose ${requiredHeroes} Heroes</h2>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.7">Tap a hero to select!</p>
+<div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
+<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
 <img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
 <!-- Controller-friendly hero selection buttons -->
@@ -7641,12 +7652,11 @@ ${S.tapoUnlocked ? `
 </div>` : ''}
 
 <!-- Selection display -->
-<div style="text-align:center;margin:1.5rem 0;padding:1rem;background:rgba(0,0,0,0.05);border-radius:8px">
-<strong>Selected Heroes:</strong>
-<div id="selection-display" style="margin-top:0.5rem;font-size:1.1rem;color:#2563eb"></div>
+<div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
+<strong>Selected:</strong> <span id="selection-display" style="font-size:1rem;color:#2563eb"></span>
 </div>
 
-<button class="btn" id="start" onclick="start()" style="width:100%;padding:1rem;font-size:1.1rem">Delve into Floor 1</button>
+<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Delve into Floor 1</button>
 </div>`;
 
 debugLog('[FROGGLE] title() innerHTML set successfully');
@@ -10693,7 +10703,7 @@ const bluePortalUnlocked = S.hasReachedFloor20;
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
 if(isFirstVisit && !S.helpTipsDisabled) {
   setTimeout(() => {
-    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal whenever you're ready to begin your next rescue mission!", () => {
+    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing portal whenever you're ready to begin your next rescue mission!", () => {
       // Tutorial dismissed, player can now explore
     });
   }, 500);
@@ -10729,19 +10739,18 @@ ${bluePortalUnlocked ? `
 </div>
 
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.9);border:3px solid #22c55e;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
-  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Red Portal:</strong> Save Tapo!</p>
+  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Adventure Portal:</strong> Save Tapo!</p>
   ${bluePortalUnlocked ?
-    `<p style="font-size:1.1rem;margin:0"><strong>🔵 Blue Portal:</strong> Visit the Champions Hall (Floor 20)</p>` :
-    `<p style="font-size:0.9rem;margin:0;opacity:0.6"><em>A mysterious blue portal appears to be locked... Perhaps reaching Floor 20 will unlock it?</em></p>`
+    `<p style="font-size:1.1rem;margin:0"><strong>🔵 Path to Statue Room:</strong> Visit the Champions Hall</p>` :
+    ``
   }
 </div>
 
 ${S.pondHistory && S.pondHistory.length > 0 ? `
-<div style="text-align:center;margin-top:1rem">
-<button class="btn" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;padding:0.75rem 1.5rem;font-size:1rem">
-🪷 Visit The Pond
+<div style="text-align:center;margin-top:0.75rem">
+<button class="btn" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;padding:0.5rem 1rem;font-size:0.9rem">
+🪷 The Pond
 </button>
-<p style="font-size:0.8rem;color:#666;margin-top:0.3rem">Reflect on your past journeys</p>
 </div>
 ` : ''}
 </div>`;
@@ -10752,7 +10761,7 @@ v.innerHTML = html;
 function enterRedPortal() {
 S.inRibbleton = false;
 SoundFX.play('portal');
-toast('Entering the Red Portal...', 1200);
+toast('Preparing to enter the dungeon...', 1200);
 setTimeout(() => transitionScreen(title), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 
