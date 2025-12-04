@@ -797,15 +797,6 @@ const GamepadController = {
       return;
     }
 
-    // Credits screen - go back to title
-    if (document.querySelector('[onclick*="showCredits"]')?.closest('div')?.style.display !== 'none' === false) {
-      const creditsBack = document.querySelector('[onclick*="mainTitlePage"]');
-      if (creditsBack) {
-        creditsBack.click();
-        return;
-      }
-    }
-
     // Hero selection - go back to Ribbleton
     if (document.getElementById('hero-select-container')) {
       if (typeof showRibbleton === 'function') {
