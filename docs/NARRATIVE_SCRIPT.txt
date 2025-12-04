@@ -231,11 +231,10 @@ Thank you for playing. <3"
 ─────────
 "FROGGLE
 
-A game by Preston Wesner
-Design, Art, & Code: Preston
-Playtesting: [Your Name Here]
-Inspiration: Slay the Spire, Balatro, and too much coffee
-Made with love in 2024"
+A DubsPubs game by Preston Wesley Evans
+Design, Art, & Code: Preston + Claude
+Inspiration: Inscryption, Slay the Spire, Balatro, and too much coffee
+Made with love in 2025"
 
 
 [Tapo Unlock]

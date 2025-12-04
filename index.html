@@ -1809,7 +1809,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '10.2';
+const GAME_VERSION = '11.0';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -7152,31 +7152,39 @@ const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
 <div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-<h2 style="text-align:center;margin:0 0 1.5rem 0;font-size:1.8rem;color:#4f46e5">🐸 FROGGLE 🐸</h2>
+<h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">🐸 FROGGLE 🐸</h2>
 
-<div style="text-align:center;margin-bottom:1.5rem">
-<p style="font-size:1.1rem;font-weight:bold;margin:0 0 0.25rem 0;color:#1e1b4b">Created by</p>
-<p style="font-size:1.4rem;font-weight:bold;margin:0;color:#22c55e">Wes Pecor</p>
+<div style="text-align:center;margin-bottom:1rem">
+<p style="font-size:0.95rem;margin:0 0 0.25rem 0;color:#1e1b4b">A DubsPubs game by</p>
+<p style="font-size:1.3rem;font-weight:bold;margin:0;color:#22c55e">Preston Wesley Evans</p>
 </div>
 
-<div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<p style="font-size:0.95rem;margin:0;line-height:1.5;text-align:center;color:#166534">
-A tactical turn-based roguelike built with love, frogs, and an unreasonable amount of sigils.
-</p>
+<div style="text-align:center;margin-bottom:1rem">
+<p style="font-size:0.9rem;margin:0;color:#1e1b4b"><strong>Design, Art, & Code:</strong> Preston + Claude</p>
 </div>
 
-<div style="text-align:center;margin-bottom:1.5rem">
-<h3 style="font-size:1rem;margin:0 0 0.5rem 0;color:#6366f1">Special Thanks</h3>
-<p style="font-size:0.9rem;margin:0;color:#4b5563;line-height:1.6">
-Claude (AI Assistant)<br>
-All the playtesters and frog enthusiasts
-</p>
+<div style="text-align:center;margin-bottom:1rem">
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Playtesting</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563;line-height:1.5">Michael Griffin, Charlie Schmidt, Carolyn Powell, Matt Sutz, Ryan Evertz, Noel McKillip, Ray Willess</p>
 </div>
 
-<div style="text-align:center;margin-bottom:1.5rem;padding:0.75rem;background:#fef3c7;border-radius:8px">
-<p style="font-size:0.85rem;margin:0;color:#92400e">
-Version ${GAME_VERSION}
-</p>
+<div style="text-align:center;margin-bottom:1rem">
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Inspiration</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563">Inscryption, Slay the Spire, Balatro, and too much coffee</p>
+</div>
+
+<div style="text-align:center;margin-bottom:1rem">
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Sanity</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563">Erin Keif, Adal Rfai, JPC, Odell Brewing</p>
+</div>
+
+<div style="text-align:center;margin-bottom:1rem">
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Support</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563">Lisa Evans</p>
+</div>
+
+<div style="text-align:center;margin-bottom:1rem;padding:0.5rem;background:#fef3c7;border-radius:8px">
+<p style="font-size:0.8rem;margin:0;color:#92400e">Version ${GAME_VERSION}</p>
 </div>
 
 <button class="btn" onclick="mainTitlePage()" style="width:100%;background:#6366f1;border:3px solid #4f46e5;font-weight:bold">Back to Title</button>
