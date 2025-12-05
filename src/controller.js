@@ -103,6 +103,7 @@ const GamepadController = {
     }
 
     // Delayed status check - report state after 3 seconds
+    // Also show helpful setup prompt if no gamepad detected (likely Steam Deck Gaming Mode)
     setTimeout(() => {
       console.log('[GAMEPAD] ========== STATUS CHECK (3s) ==========');
       console.log('[GAMEPAD] active:', this.active);
@@ -110,10 +111,20 @@ const GamepadController = {
       console.log('[GAMEPAD] pollInterval running:', !!this.pollInterval);
       console.log('[GAMEPAD] focusableElements:', this.focusableElements.length);
       const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+      let foundGamepad = false;
       for (let i = 0; i < gps.length; i++) {
-        if (gps[i]) console.log('[GAMEPAD] Active gamepad at', i, ':', gps[i].id);
+        if (gps[i]) {
+          console.log('[GAMEPAD] Active gamepad at', i, ':', gps[i].id);
+          foundGamepad = true;
+        }
       }
       console.log('[GAMEPAD] =========================================');
+
+      // If no gamepad detected and user hasn't dismissed this before, show setup help
+      // This helps Steam Deck users in Gaming Mode
+      if (!foundGamepad && !this.active && typeof S !== 'undefined' && !S.tutorialFlags.steam_controller_setup) {
+        this.showSteamControllerSetupHelp();
+      }
     }, 3000);
 
     // Watch for DOM changes to update focusable elements (screen transitions)
@@ -176,20 +187,31 @@ const GamepadController = {
   initKeyboardFallback() {
     console.log('[GAMEPAD] Initializing keyboard fallback...');
 
+    // Use capture phase to catch events before they're stopped
     document.addEventListener('keydown', (e) => {
+      console.log('[KEYBOARD] Key event:', e.key, 'code:', e.code, 'target:', e.target.tagName);
+
       // Skip if controller support is disabled
-      if (typeof S !== 'undefined' && S.controllerDisabled) return;
+      if (typeof S !== 'undefined' && S.controllerDisabled) {
+        console.log('[KEYBOARD] Skipped - controller disabled');
+        return;
+      }
 
       // Skip if typing in an input field
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        console.log('[KEYBOARD] Skipped - input field focused');
+        return;
+      }
 
       // Check for navigation keys
       let handled = false;
+      let action = '';
 
       switch (e.key) {
         case 'ArrowUp':
         case 'w':
         case 'W':
+          action = 'up';
           this.activateControllerMode();
           this.onDirection('up');
           handled = true;
@@ -197,6 +219,7 @@ const GamepadController = {
         case 'ArrowDown':
         case 's':
         case 'S':
+          action = 'down';
           this.activateControllerMode();
           this.onDirection('down');
           handled = true;
@@ -204,6 +227,7 @@ const GamepadController = {
         case 'ArrowLeft':
         case 'a':
         case 'A':
+          action = 'left';
           this.activateControllerMode();
           this.onDirection('left');
           handled = true;
@@ -211,23 +235,84 @@ const GamepadController = {
         case 'ArrowRight':
         case 'd':
         case 'D':
+          action = 'right';
           this.activateControllerMode();
           this.onDirection('right');
           handled = true;
           break;
         case 'Enter':
         case ' ': // Space
+          action = 'confirm (A)';
           this.activateControllerMode();
           this.confirmSelection();
           handled = true;
           break;
         case 'Escape':
         case 'Backspace':
+          action = 'back (B/START)';
           this.activateControllerMode();
           this.goBack();
           handled = true;
           break;
+        // X button - switch sides
+        case 'x':
+        case 'X':
+          action = 'switch sides (X)';
+          this.activateControllerMode();
+          this.switchSides();
+          handled = true;
+          break;
+        // Y button - toggle tooltip
+        case 't':
+        case 'T':
+          action = 'toggle tooltip (Y)';
+          this.activateControllerMode();
+          this.toggleSigilTooltip();
+          handled = true;
+          break;
+        // LB - previous character
+        case 'q':
+        case 'Q':
+          action = 'prev char (LB)';
+          this.activateControllerMode();
+          this.onButtonPress(this.BUTTONS.LB);
+          handled = true;
+          break;
+        // RB - next character
+        case 'e':
+        case 'E':
+          action = 'next char (RB)';
+          this.activateControllerMode();
+          this.onButtonPress(this.BUTTONS.RB);
+          handled = true;
+          break;
+        // LT - previous sigil
+        case 'z':
+        case 'Z':
+          action = 'prev sigil (LT)';
+          this.activateControllerMode();
+          this.onButtonPress(this.BUTTONS.LT);
+          handled = true;
+          break;
+        // RT - next sigil
+        case 'c':
+        case 'C':
+          action = 'next sigil (RT)';
+          this.activateControllerMode();
+          this.onButtonPress(this.BUTTONS.RT);
+          handled = true;
+          break;
+        // SELECT - auto-target
+        case 'r':
+        case 'R':
+        case '`':
+          action = 'auto-target (SELECT)';
+          this.activateControllerMode();
+          this.autoTarget();
+          handled = true;
+          break;
         case 'Tab':
+          action = 'tab';
           // Tab cycles through focusable elements
           this.activateControllerMode();
           this.updateFocusableElements();
@@ -243,12 +328,21 @@ const GamepadController = {
       }
 
       if (handled) {
+        console.log('[KEYBOARD] Handled action:', action, 'active:', this.active, 'focused:', this.focusedElement?.textContent?.substring(0,20));
         e.preventDefault();
         e.stopPropagation();
       }
-    });
+    }, true); // Use capture phase
 
-    console.log('[GAMEPAD] Keyboard fallback initialized (Arrow keys/WASD, Enter/Space, Escape)');
+    console.log('[GAMEPAD] Keyboard fallback initialized:');
+    console.log('[GAMEPAD]   Navigation: Arrow keys / WASD');
+    console.log('[GAMEPAD]   A (confirm): Enter / Space');
+    console.log('[GAMEPAD]   B (back): Escape / Backspace');
+    console.log('[GAMEPAD]   X (switch sides): X key');
+    console.log('[GAMEPAD]   Y (tooltip): T key');
+    console.log('[GAMEPAD]   LB/RB (prev/next char): Q / E');
+    console.log('[GAMEPAD]   LT/RT (prev/next sigil): Z / C');
+    console.log('[GAMEPAD]   SELECT (auto-target): R key');
   },
 
   // Continuously check for gamepads (Steam Deck fix)
@@ -1552,6 +1646,75 @@ const GamepadController = {
 
       return `<div class="controller-prompt"><span class="controller-btn ${p.btn}">${displayLabel}</span> ${p.label}</div>`;
     }).join('');
+  },
+
+  // Show helpful setup guide for Steam Deck users when no gamepad is detected
+  // forceShow=true bypasses the touch device check (for Settings button)
+  showSteamControllerSetupHelp(forceShow = false) {
+    // Don't show if on a device that clearly doesn't have a controller (like desktop with mouse)
+    // Check if this looks like it might be Steam Deck or similar (touch events available, no mouse movement recently)
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // Only auto-show on touch devices (Steam Deck has touch), but allow manual trigger from Settings
+    if (!isTouchDevice && !forceShow) {
+      console.log('[GAMEPAD] Not showing setup help - not a touch device');
+      return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'tutorial-modal-backdrop';
+    overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:550px;max-height:90vh;overflow-y:auto">
+<h2 style="font-size:1.4rem;margin-bottom:1rem;text-align:center;color:#f59e0b">🎮 Steam Deck Controller Setup</h2>
+<p style="font-size:0.95rem;line-height:1.5;margin-bottom:1rem;text-align:center">
+Steam Deck requires a <strong>one-time</strong> controller configuration.<br>This persists forever - you won't need to do it again!
+</p>
+<div style="background:rgba(0,0,0,0.1);border-radius:8px;padding:0.75rem;margin-bottom:1rem">
+<div style="font-weight:bold;margin-bottom:0.5rem;font-size:0.9rem">Steps:</div>
+<ol style="font-size:0.85rem;line-height:1.6;padding-left:1.25rem;margin:0">
+<li>Press <strong>STEAM button</strong></li>
+<li>Select <strong>Controller Settings</strong></li>
+<li>Choose <strong>Edit Layout</strong></li>
+<li>Map buttons as shown below</li>
+</ol>
+</div>
+<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:0.75rem;margin-bottom:1rem">
+<div style="font-weight:bold;margin-bottom:0.5rem;font-size:0.9rem;color:#22c55e">Button → Key Mappings:</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.25rem 1rem;font-size:0.8rem">
+<div><strong>D-Pad</strong> → Arrow Keys</div>
+<div><strong>A</strong> → Enter</div>
+<div><strong>B</strong> → Escape</div>
+<div><strong>X</strong> → X key</div>
+<div><strong>Y</strong> → T key</div>
+<div><strong>START</strong> → Escape</div>
+<div><strong>LB</strong> → Q key</div>
+<div><strong>RB</strong> → E key</div>
+<div><strong>LT</strong> → Z key</div>
+<div><strong>RT</strong> → C key</div>
+<div><strong>SELECT</strong> → R key</div>
+</div>
+</div>
+<p style="font-size:0.8rem;text-align:center;opacity:0.7;margin-bottom:1rem">
+Once saved, this configuration stays with the game shortcut!
+</p>
+<div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+<button class="btn" onclick="dismissSteamSetupHelp(true)" style="background:#22c55e;padding:0.6rem 1.2rem">Got it!</button>
+<button class="btn" onclick="dismissSteamSetupHelp(false)" style="background:#6b7280;padding:0.6rem 1.2rem;font-size:0.85rem">Don't show again</button>
+</div>
+</div>`;
+    document.body.appendChild(overlay);
   }
 };
+
+// Global function to dismiss the Steam setup help
+function dismissSteamSetupHelp(showAgain) {
+  const overlay = document.querySelector('.tutorial-modal-backdrop');
+  if (overlay) overlay.remove();
+
+  if (!showAgain && typeof S !== 'undefined') {
+    S.tutorialFlags.steam_controller_setup = true;
+    if (typeof savePermanent === 'function') savePermanent();
+    toast('You can find controller setup help in Settings anytime!', 2000);
+  }
+}
 

@@ -149,6 +149,7 @@ ${inGame ? `
 <span>🎮 Controller Support</span>
 </label>
 <button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
+<button class="btn" onclick="showSteamDeckSetup()" style="margin-bottom:0.5rem;background:#1a9fff;font-size:0.8rem">🎮 Steam Deck Setup</button>
 <button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.8rem">🔄 Re-Init Controller</button>
 <button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.8rem">🔍 Live Debug Overlay</button>
 
@@ -438,17 +439,22 @@ overlay.innerHTML = `
 <div id="debug-buttons" style="margin-top:5px"></div>
 <div id="debug-axes" style="margin-top:5px"></div>
 <div id="debug-keyboard" style="margin-top:5px;color:#ff0">Last key: none</div>
+<div id="debug-key-count" style="font-size:10px;color:#888">Keys pressed: 0</div>
 <div style="margin-top:8px;font-size:10px;color:#888">Tap here to close</div>
 `;
 overlay.onclick = () => overlay.remove();
 document.body.appendChild(overlay);
 
-// Track keyboard input
+// Track keyboard input - use capture to catch ALL key events
+let keyCount = 0;
 const keyHandler = (e) => {
+keyCount++;
 const keyEl = document.getElementById('debug-keyboard');
-if (keyEl) keyEl.innerHTML = `Last key: <span style="color:#0f0">${e.key}</span> (${e.code})`;
+const countEl = document.getElementById('debug-key-count');
+if (keyEl) keyEl.innerHTML = `Last key: <span style="color:#0f0;font-weight:bold">${e.key}</span> (${e.code})`;
+if (countEl) countEl.innerHTML = `Keys pressed: <span style="color:#0f0">${keyCount}</span>`;
 };
-document.addEventListener('keydown', keyHandler);
+document.addEventListener('keydown', keyHandler, true); // capture phase
 
 // Update loop
 const updateDebug = () => {
@@ -502,6 +508,11 @@ updateDebug();
 
 toast('Controller debug enabled - overlay shown', 1500);
 closeSettingsMenu();
+}
+
+function showSteamDeckSetup() {
+closeSettingsMenu();
+GamepadController.showSteamControllerSetupHelp(true); // forceShow=true from settings
 }
 
 function showControlsGuide() {
