@@ -333,7 +333,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .card-stats { font-size: 0.8rem; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
 .card.hero { background: #2c63c7; color: white; width: 160px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 .card.enemy { background: #b64141; color: white; width: 160px; }
-.card.active { box-shadow: 0 0 0 4px gold; animation: pulse-glow 1s infinite; }
+.card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
 .card.selectable:active { transform: scale(0.98); }
 .card.targetable { cursor: pointer; }
@@ -355,7 +355,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .card.attack-slide { animation: attack-slide 0.48s ease !important; }
 .card.heal-flash { animation: heal-flash 0.48s ease !important; }
 .card.shield-flash { animation: shield-flash 0.48s ease !important; }
-@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px gold; } 50% { box-shadow: 0 0 0 8px gold; } }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 4px #22c55e; } 50% { box-shadow: 0 0 0 8px #22c55e; } }
 @keyframes pulse-last-stand {
   0%, 100% { box-shadow: 0 0 0 3px #dc2626, 0 0 15px rgba(220, 38, 38, 0.6); border-color: #dc2626; }
   50% { box-shadow: 0 0 0 6px #dc2626, 0 0 25px rgba(220, 38, 38, 0.9); border-color: #ef4444; }
@@ -448,7 +448,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil sup { font-size: 0.55em; font-weight: bold; margin-left: 1px; vertical-align: super; }
 .sigil.clickable { cursor: pointer; }
 .sigil.clickable:active { transform: scale(0.95); }
-.sigil.active-action { box-shadow: 0 0 12px #fbbf24; animation: pulse-action 0.8s infinite; }
+.sigil.active-action { box-shadow: 0 0 12px #22c55e; animation: pulse-action 0.8s infinite; }
 
 /* Active sigils: transparent background, colored icon */
 .sigil.l0 { color: #666; opacity: 0.5; }
@@ -1441,17 +1441,17 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 /* ===== STEAM DECK / CONTROLLER SUPPORT ===== */
 /* Controller focus indicator - glowing ring around focused element */
 .controller-focus {
-  outline: 4px solid #fbbf24 !important;
+  outline: 4px solid #22c55e !important;
   outline-offset: 4px;
-  box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3) !important;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 0 40px rgba(34, 197, 94, 0.3) !important;
   animation: controllerFocusPulse 1s ease-in-out infinite;
   position: relative;
   z-index: 25001; /* Above tooltips (25000) but below modals (29999) */
 }
 
 @keyframes controllerFocusPulse {
-  0%, 100% { outline-color: #fbbf24; box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3); }
-  50% { outline-color: #f59e0b; box-shadow: 0 0 30px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.4); }
+  0%, 100% { outline-color: #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 0 40px rgba(34, 197, 94, 0.3); }
+  50% { outline-color: #16a34a; box-shadow: 0 0 30px rgba(34, 197, 94, 0.8), 0 0 50px rgba(34, 197, 94, 0.4); }
 }
 
 /* When controller is active, hide cursor and add focus-visible styles */
@@ -1540,7 +1540,7 @@ body.controller-active .toast {
 
 /* Controller tooltip indicator */
 .controller-tooltip-active {
-  outline: 3px solid #fbbf24 !important;
+  outline: 3px solid #22c55e !important;
   outline-offset: 2px;
 }
 
@@ -1556,11 +1556,11 @@ body.controller-active .toast {
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 .hero-select-btn:hover, .hero-select-btn:focus {
-  background: rgba(251, 191, 36, 0.2);
+  background: rgba(34, 197, 94, 0.2);
 }
 .hero-select-btn.controller-focus {
-  background: rgba(251, 191, 36, 0.35);
-  box-shadow: inset 0 0 0 4px #fbbf24;
+  background: rgba(34, 197, 94, 0.35);
+  box-shadow: inset 0 0 0 4px #22c55e;
 }
 /* Show hero name label on controller focus */
 .hero-select-btn.controller-focus::after {
@@ -1570,7 +1570,7 @@ body.controller-active .toast {
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0,0,0,0.85);
-  color: #fbbf24;
+  color: #22c55e;
   padding: 0.3rem 0.6rem;
   border-radius: 6px;
   font-size: 0.85rem;
@@ -1886,7 +1886,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.12';
+const GAME_VERSION = '11.14';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3229,7 +3229,6 @@ wizardSigil: null,        // Sigil being tested at Wizard
 // ===== PERSISTENT STATE (survives death, saved in permanent storage) =====
 ancientStatueDeactivated: false, // Ancient Statue one-time choice made
 ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
-royalTitle: 'Prince',          // Title preference for royal quest line (Prince/Princess)
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
@@ -3857,7 +3856,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
@@ -4025,7 +4024,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -4060,7 +4059,6 @@ return false;
 }
 
 // Update save functions to use current slot
-const originalSavePermanent = savePermanent;
 savePermanent = function() {
 if(!S.currentSlot) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
@@ -4086,7 +4084,9 @@ tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
-controllerDisabled: S.controllerDisabled
+controllerDisabled: S.controllerDisabled,
+animationSpeed: S.animationSpeed,
+pondHistory: S.pondHistory
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -4098,7 +4098,6 @@ toast('Warning: Progress could not be saved', 2000);
 }
 };
 
-const originalSaveGame = saveGame;
 saveGame = function() {
 if(!S.currentSlot) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
@@ -4915,7 +4914,7 @@ enemy.st = 1;
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
-toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
+toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 } else if(action === 'STEAL') {
 const gold = enemy.p;
@@ -5391,7 +5390,7 @@ targetNames.push(e.n);
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
-toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
+toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
@@ -10015,12 +10014,24 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor 
 }
 
 // ===== 9. FLUMMOXED ROYAL =====
+// Helper to get random royal title
+function getRandomRoyalTitle() {
+return Math.random() < 0.5 ? 'Prince' : 'Princess';
+}
+
 function showRoyal1() {
+// Generate random titles for each royal (the one asking for help and their beloved)
+const askerTitle = getRandomRoyalTitle();
+const belovedTitle = getRandomRoyalTitle();
+// Store for use in acceptRoyalQuest callback
+S.royalAskerTitle = askerTitle;
+S.royalBelovedTitle = belovedTitle;
+
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
-title: 'Flummoxed Royal',
-description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a stratagem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
+title: 'The Flummoxed Royal',
+description: `A flummoxed ${askerTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a stratagem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
 buttons: `
 <button class="btn" onclick="acceptRoyalQuest()">Accept the quest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -10035,13 +10046,17 @@ S.royalQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
-outcomes: [`The ${S.royalTitle} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
+outcomes: [`The ${S.royalAskerTitle} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
 
 function showRoyal2() {
 const v = document.getElementById('gameView');
+// Use stored titles from showRoyal1, or generate new ones if not present
+const askerTitle = S.royalAskerTitle || getRandomRoyalTitle();
+const belovedTitle = S.royalBelovedTitle || getRandomRoyalTitle();
+
 // Check if quest was completed
 if(!S.royalQuestCompleted) {
 // Quest failed
@@ -10049,8 +10064,8 @@ S.royalQuestActive = false;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
 title: 'Quest Failed',
-description: `The ${S.royalTitle} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
-outcomes: [`The ${S.royalTitle} departs sadly. No reward.`],
+description: `The ${askerTitle} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
+outcomes: [`The ${askerTitle} departs sadly. No reward.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
@@ -10083,7 +10098,7 @@ buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil2}')">
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal2.png',
 title: 'Royal Wedding',
-description: `The ${S.royalTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?"`,
+description: `The ${askerTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?" The ${belovedTitle} beside them nods warmly.`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
 buttons
 });
@@ -10369,20 +10384,20 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
 <!-- Stats summary -->
 <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:0.75rem;text-align:center">
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#f1f5f9">${history.length}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Journeys</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#f1f5f9">${history.length}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Journeys</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#fbbf24">${history.filter(r => r.outcome === 'victory').length}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Victories</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#fbbf24">${history.filter(r => r.outcome === 'victory').length}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Victories</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#60a5fa">${Math.max(...history.map(r => r.floorReached), 0)}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Best Floor</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#60a5fa">${Math.max(...history.map(r => r.floorReached), 0)}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Best Floor</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#f59e0b">${getMostUsedHero(history)}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Favorite</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#f59e0b">${getMostUsedHero(history)}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Favorite</div>
 </div>
 </div>
 `}
@@ -10827,6 +10842,8 @@ toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Rea
 showChampionsMenu();
 }
 
+// NOTE: Waiting on Champions Hall toggle button image asset from Preston
+// This function will be used for a visual toggle button in the Champions menu
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 showChampionsMenu();
@@ -14102,7 +14119,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;

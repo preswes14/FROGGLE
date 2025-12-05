@@ -56,7 +56,6 @@ wizardSigil: null,        // Sigil being tested at Wizard
 // ===== PERSISTENT STATE (survives death, saved in permanent storage) =====
 ancientStatueDeactivated: false, // Ancient Statue one-time choice made
 ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
-royalTitle: 'Prince',          // Title preference for royal quest line (Prince/Princess)
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
@@ -684,7 +683,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
@@ -852,7 +851,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -887,7 +886,6 @@ return false;
 }
 
 // Update save functions to use current slot
-const originalSavePermanent = savePermanent;
 savePermanent = function() {
 if(!S.currentSlot) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
@@ -913,7 +911,9 @@ tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
-controllerDisabled: S.controllerDisabled
+controllerDisabled: S.controllerDisabled,
+animationSpeed: S.animationSpeed,
+pondHistory: S.pondHistory
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -925,7 +925,6 @@ toast('Warning: Progress could not be saved', 2000);
 }
 };
 
-const originalSaveGame = saveGame;
 saveGame = function() {
 if(!S.currentSlot) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');

@@ -2742,12 +2742,24 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor 
 }
 
 // ===== 9. FLUMMOXED ROYAL =====
+// Helper to get random royal title
+function getRandomRoyalTitle() {
+return Math.random() < 0.5 ? 'Prince' : 'Princess';
+}
+
 function showRoyal1() {
+// Generate random titles for each royal (the one asking for help and their beloved)
+const askerTitle = getRandomRoyalTitle();
+const belovedTitle = getRandomRoyalTitle();
+// Store for use in acceptRoyalQuest callback
+S.royalAskerTitle = askerTitle;
+S.royalBelovedTitle = belovedTitle;
+
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
-title: 'Flummoxed Royal',
-description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a stratagem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
+title: 'The Flummoxed Royal',
+description: `A flummoxed ${askerTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a stratagem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
 buttons: `
 <button class="btn" onclick="acceptRoyalQuest()">Accept the quest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -2762,13 +2774,17 @@ S.royalQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
-outcomes: [`The ${S.royalTitle} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
+outcomes: [`The ${S.royalAskerTitle} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
 
 function showRoyal2() {
 const v = document.getElementById('gameView');
+// Use stored titles from showRoyal1, or generate new ones if not present
+const askerTitle = S.royalAskerTitle || getRandomRoyalTitle();
+const belovedTitle = S.royalBelovedTitle || getRandomRoyalTitle();
+
 // Check if quest was completed
 if(!S.royalQuestCompleted) {
 // Quest failed
@@ -2776,8 +2792,8 @@ S.royalQuestActive = false;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
 title: 'Quest Failed',
-description: `The ${S.royalTitle} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
-outcomes: [`The ${S.royalTitle} departs sadly. No reward.`],
+description: `The ${askerTitle} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
+outcomes: [`The ${askerTitle} departs sadly. No reward.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
@@ -2810,7 +2826,7 @@ buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil2}')">
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal2.png',
 title: 'Royal Wedding',
-description: `The ${S.royalTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?"`,
+description: `The ${askerTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?" The ${belovedTitle} beside them nods warmly.`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
 buttons
 });

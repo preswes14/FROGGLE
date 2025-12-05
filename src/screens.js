@@ -148,20 +148,20 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
 <!-- Stats summary -->
 <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:0.75rem;text-align:center">
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#f1f5f9">${history.length}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Journeys</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#f1f5f9">${history.length}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Journeys</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#fbbf24">${history.filter(r => r.outcome === 'victory').length}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Victories</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#fbbf24">${history.filter(r => r.outcome === 'victory').length}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Victories</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#60a5fa">${Math.max(...history.map(r => r.floorReached), 0)}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Best Floor</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#60a5fa">${Math.max(...history.map(r => r.floorReached), 0)}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Best Floor</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.3rem;font-weight:bold;color:#f59e0b">${getMostUsedHero(history)}</div>
-<div style="color:#94a3b8;font-size:0.75rem">Favorite</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#f59e0b">${getMostUsedHero(history)}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Favorite</div>
 </div>
 </div>
 `}
@@ -606,6 +606,8 @@ toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Rea
 showChampionsMenu();
 }
 
+// NOTE: Waiting on Champions Hall toggle button image asset from Preston
+// This function will be used for a visual toggle button in the Champions menu
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 showChampionsMenu();

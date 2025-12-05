@@ -647,7 +647,7 @@ enemy.st = 1;
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
-toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
+toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 } else if(action === 'STEAL') {
 const gold = enemy.p;
@@ -1123,7 +1123,7 @@ targetNames.push(e.n);
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
-toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
+toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
