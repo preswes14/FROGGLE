@@ -1938,6 +1938,8 @@ GamepadController.saveFocusState();
 }
 
 const v = document.getElementById('gameView');
+// Toggle FU mode class for compact 3-hero layout
+v.classList.toggle('fu-mode', S.gameMode === 'fu');
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
 v.innerHTML = renderEncampmentSelection();
@@ -1973,7 +1975,7 @@ S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes
 
 S.heroes.forEach((h,i) => {
 html += `<div class="combat-lane">`;
-html += '<div style="display:flex;gap:2rem;justify-content:center;align-items:stretch">';
+html += '<div class="lane-content" style="display:flex;gap:2rem;justify-content:center;align-items:stretch">';
 
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
