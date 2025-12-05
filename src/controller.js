@@ -103,6 +103,7 @@ const GamepadController = {
     }
 
     // Delayed status check - report state after 3 seconds
+    // Also show helpful setup prompt if no gamepad detected (likely Steam Deck Gaming Mode)
     setTimeout(() => {
       console.log('[GAMEPAD] ========== STATUS CHECK (3s) ==========');
       console.log('[GAMEPAD] active:', this.active);
@@ -110,10 +111,20 @@ const GamepadController = {
       console.log('[GAMEPAD] pollInterval running:', !!this.pollInterval);
       console.log('[GAMEPAD] focusableElements:', this.focusableElements.length);
       const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+      let foundGamepad = false;
       for (let i = 0; i < gps.length; i++) {
-        if (gps[i]) console.log('[GAMEPAD] Active gamepad at', i, ':', gps[i].id);
+        if (gps[i]) {
+          console.log('[GAMEPAD] Active gamepad at', i, ':', gps[i].id);
+          foundGamepad = true;
+        }
       }
       console.log('[GAMEPAD] =========================================');
+
+      // If no gamepad detected and user hasn't dismissed this before, show setup help
+      // This helps Steam Deck users in Gaming Mode
+      if (!foundGamepad && !this.active && typeof S !== 'undefined' && !S.tutorialFlags.steam_controller_setup) {
+        this.showSteamControllerSetupHelp();
+      }
     }, 3000);
 
     // Watch for DOM changes to update focusable elements (screen transitions)
@@ -1552,6 +1563,56 @@ const GamepadController = {
 
       return `<div class="controller-prompt"><span class="controller-btn ${p.btn}">${displayLabel}</span> ${p.label}</div>`;
     }).join('');
+  },
+
+  // Show helpful setup guide for Steam Deck users when no gamepad is detected
+  // forceShow=true bypasses the touch device check (for Settings button)
+  showSteamControllerSetupHelp(forceShow = false) {
+    // Don't show if on a device that clearly doesn't have a controller (like desktop with mouse)
+    // Check if this looks like it might be Steam Deck or similar (touch events available, no mouse movement recently)
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+    // Only auto-show on touch devices (Steam Deck has touch), but allow manual trigger from Settings
+    if (!isTouchDevice && !forceShow) {
+      console.log('[GAMEPAD] Not showing setup help - not a touch device');
+      return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'tutorial-modal-backdrop';
+    overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:500px">
+<h2 style="font-size:1.4rem;margin-bottom:1rem;text-align:center;color:#f59e0b">🎮 Controller Setup</h2>
+<p style="font-size:1rem;line-height:1.6;margin-bottom:1rem;text-align:center">
+Controller not detected! If you're on <strong>Steam Deck</strong>, you need to set up a controller template:
+</p>
+<ol style="font-size:0.95rem;line-height:1.8;padding-left:1.5rem;margin-bottom:1.5rem">
+<li>Press the <strong>STEAM button</strong></li>
+<li>Select <strong>Controller Settings</strong> ⚙️</li>
+<li>Choose <strong>Browse Community Layouts</strong></li>
+<li>Apply the <strong>"Web Browser"</strong> template</li>
+</ol>
+<p style="font-size:0.9rem;text-align:center;opacity:0.8;margin-bottom:1rem">
+This maps your controller to keyboard keys that FROGGLE understands!
+</p>
+<div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+<button class="btn" onclick="dismissSteamSetupHelp(true)" style="background:#22c55e;padding:0.6rem 1.2rem">Got it!</button>
+<button class="btn" onclick="dismissSteamSetupHelp(false)" style="background:#6b7280;padding:0.6rem 1.2rem;font-size:0.85rem">Don't show again</button>
+</div>
+</div>`;
+    document.body.appendChild(overlay);
   }
 };
+
+// Global function to dismiss the Steam setup help
+function dismissSteamSetupHelp(showAgain) {
+  const overlay = document.querySelector('.tutorial-modal-backdrop');
+  if (overlay) overlay.remove();
+
+  if (!showAgain && typeof S !== 'undefined') {
+    S.tutorialFlags.steam_controller_setup = true;
+    if (typeof savePermanent === 'function') savePermanent();
+    toast('You can find controller setup help in Settings anytime!', 2000);
+  }
+}
 

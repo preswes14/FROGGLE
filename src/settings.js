@@ -149,6 +149,7 @@ ${inGame ? `
 <span>🎮 Controller Support</span>
 </label>
 <button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
+<button class="btn" onclick="showSteamDeckSetup()" style="margin-bottom:0.5rem;background:#1a9fff;font-size:0.8rem">🎮 Steam Deck Setup</button>
 <button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.8rem">🔄 Re-Init Controller</button>
 <button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.8rem">🔍 Live Debug Overlay</button>
 
@@ -502,6 +503,11 @@ updateDebug();
 
 toast('Controller debug enabled - overlay shown', 1500);
 closeSettingsMenu();
+}
+
+function showSteamDeckSetup() {
+closeSettingsMenu();
+GamepadController.showSteamControllerSetupHelp(true); // forceShow=true from settings
 }
 
 function showControlsGuide() {
