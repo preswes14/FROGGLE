@@ -548,6 +548,16 @@ const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
 
 let html = `
+<style>
+@keyframes champions-portal-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes champions-portal-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+</style>
 <div style="position:relative;max-width:800px;margin:0 auto">
 <h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
 🏆 The Flydra's Conquerors 🏆
@@ -562,12 +572,12 @@ let html = `
 <!-- Clickable left portal (blue portal - leads to Standard mode) -->
 <div onclick="enterPortal('Standard')" style="position:absolute;left:5%;top:20%;width:20%;height:60%;cursor:pointer" title="${S.gameMode === 'Standard' ? 'Current Mode' : 'Enter Standard Realm'}"></div>
 
-<!-- Clickable right portal (green portal - leads to FU mode) -->
-<div onclick="enterPortal('fu')" style="position:absolute;right:5%;top:20%;width:20%;height:60%;cursor:pointer;transition:transform 0.2s"
+<!-- Clickable right portal (green portal - leads to FU mode) - Animated swirling portal -->
+<div onclick="enterPortal('fu')" style="position:absolute;right:5%;top:20%;width:20%;height:60%;cursor:pointer;transition:transform 0.2s;display:flex;align-items:center;justify-content:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="${S.gameMode === 'fu' ? 'Current Mode' : 'Enter Frogged Up Realm 🔥'}">
-  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(34, 197, 94, 0.7) 0%, rgba(16, 185, 129, 0.4) 50%, transparent 100%);border:3px solid #22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px rgba(34, 197, 94, 0.8);animation:portalPulse 2s ease-in-out infinite">
-    <div style="font-size:3rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8))">🟢</div>
+  <div style="width:100px;height:100px;position:relative;border-radius:50%;background:radial-gradient(circle, #22c55e, #064e3b);animation:champions-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #22c55e">
+    <div style="position:absolute;top:50%;left:50%;font-size:3.5rem;animation:champions-portal-spin 2s linear infinite">🌀</div>
   </div>
 </div>
 </div>
@@ -1058,12 +1068,12 @@ if(isFirstVisit && !S.helpTipsDisabled) {
 let html = `
 <style>
 @keyframes ribbleton-portal-pulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(220,38,38,0.6); }
-  50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(220,38,38,0.9); }
+  0%, 100% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 30px #dc2626; }
+  50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 50px #dc2626; }
 }
-@keyframes ribbleton-portal-glow {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(220,38,38,0.8)); }
-  50% { filter: drop-shadow(0 0 16px rgba(220,38,38,1)); }
+@keyframes ribbleton-portal-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>
 <div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
@@ -1080,23 +1090,23 @@ let html = `
 <!-- Portal area in bottom-right corner -->
 <div style="position:absolute;bottom:1rem;right:1rem;z-index:10;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end">
 
-<!-- Red Portal (Always Available) -->
+<!-- Red Portal (Always Available) - Animated swirling portal -->
 <div onclick="enterRedPortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Click to begin your adventure and save Tapo!">
-  <div style="width:100px;height:100px;background:radial-gradient(circle, rgba(220, 38, 38, 0.95) 0%, rgba(220, 38, 38, 0.5) 50%, transparent 100%);border:4px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:ribbleton-portal-pulse 2s ease-in-out infinite;box-shadow:0 0 30px rgba(220,38,38,0.7)">
-    <div style="font-size:3rem;animation:ribbleton-portal-glow 2s ease-in-out infinite">🔴</div>
+  <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:ribbleton-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:ribbleton-portal-spin 2s linear infinite">🌀</div>
   </div>
   <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
 </div>
 
 ${bluePortalUnlocked ? `
-<!-- Blue Portal (Unlocked after Floor 20) -->
+<!-- Blue Portal (Unlocked after Floor 20) - Animated swirling portal -->
 <div onclick="enterBluePortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Return to Floor 20 - Champions Hall">
-  <div style="width:80px;height:80px;background:radial-gradient(circle, rgba(59, 130, 246, 0.95) 0%, rgba(59, 130, 246, 0.5) 50%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px rgba(59,130,246,0.7)">
-    <div style="font-size:2rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8))">🔵</div>
+  <div style="width:90px;height:90px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem;animation:ribbleton-portal-spin 2.5s linear infinite">🌀</div>
   </div>
   <p style="margin-top:0.25rem;font-size:0.85rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.2rem 0.5rem;border-radius:4px;border:2px solid #3b82f6">🏆 Champions</p>
 </div>
