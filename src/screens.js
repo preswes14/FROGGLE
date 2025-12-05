@@ -804,14 +804,14 @@ showSimpleVictoryScreen();
 
 function showFirstVictoryCutscene() {
 const slides = [
-{text: "19 grueling floors later, your heroes finally find him - Tapo the Tadpole, happily playing with a collection of strange glowing figurines!"},
-{text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
-{text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
-{text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's POW (+1) or HP (+5). With Tapo safely in the hero's arms, the heroes step back through the portal..."},
-{text: "The portal deposits them back in Ribbleton's square. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
-{text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
-{text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a new portal that has emerged in the room, crackling with black and green arcane energy."},
-{text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.5em;font-weight:bold'>Here we go again!</span>"}
+{bg: 'assets/victory-room.png', text: "19 grueling floors later, your heroes finally find him - <strong style='color:#22c55e'>Tapo the Tadpole</strong>, happily playing with a collection of strange glowing figurines!"},
+{bg: 'assets/victory-room.png', text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
+{bg: 'assets/victory-room.png', text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
+{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's <strong style='color:#ef4444'>POW (+1)</strong> or <strong style='color:#22c55e'>HP (+5)</strong>. With Tapo safely in the hero's arms, the heroes step back through the portal..."},
+{bg: 'assets/ribbleton.png', text: "The portal deposits them back in <strong style='color:#22c55e'>Ribbleton's square</strong>. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
+{bg: 'assets/ribbleton.png', text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
+{bg: 'assets/victory-room.png', text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a <strong style='color:#9333ea'>new portal</strong> that has emerged in the room, crackling with black and green arcane energy."},
+{bg: 'assets/victory-room.png', text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.3em;font-weight:bold;color:#9333ea'>Here we go again!</span>"}
 ];
 
 // Custom slide handler for statue slotting

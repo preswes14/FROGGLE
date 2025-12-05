@@ -113,7 +113,8 @@ run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
 pedestal_first_placement: false,
-tapo_victory_message: false
+tapo_victory_message: false,
+auto_target_intro: false
 },
 usedDeathQuotes: [], // Track which death quotes have been shown
 

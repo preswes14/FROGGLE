@@ -401,6 +401,8 @@ input.click();
 }
 
 // ===== NARRATIVE SLIDE SYSTEM =====
+// Slides can have: text, html, bg (background image), buttonText
+// If slide has 'bg' property, renders in full-art mode
 function showNarrativeSlide(slides, currentIndex = 0) {
 debugLog('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
 if(currentIndex >= slides.length) {
@@ -414,8 +416,30 @@ const slide = slides[currentIndex];
 debugLog('[FROGGLE] Rendering slide', currentIndex);
 const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.6rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:0.9rem">Skip</button>` : '';
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
+
+// Full-art mode: background image takes up screen, text in bottom bar
+if(slide.bg) {
+v.innerHTML = `
+<div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
+<!-- Full-page background image -->
+<img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
+
+<!-- Text bar at bottom with gradient fade -->
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);padding:1.5rem 1rem 1rem 1rem">
+<div style="max-width:700px;margin:0 auto">
+${slide.html || `<div style="font-size:1.15rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.8)">${slide.text}</div>`}
+<div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+<button class="btn" onclick="continueNarrative()" style="padding:0.6rem 2rem;font-size:1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+${skipButton}
+</div>
+<div style="text-align:center;margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+</div>
+</div>
+</div>`;
+} else {
+// Standard mode: centered content (for slides with custom HTML or no background)
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:1rem">
 ${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
@@ -425,6 +449,7 @@ ${skipButton}
 </div>
 <div style="text-align:center;margin-top:1rem;font-size:0.85rem;opacity:0.6">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>`;
+}
 
 window.currentNarrativeSlides = slides;
 window.currentNarrativeIndex = currentIndex;
@@ -504,45 +529,14 @@ function showTutorialStory() {
 debugLog('[FROGGLE] showTutorialStory START');
 const slides = [
 {
-html: `
-<div style="text-align:center">
-<h2 style="font-size:2.2rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
-<img src="assets/ribbleton.png" style="max-width:90%;height:auto;max-height:200px;object-fit:cover;border-radius:8px;border:3px solid #22c55e;margin:0.5rem 0">
-<p style="font-size:1.3rem;line-height:1.8;margin:1rem 0">
-Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
-Today is a very special day!!<br><br>
-Why, you ask?
-</p>
-</div>
-`
+// Full-art: Ribbleton background with text overlay
+bg: 'assets/ribbleton.png',
+text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">Ribbleton</strong>.<br><br>Today is a very special day!! Why, you ask?`
 },
 {
-html: `
-<div style="text-align:center">
-<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Tapo's First Birthday!</h2>
-<div style="margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:280px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
-</div>
-<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
-Today is Tapo's First birthday!
-</p>
-</div>
-<style>
-@keyframes tapoBounce {
-0% { transform: translateY(0) scaleX(1); }
-10% { transform: translateY(-20px) scaleX(1); }
-15% { transform: translateY(-10px) scaleX(1); }
-20% { transform: translateY(-25px) scaleX(1); }
-30% { transform: translateY(0) scaleX(1); }
-50% { transform: translateY(0) scaleX(-1); }
-60% { transform: translateY(-20px) scaleX(-1); }
-65% { transform: translateY(-10px) scaleX(-1); }
-70% { transform: translateY(-25px) scaleX(-1); }
-80% { transform: translateY(0) scaleX(-1); }
-100% { transform: translateY(0) scaleX(1); }
-}
-</style>
-`
+// Full-art: Tapo with birthday vibes
+bg: 'assets/ribbleton-tadpole.png',
+text: `Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂<br><br>The whole town is celebrating the little tadpole's special day!`
 },
 {
 html: `
@@ -869,11 +863,11 @@ combat(0);
 
 
 function finishRibbletonTutorial() {
-// Post-combat narrative
+// Post-combat narrative with full-art backgrounds
 const slides = [
-{text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. Close call! At least Tapo is safe.... wait..."},
-{text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. No, Tapo, don't go in there!!"},
-{text: "But it is too late - the portal flares with dark energy. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
+{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe.... wait..."},
+{bg: 'assets/ribbleton-tadpole.png', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>"},
+{bg: 'assets/ribbleton.png', text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);

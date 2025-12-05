@@ -1092,6 +1092,7 @@ const GamepadController = {
   },
 
   // Auto target: automatically select targets using AI logic (SELECT button)
+  // Press once to auto-select, press again to confirm
   autoTarget() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
@@ -1101,6 +1102,21 @@ const GamepadController = {
     if (typeof S === 'undefined' || !S.pending) {
       toast('No action selected - choose a sigil first!', 1500);
       return;
+    }
+
+    // If targets are already selected, confirm them on second press
+    if (S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+      if (typeof confirmTargets === 'function') {
+        confirmTargets();
+      }
+      return;
+    }
+
+    // Show first-time tutorial
+    if (typeof showTutorialPop === 'function' && typeof S !== 'undefined' && !S.tutorialFlags.auto_target_intro) {
+      S.tutorialFlags.auto_target_intro = true;
+      if (typeof savePermanent === 'function') savePermanent();
+      toast('Press SELECT again to confirm, or Ⓑ to cancel', 2500);
     }
 
     const pending = S.pending;
