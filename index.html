@@ -1886,7 +1886,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.06';
+const GAME_VERSION = '11.07';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -7769,8 +7769,9 @@ const slides = [
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Welcome to Ribbleton</h2>
-<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
+<h2 style="font-size:2.2rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
+<img src="assets/ribbleton.png" style="max-width:90%;height:auto;max-height:200px;object-fit:cover;border-radius:8px;border:3px solid #22c55e;margin:0.5rem 0">
+<p style="font-size:1.3rem;line-height:1.8;margin:1rem 0">
 Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
 Today is a very special day!!<br><br>
 Why, you ask?
@@ -7870,7 +7871,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage has two sigils: Attack deals damage, and Expand lets him target +1 enemy! Click Attack and try hitting multiple flies!", () => {
+showTutorialPop('tapo_first_attack', "Mage has two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
 render();
 });
@@ -7982,7 +7983,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-Wave after wave of foes spills out of the portal. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
+Strange, hostile creatures spill out of the portal. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -11253,56 +11254,55 @@ const bluePortalUnlocked = S.hasReachedFloor20;
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
 if(isFirstVisit && !S.helpTipsDisabled) {
   setTimeout(() => {
-    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing portal whenever you're ready to begin your next rescue mission!", () => {
+    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal on the right to begin your next rescue mission and save Tapo!", () => {
       // Tutorial dismissed, player can now explore
     });
   }, 500);
 }
 
 let html = `
-<div style="position:relative;max-width:1000px;margin:0 auto;padding:1rem">
-<h1 style="text-align:center;margin-bottom:1rem;font-size:2rem;color:#22c55e;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
+<div style="position:relative;max-width:1000px;margin:0 auto;padding:0.5rem">
+<h1 style="text-align:center;margin-bottom:0.5rem;font-size:1.8rem;color:#22c55e;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
 🐸 Welcome Home to Ribbleton! 🐸
 </h1>
 
-<div style="position:relative;width:100%;margin:0 auto">
-<img src="assets/ribbleton.png" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
+<div style="display:flex;gap:1rem;align-items:stretch">
+<!-- Ribbleton Image - Left side -->
+<div style="flex:1;position:relative">
+<img src="assets/ribbleton.png" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;border:3px solid #000">
+</div>
 
-<!-- Red Portal (Always Available) - Left side of town square -->
-<div onclick="enterRedPortal()" style="position:absolute;left:15%;top:40%;width:15%;height:25%;cursor:pointer;border-radius:50%"
-     title="Enter the Red Portal - Begin a new adventure!">
-  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(220, 38, 38, 0.7) 0%, rgba(220, 38, 38, 0.3) 50%, transparent 100%);border:3px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:portalPulse 2s ease-in-out infinite">
-    <div style="font-size:3rem;animation:portalGlow 2s ease-in-out infinite">🔴</div>
+<!-- Portal Area - Right side -->
+<div style="flex:0 0 180px;display:flex;flex-direction:column;gap:0.75rem;justify-content:center">
+<!-- Red Portal (Always Available) -->
+<div onclick="enterRedPortal()" style="cursor:pointer;border-radius:12px;transition:transform 0.2s;padding:0.75rem;background:rgba(220,38,38,0.15);border:3px solid #dc2626"
+     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+     title="Click to begin your adventure and save Tapo!">
+  <div style="width:80px;height:80px;margin:0 auto;background:radial-gradient(circle, rgba(220, 38, 38, 0.9) 0%, rgba(220, 38, 38, 0.4) 60%, transparent 100%);border:3px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:portalPulse 2s ease-in-out infinite">
+    <div style="font-size:2.5rem;animation:portalGlow 2s ease-in-out infinite">🔴</div>
   </div>
+  <p style="text-align:center;margin-top:0.5rem;font-size:0.9rem;font-weight:bold;color:#dc2626">🐸 Save Tapo!</p>
 </div>
 
 ${bluePortalUnlocked ? `
-<!-- Blue Portal (Unlocked after Floor 20) - Right side of town square -->
-<div onclick="enterBluePortal()" style="position:absolute;right:15%;top:40%;width:15%;height:25%;cursor:pointer;border-radius:50%;transition:transform 0.2s"
-     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
-     title="Enter the Blue Portal - Return to Floor 20!">
-  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(59, 130, 246, 0.7) 0%, rgba(59, 130, 246, 0.3) 50%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(59, 130, 246, 0.8)">
-    <div style="font-size:3rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🔵</div>
+<!-- Blue Portal (Unlocked after Floor 20) -->
+<div onclick="enterBluePortal()" style="cursor:pointer;border-radius:12px;transition:transform 0.2s;padding:0.75rem;background:rgba(59,130,246,0.15);border:3px solid #3b82f6"
+     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+     title="Return to Floor 20 - Champions Hall">
+  <div style="width:80px;height:80px;margin:0 auto;background:radial-gradient(circle, rgba(59, 130, 246, 0.9) 0%, rgba(59, 130, 246, 0.4) 60%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(59, 130, 246, 0.6)">
+    <div style="font-size:2.5rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🔵</div>
   </div>
+  <p style="text-align:center;margin-top:0.5rem;font-size:0.9rem;font-weight:bold;color:#3b82f6">🏆 Champions</p>
 </div>
 ` : ''}
-</div>
-
-<div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(255,255,255,0.9);border:3px solid #22c55e;border-radius:8px;max-width:600px;margin-left:auto;margin-right:auto">
-  <p style="font-size:1.1rem;margin-bottom:0.5rem"><strong>🔴 Adventure Portal:</strong> Save Tapo!</p>
-  ${bluePortalUnlocked ?
-    `<p style="font-size:1.1rem;margin:0"><strong>🔵 Path to Statue Room:</strong> Visit the Champions Hall</p>` :
-    ``
-  }
-</div>
 
 ${S.pondHistory && S.pondHistory.length > 0 ? `
-<div style="text-align:center;margin-top:0.75rem">
-<button class="btn" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;padding:0.5rem 1rem;font-size:0.9rem">
+<button class="btn small" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;font-size:0.85rem">
 🪷 The Pond
 </button>
-</div>
 ` : ''}
+</div>
+</div>
 </div>`;
 
 v.innerHTML = html;

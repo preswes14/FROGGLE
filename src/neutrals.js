@@ -506,8 +506,9 @@ const slides = [
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Welcome to Ribbleton</h2>
-<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
+<h2 style="font-size:2.2rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
+<img src="assets/ribbleton.png" style="max-width:90%;height:auto;max-height:200px;object-fit:cover;border-radius:8px;border:3px solid #22c55e;margin:0.5rem 0">
+<p style="font-size:1.3rem;line-height:1.8;margin:1rem 0">
 Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
 Today is a very special day!!<br><br>
 Why, you ask?
@@ -607,7 +608,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage has two sigils: Attack deals damage, and Expand lets him target +1 enemy! Click Attack and try hitting multiple flies!", () => {
+showTutorialPop('tapo_first_attack', "Mage has two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
 render();
 });
@@ -719,7 +720,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-Wave after wave of foes spills out of the portal. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
+Strange, hostile creatures spill out of the portal. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
