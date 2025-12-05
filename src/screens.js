@@ -548,6 +548,16 @@ const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
 
 let html = `
+<style>
+@keyframes champions-portal-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@keyframes champions-portal-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+</style>
 <div style="position:relative;max-width:800px;margin:0 auto">
 <h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
 🏆 The Flydra's Conquerors 🏆
@@ -562,12 +572,12 @@ let html = `
 <!-- Clickable left portal (blue portal - leads to Standard mode) -->
 <div onclick="enterPortal('Standard')" style="position:absolute;left:5%;top:20%;width:20%;height:60%;cursor:pointer" title="${S.gameMode === 'Standard' ? 'Current Mode' : 'Enter Standard Realm'}"></div>
 
-<!-- Clickable right portal (green portal - leads to FU mode) -->
-<div onclick="enterPortal('fu')" style="position:absolute;right:5%;top:20%;width:20%;height:60%;cursor:pointer;transition:transform 0.2s"
+<!-- Clickable right portal (green portal - leads to FU mode) - Animated swirling portal -->
+<div onclick="enterPortal('fu')" style="position:absolute;right:5%;top:20%;width:20%;height:60%;cursor:pointer;transition:transform 0.2s;display:flex;align-items:center;justify-content:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="${S.gameMode === 'fu' ? 'Current Mode' : 'Enter Frogged Up Realm 🔥'}">
-  <div style="width:100%;height:100%;background:radial-gradient(circle, rgba(34, 197, 94, 0.7) 0%, rgba(16, 185, 129, 0.4) 50%, transparent 100%);border:3px solid #22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px rgba(34, 197, 94, 0.8);animation:portalPulse 2s ease-in-out infinite">
-    <div style="font-size:3rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8))">🟢</div>
+  <div style="width:100px;height:100px;position:relative;border-radius:50%;background:radial-gradient(circle, #22c55e, #064e3b);animation:champions-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #22c55e">
+    <div style="position:absolute;top:50%;left:50%;font-size:3.5rem;animation:champions-portal-spin 2s linear infinite">🌀</div>
   </div>
 </div>
 </div>
