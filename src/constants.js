@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.09';
+const GAME_VERSION = '11.10';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -402,11 +402,19 @@ else html += `${h.n}'s Turn`;
 }
 html += '</div>';
 
-// Add confirm/cancel button bar when we have targets selected
+// Add action bar when we have targets selected - simplified for controller flow
 if(S.turn === 'player' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
-html += '<div class="target-action-bar" style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.5rem">';
-html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm</button>`;
-html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
+const targetCount = S.currentInstanceTargets.length;
+const targetNames = S.currentInstanceTargets.map(t => {
+const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
+return unit ? unit.n : 'target';
+}).join(', ');
+html += '<div class="target-action-bar" style="display:flex;flex-direction:column;gap:0.25rem;align-items:center;margin-top:0.5rem">';
+html += `<div style="font-size:0.85rem;opacity:0.9">Target${targetCount > 1 ? 's' : ''}: <strong>${targetNames}</strong></div>`;
+html += '<div style="display:flex;gap:0.5rem">';
+html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
+html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
+html += '</div>';
 html += '</div>';
 }
 

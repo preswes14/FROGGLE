@@ -804,14 +804,14 @@ showSimpleVictoryScreen();
 
 function showFirstVictoryCutscene() {
 const slides = [
-{text: "19 grueling floors later, your heroes finally find him - Tapo the Tadpole, happily playing with a collection of strange glowing figurines!"},
-{text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
-{text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
-{text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's POW (+1) or HP (+5). With Tapo safely in the hero's arms, the heroes step back through the portal..."},
-{text: "The portal deposits them back in Ribbleton's square. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
-{text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
-{text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a new portal that has emerged in the room, crackling with black and green arcane energy."},
-{text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.5em;font-weight:bold'>Here we go again!</span>"}
+{bg: 'assets/victory-room.png', text: "19 grueling floors later, your heroes finally find him - <strong style='color:#22c55e'>Tapo the Tadpole</strong>, happily playing with a collection of strange glowing figurines!"},
+{bg: 'assets/victory-room.png', text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
+{bg: 'assets/victory-room.png', text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
+{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's <strong style='color:#ef4444'>POW (+1)</strong> or <strong style='color:#22c55e'>HP (+5)</strong>. With Tapo safely in the hero's arms, the heroes step back through the portal..."},
+{bg: 'assets/ribbleton.png', text: "The portal deposits them back in <strong style='color:#22c55e'>Ribbleton's square</strong>. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
+{bg: 'assets/ribbleton.png', text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
+{bg: 'assets/victory-room.png', text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a <strong style='color:#9333ea'>new portal</strong> that has emerged in the room, crackling with black and green arcane energy."},
+{bg: 'assets/victory-room.png', text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.3em;font-weight:bold;color:#9333ea'>Here we go again!</span>"}
 ];
 
 // Custom slide handler for statue slotting
@@ -1056,47 +1056,57 @@ if(isFirstVisit && !S.helpTipsDisabled) {
 }
 
 let html = `
-<div style="position:relative;max-width:1000px;margin:0 auto;padding:0.5rem">
-<h1 style="text-align:center;margin-bottom:0.5rem;font-size:1.8rem;color:#22c55e;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
+<style>
+@keyframes ribbleton-portal-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(220,38,38,0.6); }
+  50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(220,38,38,0.9); }
+}
+@keyframes ribbleton-portal-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(220,38,38,0.8)); }
+  50% { filter: drop-shadow(0 0 16px rgba(220,38,38,1)); }
+}
+</style>
+<div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
+<!-- Full-page background image -->
+<img src="assets/ribbleton.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
+
+<!-- Title overlay at top -->
+<div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:1rem;background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, transparent 100%)">
+<h1 style="text-align:center;margin:0;font-size:2rem;color:#22c55e;text-shadow:2px 2px 6px rgba(0,0,0,0.9), 0 0 20px rgba(34,197,94,0.5)">
 🐸 Welcome Home to Ribbleton! 🐸
 </h1>
-
-<div style="display:flex;gap:1rem;align-items:stretch">
-<!-- Ribbleton Image - Left side -->
-<div style="flex:1;position:relative">
-<img src="assets/ribbleton.png" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;border:3px solid #000">
 </div>
 
-<!-- Portal Area - Right side -->
-<div style="flex:0 0 180px;display:flex;flex-direction:column;gap:0.75rem;justify-content:center">
+<!-- Portal area in bottom-right corner -->
+<div style="position:absolute;bottom:1rem;right:1rem;z-index:10;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end">
+
 <!-- Red Portal (Always Available) -->
-<div onclick="enterRedPortal()" style="cursor:pointer;border-radius:12px;transition:transform 0.2s;padding:0.75rem;background:rgba(220,38,38,0.15);border:3px solid #dc2626"
-     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+<div onclick="enterRedPortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Click to begin your adventure and save Tapo!">
-  <div style="width:80px;height:80px;margin:0 auto;background:radial-gradient(circle, rgba(220, 38, 38, 0.9) 0%, rgba(220, 38, 38, 0.4) 60%, transparent 100%);border:3px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:portalPulse 2s ease-in-out infinite">
-    <div style="font-size:2.5rem;animation:portalGlow 2s ease-in-out infinite">🔴</div>
+  <div style="width:100px;height:100px;background:radial-gradient(circle, rgba(220, 38, 38, 0.95) 0%, rgba(220, 38, 38, 0.5) 50%, transparent 100%);border:4px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:ribbleton-portal-pulse 2s ease-in-out infinite;box-shadow:0 0 30px rgba(220,38,38,0.7)">
+    <div style="font-size:3rem;animation:ribbleton-portal-glow 2s ease-in-out infinite">🔴</div>
   </div>
-  <p style="text-align:center;margin-top:0.5rem;font-size:0.9rem;font-weight:bold;color:#dc2626">🐸 Save Tapo!</p>
+  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
 </div>
 
 ${bluePortalUnlocked ? `
 <!-- Blue Portal (Unlocked after Floor 20) -->
-<div onclick="enterBluePortal()" style="cursor:pointer;border-radius:12px;transition:transform 0.2s;padding:0.75rem;background:rgba(59,130,246,0.15);border:3px solid #3b82f6"
-     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+<div onclick="enterBluePortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Return to Floor 20 - Champions Hall">
-  <div style="width:80px;height:80px;margin:0 auto;background:radial-gradient(circle, rgba(59, 130, 246, 0.9) 0%, rgba(59, 130, 246, 0.4) 60%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(59, 130, 246, 0.6)">
-    <div style="font-size:2.5rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🔵</div>
+  <div style="width:80px;height:80px;background:radial-gradient(circle, rgba(59, 130, 246, 0.95) 0%, rgba(59, 130, 246, 0.5) 50%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px rgba(59,130,246,0.7)">
+    <div style="font-size:2rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8))">🔵</div>
   </div>
-  <p style="text-align:center;margin-top:0.5rem;font-size:0.9rem;font-weight:bold;color:#3b82f6">🏆 Champions</p>
+  <p style="margin-top:0.25rem;font-size:0.85rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.2rem 0.5rem;border-radius:4px;border:2px solid #3b82f6">🏆 Champions</p>
 </div>
 ` : ''}
 
 ${S.pondHistory && S.pondHistory.length > 0 ? `
-<button class="btn small" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;font-size:0.85rem">
+<button class="btn small" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.9),rgba(59,130,246,0.8));border:2px solid #60a5fa;font-size:0.9rem;padding:0.5rem 1rem;box-shadow:0 4px 12px rgba(0,0,0,0.5)">
 🪷 The Pond
 </button>
 ` : ''}
-</div>
 </div>
 </div>`;
 

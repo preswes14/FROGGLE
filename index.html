@@ -1886,7 +1886,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.09';
+const GAME_VERSION = '11.10';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2289,11 +2289,19 @@ else html += `${h.n}'s Turn`;
 }
 html += '</div>';
 
-// Add confirm/cancel button bar when we have targets selected
+// Add action bar when we have targets selected - simplified for controller flow
 if(S.turn === 'player' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
-html += '<div class="target-action-bar" style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.5rem">';
-html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm</button>`;
-html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
+const targetCount = S.currentInstanceTargets.length;
+const targetNames = S.currentInstanceTargets.map(t => {
+const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
+return unit ? unit.n : 'target';
+}).join(', ');
+html += '<div class="target-action-bar" style="display:flex;flex-direction:column;gap:0.25rem;align-items:center;margin-top:0.5rem">';
+html += `<div style="font-size:0.85rem;opacity:0.9">Target${targetCount > 1 ? 's' : ''}: <strong>${targetNames}</strong></div>`;
+html += '<div style="display:flex;gap:0.5rem">';
+html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
+html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
+html += '</div>';
 html += '</div>';
 }
 
@@ -3278,7 +3286,8 @@ run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
 pedestal_first_placement: false,
-tapo_victory_message: false
+tapo_victory_message: false,
+auto_target_intro: false
 },
 usedDeathQuotes: [], // Track which death quotes have been shown
 
@@ -7664,6 +7673,8 @@ input.click();
 }
 
 // ===== NARRATIVE SLIDE SYSTEM =====
+// Slides can have: text, html, bg (background image), buttonText
+// If slide has 'bg' property, renders in full-art mode
 function showNarrativeSlide(slides, currentIndex = 0) {
 debugLog('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 'total slides:', slides.length);
 if(currentIndex >= slides.length) {
@@ -7677,8 +7688,30 @@ const slide = slides[currentIndex];
 debugLog('[FROGGLE] Rendering slide', currentIndex);
 const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 2rem;background:#888;margin-left:1rem">Skip Tutorial</button>` : '';
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.6rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:0.9rem">Skip</button>` : '';
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
+
+// Full-art mode: background image takes up screen, text in bottom bar
+if(slide.bg) {
+v.innerHTML = `
+<div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
+<!-- Full-page background image -->
+<img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
+
+<!-- Text bar at bottom with gradient fade -->
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);padding:1.5rem 1rem 1rem 1rem">
+<div style="max-width:700px;margin:0 auto">
+${slide.html || `<div style="font-size:1.15rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.8)">${slide.text}</div>`}
+<div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+<button class="btn" onclick="continueNarrative()" style="padding:0.6rem 2rem;font-size:1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+${skipButton}
+</div>
+<div style="text-align:center;margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+</div>
+</div>
+</div>`;
+} else {
+// Standard mode: centered content (for slides with custom HTML or no background)
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:1rem">
 ${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
@@ -7688,6 +7721,7 @@ ${skipButton}
 </div>
 <div style="text-align:center;margin-top:1rem;font-size:0.85rem;opacity:0.6">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>`;
+}
 
 window.currentNarrativeSlides = slides;
 window.currentNarrativeIndex = currentIndex;
@@ -7767,45 +7801,14 @@ function showTutorialStory() {
 debugLog('[FROGGLE] showTutorialStory START');
 const slides = [
 {
-html: `
-<div style="text-align:center">
-<h2 style="font-size:2.2rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
-<img src="assets/ribbleton.png" style="max-width:90%;height:auto;max-height:200px;object-fit:cover;border-radius:8px;border:3px solid #22c55e;margin:0.5rem 0">
-<p style="font-size:1.3rem;line-height:1.8;margin:1rem 0">
-Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
-Today is a very special day!!<br><br>
-Why, you ask?
-</p>
-</div>
-`
+// Full-art: Ribbleton background with text overlay
+bg: 'assets/ribbleton.png',
+text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">Ribbleton</strong>.<br><br>Today is a very special day!! Why, you ask?`
 },
 {
-html: `
-<div style="text-align:center">
-<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Tapo's First Birthday!</h2>
-<div style="margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:280px;height:auto;animation:tapoBounce 3s ease-in-out infinite">
-</div>
-<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
-Today is Tapo's First birthday!
-</p>
-</div>
-<style>
-@keyframes tapoBounce {
-0% { transform: translateY(0) scaleX(1); }
-10% { transform: translateY(-20px) scaleX(1); }
-15% { transform: translateY(-10px) scaleX(1); }
-20% { transform: translateY(-25px) scaleX(1); }
-30% { transform: translateY(0) scaleX(1); }
-50% { transform: translateY(0) scaleX(-1); }
-60% { transform: translateY(-20px) scaleX(-1); }
-65% { transform: translateY(-10px) scaleX(-1); }
-70% { transform: translateY(-25px) scaleX(-1); }
-80% { transform: translateY(0) scaleX(-1); }
-100% { transform: translateY(0) scaleX(1); }
-}
-</style>
-`
+// Full-art: Tapo with birthday vibes
+bg: 'assets/ribbleton-tadpole.png',
+text: `Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂<br><br>The whole town is celebrating the little tadpole's special day!`
 },
 {
 html: `
@@ -8132,11 +8135,11 @@ combat(0);
 
 
 function finishRibbletonTutorial() {
-// Post-combat narrative
+// Post-combat narrative with full-art backgrounds
 const slides = [
-{text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. Close call! At least Tapo is safe.... wait..."},
-{text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. No, Tapo, don't go in there!!"},
-{text: "But it is too late - the portal flares with dark energy. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
+{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe.... wait..."},
+{bg: 'assets/ribbleton-tadpole.png', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>"},
+{bg: 'assets/ribbleton.png', text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -8279,18 +8282,18 @@ const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-const desc = getLevelDescription(s, 1) || s;
-return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block;cursor:help" title="${s}: ${desc}" onmouseenter="showSigilTooltip(event,'${s}',1)" onmouseleave="hideSigilTooltip()">${sigilIconOnly(s)}</span>`;
+return `<span class="sigil l1 ${passiveClass}" style="font-size:0.7rem;padding:3px 5px;margin:1px;display:inline-block" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
 cardEl.innerHTML = `
 <div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
-<div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
+<div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
-<div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
-<div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
-<div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
+<div style="font-size:0.7rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
+<div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
+<div style="font-size:0.65rem;color:#22c55e;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
+<div style="font-size:0.55rem;opacity:0.7;margin-top:0.15rem">✓ SELECTED</div>
 </div>
 </div>`;
 cardEl.style.display = 'block';
@@ -11009,14 +11012,14 @@ showSimpleVictoryScreen();
 
 function showFirstVictoryCutscene() {
 const slides = [
-{text: "19 grueling floors later, your heroes finally find him - Tapo the Tadpole, happily playing with a collection of strange glowing figurines!"},
-{text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
-{text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
-{text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's POW (+1) or HP (+5). With Tapo safely in the hero's arms, the heroes step back through the portal..."},
-{text: "The portal deposits them back in Ribbleton's square. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
-{text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
-{text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a new portal that has emerged in the room, crackling with black and green arcane energy."},
-{text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.5em;font-weight:bold'>Here we go again!</span>"}
+{bg: 'assets/victory-room.png', text: "19 grueling floors later, your heroes finally find him - <strong style='color:#22c55e'>Tapo the Tadpole</strong>, happily playing with a collection of strange glowing figurines!"},
+{bg: 'assets/victory-room.png', text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
+{bg: 'assets/victory-room.png', text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
+{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's <strong style='color:#ef4444'>POW (+1)</strong> or <strong style='color:#22c55e'>HP (+5)</strong>. With Tapo safely in the hero's arms, the heroes step back through the portal..."},
+{bg: 'assets/ribbleton.png', text: "The portal deposits them back in <strong style='color:#22c55e'>Ribbleton's square</strong>. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
+{bg: 'assets/ribbleton.png', text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
+{bg: 'assets/victory-room.png', text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a <strong style='color:#9333ea'>new portal</strong> that has emerged in the room, crackling with black and green arcane energy."},
+{bg: 'assets/victory-room.png', text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.3em;font-weight:bold;color:#9333ea'>Here we go again!</span>"}
 ];
 
 // Custom slide handler for statue slotting
@@ -11261,47 +11264,57 @@ if(isFirstVisit && !S.helpTipsDisabled) {
 }
 
 let html = `
-<div style="position:relative;max-width:1000px;margin:0 auto;padding:0.5rem">
-<h1 style="text-align:center;margin-bottom:0.5rem;font-size:1.8rem;color:#22c55e;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
+<style>
+@keyframes ribbleton-portal-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(220,38,38,0.6); }
+  50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(220,38,38,0.9); }
+}
+@keyframes ribbleton-portal-glow {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(220,38,38,0.8)); }
+  50% { filter: drop-shadow(0 0 16px rgba(220,38,38,1)); }
+}
+</style>
+<div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
+<!-- Full-page background image -->
+<img src="assets/ribbleton.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
+
+<!-- Title overlay at top -->
+<div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:1rem;background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, transparent 100%)">
+<h1 style="text-align:center;margin:0;font-size:2rem;color:#22c55e;text-shadow:2px 2px 6px rgba(0,0,0,0.9), 0 0 20px rgba(34,197,94,0.5)">
 🐸 Welcome Home to Ribbleton! 🐸
 </h1>
-
-<div style="display:flex;gap:1rem;align-items:stretch">
-<!-- Ribbleton Image - Left side -->
-<div style="flex:1;position:relative">
-<img src="assets/ribbleton.png" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:8px;border:3px solid #000">
 </div>
 
-<!-- Portal Area - Right side -->
-<div style="flex:0 0 180px;display:flex;flex-direction:column;gap:0.75rem;justify-content:center">
+<!-- Portal area in bottom-right corner -->
+<div style="position:absolute;bottom:1rem;right:1rem;z-index:10;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end">
+
 <!-- Red Portal (Always Available) -->
-<div onclick="enterRedPortal()" style="cursor:pointer;border-radius:12px;transition:transform 0.2s;padding:0.75rem;background:rgba(220,38,38,0.15);border:3px solid #dc2626"
-     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+<div onclick="enterRedPortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Click to begin your adventure and save Tapo!">
-  <div style="width:80px;height:80px;margin:0 auto;background:radial-gradient(circle, rgba(220, 38, 38, 0.9) 0%, rgba(220, 38, 38, 0.4) 60%, transparent 100%);border:3px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:portalPulse 2s ease-in-out infinite">
-    <div style="font-size:2.5rem;animation:portalGlow 2s ease-in-out infinite">🔴</div>
+  <div style="width:100px;height:100px;background:radial-gradient(circle, rgba(220, 38, 38, 0.95) 0%, rgba(220, 38, 38, 0.5) 50%, transparent 100%);border:4px solid #dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:ribbleton-portal-pulse 2s ease-in-out infinite;box-shadow:0 0 30px rgba(220,38,38,0.7)">
+    <div style="font-size:3rem;animation:ribbleton-portal-glow 2s ease-in-out infinite">🔴</div>
   </div>
-  <p style="text-align:center;margin-top:0.5rem;font-size:0.9rem;font-weight:bold;color:#dc2626">🐸 Save Tapo!</p>
+  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
 </div>
 
 ${bluePortalUnlocked ? `
 <!-- Blue Portal (Unlocked after Floor 20) -->
-<div onclick="enterBluePortal()" style="cursor:pointer;border-radius:12px;transition:transform 0.2s;padding:0.75rem;background:rgba(59,130,246,0.15);border:3px solid #3b82f6"
-     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+<div onclick="enterBluePortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Return to Floor 20 - Champions Hall">
-  <div style="width:80px;height:80px;margin:0 auto;background:radial-gradient(circle, rgba(59, 130, 246, 0.9) 0%, rgba(59, 130, 246, 0.4) 60%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 15px rgba(59, 130, 246, 0.6)">
-    <div style="font-size:2.5rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🔵</div>
+  <div style="width:80px;height:80px;background:radial-gradient(circle, rgba(59, 130, 246, 0.95) 0%, rgba(59, 130, 246, 0.5) 50%, transparent 100%);border:3px solid #3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 25px rgba(59,130,246,0.7)">
+    <div style="font-size:2rem;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.8))">🔵</div>
   </div>
-  <p style="text-align:center;margin-top:0.5rem;font-size:0.9rem;font-weight:bold;color:#3b82f6">🏆 Champions</p>
+  <p style="margin-top:0.25rem;font-size:0.85rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.2rem 0.5rem;border-radius:4px;border:2px solid #3b82f6">🏆 Champions</p>
 </div>
 ` : ''}
 
 ${S.pondHistory && S.pondHistory.length > 0 ? `
-<button class="btn small" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.8),rgba(59,130,246,0.6));border:2px solid #60a5fa;font-size:0.85rem">
+<button class="btn small" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.9),rgba(59,130,246,0.8));border:2px solid #60a5fa;font-size:0.9rem;padding:0.5rem 1rem;box-shadow:0 4px 12px rgba(0,0,0,0.5)">
 🪷 The Pond
 </button>
 ` : ''}
-</div>
 </div>
 </div>`;
 
@@ -11479,6 +11492,7 @@ ${inGame ? `
 <span>🎮 Controller Support</span>
 </label>
 <button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
+<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.8rem">🔄 Re-Init Controller</button>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
@@ -11670,6 +11684,16 @@ function toggleControllerSupport(enabled) {
 S.controllerDisabled = !enabled;
 if(enabled) {
 toast('🎮 Controller support enabled! Connect a gamepad to use.', 2000);
+// Restart polling interval if it was stopped
+if(!GamepadController.pollInterval) {
+GamepadController.pollInterval = setInterval(() => GamepadController.poll(), 16);
+console.log('[GAMEPAD] Restarted polling loop after re-enable');
+}
+// Restart gamepad check interval if it was stopped
+if(!GamepadController.gamepadCheckInterval) {
+GamepadController.gamepadCheckInterval = setInterval(() => GamepadController.checkForGamepads(), 500);
+console.log('[GAMEPAD] Restarted gamepad check interval after re-enable');
+}
 // Re-initialize controller if a gamepad is connected
 if(navigator.getGamepads) {
 const gamepads = navigator.getGamepads();
@@ -11689,8 +11713,52 @@ if(GamepadController.pollInterval) {
 clearInterval(GamepadController.pollInterval);
 GamepadController.pollInterval = null;
 }
+if(GamepadController.gamepadCheckInterval) {
+clearInterval(GamepadController.gamepadCheckInterval);
+GamepadController.gamepadCheckInterval = null;
+}
 }
 savePermanent();
+}
+
+function forceReinitController() {
+console.log('[GAMEPAD] Force re-initializing controller...');
+// Clear any existing state
+S.controllerDisabled = false;
+GamepadController.gamepadIndex = null;
+GamepadController.active = false;
+GamepadController.buttonStates = {};
+// Clear and restart intervals
+if(GamepadController.pollInterval) {
+clearInterval(GamepadController.pollInterval);
+GamepadController.pollInterval = null;
+}
+if(GamepadController.gamepadCheckInterval) {
+clearInterval(GamepadController.gamepadCheckInterval);
+GamepadController.gamepadCheckInterval = null;
+}
+// Start fresh polling
+GamepadController.pollInterval = setInterval(() => GamepadController.poll(), 16);
+GamepadController.gamepadCheckInterval = setInterval(() => GamepadController.checkForGamepads(), 500);
+// Check for connected gamepads
+if(navigator.getGamepads) {
+const gamepads = navigator.getGamepads();
+for(let i = 0; i < gamepads.length; i++) {
+const gp = gamepads[i];
+if(gp) {
+console.log('[GAMEPAD] Found gamepad at index', i, ':', gp.id);
+GamepadController.gamepadIndex = i;
+GamepadController.activateControllerMode();
+toast(`🎮 Controller found: ${gp.id.substring(0,30)}...`, 2500);
+savePermanent();
+closeSettingsMenu();
+return;
+}
+}
+}
+toast('🎮 Controller polling restarted. Press any button on your controller.', 2500);
+savePermanent();
+closeSettingsMenu();
 }
 
 function showControlsGuide() {
@@ -13265,6 +13333,7 @@ const GamepadController = {
   },
 
   // Auto target: automatically select targets using AI logic (SELECT button)
+  // Press once to auto-select, press again to confirm
   autoTarget() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
@@ -13274,6 +13343,21 @@ const GamepadController = {
     if (typeof S === 'undefined' || !S.pending) {
       toast('No action selected - choose a sigil first!', 1500);
       return;
+    }
+
+    // If targets are already selected, confirm them on second press
+    if (S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+      if (typeof confirmTargets === 'function') {
+        confirmTargets();
+      }
+      return;
+    }
+
+    // Show first-time tutorial
+    if (typeof showTutorialPop === 'function' && typeof S !== 'undefined' && !S.tutorialFlags.auto_target_intro) {
+      S.tutorialFlags.auto_target_intro = true;
+      if (typeof savePermanent === 'function') savePermanent();
+      toast('Press SELECT again to confirm, or Ⓑ to cancel', 2500);
     }
 
     const pending = S.pending;
