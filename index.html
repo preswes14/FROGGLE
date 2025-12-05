@@ -1886,7 +1886,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.12';
+const GAME_VERSION = '11.13';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3229,7 +3229,6 @@ wizardSigil: null,        // Sigil being tested at Wizard
 // ===== PERSISTENT STATE (survives death, saved in permanent storage) =====
 ancientStatueDeactivated: false, // Ancient Statue one-time choice made
 ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
-royalTitle: 'Prince',          // Title preference for royal quest line (Prince/Princess)
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
@@ -3857,7 +3856,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
@@ -4025,7 +4024,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -4060,7 +4059,6 @@ return false;
 }
 
 // Update save functions to use current slot
-const originalSavePermanent = savePermanent;
 savePermanent = function() {
 if(!S.currentSlot) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
@@ -4086,7 +4084,9 @@ tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
-controllerDisabled: S.controllerDisabled
+controllerDisabled: S.controllerDisabled,
+animationSpeed: S.animationSpeed,
+pondHistory: S.pondHistory
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -4098,7 +4098,6 @@ toast('Warning: Progress could not be saved', 2000);
 }
 };
 
-const originalSaveGame = saveGame;
 saveGame = function() {
 if(!S.currentSlot) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
@@ -4915,7 +4914,7 @@ enemy.st = 1;
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
-toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
+toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 } else if(action === 'STEAL') {
 const gold = enemy.p;
@@ -5391,7 +5390,7 @@ targetNames.push(e.n);
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
-toast(`${S.royalTitle} Quest completed! Ring retrieved!`, 1800);
+toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 });
 if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
@@ -10015,12 +10014,24 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue to Floor ${S.floor 
 }
 
 // ===== 9. FLUMMOXED ROYAL =====
+// Helper to get random royal title
+function getRandomRoyalTitle() {
+return Math.random() < 0.5 ? 'Prince' : 'Princess';
+}
+
 function showRoyal1() {
+// Generate random titles for each royal (the one asking for help and their beloved)
+const askerTitle = getRandomRoyalTitle();
+const belovedTitle = getRandomRoyalTitle();
+// Store for use in acceptRoyalQuest callback
+S.royalAskerTitle = askerTitle;
+S.royalBelovedTitle = belovedTitle;
+
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
-title: 'Flummoxed Royal',
-description: `A flummoxed ${S.royalTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a stratagem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
+title: 'The Flummoxed Royal',
+description: `A flummoxed ${askerTitle} paces anxiously: "Please, you must help! A creature in the next chamber ate my beloved's engagement ring! But I have cooked up a stratagem to retrieve it! If you can but stun a foe on the first turn of battle, I can search for the ring!"`,
 buttons: `
 <button class="btn" onclick="acceptRoyalQuest()">Accept the quest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -10035,13 +10046,17 @@ S.royalQuestCompleted = false;
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
-outcomes: [`The ${S.royalTitle} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
+outcomes: [`The ${S.royalAskerTitle} looks hopeful: "Thank you! I'll follow you and grab it when you stun the creature!"`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
 
 function showRoyal2() {
 const v = document.getElementById('gameView');
+// Use stored titles from showRoyal1, or generate new ones if not present
+const askerTitle = S.royalAskerTitle || getRandomRoyalTitle();
+const belovedTitle = S.royalBelovedTitle || getRandomRoyalTitle();
+
 // Check if quest was completed
 if(!S.royalQuestCompleted) {
 // Quest failed
@@ -10049,8 +10064,8 @@ S.royalQuestActive = false;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal1.png',
 title: 'Quest Failed',
-description: `The ${S.royalTitle} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
-outcomes: [`The ${S.royalTitle} departs sadly. No reward.`],
+description: `The ${askerTitle} returns, dejected: "The creature fled before I could retrieve the ring. I'll have to find another way..."`,
+outcomes: [`The ${askerTitle} departs sadly. No reward.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
@@ -10083,7 +10098,7 @@ buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil2}')">
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal2.png',
 title: 'Royal Wedding',
-description: `The ${S.royalTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?"`,
+description: `The ${askerTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?" The ${belovedTitle} beside them nods warmly.`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
 buttons
 });
@@ -10827,6 +10842,8 @@ toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Rea
 showChampionsMenu();
 }
 
+// NOTE: Waiting on Champions Hall toggle button image asset from Preston
+// This function will be used for a visual toggle button in the Champions menu
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 showChampionsMenu();
@@ -14102,7 +14119,7 @@ S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
-S.fuUnlocked = j.fuUnlocked || j.effedUnlocked || false; // Support old save format
+S.fuUnlocked = j.fuUnlocked || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;

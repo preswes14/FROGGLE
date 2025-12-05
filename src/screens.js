@@ -606,6 +606,8 @@ toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Rea
 showChampionsMenu();
 }
 
+// NOTE: Waiting on Champions Hall toggle button image asset from Preston
+// This function will be used for a visual toggle button in the Champions menu
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 showChampionsMenu();
