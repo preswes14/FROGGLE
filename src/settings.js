@@ -439,17 +439,22 @@ overlay.innerHTML = `
 <div id="debug-buttons" style="margin-top:5px"></div>
 <div id="debug-axes" style="margin-top:5px"></div>
 <div id="debug-keyboard" style="margin-top:5px;color:#ff0">Last key: none</div>
+<div id="debug-key-count" style="font-size:10px;color:#888">Keys pressed: 0</div>
 <div style="margin-top:8px;font-size:10px;color:#888">Tap here to close</div>
 `;
 overlay.onclick = () => overlay.remove();
 document.body.appendChild(overlay);
 
-// Track keyboard input
+// Track keyboard input - use capture to catch ALL key events
+let keyCount = 0;
 const keyHandler = (e) => {
+keyCount++;
 const keyEl = document.getElementById('debug-keyboard');
-if (keyEl) keyEl.innerHTML = `Last key: <span style="color:#0f0">${e.key}</span> (${e.code})`;
+const countEl = document.getElementById('debug-key-count');
+if (keyEl) keyEl.innerHTML = `Last key: <span style="color:#0f0;font-weight:bold">${e.key}</span> (${e.code})`;
+if (countEl) countEl.innerHTML = `Keys pressed: <span style="color:#0f0">${keyCount}</span>`;
 };
-document.addEventListener('keydown', keyHandler);
+document.addEventListener('keydown', keyHandler, true); // capture phase
 
 // Update loop
 const updateDebug = () => {

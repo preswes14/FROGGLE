@@ -187,20 +187,31 @@ const GamepadController = {
   initKeyboardFallback() {
     console.log('[GAMEPAD] Initializing keyboard fallback...');
 
+    // Use capture phase to catch events before they're stopped
     document.addEventListener('keydown', (e) => {
+      console.log('[KEYBOARD] Key event:', e.key, 'code:', e.code, 'target:', e.target.tagName);
+
       // Skip if controller support is disabled
-      if (typeof S !== 'undefined' && S.controllerDisabled) return;
+      if (typeof S !== 'undefined' && S.controllerDisabled) {
+        console.log('[KEYBOARD] Skipped - controller disabled');
+        return;
+      }
 
       // Skip if typing in an input field
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        console.log('[KEYBOARD] Skipped - input field focused');
+        return;
+      }
 
       // Check for navigation keys
       let handled = false;
+      let action = '';
 
       switch (e.key) {
         case 'ArrowUp':
         case 'w':
         case 'W':
+          action = 'up';
           this.activateControllerMode();
           this.onDirection('up');
           handled = true;
@@ -208,6 +219,7 @@ const GamepadController = {
         case 'ArrowDown':
         case 's':
         case 'S':
+          action = 'down';
           this.activateControllerMode();
           this.onDirection('down');
           handled = true;
@@ -215,6 +227,7 @@ const GamepadController = {
         case 'ArrowLeft':
         case 'a':
         case 'A':
+          action = 'left';
           this.activateControllerMode();
           this.onDirection('left');
           handled = true;
@@ -222,23 +235,27 @@ const GamepadController = {
         case 'ArrowRight':
         case 'd':
         case 'D':
+          action = 'right';
           this.activateControllerMode();
           this.onDirection('right');
           handled = true;
           break;
         case 'Enter':
         case ' ': // Space
+          action = 'confirm';
           this.activateControllerMode();
           this.confirmSelection();
           handled = true;
           break;
         case 'Escape':
         case 'Backspace':
+          action = 'back';
           this.activateControllerMode();
           this.goBack();
           handled = true;
           break;
         case 'Tab':
+          action = 'tab';
           // Tab cycles through focusable elements
           this.activateControllerMode();
           this.updateFocusableElements();
@@ -254,10 +271,11 @@ const GamepadController = {
       }
 
       if (handled) {
+        console.log('[KEYBOARD] Handled action:', action, 'active:', this.active, 'focused:', this.focusedElement?.textContent?.substring(0,20));
         e.preventDefault();
         e.stopPropagation();
       }
-    });
+    }, true); // Use capture phase
 
     console.log('[GAMEPAD] Keyboard fallback initialized (Arrow keys/WASD, Enter/Space, Escape)');
   },
