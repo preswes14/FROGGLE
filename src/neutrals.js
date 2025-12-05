@@ -506,8 +506,9 @@ const slides = [
 {
 html: `
 <div style="text-align:center">
-<h2 style="font-size:2.2rem;margin-bottom:1.5rem;color:#22c55e">Welcome to Ribbleton</h2>
-<p style="font-size:1.4rem;line-height:1.9;margin:1.5rem 0">
+<h2 style="font-size:2.2rem;margin-bottom:1rem;color:#22c55e">Welcome to Ribbleton</h2>
+<img src="assets/ribbleton.png" style="max-width:90%;height:auto;max-height:200px;object-fit:cover;border-radius:8px;border:3px solid #22c55e;margin:0.5rem 0">
+<p style="font-size:1.3rem;line-height:1.8;margin:1rem 0">
 Welcome to the beautiful, tranquil town of <strong>Ribbleton</strong>.<br>
 Today is a very special day!!<br><br>
 Why, you ask?
@@ -607,7 +608,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage has two sigils: Attack deals damage, and Expand lets him target +1 enemy! Click Attack and try hitting multiple flies!", () => {
+showTutorialPop('tapo_first_attack', "Mage has two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
 render();
 });
@@ -719,7 +720,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:550px">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem">
-Wave after wave of foes spills out of the portal. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
+Strange, hostile creatures spill out of the portal. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -996,12 +997,13 @@ toggleHeroSelection(heroType);
 }
 
 function updateHeroCards() {
+// Hero data matches H constant in constants.js
 const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A strong fighter with heavy attacks', callouts: ['Passive bonus: +1 POW', 'Starts with Attack and D20']},
-tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Passive bonus: +5 HP', 'Starts with Shield and D20']},
-mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets', callouts: ['Passive bonus: +1 Expand', 'Starts with Attack, D20, and Expand']},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Passive bonus: +1 Expand', 'Starts with Heal, D20, and Expand']},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!', callouts: ['Starts with ALL 10 sigils', 'Only 1 HP - high risk, high reward!']}
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], bonus: '+1 POW'},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], bonus: 'ALL sigils'}
 };
 
 // Update all card displays
@@ -1014,9 +1016,9 @@ const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
+const desc = getLevelDescription(s, 1) || s;
+return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block;cursor:help" title="${s}: ${desc}" onmouseenter="showSigilTooltip(event,'${s}',1)" onmouseleave="hideSigilTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
-const calloutsHTML = hData.callouts ? hData.callouts.map(c => `<div style="font-size:0.45rem;text-align:left;opacity:0.9;margin:1px 0">• ${c}</div>`).join('') : '';
 cardEl.innerHTML = `
 <div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
@@ -1025,7 +1027,6 @@ onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
 <div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
 <div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
-${calloutsHTML ? `<div style="margin-top:0.25rem;padding:0.25rem;background:rgba(251,191,36,0.1);border-radius:4px">${calloutsHTML}</div>` : ''}
 <div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
 </div>
 </div>`;

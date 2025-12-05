@@ -18,6 +18,8 @@ const GamepadController = {
   lastFocusedId: null, // For focus restoration after render
   lastMouseX: null, // For tracking mouse movement delta
   lastMouseY: null, // For tracking mouse movement delta
+  pollCount: 0, // Debug: count poll cycles
+  lastPollLog: 0, // Debug: timestamp of last poll log
   mouseMovementThreshold: 15, // Minimum pixels to move before switching to mouse mode
 
   // Button indices (standard gamepad mapping)
@@ -42,7 +44,10 @@ const GamepadController = {
 
   // Initialize controller system
   init() {
+    console.log('[GAMEPAD] ========================================');
     console.log('[GAMEPAD] Initializing controller support...');
+    console.log('[GAMEPAD] S defined:', typeof S !== 'undefined');
+    console.log('[GAMEPAD] S.controllerDisabled:', typeof S !== 'undefined' ? S.controllerDisabled : 'N/A');
 
     // Check if controller support is disabled
     if (typeof S !== 'undefined' && S.controllerDisabled) {
@@ -52,6 +57,7 @@ const GamepadController = {
 
     // ALWAYS set up keyboard fallback (works even if gamepad API unavailable)
     this.initKeyboardFallback();
+    console.log('[GAMEPAD] Keyboard fallback initialized');
 
     // Check if gamepad API is available
     if (!navigator.getGamepads) {
@@ -59,23 +65,28 @@ const GamepadController = {
       console.log('[GAMEPAD] Keyboard fallback is active (Arrow keys, Enter, Escape)');
       return;
     }
+    console.log('[GAMEPAD] Gamepad API available');
 
     // Listen for gamepad connections
     window.addEventListener('gamepadconnected', (e) => {
-      console.log('[GAMEPAD] gamepadconnected event fired!');
+      console.log('[GAMEPAD] *** gamepadconnected event fired! ***');
+      console.log('[GAMEPAD] Event gamepad:', e.gamepad);
       this.onGamepadConnected(e);
     });
     window.addEventListener('gamepaddisconnected', (e) => this.onGamepadDisconnected(e));
+    console.log('[GAMEPAD] Event listeners registered');
 
     // Check for already-connected gamepads (Steam Deck may have controller pre-connected)
     const gamepads = navigator.getGamepads();
-    console.log('[GAMEPAD] Checking for pre-connected gamepads:', gamepads.length, 'slots');
+    console.log('[GAMEPAD] Initial gamepad check - slots:', gamepads.length);
+    let foundGamepad = false;
     for (let i = 0; i < gamepads.length; i++) {
       const gp = gamepads[i];
-      if (gp) {
-        console.log('[GAMEPAD] Found pre-connected gamepad at index', i, ':', gp.id);
+      console.log('[GAMEPAD] Slot', i, ':', gp ? `${gp.id} (${gp.buttons.length} buttons, ${gp.axes.length} axes)` : 'empty');
+      if (gp && !foundGamepad) {
+        console.log('[GAMEPAD] *** Found pre-connected gamepad! ***');
         this.onGamepadConnected({ gamepad: gp });
-        break;
+        foundGamepad = true;
       }
     }
 
@@ -83,13 +94,27 @@ const GamepadController = {
     // Steam Deck's gamepad may not fire 'gamepadconnected' event but still be available
     // Poll every 500ms to check for newly available gamepads
     this.gamepadCheckInterval = setInterval(() => this.checkForGamepads(), 500);
-    console.log('[GAMEPAD] Started continuous gamepad check interval');
+    console.log('[GAMEPAD] Started continuous gamepad check interval (500ms)');
 
     // Also start the main polling loop immediately - it will no-op if no gamepad
     if (!this.pollInterval) {
       this.pollInterval = setInterval(() => this.poll(), 16);
-      console.log('[GAMEPAD] Started main polling loop (will activate when gamepad found)');
+      console.log('[GAMEPAD] Started main polling loop (16ms/60fps)');
     }
+
+    // Delayed status check - report state after 3 seconds
+    setTimeout(() => {
+      console.log('[GAMEPAD] ========== STATUS CHECK (3s) ==========');
+      console.log('[GAMEPAD] active:', this.active);
+      console.log('[GAMEPAD] gamepadIndex:', this.gamepadIndex);
+      console.log('[GAMEPAD] pollInterval running:', !!this.pollInterval);
+      console.log('[GAMEPAD] focusableElements:', this.focusableElements.length);
+      const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (let i = 0; i < gps.length; i++) {
+        if (gps[i]) console.log('[GAMEPAD] Active gamepad at', i, ':', gps[i].id);
+      }
+      console.log('[GAMEPAD] =========================================');
+    }, 3000);
 
     // Watch for DOM changes to update focusable elements (screen transitions)
     this.domObserver = new MutationObserver((mutations) => {
@@ -332,6 +357,14 @@ const GamepadController = {
 
   // Main polling loop
   poll() {
+    this.pollCount++;
+    const now = Date.now();
+    // Log every 5 seconds
+    if (now - this.lastPollLog > 5000) {
+      console.log('[GAMEPAD] Poll status - count:', this.pollCount, 'active:', this.active, 'gamepadIndex:', this.gamepadIndex);
+      this.lastPollLog = now;
+    }
+
     // Skip if game is suspended (but still allow button to resume)
     if (typeof S !== 'undefined' && S.suspended) {
       // Check for any button press to resume
@@ -440,12 +473,16 @@ const GamepadController = {
   },
 
   onButtonPress(buttonIndex) {
+    console.log('[GAMEPAD] Button pressed:', buttonIndex, '- Name:', Object.keys(this.BUTTONS).find(k => this.BUTTONS[k] === buttonIndex) || 'unknown');
+
     // Activate controller mode on any button press
     if (!this.active) {
+      console.log('[GAMEPAD] Activating controller mode from button press');
       this.activateControllerMode();
     }
 
     const context = this.getNavigationContext();
+    console.log('[GAMEPAD] Context:', context);
 
     switch (buttonIndex) {
       case this.BUTTONS.A:
