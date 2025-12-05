@@ -1016,18 +1016,18 @@ const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-const desc = getLevelDescription(s, 1) || s;
-return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block;cursor:help" title="${s}: ${desc}" onmouseenter="showSigilTooltip(event,'${s}',1)" onmouseleave="hideSigilTooltip()">${sigilIconOnly(s)}</span>`;
+return `<span class="sigil l1 ${passiveClass}" style="font-size:0.7rem;padding:3px 5px;margin:1px;display:inline-block" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
 cardEl.innerHTML = `
 <div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
-<div style="font-size:0.7rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
+<div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
-<div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
-<div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
-<div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
+<div style="font-size:0.7rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
+<div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
+<div style="font-size:0.65rem;color:#22c55e;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
+<div style="font-size:0.55rem;opacity:0.7;margin-top:0.15rem">✓ SELECTED</div>
 </div>
 </div>`;
 cardEl.style.display = 'block';
