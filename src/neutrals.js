@@ -997,12 +997,13 @@ toggleHeroSelection(heroType);
 }
 
 function updateHeroCards() {
+// Hero data matches H constant in constants.js
 const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], desc: 'A strong fighter with heavy attacks', callouts: ['Passive bonus: +1 POW', 'Starts with Attack and D20']},
-tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Shield', 'D20'], desc: 'A sturdy defender with high HP', callouts: ['Passive bonus: +5 HP', 'Starts with Shield and D20']},
-mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], desc: 'A versatile caster who can hit multiple targets', callouts: ['Passive bonus: +1 Expand', 'Starts with Attack, D20, and Expand']},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], desc: 'A support hero who can heal multiple allies', callouts: ['Passive bonus: +1 Expand', 'Starts with Heal, D20, and Expand']},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], desc: 'The ultimate glass cannon - all sigils, minimal health!', callouts: ['Starts with ALL 10 sigils', 'Only 1 HP - high risk, high reward!']}
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], bonus: '+1 POW'},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], bonus: 'ALL sigils'}
 };
 
 // Update all card displays
@@ -1015,9 +1016,9 @@ const hData = heroData[h];
 const hPixelImage = HERO_IMAGES[h] || '';
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block">${sigilIconOnly(s)}</span>`;
+const desc = getLevelDescription(s, 1) || s;
+return `<span class="sigil l1 ${passiveClass}" style="font-size:0.5rem;padding:2px 4px;margin:1px;display:inline-block;cursor:help" title="${s}: ${desc}" onmouseenter="showSigilTooltip(event,'${s}',1)" onmouseleave="hideSigilTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
-const calloutsHTML = hData.callouts ? hData.callouts.map(c => `<div style="font-size:0.45rem;text-align:left;opacity:0.9;margin:1px 0">• ${c}</div>`).join('') : '';
 cardEl.innerHTML = `
 <div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
@@ -1026,7 +1027,6 @@ onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 ${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
 <div style="font-size:0.6rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
 <div style="font-size:0.6rem;margin-top:0.25rem">${sigilsHTML}</div>
-${calloutsHTML ? `<div style="margin-top:0.25rem;padding:0.25rem;background:rgba(251,191,36,0.1);border-radius:4px">${calloutsHTML}</div>` : ''}
 <div style="font-size:0.5rem;opacity:0.7;margin-top:0.25rem">✓ SELECTED</div>
 </div>
 </div>`;
