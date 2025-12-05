@@ -358,7 +358,7 @@ const GamepadController = {
   // Main polling loop
   poll() {
     this.pollCount++;
-    const now = Date.now();
+    let now = Date.now();
     // Log every 5 seconds
     if (now - this.lastPollLog > 5000) {
       console.log('[GAMEPAD] Poll status - count:', this.pollCount, 'active:', this.active, 'gamepadIndex:', this.gamepadIndex);
@@ -407,7 +407,8 @@ const GamepadController = {
       return;
     }
 
-    const now = Date.now();
+    // Refresh timestamp for input timing
+    now = Date.now();
 
     // Check buttons ALWAYS (don't skip due to cooldown - we need to track state)
     for (let i = 0; i < gp.buttons.length; i++) {
