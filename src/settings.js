@@ -150,6 +150,7 @@ ${inGame ? `
 </label>
 <button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
 <button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.8rem">🔄 Re-Init Controller</button>
+<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.8rem">🔍 Live Debug Overlay</button>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
@@ -415,6 +416,91 @@ return;
 }
 toast('🎮 Controller polling restarted. Press any button on your controller.', 2500);
 savePermanent();
+closeSettingsMenu();
+}
+
+// Live controller debug overlay - shows input in real-time on screen
+function toggleControllerDebug() {
+const existing = document.getElementById('controller-debug-overlay');
+if (existing) {
+existing.remove();
+toast('Controller debug disabled', 1200);
+closeSettingsMenu();
+return;
+}
+
+const overlay = document.createElement('div');
+overlay.id = 'controller-debug-overlay';
+overlay.style.cssText = 'position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.9);color:#0f0;font-family:monospace;font-size:12px;padding:10px;border-radius:8px;z-index:99999;max-width:300px;border:2px solid #0f0';
+overlay.innerHTML = `
+<div style="font-weight:bold;margin-bottom:5px;color:#fff">🎮 CONTROLLER DEBUG</div>
+<div id="debug-gamepad-status">Checking...</div>
+<div id="debug-buttons" style="margin-top:5px"></div>
+<div id="debug-axes" style="margin-top:5px"></div>
+<div id="debug-keyboard" style="margin-top:5px;color:#ff0">Last key: none</div>
+<div style="margin-top:8px;font-size:10px;color:#888">Tap here to close</div>
+`;
+overlay.onclick = () => overlay.remove();
+document.body.appendChild(overlay);
+
+// Track keyboard input
+const keyHandler = (e) => {
+const keyEl = document.getElementById('debug-keyboard');
+if (keyEl) keyEl.innerHTML = `Last key: <span style="color:#0f0">${e.key}</span> (${e.code})`;
+};
+document.addEventListener('keydown', keyHandler);
+
+// Update loop
+const updateDebug = () => {
+if (!document.getElementById('controller-debug-overlay')) {
+document.removeEventListener('keydown', keyHandler);
+return;
+}
+
+const statusEl = document.getElementById('debug-gamepad-status');
+const buttonsEl = document.getElementById('debug-buttons');
+const axesEl = document.getElementById('debug-axes');
+
+const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+let found = false;
+
+for (let i = 0; i < gamepads.length; i++) {
+const gp = gamepads[i];
+if (gp) {
+found = true;
+statusEl.innerHTML = `<span style="color:#0f0">✓ FOUND:</span> ${gp.id.substring(0,30)}...`;
+
+// Show pressed buttons
+const pressed = [];
+for (let b = 0; b < gp.buttons.length; b++) {
+if (gp.buttons[b].pressed || gp.buttons[b].value > 0.5) {
+pressed.push(b);
+}
+}
+buttonsEl.innerHTML = pressed.length > 0
+? `Buttons: <span style="color:#0f0">${pressed.join(', ')}</span>`
+: 'Buttons: none';
+
+// Show axes
+const axes = gp.axes.map((a, i) => Math.abs(a) > 0.2 ? `${i}:${a.toFixed(1)}` : null).filter(Boolean);
+axesEl.innerHTML = axes.length > 0
+? `Axes: <span style="color:#0f0">${axes.join(', ')}</span>`
+: 'Axes: centered';
+break;
+}
+}
+
+if (!found) {
+statusEl.innerHTML = '<span style="color:#f00">✗ NO GAMEPAD DETECTED</span>';
+buttonsEl.innerHTML = 'Try pressing a button...';
+axesEl.innerHTML = '';
+}
+
+requestAnimationFrame(updateDebug);
+};
+updateDebug();
+
+toast('Controller debug enabled - overlay shown', 1500);
 closeSettingsMenu();
 }
 
