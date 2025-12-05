@@ -487,6 +487,55 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil.asterisk-primed { box-shadow: 0 0 8px #a855f7; animation: pulse-asterisk 1s infinite; }
 @keyframes pulse-asterisk { 0%, 100% { box-shadow: 0 0 8px #a855f7; } 50% { box-shadow: 0 0 16px #a855f7; } }
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #3b82f6; } 50% { box-shadow: 0 0 20px #3b82f6; } }
+
+/* FU Mode: Compact 3-hero layout */
+.fu-mode .combat-lane {
+  padding: 0.5rem;
+  margin: 0 auto 0.6rem auto;
+}
+.fu-mode .combat-lane:not(:last-child)::after {
+  display: none;
+}
+.fu-mode .card {
+  padding: 0.35rem;
+  min-height: 60px;
+}
+.fu-mode .card.hero,
+.fu-mode .card.enemy {
+  width: 120px;
+}
+.fu-mode .card img {
+  width: 36px !important;
+  height: 36px !important;
+}
+.fu-mode .sigil {
+  padding: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  max-width: 40px;
+  font-size: 0.9rem;
+}
+.fu-mode .sigil-row {
+  gap: 3px;
+  margin-top: 2px;
+}
+.fu-mode .sigil-divider {
+  margin: 2px 0;
+}
+.fu-mode .combat-header {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.fu-mode .lane-content {
+  gap: 1rem !important;
+}
+.fu-mode .card > div {
+  font-size: 0.9em;
+}
+.fu-mode .card > div:first-child {
+  font-size: 0.7rem;
+}
+
 .toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast-log { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: linear-gradient(#fff, #f7f1e3); border: 3px solid #22c55e; border-radius: 8px; padding: 0.75rem; max-width: 400px; width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 9999; display: none; }
@@ -1837,7 +1886,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.04';
+const GAME_VERSION = '11.05';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -6147,6 +6196,8 @@ GamepadController.saveFocusState();
 }
 
 const v = document.getElementById('gameView');
+// Toggle FU mode class for compact 3-hero layout
+v.classList.toggle('fu-mode', S.gameMode === 'fu');
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
 v.innerHTML = renderEncampmentSelection();
@@ -6182,7 +6233,7 @@ S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes
 
 S.heroes.forEach((h,i) => {
 html += `<div class="combat-lane">`;
-html += '<div style="display:flex;gap:2rem;justify-content:center;align-items:stretch">';
+html += '<div class="lane-content" style="display:flex;gap:2rem;justify-content:center;align-items:stretch">';
 
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
