@@ -861,7 +861,7 @@ S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Attack','Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
@@ -1026,7 +1026,7 @@ const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], bonus: '+1 POW'},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
 mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
 tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], bonus: 'ALL sigils'}
 };
 

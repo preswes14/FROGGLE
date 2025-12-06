@@ -514,7 +514,7 @@ S.d20HeroIdx = heroIdx;
 
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
-showTutorialPop('healer_expand_explain', "Healer also has Expand - just like Mage used with Attack! This lets you add a target to your D20 gambit. Try selecting 2 enemies to Confuse!", () => {
+showTutorialPop('healer_expand_explain', "Healer has Expand, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!", () => {
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
