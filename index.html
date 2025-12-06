@@ -456,8 +456,8 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.35); }
 .sigil.l1 { color: #1a1a1a; }
 .sigil.l1 img { filter: brightness(0) saturate(100%); }
-.sigil.l2 { color: #0d9488; }
-.sigil.l2 img { filter: invert(41%) sepia(52%) saturate(1249%) hue-rotate(133deg) brightness(93%) contrast(91%); }
+.sigil.l2 { color: #06b6d4; }
+.sigil.l2 img { filter: invert(56%) sepia(81%) saturate(1239%) hue-rotate(166deg) brightness(95%) contrast(94%); }
 .sigil.l3 { color: #9333ea; }
 .sigil.l3 img { filter: invert(28%) sepia(97%) saturate(6144%) hue-rotate(262deg) brightness(82%) contrast(100%); }
 .sigil.l4 { color: #d97706; }
@@ -473,7 +473,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil.passive img { filter: brightness(0) invert(1) !important; } /* White icon */
 .sigil.passive.l0 { background: #9ca3af; opacity: 0.6; } /* Gray */
 .sigil.passive.l1 { background: #374151; } /* Dark gray */
-.sigil.passive.l2 { background: #0d9488; } /* Teal */
+.sigil.passive.l2 { background: #06b6d4; } /* Cyan/Light Blue Teal */
 .sigil.passive.l3 { background: #9333ea; } /* Purple */
 .sigil.passive.l4 { background: #d97706; box-shadow: 0 0 6px rgba(217,119,6,0.5); } /* Orange with glow */
 .sigil.passive.l5 { background: linear-gradient(135deg, #ff0080, #7c3aed, #06b6d4); animation: rainbow-bg 2s ease-in-out infinite; } /* Rainbow gradient */
@@ -1675,8 +1675,9 @@ body.controller-active .toast {
   left: 0;
   right: 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 0.75rem;
   padding: 0 5vw;
   z-index: 10;
 }
@@ -1706,26 +1707,26 @@ body.controller-active .toast {
 
 .title-play-btn {
   background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
-  border: 4px solid #000;
-  border-radius: 20px;
+  border: 3px solid #000;
+  border-radius: 16px;
   color: white;
   font-family: 'Fredoka One', cursive;
-  font-size: 1.8rem;
-  padding: 1rem 4rem;
+  font-size: 1.3rem;
+  padding: 0.7rem 2rem;
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-  box-shadow: 0 6px 0 #15803d, 0 8px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 0 #15803d, 0 6px 12px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
-  min-width: 200px;
+  min-width: 120px;
 }
 
 .title-play-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 9px 0 #15803d, 0 12px 20px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #15803d, 0 8px 16px rgba(0, 0, 0, 0.5);
 }
 
 .title-play-btn:active {
-  transform: translateY(4px);
-  box-shadow: 0 2px 0 #15803d, 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #15803d, 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Portrait orientation - show portrait image cropped to fit */
@@ -1740,8 +1741,9 @@ body.controller-active .toast {
   }
 
   .title-play-btn {
-    font-size: 1.5rem;
-    padding: 0.85rem 3rem;
+    font-size: 1.1rem;
+    padding: 0.6rem 1.5rem;
+    min-width: 100px;
   }
 
   .title-credits-btn {
@@ -2658,7 +2660,7 @@ function getLevelDescription(sigilName, level) {
 const levelColors = {
 0: '#666',
 1: '#000',
-2: '#0d9488',
+2: '#06b6d4',
 3: '#9333ea',
 4: '#d97706',
 5: '#ff0080'
@@ -4078,6 +4080,11 @@ const roundEl = document.getElementById('round');
 const roundInfoEl = document.getElementById('roundInfo');
 const locationLabelEl = document.getElementById('locationLabel');
 
+// Ensure floor is a valid number (fix for "Session 0 undefined floor" bug)
+if(S.floor === undefined || S.floor === null) {
+S.floor = 1;
+}
+
 // Update location display based on game state
 if(S.floor === 0 && tutorialState) {
 // Tutorial mode
@@ -4085,6 +4092,11 @@ floorEl.textContent = '';
 locationLabelEl.textContent = 'Tutorial';
 roundInfoEl.style.display = S.round > 0 ? '' : 'none';
 roundEl.textContent = S.round || '';
+} else if(S.floor === 0) {
+// Floor 0 without tutorial - show as Ribbleton (pre-game state)
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Ribbleton';
+roundInfoEl.style.display = 'none';
 } else if(S.inRibbleton) {
 // In Ribbleton hub (before entering dungeon)
 floorEl.textContent = '';
@@ -4097,13 +4109,13 @@ locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
 } else if(S.enemies && S.enemies.length > 0) {
 // In combat
-floorEl.textContent = S.floor;
+floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
-roundEl.textContent = S.round || '1';
+roundEl.textContent = S.round || 1;
 } else {
 // Between combats (neutral floors, level up, etc.)
-floorEl.textContent = S.floor;
+floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = 'none';
 }
@@ -4647,7 +4659,14 @@ S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = j.gameMode || 'Standard';
 S.recruits = []; // Recruits don't persist across saves
-S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
+S.heroes.forEach(h => {
+if(!h.ts) h.ts = [];
+// Migration fix: Remove Attack from Healer (was removed from starting sigils)
+if(h.n === 'Healer' && h.s.includes('Attack')) {
+h.s = h.s.filter(sig => sig !== 'Attack');
+debugLog('[SAVE] Migrated Healer: removed Attack from saved sigils');
+}
+});
 upd();
 startFloor(S.floor);
 toast('Loaded!');
@@ -4783,7 +4802,14 @@ S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
 S.recruits = []; // Recruits don't persist across saves
-S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
+S.heroes.forEach(h => {
+if(!h.ts) h.ts = [];
+// Migration fix: Remove Attack from Healer (was removed from starting sigils)
+if(h.n === 'Healer' && h.s.includes('Attack')) {
+h.s = h.s.filter(sig => sig !== 'Attack');
+debugLog('[SAVE] Migrated Healer: removed Attack from saved sigils');
+}
+});
 upd();
 startFloor(S.floor);
 toast('Slot loaded!');
@@ -11402,7 +11428,7 @@ const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colors = ['#666', '#000', '#06b6d4', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 
@@ -13015,7 +13041,7 @@ const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
 if(level === 1) return '#000';
-if(level === 2) return '#0d9488';
+if(level === 2) return '#06b6d4';
 if(level === 3) return '#9333ea';
 if(level === 4) return '#d97706';
 return '#ff0080'; // L5 gradient
