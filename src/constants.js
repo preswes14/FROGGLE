@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.15';
+const GAME_VERSION = '11.16';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -16,6 +16,77 @@ const HERO_IMAGES = {
         healer: 'assets/characters/healerfull.png',
         tapo: 'assets/characters/tapofull.png'
     };
+
+// Hero reaction images (happy/pained expressions)
+const HERO_REACTIONS = {
+    warrior: {
+        happy: 'assets/reactions/warrior-happy.jpeg',
+        pained: 'assets/reactions/warrior-pained.jpeg'
+    },
+    tank: {
+        happy: 'assets/reactions/tank-happy.jpeg',
+        pained: 'assets/reactions/tank-pained.jpeg'
+    },
+    mage: {
+        happy: 'assets/reactions/mage-happy.jpeg',
+        pained: 'assets/reactions/mage-pained.jpeg'
+    },
+    healer: {
+        happy: 'assets/reactions/healer-happy.jpeg',
+        pained: 'assets/reactions/healer-pained.jpeg'
+    }
+    // Tapo doesn't have reaction images yet
+};
+
+// Get hero image based on current reaction state
+function getHeroImage(hero) {
+    const heroKey = hero.n.toLowerCase();
+    const reactions = HERO_REACTIONS[heroKey];
+
+    // Last stand always shows pained
+    if (hero.ls && reactions?.pained) {
+        return reactions.pained;
+    }
+
+    // Check for temporary reaction
+    if (hero.reaction && reactions?.[hero.reaction]) {
+        return reactions[hero.reaction];
+    }
+
+    // Default image
+    return HERO_IMAGES[heroKey] || '';
+}
+
+// Set a temporary reaction on a hero (clears after duration)
+function setHeroReaction(heroId, reaction, duration = 800) {
+    const hero = S.heroes.find(h => h.id === heroId);
+    if (!hero) return;
+
+    const heroKey = hero.n.toLowerCase();
+    if (!HERO_REACTIONS[heroKey]?.[reaction]) return; // No reaction image available
+
+    hero.reaction = reaction;
+    render();
+
+    // Clear reaction after duration (unless it's permanent like last stand pained)
+    if (duration > 0) {
+        setTimeout(() => {
+            if (hero.reaction === reaction) {
+                hero.reaction = null;
+                render();
+            }
+        }, duration);
+    }
+}
+
+// Set reaction on all heroes
+function setAllHeroesReaction(reaction, duration = 800) {
+    S.heroes.forEach(h => {
+        if (!h.ls) { // Don't override last stand
+            setHeroReaction(h.id, reaction, duration);
+        }
+    });
+}
 
 // Death's dialogue lines (cycles through without repeating until all used)
 const DEATH_QUOTES = [
@@ -271,6 +342,9 @@ damagedIds.forEach((id, idx) => {
 triggerHitAnimation(id);
 // JUICE: Floating damage numbers for hero damage
 showFloatingNumber(id, `-${dmg}`, dmg >= 5 ? 'critical' : 'damage', idx * 15);
+// Show pained reaction when hero takes damage
+const hero = S.heroes.find(h => h.id === id);
+if(hero) setHeroReaction(id, 'pained', hero.ls ? 0 : 600);
 });
 
 // JUICE: Sinister sound for enemy attacks on heroes + screen shake
@@ -305,7 +379,7 @@ const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = getHeroImage(h);
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 ${heroImage ? `<img src="${heroImage}" class="card-image">` : ''}

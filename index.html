@@ -1886,7 +1886,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.15';
+const GAME_VERSION = '11.16';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -1903,6 +1903,77 @@ const HERO_IMAGES = {
         healer: 'assets/characters/healerfull.png',
         tapo: 'assets/characters/tapofull.png'
     };
+
+// Hero reaction images (happy/pained expressions)
+const HERO_REACTIONS = {
+    warrior: {
+        happy: 'assets/reactions/warrior-happy.jpeg',
+        pained: 'assets/reactions/warrior-pained.jpeg'
+    },
+    tank: {
+        happy: 'assets/reactions/tank-happy.jpeg',
+        pained: 'assets/reactions/tank-pained.jpeg'
+    },
+    mage: {
+        happy: 'assets/reactions/mage-happy.jpeg',
+        pained: 'assets/reactions/mage-pained.jpeg'
+    },
+    healer: {
+        happy: 'assets/reactions/healer-happy.jpeg',
+        pained: 'assets/reactions/healer-pained.jpeg'
+    }
+    // Tapo doesn't have reaction images yet
+};
+
+// Get hero image based on current reaction state
+function getHeroImage(hero) {
+    const heroKey = hero.n.toLowerCase();
+    const reactions = HERO_REACTIONS[heroKey];
+
+    // Last stand always shows pained
+    if (hero.ls && reactions?.pained) {
+        return reactions.pained;
+    }
+
+    // Check for temporary reaction
+    if (hero.reaction && reactions?.[hero.reaction]) {
+        return reactions[hero.reaction];
+    }
+
+    // Default image
+    return HERO_IMAGES[heroKey] || '';
+}
+
+// Set a temporary reaction on a hero (clears after duration)
+function setHeroReaction(heroId, reaction, duration = 800) {
+    const hero = S.heroes.find(h => h.id === heroId);
+    if (!hero) return;
+
+    const heroKey = hero.n.toLowerCase();
+    if (!HERO_REACTIONS[heroKey]?.[reaction]) return; // No reaction image available
+
+    hero.reaction = reaction;
+    render();
+
+    // Clear reaction after duration (unless it's permanent like last stand pained)
+    if (duration > 0) {
+        setTimeout(() => {
+            if (hero.reaction === reaction) {
+                hero.reaction = null;
+                render();
+            }
+        }, duration);
+    }
+}
+
+// Set reaction on all heroes
+function setAllHeroesReaction(reaction, duration = 800) {
+    S.heroes.forEach(h => {
+        if (!h.ls) { // Don't override last stand
+            setHeroReaction(h.id, reaction, duration);
+        }
+    });
+}
 
 // Death's dialogue lines (cycles through without repeating until all used)
 const DEATH_QUOTES = [
@@ -2158,6 +2229,9 @@ damagedIds.forEach((id, idx) => {
 triggerHitAnimation(id);
 // JUICE: Floating damage numbers for hero damage
 showFloatingNumber(id, `-${dmg}`, dmg >= 5 ? 'critical' : 'damage', idx * 15);
+// Show pained reaction when hero takes damage
+const hero = S.heroes.find(h => h.id === id);
+if(hero) setHeroReaction(id, 'pained', hero.ls ? 0 : 600);
 });
 
 // JUICE: Sinister sound for enemy attacks on heroes + screen shake
@@ -2192,7 +2266,7 @@ const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = getHeroImage(h);
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
 ${heroImage ? `<img src="${heroImage}" class="card-image">` : ''}
@@ -4504,6 +4578,8 @@ if(!h) { console.error('Invalid hero index:', idx); return; }
 if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 S.activeIdx = idx;
+// Show happy reaction when hero is selected for their turn
+if(!h.ls) setHeroReaction(h.id, 'happy', 1200);
 if(h.ls) toast(`${h.n} in Last Stand - D20 only!`);
 render();
 }
@@ -5276,6 +5352,8 @@ if(damagedEnemyIds.length > 0) {
 SoundFX.play(pow >= 5 ? 'crit' : 'hit');
 // Show cumulative damage counter for this hero's turn
 showDamageCounter(S.turnDamage);
+// Show happy reaction when hero lands a hit
+setHeroReaction(h.id, 'happy', 1000);
 }
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 // Third pass: Handle deaths and cleanup
@@ -5305,6 +5383,8 @@ if(e.n === 'Goblin') tutorialState.goblinKilled = true;
 if(deadEnemies.length > 0) {
 SoundFX.play('croak'); // Froggy croak for enemy defeat
 triggerScreenShake(true); // Heavy shake on enemy defeat
+// All heroes smile when enemy is killed (gold/xp awarded)
+setAllHeroesReaction('happy', 1200);
 setTimeout(() => {
 deadEnemies.forEach(e => {
 S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
@@ -5370,6 +5450,10 @@ healed.push(target.n);
 });
 // Trigger all heal animations simultaneously with amounts
 healedIds.forEach(id => triggerHealAnimation(id, healAmt));
+// Show happy reaction on the healer
+setHeroReaction(h.id, 'happy', 1000);
+// Healed targets also smile
+healedIds.forEach(id => setHeroReaction(id, 'happy', 1200));
 if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
 if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} HP!`);
 }
@@ -5995,6 +6079,10 @@ triggerHitAnimation(hero.id);
 const hpBefore = hero.h;
 const damage = applyDamageToTarget(hero, dmg, {isHero: true});
 const hpAfter = hero.h;
+// Show pained reaction when hero takes damage (flash briefly, permanent if last stand)
+if(damage.hpLost > 0 || damage.shieldLost > 0) {
+setHeroReaction(hero.id, 'pained', hero.ls ? 0 : 600);
+}
 // Build detailed damage message with HP change
 let msg = `${source} hit ${hero.n} (❤${hpBefore}→❤${hpAfter}):`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
@@ -6298,7 +6386,7 @@ if(isTargeted) lsClasses += ' targeted';
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
@@ -6336,7 +6424,7 @@ if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
@@ -7879,6 +7967,9 @@ console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 // Show first tutorial popup - explain Expand from the start
 showTutorialPop('tapo_first_attack', "Mage has two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
+// Mage is happy to teach Tapo to catch flies!
+const mage = S.heroes.find(h => h.n === 'Mage');
+if(mage) setHeroReaction(mage.id, 'happy', 2000);
 render();
 });
 }

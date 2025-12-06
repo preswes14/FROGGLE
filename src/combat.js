@@ -237,6 +237,8 @@ if(!h) { console.error('Invalid hero index:', idx); return; }
 if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 S.activeIdx = idx;
+// Show happy reaction when hero is selected for their turn
+if(!h.ls) setHeroReaction(h.id, 'happy', 1200);
 if(h.ls) toast(`${h.n} in Last Stand - D20 only!`);
 render();
 }
@@ -1009,6 +1011,8 @@ if(damagedEnemyIds.length > 0) {
 SoundFX.play(pow >= 5 ? 'crit' : 'hit');
 // Show cumulative damage counter for this hero's turn
 showDamageCounter(S.turnDamage);
+// Show happy reaction when hero lands a hit
+setHeroReaction(h.id, 'happy', 1000);
 }
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 // Third pass: Handle deaths and cleanup
@@ -1038,6 +1042,8 @@ if(e.n === 'Goblin') tutorialState.goblinKilled = true;
 if(deadEnemies.length > 0) {
 SoundFX.play('croak'); // Froggy croak for enemy defeat
 triggerScreenShake(true); // Heavy shake on enemy defeat
+// All heroes smile when enemy is killed (gold/xp awarded)
+setAllHeroesReaction('happy', 1200);
 setTimeout(() => {
 deadEnemies.forEach(e => {
 S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
@@ -1103,6 +1109,10 @@ healed.push(target.n);
 });
 // Trigger all heal animations simultaneously with amounts
 healedIds.forEach(id => triggerHealAnimation(id, healAmt));
+// Show happy reaction on the healer
+setHeroReaction(h.id, 'happy', 1000);
+// Healed targets also smile
+healedIds.forEach(id => setHeroReaction(id, 'happy', 1200));
 if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
 if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} HP!`);
 }
@@ -1728,6 +1738,10 @@ triggerHitAnimation(hero.id);
 const hpBefore = hero.h;
 const damage = applyDamageToTarget(hero, dmg, {isHero: true});
 const hpAfter = hero.h;
+// Show pained reaction when hero takes damage (flash briefly, permanent if last stand)
+if(damage.hpLost > 0 || damage.shieldLost > 0) {
+setHeroReaction(hero.id, 'pained', hero.ls ? 0 : 600);
+}
 // Build detailed damage message with HP change
 let msg = `${source} hit ${hero.n} (❤${hpBefore}→❤${hpAfter}):`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
@@ -2031,7 +2045,7 @@ if(isTargeted) lsClasses += ' targeted';
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
@@ -2069,7 +2083,7 @@ if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
-const heroImage = HERO_IMAGES[h.n.toLowerCase()] || '';
+const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
