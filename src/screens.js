@@ -1068,11 +1068,7 @@ const bluePortalUnlocked = S.hasReachedFloor20;
 // Show tutorial for first-time visitors to Ribbleton hub
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
 if(isFirstVisit && !S.helpTipsDisabled) {
-  setTimeout(() => {
-    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal on the right to begin your next rescue mission and save Tapo!", () => {
-      // Tutorial dismissed, player can now explore
-    });
-  }, 500);
+  showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal on the right to begin your next rescue mission and save Tapo!");
 }
 
 let html = `
@@ -1082,8 +1078,8 @@ let html = `
   50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 50px #dc2626; }
 }
 @keyframes ribbleton-portal-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 </style>
 <div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">

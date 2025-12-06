@@ -1902,8 +1902,12 @@ if(tutorialState && tutorialState.phase === 1) {
 // Phase 1 complete: Transition to Phase 2
 setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
-// Phase 2 complete: Finish tutorial
-setTimeout(finishRibbletonTutorial, T(ANIMATION_TIMINGS.VICTORY_DELAY));
+// Phase 2 complete: Show handoff popup, then finish tutorial
+setTimeout(() => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
+finishRibbletonTutorial();
+});
+}, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 }
 }, 500);
 return true;
@@ -2810,38 +2814,6 @@ saveGame();
 levelUpMenu();
 }
 
-function showSigilUpgradeMenu() {
-showTutorialPop('levelup_sigil_explanation', "Sigils are the heart of your power! Choose to upgrade existing sigils to make them stronger everywhere, or teach a hero a new ability.");
-const v = document.getElementById('gameView');
-const cost = getXPCost(S.levelUpCount);
-v.innerHTML = `
-<h2 style="text-align:center;margin-bottom:1rem">Upgrade/Add Sigil</h2>
-<p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
-
-<div style="background:rgba(44,99,199,0.1);border:2px solid #2c63c7;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#2c63c7;margin:0 0 0.5rem 0;font-size:1rem">⚔️ Core Sigils</h3>
-<p style="font-size:0.85rem;margin:0;line-height:1.4">Basic actions that heroes start with: Attack, Shield, Heal, D20. Every hero can learn these.</p>
-</div>
-
-<div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#f97316;margin:0 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
-<p style="font-size:0.85rem;margin:0;line-height:1.4">Alternative specialist actions for your turn: Ghost, Alpha, Grapple. Heroes don't start with these, but any hero can learn them!</p>
-</div>
-
-<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">✨ Passive Sigils</h3>
-<p style="font-size:0.85rem;margin:0;line-height:1.4">Global enhancements that automatically improve all heroes: Expand, Asterisk, Star. <strong>All heroes benefit immediately from passive upgrades!</strong></p>
-</div>
-
-<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-bottom:1.5rem">
-<p style="font-size:0.9rem;margin:0;line-height:1.5"><strong>💡 Upgrading a sigil makes it stronger everywhere:</strong> in the Sigilarium, on every hero who has it, and for any hero who learns it later!</p>
-</div>
-
-<div class="choice" onclick="upgradeSigil()">Upgrade Existing Sigil</div>
-<div class="choice" onclick="addSigilToHero()">Add New Sigil to Hero</div>
-<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
-}
-
 function heroStats() {
 showTutorialPop('levelup_stat_upgrade', "This one is pretty straightforward - add +1 POW or +5 HP to a hero of your choice.");
 const cost = getXPCost(S.levelUpCount);
@@ -2885,178 +2857,6 @@ S.heroes[idx].lst = 0;
 S.heroes[idx].h = 5;
 toast(`${S.heroes[idx].n} revived with 5 HP!`);
 } else toast(`${S.heroes[idx].n} HP +5!`);
-upd();
-saveGame();
-levelUpMenu();
-}
-
-function upgradeSigil() {
-showTutorialPop('levelup_upgrade_active', "Each active sigil works based on its level. For example, if you upgrade Attack to Level 2, all heroes with Attack can attack twice with 1 action! Passive sigils (Expand, Asterisk, Star) work differently - they apply globally to all heroes and enhance your existing actions automatically!");
-const cost = getXPCost(S.levelUpCount);
-const v = document.getElementById('gameView');
-let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Sigil</h2>
-<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
-if(S.xp < cost) {
-html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
-} else {
-const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
-const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
-const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
-
-const available = allSigils.filter(s => {
-const totalLevel = (S.sig[s] || 0) + (S.tempSigUpgrades[s] || 0);
-return totalLevel < 4;
-});
-
-if(available.length === 0) {
-html += `<p style="text-align:center;margin-bottom:1rem">All sigils maxed!</p>`;
-} else {
-const actives = [...coreSigils, ...advancedSigils];
-
-// Helper to render sigil choices
-const renderSigilChoices = (sigils, categoryName, categoryColor) => {
-const availableInCategory = sigils.filter(s => available.includes(s));
-if(availableInCategory.length === 0) return '';
-let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
-availableInCategory.forEach(sig => {
-const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const isActive = actives.includes(sig);
-const displayLevel = (isActive && level === 0) ? 1 : level;
-const nextDisplayLevel = displayLevel + 1;
-const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
-const newSigilNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="upSigil('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong>${newSigilNote}</div>`;
-});
-return categoryHtml;
-};
-
-html += renderSigilChoices(coreSigils, '⚔️ Core Sigils', '#2c63c7');
-html += renderSigilChoices(advancedSigils, '🔥 Advanced Sigils', '#f97316');
-html += renderSigilChoices(passiveSigils, '✨ Passive Sigils', '#9333ea');
-}
-}
-html += `<button class="btn secondary" onclick="showSigilUpgradeMenu()">Back</button>`;
-v.innerHTML = html;
-}
-
-function addSigilToHero() {
-showTutorialPop('levelup_add_active', "Heroes only get 1 action per turn. Learning new active sigils gives you more choices - in addition to Attack/Heal/D20, you can grant a hero a new ability like Shield or Grapple!");
-const cost = getXPCost(S.levelUpCount);
-const v = document.getElementById('gameView');
-let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</h2>
-<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
-if(S.xp < cost) {
-html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
-} else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:400px;margin:0 auto">`;
-S.heroes.forEach((h, idx) => {
-const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
-html += renderHeroCard(h, idx, `selectHeroForSigil(${idx})`, sigilInfo);
-});
-html += '</div>';
-}
-html += `<button class="btn secondary" onclick="showSigilUpgradeMenu()">Back</button>`;
-v.innerHTML = html;
-}
-
-function selectHeroForSigil(heroIdx) {
-const cost = getXPCost(S.levelUpCount);
-const v = document.getElementById('gameView');
-const h = S.heroes[heroIdx];
-const coreSigils = ['Attack', 'Shield', 'Heal', 'D20'];
-const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
-const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
-const available = allSigils.filter(sig => !h.s.includes(sig) && !(h.ts && h.ts.includes(sig)));
-let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to ${h.n}</h2>
-<p style="text-align:center;margin-bottom:1rem">Cost: ${cost} XP</p>`;
-if(available.length === 0) {
-html += `<p style="text-align:center;margin-bottom:1rem">${h.n} already has all sigils!</p>`;
-} else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a sigil to add:</p>`;
-
-const actives = [...coreSigils, ...advancedSigils];
-
-// Helper to render sigil choices for a category
-const renderCategorySigils = (sigils, categoryName, categoryColor) => {
-const availableInCategory = sigils.filter(s => available.includes(s));
-if(availableInCategory.length === 0) return '';
-let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
-availableInCategory.forEach(sig => {
-const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const isActive = actives.includes(sig);
-const displayLevel = (isActive && level === 0) ? 1 : level;
-const levelText = (level === 0 && !isActive) ? `L${displayLevel} (Passive only)` : `L${displayLevel}`;
-const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
-const newSigilNote = !anyHeroHasSigil ? `<span style="color:#dc2626;font-size:0.85rem"> *No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="addSigilConfirm(${heroIdx}, '${sig}')">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>${newSigilNote}
-</div>`;
-});
-return categoryHtml;
-};
-
-html += renderCategorySigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
-html += renderCategorySigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
-html += renderCategorySigils(passiveSigils, '✨ Passive Sigils', '#9333ea');
-}
-html += `<button class="btn secondary" onclick="addSigilToHero()">Back</button>`;
-v.innerHTML = html;
-}
-
-function addSigilConfirm(heroIdx, sig) {
-const cost = getXPCost(S.levelUpCount);
-if(S.xp < cost) return;
-const h = S.heroes[heroIdx];
-if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) { toast(`${h.n} already has ${sig}!`); return; }
-S.xp -= cost;
-S.levelUpCount++;
-if(!h.ts) h.ts = [];
-h.ts.push(sig);
-// Sort sigils to maintain consistent order
-h.ts = sortSigils(h.ts);
-// Calculate effective level for display (actives show as level 1 minimum)
-const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-const displayLevel = (actives.includes(sig) && totalLevel === 0) ? 1 : totalLevel;
-toast(`${sig} added to ${h.n} at L${displayLevel}!`);
-upd();
-saveGame();
-levelUpMenu();
-}
-
-function upSigil(sig) {
-const cost = getXPCost(S.levelUpCount);
-if(S.xp < cost) return;
-
-// Show passive sigil tutorial when upgrading Expand, Asterisk, or Star from L0 to L1
-const passiveSigils = ['Expand', 'Asterisk', 'Star'];
-const isPassive = passiveSigils.includes(sig);
-const currentLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-if(isPassive && currentLevel === 0) {
-showTutorialPop('levelup_upgrade_passive', "Expand, Asterisk, and Star are PASSIVE sigils - they're always active and work automatically! No need to click them in battle.");
-}
-
-S.xp -= cost;
-S.levelUpCount++;
-S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
-const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-
-// PASSIVE SIGILS: Automatically add to all heroes who don't have it yet
-if(isPassive) {
-S.heroes.forEach(hero => {
-if(!hero.s.includes(sig) && !(hero.ts && hero.ts.includes(sig))) {
-if(!hero.ts) hero.ts = [];
-hero.ts.push(sig);
-hero.ts = sortSigils(hero.ts);
-}
-});
-toast(`${sig} upgraded to L${newLevel}! Added to all heroes!`);
-} else {
-toast(`${sig} upgraded to L${newLevel}!`);
-}
-
 upd();
 saveGame();
 levelUpMenu();
