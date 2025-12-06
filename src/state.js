@@ -169,6 +169,11 @@ const roundEl = document.getElementById('round');
 const roundInfoEl = document.getElementById('roundInfo');
 const locationLabelEl = document.getElementById('locationLabel');
 
+// Ensure floor is a valid number (fix for "Session 0 undefined floor" bug)
+if(S.floor === undefined || S.floor === null) {
+S.floor = 1;
+}
+
 // Update location display based on game state
 if(S.floor === 0 && tutorialState) {
 // Tutorial mode
@@ -176,6 +181,11 @@ floorEl.textContent = '';
 locationLabelEl.textContent = 'Tutorial';
 roundInfoEl.style.display = S.round > 0 ? '' : 'none';
 roundEl.textContent = S.round || '';
+} else if(S.floor === 0) {
+// Floor 0 without tutorial - show as Ribbleton (pre-game state)
+floorEl.textContent = '';
+locationLabelEl.textContent = 'Ribbleton';
+roundInfoEl.style.display = 'none';
 } else if(S.inRibbleton) {
 // In Ribbleton hub (before entering dungeon)
 floorEl.textContent = '';
@@ -188,13 +198,13 @@ locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
 } else if(S.enemies && S.enemies.length > 0) {
 // In combat
-floorEl.textContent = S.floor;
+floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
-roundEl.textContent = S.round || '1';
+roundEl.textContent = S.round || 1;
 } else {
 // Between combats (neutral floors, level up, etc.)
-floorEl.textContent = S.floor;
+floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = 'none';
 }
@@ -738,7 +748,14 @@ S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = j.gameMode || 'Standard';
 S.recruits = []; // Recruits don't persist across saves
-S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
+S.heroes.forEach(h => {
+if(!h.ts) h.ts = [];
+// Migration fix: Remove Attack from Healer (was removed from starting sigils)
+if(h.n === 'Healer' && h.s.includes('Attack')) {
+h.s = h.s.filter(sig => sig !== 'Attack');
+debugLog('[SAVE] Migrated Healer: removed Attack from saved sigils');
+}
+});
 upd();
 startFloor(S.floor);
 toast('Loaded!');
@@ -874,7 +891,14 @@ S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
 S.recruits = []; // Recruits don't persist across saves
-S.heroes.forEach(h => { if(!h.ts) h.ts = []; });
+S.heroes.forEach(h => {
+if(!h.ts) h.ts = [];
+// Migration fix: Remove Attack from Healer (was removed from starting sigils)
+if(h.n === 'Healer' && h.s.includes('Attack')) {
+h.s = h.s.filter(sig => sig !== 'Attack');
+debugLog('[SAVE] Migrated Healer: removed Attack from saved sigils');
+}
+});
 upd();
 startFloor(S.floor);
 toast('Slot loaded!');
