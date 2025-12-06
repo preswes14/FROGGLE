@@ -153,11 +153,11 @@ v.innerHTML = `
 
 <!-- Button container at bottom -->
 <div class="title-button-container">
-<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 <div style="display:flex;gap:0.5rem">
 <button class="btn title-secondary-btn" onclick="openSettingsMenu()" style="font-size:0.85rem;padding:0.4rem 0.8rem">⚙️ Settings</button>
 <button class="btn title-secondary-btn" onclick="showCredits()" style="font-size:0.85rem;padding:0.4rem 0.8rem">Credits</button>
 </div>
+<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 </div>
 </div>`;
 }
