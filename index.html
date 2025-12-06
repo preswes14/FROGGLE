@@ -340,6 +340,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .card.targetable:active { transform: scale(0.98); }
 .card.targeted { box-shadow: 0 0 0 4px lime; }
 .card.acted { opacity: 0.6; }
+.card.stunned { opacity: 0.7; border-color: #ef4444 !important; }
 .card.last-stand {
   border-color: #dc2626;
   box-shadow: 0 0 0 3px #dc2626;
@@ -441,7 +442,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 }
 .sigil-row { display: flex !important; flex-direction: row !important; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; margin-top: 4px; max-width: 100%; }
 .sigil-row.compact { gap: 3px; }
-.sigil-row.compact .sigil { padding: 6px; font-size: 0.75rem; min-width: 32px; min-height: 32px; }
+.sigil-row.compact .sigil { padding: 6px; font-size: 0.75rem; min-width: 40px; min-height: 40px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
 .sigil { border: none; border-radius: 6px; padding: 10px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 44px; min-height: 44px; max-width: 56px; width: auto; font-weight: 900; background: transparent; text-shadow: none; flex-shrink: 0; }
 .sigil img { width: auto; height: 1.6em; object-fit: contain; }
@@ -1886,7 +1887,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.30';
+const GAME_VERSION = '11.34';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2326,7 +2327,12 @@ return html;
 function renderCombatStatusHeader() {
 let html = '<div class="combat-header">';
 if(S.turn!=='player') {
+if(S.enemyTurnTotal && S.enemyTurnCurrent) {
+html += `<div class="combat-header-title">Enemy Turn</div>`;
+html += `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
+} else {
 html += 'Enemy Turn…';
+}
 } else if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
 const maxTargets = 1 + getLevel('Expand', heroIdx);
@@ -2352,7 +2358,7 @@ html += `<div class="combat-header-subtitle">${targetText}</div>`;
 }
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
-html += `<div class="combat-header-title">Choose Hero to Act</div>`;
+html += `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
 html += `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
 } else {
 const h = S.heroes[S.activeIdx];
@@ -3957,8 +3963,8 @@ pondHistory: [],                 // Run history for "The Pond" - [{runNumber, he
 
 // ===== UI STATE =====
 toastHistory: [],               // Array of recent toast messages
-toastLogExpanded: false,        // Whether toast log is expanded
-toastLogVisible: true,          // Whether toast log is shown
+toastLogLocked: false,          // Whether toast log is locked open (persistent)
+toastLogVisible: true,          // Whether toast log button is shown in header
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
 helpTipsDisabled: false,        // Whether tutorial help tips are disabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
@@ -4245,7 +4251,7 @@ addBonusTurnStack(cardId, count);
 // Track active toasts for stacking
 let activeToasts = [];
 
-function toast(msg, dur=1200) {
+function toast(msg, dur=1800) {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
 S.toastHistory.unshift(textMsg);
@@ -4381,19 +4387,24 @@ updateToastLog();
 }
 
 function toggleToastLog() {
+// Toggle the locked state
+S.toastLogLocked = !S.toastLogLocked;
 const log = document.getElementById('toastLog');
 if(!log) return;
-log.classList.toggle('show');
+if(S.toastLogLocked) {
+log.classList.add('show', 'locked');
+} else {
+log.classList.remove('show', 'locked');
+}
+updateToastLog();
 }
 
-function toggleToastLogVisibility(visible) {
+function minimizeToastLog() {
+// Minimize without changing locked state preference
+S.toastLogLocked = false;
 const log = document.getElementById('toastLog');
 if(log) {
-if(visible) {
-log.classList.add('show');
-} else {
-log.classList.remove('show');
-}
+log.classList.remove('show', 'locked');
 }
 }
 
@@ -4402,7 +4413,7 @@ const log = document.getElementById('toastLog');
 if(!log) return;
 let html = `<div class="toast-log-header">
 <span style="font-size:1rem">🪵 Combat Log</span>
-<button onclick="toggleToastLog()" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">Close</button>
+<button onclick="minimizeToastLog()" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
 </div>`;
 html += '<div class="toast-log-entries">';
 S.toastHistory.forEach((msg, idx) => {
@@ -4422,6 +4433,19 @@ debugLog('[TUTORIAL] Skipping pop (disabled or already shown), calling callback 
 if(onDismiss) onDismiss();
 return;
 }
+// Prevent creating new backdrop while one exists (avoid stacking)
+const existingBackdrop = document.querySelector('.tutorial-modal-backdrop');
+if(existingBackdrop) {
+debugLog('[TUTORIAL] Backdrop already exists, queuing callback');
+// Queue this popup for after current one is dismissed
+const existingCallback = window.tutorialCallback;
+window.tutorialCallback = () => {
+if(existingCallback) existingCallback();
+// Delay slightly to prevent rapid-fire popups
+setTimeout(() => showTutorialPop(flagName, message, onDismiss), 100);
+};
+return;
+}
 // Add tutorial message to toast log for reference
 S.toastHistory.unshift(`📖 ${message}`);
 if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
@@ -4437,56 +4461,39 @@ backdrop.innerHTML = `
 <div class="controller-hint" style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7">Ⓐ to continue</div>
 </div>`;
 document.body.appendChild(backdrop);
-debugLog('[TUTORIAL] Backdrop created and appended, total backdrops now:', document.querySelectorAll('.tutorial-modal-backdrop').length);
+debugLog('[TUTORIAL] Backdrop created and appended');
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }
 
 function dismissTutorialPop(flagName) {
 debugLog('[TUTORIAL] dismissTutorialPop called:', flagName);
-debugLog('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 S.tutorialFlags[flagName] = true;
 savePermanent();
 
-// Remove ALL backdrops aggressively with error handling
-try {
-const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-debugLog('[TUTORIAL] Removing', allBackdrops.length, 'backdrops');
-allBackdrops.forEach((b, i) => {
-debugLog('[TUTORIAL] Removing backdrop', i);
-b.remove();
-});
-} catch (error) {
-console.error('[TUTORIAL] Error removing backdrops:', error);
-}
-
-// Verify it's gone
-setTimeout(() => {
-try {
-const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
-debugLog('[TUTORIAL] Backdrops remaining after pop dismiss:', remaining.length);
-if(remaining.length > 0) {
-console.error('[TUTORIAL] ERROR: Backdrops still blocking!', remaining);
-remaining.forEach(r => {
-console.error('[TUTORIAL] Zombie backdrop:', r);
-r.remove();
-});
-}
-
-debugLog('[TUTORIAL] About to call onDismiss callback');
-if(window.tutorialCallback) {
-debugLog('[TUTORIAL] Calling onDismiss callback NOW');
-window.tutorialCallback();
+// Capture callback before removal (prevent race conditions)
+const callback = window.tutorialCallback;
 window.tutorialCallback = null;
-} else {
-console.warn('[TUTORIAL] No callback found!');
-}
+
+// Remove ALL backdrops synchronously and aggressively
+const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+allBackdrops.forEach(b => b.remove());
+
+// Use requestAnimationFrame to ensure DOM is updated before callback
+requestAnimationFrame(() => {
+// Double-check for any zombie backdrops
+const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
+remaining.forEach(r => r.remove());
+
+// Execute callback if exists
+if(callback) {
+try {
+callback();
 } catch (error) {
-console.error('[TUTORIAL] Error in callback execution:', error);
-// Still try to clear callback even if there's an error
-if(window.tutorialCallback) window.tutorialCallback = null;
+console.error('[TUTORIAL] Callback error:', error);
 }
-}, 50);
+}
+});
 }
 
 function showRecruitReplaceConfirm(oldName, newName, onKeep, onReplace) {
@@ -4856,7 +4863,22 @@ if(now - S.lastAutosave < AUTOSAVE_THROTTLE) return;
 
 S.lastAutosave = now;
 saveGame();
+showAutosaveIndicator();
 debugLog('[AUTOSAVE] Game autosaved');
+}
+
+function showAutosaveIndicator() {
+// Show a subtle "✓ Saved" indicator in the corner
+let indicator = document.getElementById('autosave-indicator');
+if(!indicator) {
+indicator = document.createElement('div');
+indicator.id = 'autosave-indicator';
+indicator.style.cssText = 'position:fixed;top:8px;right:8px;background:rgba(34,197,94,0.9);color:white;padding:4px 10px;border-radius:4px;font-size:0.75rem;font-weight:bold;opacity:0;transition:opacity 0.3s;z-index:9999;pointer-events:none';
+document.body.appendChild(indicator);
+}
+indicator.textContent = '✓ Saved';
+indicator.style.opacity = '1';
+setTimeout(() => { indicator.style.opacity = '0'; }, 1500);
 }
 
 // ===== SUSPEND/RESUME SYSTEM =====
@@ -5176,7 +5198,12 @@ S.selectingEncampmentTargets = true;
 S.encampmentSelectedTargets = [];
 }
 render();
-// REMOVED: Tooltip tutorial now batched with handoff in Ribbleton (floor 0)
+// Auto-target tutorial: show on second+ run, floor 1
+if(S.run >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
+const isTouchDevice = 'ontouchstart' in window;
+const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
+showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
+}
 }
 
 function getLevel(sig, heroIdx) {
@@ -5524,7 +5551,7 @@ const healAmount = h.p;
 h.h = Math.min(h.h + healAmount, h.m);
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} healed for ${healAmount} HP!`, 2000);
 } else {
-toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
+toast(`${rollText} needed ${dc} - <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
 }
 // Handle Asterisk repeats for MEND
 if(S.asteriskD20Repeats > 1) {
@@ -5611,7 +5638,7 @@ return;
 }
 finishD20Asterisk(heroIdx);
 } else {
-toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, ANIMATION_TIMINGS.TOAST_MEDIUM);
+toast(`${rollText} needed ${dc} - <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, ANIMATION_TIMINGS.TOAST_MEDIUM);
 if(S.asteriskD20Repeats > 1) {
 S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
@@ -6551,9 +6578,17 @@ function executeNormalEnemyPhase() {
 // Execute all enemies in reading order (top-down, left-right) with minimal stagger
 const allEnemies = [...S.enemies].sort((a, b) => a.li - b.li); // Sort by lane index
 
+// Track enemy turn progress for UI
+S.enemyTurnTotal = allEnemies.length;
+S.enemyTurnCurrent = 0;
+
 let delay = 0;
 allEnemies.forEach((enemy, idx) => {
-setTimeout(() => executeEnemyTurn(enemy), delay);
+setTimeout(() => {
+S.enemyTurnCurrent = idx + 1;
+render(); // Update header to show progress
+executeEnemyTurn(enemy);
+}, delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Just enough stagger for visual clarity (was 600ms)
 });
 
@@ -6801,6 +6836,8 @@ S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
+S.enemyTurnCurrent = 0; // Clear enemy turn progress tracking
+S.enemyTurnTotal = 0;
 upd();
 
 // Show "Your turn!" toast to indicate player can act again
@@ -7000,7 +7037,7 @@ const recruit = heroRecruits[0];
 const extra = [];
 if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
 if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
+if(recruit.st > 0) extra.push(`💥${recruit.st}T`);
 html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
@@ -7062,22 +7099,30 @@ const hp = `${h.h}/${h.m}❤`;
 const isActive = S.activeIdx === i;
 const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
+const isStunned = h.st > 0;
 let cardClasses = 'card hero';
 if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';
+if(isStunned) cardClasses += ' stunned';
 const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-if(h.st > 0) extra.push(`😵${h.st}T`);
+if(h.st > 0) extra.push(`💥${h.st}T`);
 if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
+// Status banner for stunned/acted heroes
+if(isStunned && !isTargetable) {
+html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
+} else if(hasActed && !isTargetable) {
+html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#6b7280;padding:2px 6px;border-radius:4px;margin-bottom:4px">DONE</div>`;
+}
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
@@ -7173,7 +7218,7 @@ const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
 // Show ghost charges if enemy has them
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
-if(e.st > 0) extra.push(`😵${e.st}T`);
+if(e.st > 0) extra.push(`💥${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">`;

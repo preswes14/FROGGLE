@@ -190,7 +190,12 @@ S.selectingEncampmentTargets = true;
 S.encampmentSelectedTargets = [];
 }
 render();
-// REMOVED: Tooltip tutorial now batched with handoff in Ribbleton (floor 0)
+// Auto-target tutorial: show on second+ run, floor 1
+if(S.run >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
+const isTouchDevice = 'ontouchstart' in window;
+const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
+showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
+}
 }
 
 function getLevel(sig, heroIdx) {
@@ -538,7 +543,7 @@ const healAmount = h.p;
 h.h = Math.min(h.h + healAmount, h.m);
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} healed for ${healAmount} HP!`, 2000);
 } else {
-toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
+toast(`${rollText} needed ${dc} - <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
 }
 // Handle Asterisk repeats for MEND
 if(S.asteriskD20Repeats > 1) {
@@ -625,7 +630,7 @@ return;
 }
 finishD20Asterisk(heroIdx);
 } else {
-toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, ANIMATION_TIMINGS.TOAST_MEDIUM);
+toast(`${rollText} needed ${dc} - <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, ANIMATION_TIMINGS.TOAST_MEDIUM);
 if(S.asteriskD20Repeats > 1) {
 S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
@@ -1565,9 +1570,17 @@ function executeNormalEnemyPhase() {
 // Execute all enemies in reading order (top-down, left-right) with minimal stagger
 const allEnemies = [...S.enemies].sort((a, b) => a.li - b.li); // Sort by lane index
 
+// Track enemy turn progress for UI
+S.enemyTurnTotal = allEnemies.length;
+S.enemyTurnCurrent = 0;
+
 let delay = 0;
 allEnemies.forEach((enemy, idx) => {
-setTimeout(() => executeEnemyTurn(enemy), delay);
+setTimeout(() => {
+S.enemyTurnCurrent = idx + 1;
+render(); // Update header to show progress
+executeEnemyTurn(enemy);
+}, delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Just enough stagger for visual clarity (was 600ms)
 });
 
@@ -1815,6 +1828,8 @@ S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
+S.enemyTurnCurrent = 0; // Clear enemy turn progress tracking
+S.enemyTurnTotal = 0;
 upd();
 
 // Show "Your turn!" toast to indicate player can act again
@@ -2014,7 +2029,7 @@ const recruit = heroRecruits[0];
 const extra = [];
 if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
 if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) extra.push(`😵${recruit.st}T`);
+if(recruit.st > 0) extra.push(`💥${recruit.st}T`);
 html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
@@ -2076,22 +2091,30 @@ const hp = `${h.h}/${h.m}❤`;
 const isActive = S.activeIdx === i;
 const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
+const isStunned = h.st > 0;
 let cardClasses = 'card hero';
 if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';
+if(isStunned) cardClasses += ' stunned';
 const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-if(h.st > 0) extra.push(`😵${h.st}T`);
+if(h.st > 0) extra.push(`💥${h.st}T`);
 if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
+// Status banner for stunned/acted heroes
+if(isStunned && !isTargetable) {
+html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
+} else if(hasActed && !isTargetable) {
+html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#6b7280;padding:2px 6px;border-radius:4px;margin-bottom:4px">DONE</div>`;
+}
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
@@ -2187,7 +2210,7 @@ const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
 // Show ghost charges if enemy has them
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
-if(e.st > 0) extra.push(`😵${e.st}T`);
+if(e.st > 0) extra.push(`💥${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">`;
