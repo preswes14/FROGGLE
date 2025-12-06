@@ -1023,6 +1023,13 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   border-radius: 4px;
 }
 
+/* Flip neutral portraits that face the wrong direction */
+img[src*="healerfull"],
+img[src*="warriorfull"],
+img[src*="tankfull"] {
+  transform: scaleX(-1);
+}
+
 .card-emoji {
   text-align: center;
   font-size: 2rem;
@@ -1887,7 +1894,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.39';
+const GAME_VERSION = '11.40';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
