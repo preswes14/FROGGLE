@@ -1,0 +1,13 @@
+NEUTRAL ENCOUNTER IMAGE REFERENCE
+=================================
+This file documents which image goes with which encounter to prevent future mix-ups.
+
+oracle1.png - Hooded figure with scrying bowl/basin (mystic oracle)
+oracle2.png - Oracle's Promise encounter
+
+royal1.png  - Kneeling royal figure with crown (flummoxed royal)
+royal2.png  - Royal Wedding encounter
+
+DO NOT SWAP oracle1.png and royal1.png - they have been mixed up multiple times!
+- Oracle = hooded mystic with bowl
+- Royal = crowned figure kneeling
