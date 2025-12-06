@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.40';
+const GAME_VERSION = '11.41';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -730,13 +730,11 @@ S.locked = false;
 tutorialState.stage = 'shield_sigil';
 upd();
 render();
-// PROMPT 5: Enemy Sigils + Shield (BATCHED)
+// PROMPT 5: Enemy Sigils + Shield
 showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Try to defeat him before he can shield!", () => {
-// PROMPT 6: Tooltip + Handoff (BATCHED)
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
+// Player can now act freely - handoff popup will show after they take an action
 tutorialState.stage = 'free';
 render();
-});
 });
 }
 },
