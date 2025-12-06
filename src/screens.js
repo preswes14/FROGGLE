@@ -330,7 +330,8 @@ if(currentLevel >= 5) return; // Max level (5 for display)
 
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
 const baseCost = S.goingRate;
-const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
+const escalationTable = [0, 25, 50, 100, 150];
+const escalation = escalationTable[upgradeCount] || 150;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;

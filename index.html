@@ -1896,7 +1896,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.41';
+const GAME_VERSION = '11.42';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -11222,7 +11222,8 @@ if(currentLevel >= 5) return; // Max level (5 for display)
 
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
 const baseCost = S.goingRate;
-const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
+const escalationTable = [0, 25, 50, 100, 150];
+const escalation = escalationTable[upgradeCount] || 150;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
