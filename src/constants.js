@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.31';
+const GAME_VERSION = '11.32';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -470,7 +470,7 @@ html += `<div class="combat-header-subtitle">${targetText}</div>`;
 }
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
-html += `<div class="combat-header-title">Choose Hero to Act</div>`;
+html += `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
 html += `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
 } else {
 const h = S.heroes[S.activeIdx];

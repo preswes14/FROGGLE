@@ -541,7 +541,7 @@ const healAmount = h.p;
 h.h = Math.min(h.h + healAmount, h.m);
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} healed for ${healAmount} HP!`, 2000);
 } else {
-toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
+toast(`${rollText} needed ${dc} - <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
 }
 // Handle Asterisk repeats for MEND
 if(S.asteriskD20Repeats > 1) {
@@ -628,7 +628,7 @@ return;
 }
 finishD20Asterisk(heroIdx);
 } else {
-toast(`${rollText} <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, ANIMATION_TIMINGS.TOAST_MEDIUM);
+toast(`${rollText} needed ${dc} - <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, ANIMATION_TIMINGS.TOAST_MEDIUM);
 if(S.asteriskD20Repeats > 1) {
 S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
