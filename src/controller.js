@@ -147,9 +147,10 @@ const GamepadController = {
         if (significantChange) {
           setTimeout(() => {
             this.updateFocusableElements();
-            // Re-establish focus if lost
+            // Re-establish focus if lost - use smart default
             if (this.focusableElements.length > 0 && !document.body.contains(this.focusedElement)) {
-              this.setFocus(this.focusableElements[0]);
+              const bestFocus = this.findBestDefaultFocus();
+              this.setFocus(bestFocus || this.focusableElements[0]);
             }
           }, 100);
         }
@@ -200,6 +201,28 @@ const GamepadController = {
       // Skip if typing in an input field
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         console.log('[KEYBOARD] Skipped - input field focused');
+        return;
+      }
+
+      // Check for blocking overlays - handle specially
+      const blocking = this.isBlockingOverlayVisible();
+      if (blocking === 'tutorial') {
+        // Only Enter/Space dismisses tutorial
+        if (e.key === 'Enter' || e.key === ' ') {
+          const tutorialBtn = document.querySelector('.tutorial-modal button, .tutorial-modal .btn');
+          if (tutorialBtn) {
+            if (typeof SoundFX !== 'undefined' && SoundFX.play) SoundFX.play('click');
+            tutorialBtn.click();
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+        return;
+      }
+      if (blocking === 'suspend') {
+        // Any key resumes
+        if (typeof resumeGame === 'function') resumeGame();
+        e.preventDefault();
         return;
       }
 
@@ -418,7 +441,9 @@ const GamepadController = {
     document.body.classList.add('controller-active');
     this.updateFocusableElements();
     if (this.focusableElements.length > 0 && !this.focusedElement) {
-      this.setFocus(this.focusableElements[0]);
+      // Use smart default focus instead of just the first element
+      const bestFocus = this.findBestDefaultFocus();
+      this.setFocus(bestFocus || this.focusableElements[0]);
     }
     this.updatePrompts();
     debugLog('[GAMEPAD] Controller mode activated');
@@ -432,8 +457,29 @@ const GamepadController = {
     debugLog('[GAMEPAD] Controller mode deactivated (mouse input detected)');
   },
 
+  // Check if a blocking modal/overlay is visible that should capture all input
+  isBlockingOverlayVisible() {
+    // Tutorial modals block everything except dismissal
+    const tutorialBackdrop = document.querySelector('.tutorial-modal-backdrop');
+    if (tutorialBackdrop) return 'tutorial';
+
+    // Confirm modals block everything except Yes/No
+    const confirmModal = document.querySelector('.confirm-modal');
+    if (confirmModal) return 'confirm';
+
+    // Suspend overlay blocks everything
+    const suspendOverlay = document.getElementById('suspend-overlay');
+    if (suspendOverlay) return 'suspend';
+
+    return null;
+  },
+
   // Determine current navigation context
   getNavigationContext() {
+    // First check for blocking overlays
+    const blocking = this.isBlockingOverlayVisible();
+    if (blocking) return blocking;
+
     // Check if we're in targeting mode
     if (typeof S !== 'undefined' && S.pending) {
       return 'targeting';
@@ -526,6 +572,12 @@ const GamepadController = {
     const rightX = gp.axes[2] || 0;
     const rightY = gp.axes[3] || 0;
 
+    // Check for blocking overlays before processing stick input
+    const blocking = this.isBlockingOverlayVisible();
+    if (blocking === 'tutorial' || blocking === 'suspend') {
+      return; // Don't process stick input during blocking overlays
+    }
+
     // Left stick: Navigate (context-aware)
     if (Math.abs(leftX) > this.axisDeadzone || Math.abs(leftY) > this.axisDeadzone) {
       if (now - this.lastInputTime >= this.inputCooldown) {
@@ -538,11 +590,42 @@ const GamepadController = {
       }
     }
 
-    // Right stick: Character navigation (up/down cycles characters)
-    if (Math.abs(rightY) > this.axisDeadzone) {
+    // Right stick: Context-aware navigation
+    // - In combat: up/down cycles units, left/right cycles sigils on current unit
+    // - In menus: same as d-pad navigation
+    if (Math.abs(rightX) > this.axisDeadzone || Math.abs(rightY) > this.axisDeadzone) {
       if (now - this.lastInputTime >= this.inputCooldown) {
-        this.cycleUnit(rightY > 0 ? 'next' : 'prev');
+        this.onRightStick(rightX, rightY);
         this.lastInputTime = now;
+      }
+    }
+  },
+
+  // Right stick handler
+  onRightStick(x, y) {
+    const context = this.getNavigationContext();
+
+    // Block input during blocking overlays
+    if (context === 'tutorial' || context === 'suspend') {
+      return;
+    }
+
+    // Determine primary direction
+    const isHorizontal = Math.abs(x) > Math.abs(y);
+
+    if (context === 'combat' || context === 'targeting') {
+      // In combat: up/down cycles units, left/right cycles sigils
+      if (isHorizontal) {
+        this.cycleSigil(x > 0 ? 'next' : 'prev');
+      } else {
+        this.cycleUnit(y > 0 ? 'next' : 'prev');
+      }
+    } else {
+      // In menus: same as d-pad navigation
+      if (isHorizontal) {
+        this.onDirection(x > 0 ? 'right' : 'left');
+      } else {
+        this.onDirection(y > 0 ? 'down' : 'up');
       }
     }
   },
@@ -550,6 +633,11 @@ const GamepadController = {
   // Left stick handler (context-aware)
   onLeftStick(dir) {
     const context = this.getNavigationContext();
+
+    // Block input during blocking overlays
+    if (context === 'tutorial' || context === 'suspend') {
+      return;
+    }
 
     if (context === 'targeting') {
       // In targeting mode: cycle through valid targets
@@ -578,6 +666,57 @@ const GamepadController = {
 
     const context = this.getNavigationContext();
     console.log('[GAMEPAD] Context:', context);
+
+    // Handle blocking overlays - only allow specific actions
+    if (context === 'tutorial') {
+      // Tutorial modal: only A button works to dismiss
+      if (buttonIndex === this.BUTTONS.A) {
+        const tutorialBtn = document.querySelector('.tutorial-modal button, .tutorial-modal .btn');
+        if (tutorialBtn) {
+          if (typeof SoundFX !== 'undefined' && SoundFX.play) SoundFX.play('click');
+          tutorialBtn.click();
+        }
+      }
+      return; // Block all other input
+    }
+
+    if (context === 'confirm') {
+      // Confirm modal: A for Yes, B for No, D-pad to navigate
+      if (buttonIndex === this.BUTTONS.A) {
+        const yesBtn = document.querySelector('.confirm-btn-yes');
+        if (yesBtn) {
+          if (typeof SoundFX !== 'undefined' && SoundFX.play) SoundFX.play('click');
+          yesBtn.click();
+        }
+        return;
+      }
+      if (buttonIndex === this.BUTTONS.B) {
+        const noBtn = document.querySelector('.confirm-btn-no');
+        if (noBtn) {
+          if (typeof SoundFX !== 'undefined' && SoundFX.play) SoundFX.play('click');
+          noBtn.click();
+        }
+        return;
+      }
+      // Allow D-pad to navigate between Yes/No
+      if (buttonIndex >= this.BUTTONS.DPAD_UP && buttonIndex <= this.BUTTONS.DPAD_RIGHT) {
+        const yesBtn = document.querySelector('.confirm-btn-yes');
+        const noBtn = document.querySelector('.confirm-btn-no');
+        if (this.focusedElement === yesBtn) {
+          this.setFocus(noBtn);
+        } else {
+          this.setFocus(yesBtn);
+        }
+        if (typeof SoundFX !== 'undefined' && SoundFX.play) SoundFX.play('click');
+      }
+      return; // Block all other input
+    }
+
+    if (context === 'suspend') {
+      // Any button resumes from suspend
+      if (typeof resumeGame === 'function') resumeGame();
+      return;
+    }
 
     switch (buttonIndex) {
       case this.BUTTONS.A:
@@ -660,6 +799,14 @@ const GamepadController = {
       case this.BUTTONS.SELECT:
         this.autoTarget();
         break;
+      case this.BUTTONS.L3:
+        // Left stick click: Toggle tooltip on current unit/element
+        this.toggleTooltip();
+        break;
+      case this.BUTTONS.R3:
+        // Right stick click: Quick switch sides in combat
+        this.switchSides();
+        break;
     }
   },
 
@@ -713,6 +860,12 @@ const GamepadController = {
     if (!this.active) {
       this.activateControllerMode();
       return;
+    }
+
+    // Block navigation during blocking overlays (except confirm modal navigation handled elsewhere)
+    const blocking = this.isBlockingOverlayVisible();
+    if (blocking === 'tutorial' || blocking === 'suspend') {
+      return; // Don't navigate behind blocking modals
     }
 
     this.updateFocusableElements();
@@ -886,7 +1039,9 @@ const GamepadController = {
     setTimeout(() => {
       this.updateFocusableElements();
       if (this.focusableElements.length > 0 && !document.body.contains(this.focusedElement)) {
-        this.setFocus(this.focusableElements[0]);
+        // Use smart default focus instead of just the first element
+        const bestFocus = this.findBestDefaultFocus();
+        this.setFocus(bestFocus || this.focusableElements[0]);
       }
       this.updatePrompts();
     }, 100);
@@ -1345,13 +1500,15 @@ const GamepadController = {
         const el = document.getElementById(this.lastFocusedId);
         if (el && this.focusableElements.includes(el)) {
           this.setFocus(el);
+          this.updatePrompts();
           return;
         }
       }
 
-      // Fallback to first focusable
+      // Use smart default focus instead of just the first element
       if (this.focusableElements.length > 0) {
-        this.setFocus(this.focusableElements[0]);
+        const bestFocus = this.findBestDefaultFocus();
+        this.setFocus(bestFocus || this.focusableElements[0]);
       }
 
       this.updatePrompts();
@@ -1412,6 +1569,84 @@ const GamepadController = {
       }
       return rectA.left - rectB.left;
     });
+  },
+
+  // Find the best element to focus by default based on context
+  // This prevents focusing emoji buttons and other decorative elements
+  findBestDefaultFocus() {
+    const context = this.getNavigationContext();
+
+    // For blocking overlays, focus the appropriate button
+    if (context === 'tutorial') {
+      // Focus the "Got it!" button in tutorial modal
+      const tutorialBtn = document.querySelector('.tutorial-modal button, .tutorial-modal .btn');
+      if (tutorialBtn) return tutorialBtn;
+    }
+
+    if (context === 'confirm') {
+      // Focus the Yes button in confirm modal
+      const yesBtn = document.querySelector('.confirm-btn-yes');
+      if (yesBtn) return yesBtn;
+    }
+
+    // For combat, focus the first hero's first clickable sigil or the hero card itself
+    if (context === 'combat' || context === 'targeting') {
+      // First, try to find the first hero card
+      const heroCards = document.querySelectorAll('.card.hero:not(.acted)');
+      if (heroCards.length > 0) {
+        // Try to find a clickable sigil on the first hero
+        const firstHero = heroCards[0];
+        const clickableSigil = firstHero.querySelector('.sigil.clickable, .sigil[onclick]');
+        if (clickableSigil) return clickableSigil;
+        // Otherwise focus the hero card itself
+        return firstHero;
+      }
+      // Fallback to any hero card
+      const anyHero = document.querySelector('.card.hero');
+      if (anyHero) return anyHero;
+    }
+
+    // For modals (sigilarium, FAQ, etc), skip emoji buttons and header icons
+    if (context === 'modal') {
+      const modal = document.querySelector('.modal-container');
+      if (modal) {
+        // Look for primary action buttons first (not emoji, not header)
+        const primaryBtns = modal.querySelectorAll('.btn:not(.emoji-btn):not([style*="position:absolute"])');
+        for (const btn of primaryBtns) {
+          const text = btn.textContent || '';
+          // Skip buttons that are just emojis or single characters
+          if (text.length > 2 && !/^[\u{1F300}-\u{1F9FF}]$/u.test(text.trim())) {
+            return btn;
+          }
+        }
+        // Try to find any non-emoji button
+        const anyBtn = modal.querySelector('.btn:not(.emoji-btn)');
+        if (anyBtn) return anyBtn;
+      }
+    }
+
+    // For menu screens, look for primary action
+    const primaryAction = this.findPrimaryAction();
+    if (primaryAction) return primaryAction;
+
+    // Filter out emoji-only buttons and header icons from default focus
+    for (const el of this.focusableElements) {
+      const text = (el.textContent || '').trim();
+      // Skip elements that are:
+      // - Just emojis (1-2 characters that are emoji)
+      // - In the header
+      // - Position absolute (usually close buttons)
+      const isEmojiOnly = text.length <= 2 && /^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]+$/u.test(text);
+      const isHeader = el.closest('.header, .modal-header, [style*="position:absolute"]');
+      const isCloseBtn = el.classList.contains('close-btn') || text === '✕' || text === '×';
+
+      if (!isEmojiOnly && !isHeader && !isCloseBtn) {
+        return el;
+      }
+    }
+
+    // Last resort: return first focusable
+    return this.focusableElements[0];
   },
 
   // Find an obvious primary action button (Continue, Next, OK, PLAY, etc.)
