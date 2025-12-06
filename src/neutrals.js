@@ -151,12 +151,12 @@ v.innerHTML = `
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
 
-<!-- Secondary buttons at bottom left -->
+<!-- Left side buttons stacked -->
 <div class="title-button-container">
-<button class="btn title-secondary-btn" onclick="openSettingsMenu()" style="font-size:0.85rem;padding:0.4rem 0.8rem">⚙️ Settings</button>
-<button class="btn title-secondary-btn" onclick="showCredits()" style="font-size:0.85rem;padding:0.4rem 0.8rem">Credits</button>
+<button class="btn title-secondary-btn" onclick="showCredits()">Credits</button>
+<button class="btn title-secondary-btn" onclick="openSettingsMenu()">Settings</button>
 </div>
-<!-- Play button positioned independently on the right -->
+<!-- Play button on the right -->
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
 </div>`;
 }
