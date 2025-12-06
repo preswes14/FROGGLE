@@ -564,7 +564,7 @@ let html = `
 </h1>
 
 <div style="position:relative;width:100%;margin:0 auto">
-<img src="assets/victory-room.png" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
+<img src="assets/champions-hall.png" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
 
 <!-- Clickable pedestal hotspot (center) -->
 <div onclick="showPedestal()" style="position:absolute;left:35%;top:30%;width:30%;height:50%;cursor:pointer" title="View Pedestal"></div>
