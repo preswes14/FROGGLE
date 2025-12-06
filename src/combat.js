@@ -1945,6 +1945,12 @@ S.combatEnding = true; // Prevent duplicate defeat handling
 S.inCombat = false; // Combat ended - disable autosave
 // Clear temporary XP upgrades immediately so Death screen shows clean permanent levels
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// CRITICAL: Clear run save immediately to prevent loading into invalid state
+// This ensures player can't reload into a battle where all heroes are in Last Stand
+if(S.currentSlot) {
+localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
+}
+localStorage.removeItem('froggle8'); // Also clear old format for backwards compatibility
 // Record to The Pond - determine what killed the heroes
 const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
 recordPondHistory('defeat', killedBy);

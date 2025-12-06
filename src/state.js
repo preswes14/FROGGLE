@@ -756,6 +756,20 @@ h.s = h.s.filter(sig => sig !== 'Attack');
 debugLog('[SAVE] Migrated Healer: removed Attack from saved sigils');
 }
 });
+// CRITICAL: Check for invalid save state (all heroes in Last Stand)
+// This can happen if game was closed during/after defeat before reaching death screen
+const allHeroesInLastStand = S.heroes.length > 0 && S.heroes.every(h => h.ls);
+if(allHeroesInLastStand) {
+debugLog('[SAVE] Detected invalid save: all heroes in Last Stand, going to death screen');
+// Clear the corrupted run save
+localStorage.removeItem('froggle8');
+// Clear temp upgrades
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+upd();
+toast('Continuing from last defeat...', 1800);
+setTimeout(() => transitionScreen(showDeathScreen), 500);
+return;
+}
 upd();
 startFloor(S.floor);
 toast('Loaded!');
@@ -899,6 +913,20 @@ h.s = h.s.filter(sig => sig !== 'Attack');
 debugLog('[SAVE] Migrated Healer: removed Attack from saved sigils');
 }
 });
+// CRITICAL: Check for invalid save state (all heroes in Last Stand)
+// This can happen if game was closed during/after defeat before reaching death screen
+const allHeroesInLastStand = S.heroes.length > 0 && S.heroes.every(h => h.ls);
+if(allHeroesInLastStand) {
+debugLog('[SAVE] Detected invalid save: all heroes in Last Stand, going to death screen');
+// Clear the corrupted run save
+localStorage.removeItem(`froggle8_slot${slot}`);
+// Clear temp upgrades
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+upd();
+toast('Continuing from last defeat...', 1800);
+setTimeout(() => transitionScreen(showDeathScreen), 500);
+return true;
+}
 upd();
 startFloor(S.floor);
 toast('Slot loaded!');
