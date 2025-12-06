@@ -65,8 +65,8 @@ pondHistory: [],                 // Run history for "The Pond" - [{runNumber, he
 
 // ===== UI STATE =====
 toastHistory: [],               // Array of recent toast messages
-toastLogExpanded: false,        // Whether toast log is expanded
-toastLogVisible: true,          // Whether toast log is shown
+toastLogLocked: false,          // Whether toast log is locked open (persistent)
+toastLogVisible: true,          // Whether toast log button is shown in header
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
 helpTipsDisabled: false,        // Whether tutorial help tips are disabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
@@ -490,19 +490,24 @@ updateToastLog();
 }
 
 function toggleToastLog() {
+// Toggle the locked state
+S.toastLogLocked = !S.toastLogLocked;
 const log = document.getElementById('toastLog');
 if(!log) return;
-log.classList.toggle('show');
+if(S.toastLogLocked) {
+log.classList.add('show', 'locked');
+} else {
+log.classList.remove('show', 'locked');
+}
+updateToastLog();
 }
 
-function toggleToastLogVisibility(visible) {
+function minimizeToastLog() {
+// Minimize without changing locked state preference
+S.toastLogLocked = false;
 const log = document.getElementById('toastLog');
 if(log) {
-if(visible) {
-log.classList.add('show');
-} else {
-log.classList.remove('show');
-}
+log.classList.remove('show', 'locked');
 }
 }
 
@@ -511,7 +516,7 @@ const log = document.getElementById('toastLog');
 if(!log) return;
 let html = `<div class="toast-log-header">
 <span style="font-size:1rem">🪵 Combat Log</span>
-<button onclick="toggleToastLog()" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">Close</button>
+<button onclick="minimizeToastLog()" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
 </div>`;
 html += '<div class="toast-log-entries">';
 S.toastHistory.forEach((msg, idx) => {
