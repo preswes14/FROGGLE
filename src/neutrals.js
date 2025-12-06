@@ -607,6 +607,9 @@ console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 // Show first tutorial popup - explain Expand from the start
 showTutorialPop('tapo_first_attack', "Mage has two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
+// Mage is happy to teach Tapo to catch flies!
+const mage = S.heroes.find(h => h.n === 'Mage');
+if(mage) setHeroReaction(mage.id, 'happy', 2000);
 render();
 });
 }
