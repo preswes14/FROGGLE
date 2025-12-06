@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.28';
+const GAME_VERSION = '11.30';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -570,6 +570,8 @@ if(!options.skipRewards && S.floor !== 0) {
 S.gold += target.goldDrop || 0;
 S.combatGold += target.goldDrop || 0;
 S.combatXP += target.x;
+// JUICE: Coin sound for gold drops
+if(target.goldDrop > 0) SoundFX.play('coinDrop');
 upd();
 }
 }

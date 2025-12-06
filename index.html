@@ -1886,7 +1886,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.28';
+const GAME_VERSION = '11.30';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2457,6 +2457,8 @@ if(!options.skipRewards && S.floor !== 0) {
 S.gold += target.goldDrop || 0;
 S.combatGold += target.goldDrop || 0;
 S.combatXP += target.x;
+// JUICE: Coin sound for gold drops
+if(target.goldDrop > 0) SoundFX.play('coinDrop');
 upd();
 }
 }
@@ -2941,15 +2943,151 @@ const SoundFX = {
   ctx: null,
   enabled: true,
   volume: 0.3,
+  musicVolume: 0.2,
+  audioBuffers: {},  // Cache for loaded audio files
+  currentMusic: null, // Currently playing music source
+  musicGain: null,    // Gain node for music volume control
 
   init() {
     if (this.ctx) return;
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      // Create music gain node
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+      this.musicGain.connect(this.ctx.destination);
     } catch(e) {
       console.warn('Web Audio API not supported');
       this.enabled = false;
     }
+  },
+
+  // Load an audio file from URL or base64 data
+  async loadAudio(name, source) {
+    if (!this.ctx) this.init();
+    if (!this.ctx) return false;
+
+    try {
+      let arrayBuffer;
+
+      if (source.startsWith('data:')) {
+        // Base64 encoded audio
+        const base64 = source.split(',')[1];
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        arrayBuffer = bytes.buffer;
+      } else {
+        // URL-based audio file
+        const response = await fetch(source);
+        arrayBuffer = await response.arrayBuffer();
+      }
+
+      const audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
+      this.audioBuffers[name] = audioBuffer;
+      return true;
+    } catch (e) {
+      console.warn(`Failed to load audio "${name}":`, e);
+      return false;
+    }
+  },
+
+  // Play a loaded audio file
+  playAudio(name, options = {}) {
+    if (!this.enabled || !this.ctx) return null;
+    if (!this.audioBuffers[name]) {
+      console.warn(`Audio "${name}" not loaded`);
+      return null;
+    }
+
+    // Resume audio context if suspended
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+
+    const source = this.ctx.createBufferSource();
+    const gainNode = this.ctx.createGain();
+
+    source.buffer = this.audioBuffers[name];
+    source.loop = options.loop || false;
+
+    const vol = (options.volume !== undefined ? options.volume : 1) * this.volume;
+    gainNode.gain.setValueAtTime(vol, this.ctx.currentTime);
+
+    source.connect(gainNode);
+    gainNode.connect(this.ctx.destination);
+
+    source.start(0);
+
+    return { source, gainNode };
+  },
+
+  // Play music (with loop by default, separate volume control)
+  playMusic(name, options = {}) {
+    if (!this.enabled || !this.ctx) return null;
+
+    // Stop current music if playing
+    this.stopMusic();
+
+    if (!this.audioBuffers[name]) {
+      console.warn(`Music "${name}" not loaded`);
+      return null;
+    }
+
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = this.audioBuffers[name];
+    source.loop = options.loop !== false; // Loop by default
+
+    source.connect(this.musicGain);
+    source.start(0);
+
+    this.currentMusic = source;
+    return source;
+  },
+
+  // Stop currently playing music
+  stopMusic(fadeOut = 0) {
+    if (!this.currentMusic) return;
+
+    if (fadeOut > 0 && this.musicGain) {
+      // Fade out
+      const now = this.ctx.currentTime;
+      this.musicGain.gain.setValueAtTime(this.musicVolume, now);
+      this.musicGain.gain.exponentialRampToValueAtTime(0.01, now + fadeOut);
+      const music = this.currentMusic;
+      setTimeout(() => {
+        try { music.stop(); } catch(e) {}
+        this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+      }, fadeOut * 1000);
+    } else {
+      try { this.currentMusic.stop(); } catch(e) {}
+    }
+
+    this.currentMusic = null;
+  },
+
+  // Set music volume (0-1)
+  setMusicVolume(vol) {
+    this.musicVolume = Math.max(0, Math.min(1, vol));
+    if (this.musicGain && this.ctx) {
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+    }
+  },
+
+  // Preload multiple audio files
+  async preloadAudio(audioMap) {
+    const results = await Promise.all(
+      Object.entries(audioMap).map(([name, source]) =>
+        this.loadAudio(name, source).then(success => ({ name, success }))
+      )
+    );
+    return results;
   },
 
   // Play a synthesized sound effect
@@ -3236,6 +3374,258 @@ const SoundFX = {
           o.stop(now + i * 0.12 + 0.15);
         });
         break;
+
+      // ===== MORE FROGGY SOUNDS =====
+      case 'tongueSnap':
+        // Frog tongue lash attack - quick snap with wet ending
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+        osc.frequency.setValueAtTime(150, now + 0.06);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.12);
+        gain.gain.setValueAtTime(this.volume * 0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
+
+      case 'lilyPad':
+        // Bouncing on lily pad - springy boing
+        osc.frequency.setValueAtTime(250, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.15);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.2);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.25);
+        break;
+
+      case 'flyCatch':
+        // Catching a fly - quick zip and crunch
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+        osc.frequency.setValueAtTime(100, now + 0.05);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(this.volume * 0.3, now + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.type = 'square';
+        osc.start(now);
+        osc.stop(now + 0.1);
+        break;
+
+      case 'mudSquelch':
+        // Stepping in mud - wet squelchy sound
+        osc.frequency.setValueAtTime(80, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.25);
+        gain.gain.setValueAtTime(this.volume * 0.6, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.type = 'triangle';
+        osc.start(now);
+        osc.stop(now + 0.3);
+        break;
+
+      case 'waterDrip':
+        // Single water droplet
+        osc.frequency.setValueAtTime(1400, now);
+        osc.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+        gain.gain.setValueAtTime(this.volume * 0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.12);
+        break;
+
+      case 'crickets':
+        // Cricket chirps - rapid high frequency bursts
+        [0, 0.15, 0.18, 0.35, 0.38].forEach((t) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(4000 + Math.random() * 500, now + t);
+          g.gain.setValueAtTime(this.volume * 0.15, now + t);
+          g.gain.exponentialRampToValueAtTime(0.01, now + t + 0.03);
+          o.type = 'sine';
+          o.start(now + t);
+          o.stop(now + t + 0.03);
+        });
+        break;
+
+      case 'frogChorus':
+        // Multiple frogs croaking in celebration
+        [
+          { freq: 180, delay: 0, type: 'sine' },
+          { freq: 220, delay: 0.1, type: 'triangle' },
+          { freq: 160, delay: 0.15, type: 'sine' },
+          { freq: 200, delay: 0.25, type: 'triangle' },
+          { freq: 240, delay: 0.3, type: 'sine' }
+        ].forEach(({ freq, delay, type }) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + delay);
+          o.frequency.exponentialRampToValueAtTime(freq * 0.7, now + delay + 0.15);
+          g.gain.setValueAtTime(this.volume * 0.4, now + delay);
+          g.gain.exponentialRampToValueAtTime(0.01, now + delay + 0.2);
+          o.type = type;
+          o.start(now + delay);
+          o.stop(now + delay + 0.2);
+        });
+        break;
+
+      case 'splashBig':
+        // Big splash - dramatic water entry
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+        osc.frequency.exponentialRampToValueAtTime(50, now + 0.4);
+        gain.gain.setValueAtTime(this.volume * 0.8, now);
+        gain.gain.exponentialRampToValueAtTime(this.volume * 0.3, now + 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.5);
+        break;
+
+      case 'rain':
+        // Rain ambiance - multiple water drops
+        for (let i = 0; i < 12; i++) {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          const t = Math.random() * 0.8;
+          o.frequency.setValueAtTime(800 + Math.random() * 1200, now + t);
+          o.frequency.exponentialRampToValueAtTime(400 + Math.random() * 400, now + t + 0.06);
+          g.gain.setValueAtTime(this.volume * (0.1 + Math.random() * 0.15), now + t);
+          g.gain.exponentialRampToValueAtTime(0.01, now + t + 0.1);
+          o.type = 'sine';
+          o.start(now + t);
+          o.stop(now + t + 0.1);
+        }
+        break;
+
+      case 'treasure':
+        // Finding treasure - magical shimmer
+        [800, 1000, 1200, 1000, 1400].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.07);
+          g.gain.setValueAtTime(this.volume * 0.5, now + i * 0.07);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.07 + 0.15);
+          o.type = 'sine';
+          o.start(now + i * 0.07);
+          o.stop(now + i * 0.07 + 0.15);
+        });
+        break;
+
+      case 'stun':
+        // Stun/grapple effect - dizzy warble
+        [0, 0.08, 0.15, 0.2].forEach((t, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(300 - i * 30, now + t);
+          o.frequency.exponentialRampToValueAtTime(200, now + t + 0.08);
+          g.gain.setValueAtTime(this.volume * 0.4, now + t);
+          g.gain.exponentialRampToValueAtTime(0.01, now + t + 0.1);
+          o.type = 'triangle';
+          o.start(now + t);
+          o.stop(now + t + 0.1);
+        });
+        break;
+
+      case 'menuOpen':
+        // Menu/UI panel opening - soft whoosh up
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.12);
+        gain.gain.setValueAtTime(this.volume * 0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
+
+      case 'menuClose':
+        // Menu/UI panel closing - soft whoosh down
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+        gain.gain.setValueAtTime(this.volume * 0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.12);
+        break;
+
+      case 'coinDrop':
+        // Gold/coin pickup - bright metallic ding
+        osc.frequency.setValueAtTime(1800, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.type = 'sine';
+        osc.start(now);
+        osc.stop(now + 0.15);
+        // Add harmonic
+        const coinHarm = this.ctx.createOscillator();
+        const coinGain = this.ctx.createGain();
+        coinHarm.connect(coinGain);
+        coinGain.connect(this.ctx.destination);
+        coinHarm.frequency.setValueAtTime(2400, now);
+        coinHarm.frequency.exponentialRampToValueAtTime(1600, now + 0.06);
+        coinGain.gain.setValueAtTime(this.volume * 0.25, now);
+        coinGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        coinHarm.type = 'sine';
+        coinHarm.start(now);
+        coinHarm.stop(now + 0.1);
+        break;
+
+      case 'floorEnter':
+        // Entering new floor - dramatic swoosh
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.4);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(this.volume * 0.3, now + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc.type = 'triangle';
+        osc.start(now);
+        osc.stop(now + 0.45);
+        break;
+
+      case 'enemySpawn':
+        // Enemy appearing - ominous rising tone
+        osc.frequency.setValueAtTime(80, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+        gain.gain.setValueAtTime(this.volume * 0.4, now);
+        gain.gain.exponentialRampToValueAtTime(this.volume * 0.6, now + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.35);
+        break;
+
+      case 'powerUp':
+        // Power up acquired - ascending sparkle
+        [400, 600, 800, 1000, 1200].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.05);
+          g.gain.setValueAtTime(this.volume * 0.4, now + i * 0.05);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.1);
+          o.type = 'sine';
+          o.start(now + i * 0.05);
+          o.stop(now + i * 0.05 + 0.1);
+        });
+        break;
     }
   }
 };
@@ -3243,6 +3633,261 @@ const SoundFX = {
 // Initialize sound on first user interaction
 document.addEventListener('click', () => SoundFX.init(), { once: true });
 document.addEventListener('touchstart', () => SoundFX.init(), { once: true });
+
+// ===== PROCEDURAL MUSIC SYSTEM =====
+const ProceduralMusic = {
+  ctx: null,
+  enabled: true,
+  volume: 0.15,
+  currentMode: null,
+  oscillators: [],
+  gainNodes: [],
+  intervalIds: [],
+
+  init() {
+    if (!SoundFX.ctx) SoundFX.init();
+    this.ctx = SoundFX.ctx;
+  },
+
+  stopAll() {
+    // Stop all oscillators
+    this.oscillators.forEach(osc => {
+      try { osc.stop(); } catch(e) {}
+    });
+    this.oscillators = [];
+
+    // Disconnect gain nodes
+    this.gainNodes.forEach(g => {
+      try { g.disconnect(); } catch(e) {}
+    });
+    this.gainNodes = [];
+
+    // Clear intervals
+    this.intervalIds.forEach(id => clearInterval(id));
+    this.intervalIds = [];
+
+    this.currentMode = null;
+  },
+
+  // Ambient swamp drone - mysterious, atmospheric
+  startAmbient() {
+    if (!this.enabled || this.currentMode === 'ambient') return;
+    this.stopAll();
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+
+    this.currentMode = 'ambient';
+    const now = this.ctx.currentTime;
+
+    // Create master gain for ambient
+    const masterGain = this.ctx.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(this.volume, now + 2); // Fade in
+    masterGain.connect(this.ctx.destination);
+    this.gainNodes.push(masterGain);
+
+    // Deep drone - fundamental (D2, ~73Hz)
+    const drone1 = this.ctx.createOscillator();
+    const drone1Gain = this.ctx.createGain();
+    drone1.frequency.setValueAtTime(73, now);
+    drone1.type = 'sine';
+    drone1Gain.gain.setValueAtTime(0.4, now);
+    drone1.connect(drone1Gain);
+    drone1Gain.connect(masterGain);
+    drone1.start(now);
+    this.oscillators.push(drone1);
+    this.gainNodes.push(drone1Gain);
+
+    // Fifth harmonic (A2, ~110Hz) - adds richness
+    const drone2 = this.ctx.createOscillator();
+    const drone2Gain = this.ctx.createGain();
+    drone2.frequency.setValueAtTime(110, now);
+    drone2.type = 'sine';
+    drone2Gain.gain.setValueAtTime(0.2, now);
+    drone2.connect(drone2Gain);
+    drone2Gain.connect(masterGain);
+    drone2.start(now);
+    this.oscillators.push(drone2);
+    this.gainNodes.push(drone2Gain);
+
+    // Subtle LFO modulation for "breathing" effect on volume
+    const breatheInterval = setInterval(() => {
+      if (this.currentMode !== 'ambient' || !this.ctx) return;
+      const t = this.ctx.currentTime;
+      // Slow breathing (8 second cycle)
+      const breath = 0.7 + 0.3 * Math.sin(t * 0.4);
+      drone1Gain.gain.setTargetAtTime(0.4 * breath, t, 0.5);
+      drone2Gain.gain.setTargetAtTime(0.2 * breath, t, 0.5);
+    }, 500);
+    this.intervalIds.push(breatheInterval);
+
+    // Occasional water drip sounds
+    const dripInterval = setInterval(() => {
+      if (this.currentMode !== 'ambient' || !this.ctx) return;
+      if (Math.random() < 0.3) { // 30% chance every 2 seconds
+        SoundFX.play('waterDrip');
+      }
+    }, 2000);
+    this.intervalIds.push(dripInterval);
+
+    // Occasional cricket chirps (less frequent)
+    const cricketInterval = setInterval(() => {
+      if (this.currentMode !== 'ambient' || !this.ctx) return;
+      if (Math.random() < 0.15) {
+        SoundFX.play('crickets');
+      }
+    }, 4000);
+    this.intervalIds.push(cricketInterval);
+  },
+
+  // Combat beat - energetic, tension-building
+  startCombat() {
+    if (!this.enabled || this.currentMode === 'combat') return;
+    this.stopAll();
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+
+    this.currentMode = 'combat';
+    const now = this.ctx.currentTime;
+    const bpm = 100;
+    const beatDuration = 60 / bpm;
+
+    // Create master gain for combat
+    const masterGain = this.ctx.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(this.volume * 1.2, now + 0.5);
+    masterGain.connect(this.ctx.destination);
+    this.gainNodes.push(masterGain);
+
+    // Bass pulse pattern: 1-0-0-1-0-1-0-0 (8 steps)
+    const bassPattern = [1, 0, 0, 1, 0, 1, 0, 0];
+    let step = 0;
+
+    const beatInterval = setInterval(() => {
+      if (this.currentMode !== 'combat' || !this.ctx) return;
+
+      const t = this.ctx.currentTime;
+
+      // Bass drum on pattern
+      if (bassPattern[step]) {
+        const kick = this.ctx.createOscillator();
+        const kickGain = this.ctx.createGain();
+        kick.connect(kickGain);
+        kickGain.connect(masterGain);
+        kick.frequency.setValueAtTime(80, t);
+        kick.frequency.exponentialRampToValueAtTime(40, t + 0.1);
+        kickGain.gain.setValueAtTime(0.6, t);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+        kick.type = 'sine';
+        kick.start(t);
+        kick.stop(t + 0.15);
+      }
+
+      // Hi-hat on off-beats (every other step)
+      if (step % 2 === 1) {
+        const hat = this.ctx.createOscillator();
+        const hatGain = this.ctx.createGain();
+        hat.connect(hatGain);
+        hatGain.connect(masterGain);
+        hat.frequency.setValueAtTime(8000, t);
+        hatGain.gain.setValueAtTime(0.08, t);
+        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+        hat.type = 'square';
+        hat.start(t);
+        hat.stop(t + 0.05);
+      }
+
+      // Tension bass drone (continuous low note)
+      if (step === 0) {
+        const bass = this.ctx.createOscillator();
+        const bassGain = this.ctx.createGain();
+        bass.connect(bassGain);
+        bassGain.connect(masterGain);
+        bass.frequency.setValueAtTime(55, t); // A1
+        bassGain.gain.setValueAtTime(0.25, t);
+        bassGain.gain.exponentialRampToValueAtTime(0.01, t + beatDuration * 7.5);
+        bass.type = 'triangle';
+        bass.start(t);
+        bass.stop(t + beatDuration * 8);
+      }
+
+      step = (step + 1) % 8;
+    }, beatDuration * 1000);
+    this.intervalIds.push(beatInterval);
+  },
+
+  // Victory fanfare - celebratory, ascending
+  playVictory() {
+    if (!this.enabled) return;
+    this.stopAll();
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+
+    // Triumphant chord progression: C -> G -> Am -> F -> C (simplified fanfare)
+    const fanfare = [
+      { notes: [262, 330, 392], time: 0, duration: 0.3 },      // C major
+      { notes: [294, 370, 440], time: 0.35, duration: 0.3 },   // D major
+      { notes: [330, 415, 494], time: 0.7, duration: 0.3 },    // E major
+      { notes: [392, 494, 587], time: 1.05, duration: 0.5 },   // G major (resolve)
+      { notes: [523, 659, 784], time: 1.6, duration: 0.8 },    // C major (octave up, finale)
+    ];
+
+    fanfare.forEach(chord => {
+      chord.notes.forEach((freq, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.frequency.setValueAtTime(freq, now + chord.time);
+        gain.gain.setValueAtTime(this.volume * 0.6, now + chord.time);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + chord.time + chord.duration);
+        osc.type = i === 0 ? 'sine' : 'triangle'; // Root is fuller
+        osc.start(now + chord.time);
+        osc.stop(now + chord.time + chord.duration + 0.1);
+      });
+    });
+
+    // Add a final sparkle
+    setTimeout(() => SoundFX.play('frogChorus'), 1800);
+  },
+
+  // Death/defeat sound - somber, descending
+  playDefeat() {
+    if (!this.enabled) return;
+    this.stopAll();
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+
+    // Descending minor progression
+    const lament = [
+      { freq: 220, time: 0 },
+      { freq: 196, time: 0.4 },
+      { freq: 175, time: 0.8 },
+      { freq: 147, time: 1.2 },
+    ];
+
+    lament.forEach(note => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.frequency.setValueAtTime(note.freq, now + note.time);
+      gain.gain.setValueAtTime(this.volume * 0.5, now + note.time);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + note.time + 0.5);
+      osc.type = 'sawtooth';
+      osc.start(now + note.time);
+      osc.stop(now + note.time + 0.6);
+    });
+  },
+
+  setVolume(vol) {
+    this.volume = Math.max(0, Math.min(1, vol));
+  }
+};
 
 
 // ===== GAME STATE =====
@@ -4362,6 +5007,8 @@ if(!floorName) {
 callback();
 return;
 }
+// JUICE: Floor enter sound
+SoundFX.play('floorEnter');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
@@ -4451,6 +5098,8 @@ function combat(f) {
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
+// JUICE: Start combat music
+ProceduralMusic.startCombat();
 S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
@@ -5463,6 +6112,8 @@ function executeGrapple(heroIdx, targets, stunDuration) {
 const h = S.heroes[heroIdx];
 // Trigger attacker animation (grapple uses same animation as attack)
 triggerAttackAnimation(h.id);
+// JUICE: Stun/grapple sound effect
+SoundFX.play('stun');
 let totalDmg = 0;
 const targetNames = [];
 targets.forEach(tgtId => {
@@ -6216,8 +6867,8 @@ return true;
 // Normal combat victory
 // JUICE: Victory celebration!
 spawnConfetti(60);
+ProceduralMusic.playVictory(); // Victory fanfare!
 SoundFX.play('ribbit'); // Celebratory frog croak!
-setTimeout(() => SoundFX.play('victory'), 200);
 
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
@@ -6248,7 +6899,8 @@ S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Gho
 // Record to The Pond - determine what killed the heroes
 const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
 recordPondHistory('defeat', killedBy);
-// JUICE: Defeat sound
+// JUICE: Defeat sound and music
+ProceduralMusic.playDefeat();
 SoundFX.play('death');
 setTimeout(() => {
 toast('Defeated!');
@@ -8272,6 +8924,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// JUICE: Ambient music for title/hero select
+ProceduralMusic.startAmbient();
 upd();
 // Reset selection first
 sel = [];
@@ -8576,6 +9230,8 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// JUICE: Ambient music for neutral/exploration
+ProceduralMusic.startAmbient();
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
@@ -10786,6 +11442,8 @@ S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
 S.goingRate += 5;
+// JUICE: Power up sound for sigil upgrade
+SoundFX.play('powerUp');
 toast(`${sig} upgraded to L${S.sig[sig]}!`, 1200);
 savePermanent();
 showDeathScreen(); // Refresh
@@ -11072,6 +11730,10 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
+// JUICE: Victory music and treasure sound!
+ProceduralMusic.playVictory();
+SoundFX.play('treasure');
+
 // Record victory to The Pond!
 recordPondHistory('victory');
 
@@ -11379,6 +12041,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// JUICE: Ambient music for Ribbleton hub
+ProceduralMusic.startAmbient();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
