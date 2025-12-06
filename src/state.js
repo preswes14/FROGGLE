@@ -114,7 +114,8 @@ first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false,
 auto_target_intro: false,
-steam_controller_setup: false
+steam_controller_setup: false,
+right_click_auto_target: false
 },
 usedDeathQuotes: [], // Track which death quotes have been shown
 
@@ -353,7 +354,7 @@ addBonusTurnStack(cardId, count);
 // Track active toasts for stacking
 let activeToasts = [];
 
-function toast(msg, dur=1200) {
+function toast(msg, dur=1800) {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
 S.toastHistory.unshift(textMsg);
@@ -530,6 +531,19 @@ debugLog('[TUTORIAL] Skipping pop (disabled or already shown), calling callback 
 if(onDismiss) onDismiss();
 return;
 }
+// Prevent creating new backdrop while one exists (avoid stacking)
+const existingBackdrop = document.querySelector('.tutorial-modal-backdrop');
+if(existingBackdrop) {
+debugLog('[TUTORIAL] Backdrop already exists, queuing callback');
+// Queue this popup for after current one is dismissed
+const existingCallback = window.tutorialCallback;
+window.tutorialCallback = () => {
+if(existingCallback) existingCallback();
+// Delay slightly to prevent rapid-fire popups
+setTimeout(() => showTutorialPop(flagName, message, onDismiss), 100);
+};
+return;
+}
 // Add tutorial message to toast log for reference
 S.toastHistory.unshift(`📖 ${message}`);
 if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
@@ -545,56 +559,39 @@ backdrop.innerHTML = `
 <div class="controller-hint" style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7">Ⓐ to continue</div>
 </div>`;
 document.body.appendChild(backdrop);
-debugLog('[TUTORIAL] Backdrop created and appended, total backdrops now:', document.querySelectorAll('.tutorial-modal-backdrop').length);
+debugLog('[TUTORIAL] Backdrop created and appended');
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }
 
 function dismissTutorialPop(flagName) {
 debugLog('[TUTORIAL] dismissTutorialPop called:', flagName);
-debugLog('[TUTORIAL] Backdrops BEFORE removal:', document.querySelectorAll('.tutorial-modal-backdrop').length);
 S.tutorialFlags[flagName] = true;
 savePermanent();
 
-// Remove ALL backdrops aggressively with error handling
-try {
-const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
-debugLog('[TUTORIAL] Removing', allBackdrops.length, 'backdrops');
-allBackdrops.forEach((b, i) => {
-debugLog('[TUTORIAL] Removing backdrop', i);
-b.remove();
-});
-} catch (error) {
-console.error('[TUTORIAL] Error removing backdrops:', error);
-}
-
-// Verify it's gone
-setTimeout(() => {
-try {
-const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
-debugLog('[TUTORIAL] Backdrops remaining after pop dismiss:', remaining.length);
-if(remaining.length > 0) {
-console.error('[TUTORIAL] ERROR: Backdrops still blocking!', remaining);
-remaining.forEach(r => {
-console.error('[TUTORIAL] Zombie backdrop:', r);
-r.remove();
-});
-}
-
-debugLog('[TUTORIAL] About to call onDismiss callback');
-if(window.tutorialCallback) {
-debugLog('[TUTORIAL] Calling onDismiss callback NOW');
-window.tutorialCallback();
+// Capture callback before removal (prevent race conditions)
+const callback = window.tutorialCallback;
 window.tutorialCallback = null;
-} else {
-console.warn('[TUTORIAL] No callback found!');
-}
+
+// Remove ALL backdrops synchronously and aggressively
+const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+allBackdrops.forEach(b => b.remove());
+
+// Use requestAnimationFrame to ensure DOM is updated before callback
+requestAnimationFrame(() => {
+// Double-check for any zombie backdrops
+const remaining = document.querySelectorAll('.tutorial-modal-backdrop');
+remaining.forEach(r => r.remove());
+
+// Execute callback if exists
+if(callback) {
+try {
+callback();
 } catch (error) {
-console.error('[TUTORIAL] Error in callback execution:', error);
-// Still try to clear callback even if there's an error
-if(window.tutorialCallback) window.tutorialCallback = null;
+console.error('[TUTORIAL] Callback error:', error);
 }
-}, 50);
+}
+});
 }
 
 function showRecruitReplaceConfirm(oldName, newName, onKeep, onReplace) {
@@ -964,7 +961,22 @@ if(now - S.lastAutosave < AUTOSAVE_THROTTLE) return;
 
 S.lastAutosave = now;
 saveGame();
+showAutosaveIndicator();
 debugLog('[AUTOSAVE] Game autosaved');
+}
+
+function showAutosaveIndicator() {
+// Show a subtle "✓ Saved" indicator in the corner
+let indicator = document.getElementById('autosave-indicator');
+if(!indicator) {
+indicator = document.createElement('div');
+indicator.id = 'autosave-indicator';
+indicator.style.cssText = 'position:fixed;top:8px;right:8px;background:rgba(34,197,94,0.9);color:white;padding:4px 10px;border-radius:4px;font-size:0.75rem;font-weight:bold;opacity:0;transition:opacity 0.3s;z-index:9999;pointer-events:none';
+document.body.appendChild(indicator);
+}
+indicator.textContent = '✓ Saved';
+indicator.style.opacity = '1';
+setTimeout(() => { indicator.style.opacity = '0'; }, 1500);
 }
 
 // ===== SUSPEND/RESUME SYSTEM =====

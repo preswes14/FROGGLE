@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.30';
+const GAME_VERSION = '11.31';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -439,7 +439,12 @@ return html;
 function renderCombatStatusHeader() {
 let html = '<div class="combat-header">';
 if(S.turn!=='player') {
+if(S.enemyTurnTotal && S.enemyTurnCurrent) {
+html += `<div class="combat-header-title">Enemy Turn</div>`;
+html += `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
+} else {
 html += 'Enemy Turn…';
+}
 } else if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
 const maxTargets = 1 + getLevel('Expand', heroIdx);
