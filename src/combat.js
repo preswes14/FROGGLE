@@ -190,9 +190,11 @@ S.selectingEncampmentTargets = true;
 S.encampmentSelectedTargets = [];
 }
 render();
-// Right-click auto-target tutorial: show on second+ run, floor 1, on non-touch devices
-if(S.run >= 2 && f === 1 && !S.tutorialFlags.right_click_auto_target && !('ontouchstart' in window)) {
-showTutorialPop('right_click_auto_target', "Pro tip: Right-click any sigil to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.");
+// Auto-target tutorial: show on second+ run, floor 1
+if(S.run >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
+const isTouchDevice = 'ontouchstart' in window;
+const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
+showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
 }
 }
 

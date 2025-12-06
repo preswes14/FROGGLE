@@ -114,8 +114,7 @@ first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false,
 auto_target_intro: false,
-steam_controller_setup: false,
-right_click_auto_target: false
+steam_controller_setup: false
 },
 usedDeathQuotes: [], // Track which death quotes have been shown
 
