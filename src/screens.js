@@ -459,6 +459,8 @@ S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
 S.goingRate += 5;
+// JUICE: Power up sound for sigil upgrade
+SoundFX.play('powerUp');
 toast(`${sig} upgraded to L${S.sig[sig]}!`, 1200);
 savePermanent();
 showDeathScreen(); // Refresh
@@ -745,6 +747,10 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
+// JUICE: Victory music and treasure sound!
+ProceduralMusic.playVictory();
+SoundFX.play('treasure');
+
 // Record victory to The Pond!
 recordPondHistory('victory');
 
@@ -1052,6 +1058,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// JUICE: Ambient music for Ribbleton hub
+ProceduralMusic.startAmbient();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');

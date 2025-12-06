@@ -912,6 +912,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// JUICE: Ambient music for title/hero select
+ProceduralMusic.startAmbient();
 upd();
 // Reset selection first
 sel = [];
@@ -1216,6 +1218,8 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// JUICE: Ambient music for neutral/exploration
+ProceduralMusic.startAmbient();
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {

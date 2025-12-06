@@ -21,6 +21,8 @@ if(!floorName) {
 callback();
 return;
 }
+// JUICE: Floor enter sound
+SoundFX.play('floorEnter');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
@@ -110,6 +112,8 @@ function combat(f) {
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
+// JUICE: Start combat music
+ProceduralMusic.startCombat();
 S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
@@ -1122,6 +1126,8 @@ function executeGrapple(heroIdx, targets, stunDuration) {
 const h = S.heroes[heroIdx];
 // Trigger attacker animation (grapple uses same animation as attack)
 triggerAttackAnimation(h.id);
+// JUICE: Stun/grapple sound effect
+SoundFX.play('stun');
 let totalDmg = 0;
 const targetNames = [];
 targets.forEach(tgtId => {
@@ -1875,8 +1881,8 @@ return true;
 // Normal combat victory
 // JUICE: Victory celebration!
 spawnConfetti(60);
+ProceduralMusic.playVictory(); // Victory fanfare!
 SoundFX.play('ribbit'); // Celebratory frog croak!
-setTimeout(() => SoundFX.play('victory'), 200);
 
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
@@ -1907,7 +1913,8 @@ S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Gho
 // Record to The Pond - determine what killed the heroes
 const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
 recordPondHistory('defeat', killedBy);
-// JUICE: Defeat sound
+// JUICE: Defeat sound and music
+ProceduralMusic.playDefeat();
 SoundFX.play('death');
 setTimeout(() => {
 toast('Defeated!');
