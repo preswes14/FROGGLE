@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.35';
+const GAME_VERSION = '11.38';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -524,9 +524,10 @@ hpLost = dmg;
 target.h -= dmg;
 
 // LAYER 1: Warning when hero drops below 30% HP (preventive Last Stand warning)
+// Skip during tutorial - Tapo intervention handles this without explaining Last Stand
 if(options.isHero && !target.ls && target.h > 0 && target.h < target.m * 0.3) {
-// Check if this is the first time we're warning about low HP
-if(!S.tutorialFlags.last_stand_warning) {
+// Check if this is the first time we're warning about low HP (and not in tutorial)
+if(!S.tutorialFlags.last_stand_warning && !(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0 HP, they'll enter Last Stand mode - they can only use D20 gambits, and each turn makes survival harder. Use Ghost charges or heal up to avoid it!`);
 }
 }
@@ -566,7 +567,10 @@ triggerScreenShake(true); // Heavy shake on entering last stand
 if(!options.silent) {
 // LAYER 2: Extended toast duration (3000ms instead of default)
 toast(`${target.n} entered Last Stand!`, 3000);
+// Skip Last Stand explanation during tutorial - Tapo intervention prevents it
+if(!(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
+}
 }
 } else {
 // Enemies die - award gold/XP and schedule removal
