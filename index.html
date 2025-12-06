@@ -456,8 +456,8 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.35); }
 .sigil.l1 { color: #1a1a1a; }
 .sigil.l1 img { filter: brightness(0) saturate(100%); }
-.sigil.l2 { color: #0d9488; }
-.sigil.l2 img { filter: invert(41%) sepia(52%) saturate(1249%) hue-rotate(133deg) brightness(93%) contrast(91%); }
+.sigil.l2 { color: #06b6d4; }
+.sigil.l2 img { filter: invert(56%) sepia(81%) saturate(1239%) hue-rotate(166deg) brightness(95%) contrast(94%); }
 .sigil.l3 { color: #9333ea; }
 .sigil.l3 img { filter: invert(28%) sepia(97%) saturate(6144%) hue-rotate(262deg) brightness(82%) contrast(100%); }
 .sigil.l4 { color: #d97706; }
@@ -473,7 +473,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .sigil.passive img { filter: brightness(0) invert(1) !important; } /* White icon */
 .sigil.passive.l0 { background: #9ca3af; opacity: 0.6; } /* Gray */
 .sigil.passive.l1 { background: #374151; } /* Dark gray */
-.sigil.passive.l2 { background: #0d9488; } /* Teal */
+.sigil.passive.l2 { background: #06b6d4; } /* Cyan/Light Blue Teal */
 .sigil.passive.l3 { background: #9333ea; } /* Purple */
 .sigil.passive.l4 { background: #d97706; box-shadow: 0 0 6px rgba(217,119,6,0.5); } /* Orange with glow */
 .sigil.passive.l5 { background: linear-gradient(135deg, #ff0080, #7c3aed, #06b6d4); animation: rainbow-bg 2s ease-in-out infinite; } /* Rainbow gradient */
@@ -2660,7 +2660,7 @@ function getLevelDescription(sigilName, level) {
 const levelColors = {
 0: '#666',
 1: '#000',
-2: '#0d9488',
+2: '#06b6d4',
 3: '#9333ea',
 4: '#d97706',
 5: '#ff0080'
@@ -11428,7 +11428,7 @@ const escalation = upgradeCount > 0 ? (upgradeCount * 50) : 0;
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colors = ['#666', '#000', '#06b6d4', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 
@@ -13041,7 +13041,7 @@ const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
 if(level === 1) return '#000';
-if(level === 2) return '#0d9488';
+if(level === 2) return '#06b6d4';
 if(level === 3) return '#9333ea';
 if(level === 4) return '#d97706';
 return '#ff0080'; // L5 gradient

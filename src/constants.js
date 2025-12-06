@@ -763,7 +763,7 @@ function getLevelDescription(sigilName, level) {
 const levelColors = {
 0: '#666',
 1: '#000',
-2: '#0d9488',
+2: '#06b6d4',
 3: '#9333ea',
 4: '#d97706',
 5: '#ff0080'
