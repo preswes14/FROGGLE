@@ -153,11 +153,11 @@ v.innerHTML = `
 
 <!-- Button container at bottom -->
 <div class="title-button-container">
-<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 <div style="display:flex;gap:0.5rem">
 <button class="btn title-secondary-btn" onclick="openSettingsMenu()" style="font-size:0.85rem;padding:0.4rem 0.8rem">⚙️ Settings</button>
 <button class="btn title-secondary-btn" onclick="showCredits()" style="font-size:0.85rem;padding:0.4rem 0.8rem">Credits</button>
 </div>
+<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 </div>
 </div>`;
 }
@@ -537,9 +537,22 @@ bg: 'assets/ribbleton.png',
 text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">Ribbleton</strong>.<br><br>Today is a very special day!! Why, you ask?`
 },
 {
-// Full-art: Tapo with birthday vibes
-bg: 'assets/ribbleton-tadpole.png',
-text: `Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂<br><br>The whole town is celebrating the little tadpole's special day!`
+// Tapo with birthday vibes - animated jumping tapo
+html: `
+<div style="text-align:center;padding:2rem">
+<h2 style="font-size:2rem;margin-bottom:1.5rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
+<div style="animation:tapoHappyJump 0.6s ease-in-out infinite;display:inline-block;margin:2rem 0">
+<img src="assets/tapo-nobg.png" style="width:180px;height:auto">
+</div>
+<p style="font-size:1.2rem;line-height:1.8;margin-top:1.5rem">The whole town is celebrating the little tadpole's special day!</p>
+</div>
+<style>
+@keyframes tapoHappyJump {
+0%, 100% { transform: translateY(0) rotate(-3deg); }
+50% { transform: translateY(-30px) rotate(3deg); }
+}
+</style>
+`
 },
 {
 html: `
@@ -811,7 +824,7 @@ remaining.forEach(r => r.remove());
 }
 
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "Warrior hits harder than mage! Click the Warrior's Attack sigil.", () => {
+showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior hits harder than Mage! Click the Warrior's Attack sigil.", () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -848,7 +861,7 @@ S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Attack','Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
@@ -1013,7 +1026,7 @@ const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], bonus: '+1 POW'},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
 mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
 tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], bonus: 'ALL sigils'}
 };
 

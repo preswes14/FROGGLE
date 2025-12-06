@@ -1023,6 +1023,13 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   border-radius: 4px;
 }
 
+/* Flip neutral portraits that face the wrong direction */
+img[src*="healerfull"],
+img[src*="warriorfull"],
+img[src*="tankfull"] {
+  transform: scaleX(-1);
+}
+
 .card-emoji {
   text-align: center;
   font-size: 2rem;
@@ -1887,7 +1894,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.34';
+const GAME_VERSION = '11.40';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2004,7 +2011,7 @@ const H = {
 warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Attack','Shield','D20']},
 mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
-healer: {n:'Healer', p:1, h:5, m:5, s:['Attack','Heal','D20','Expand']},
+healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']},
 tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alpha','Ghost','Expand','Star','Asterisk']}
 };
 
@@ -2412,9 +2419,10 @@ hpLost = dmg;
 target.h -= dmg;
 
 // LAYER 1: Warning when hero drops below 30% HP (preventive Last Stand warning)
+// Skip during tutorial - Tapo intervention handles this without explaining Last Stand
 if(options.isHero && !target.ls && target.h > 0 && target.h < target.m * 0.3) {
-// Check if this is the first time we're warning about low HP
-if(!S.tutorialFlags.last_stand_warning) {
+// Check if this is the first time we're warning about low HP (and not in tutorial)
+if(!S.tutorialFlags.last_stand_warning && !(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0 HP, they'll enter Last Stand mode - they can only use D20 gambits, and each turn makes survival harder. Use Ghost charges or heal up to avoid it!`);
 }
 }
@@ -2454,7 +2462,10 @@ triggerScreenShake(true); // Heavy shake on entering last stand
 if(!options.silent) {
 // LAYER 2: Extended toast duration (3000ms instead of default)
 toast(`${target.n} entered Last Stand!`, 3000);
+// Skip Last Stand explanation during tutorial - Tapo intervention prevents it
+if(!(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
+}
 }
 } else {
 // Enemies die - award gold/XP and schedule removal
@@ -5522,7 +5533,7 @@ S.d20HeroIdx = heroIdx;
 
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
-showTutorialPop('healer_expand_explain', "Healer also has Expand - just like Mage used with Attack! This lets you add a target to your D20 gambit. Try selecting 2 enemies to Confuse!", () => {
+showTutorialPop('healer_expand_explain', "Healer has Expand, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!", () => {
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
@@ -5847,8 +5858,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 } else if(S.pending === 'Grapple') {
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
@@ -5864,8 +5879,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 }
 }
 
@@ -5892,8 +5911,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 } else if(S.pending === 'Alpha') {
 // Alpha: can't target self or already-acted heroes
 const alphaUser = S.heroes[S.activeIdx];
@@ -5915,8 +5938,12 @@ if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 }
 }
 
@@ -8210,11 +8237,11 @@ v.innerHTML = `
 
 <!-- Button container at bottom -->
 <div class="title-button-container">
-<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 <div style="display:flex;gap:0.5rem">
 <button class="btn title-secondary-btn" onclick="openSettingsMenu()" style="font-size:0.85rem;padding:0.4rem 0.8rem">⚙️ Settings</button>
 <button class="btn title-secondary-btn" onclick="showCredits()" style="font-size:0.85rem;padding:0.4rem 0.8rem">Credits</button>
 </div>
+<button class="btn title-play-btn" onclick="showSaveSlotSelection()">▶ PLAY</button>
 </div>
 </div>`;
 }
@@ -8594,9 +8621,22 @@ bg: 'assets/ribbleton.png',
 text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">Ribbleton</strong>.<br><br>Today is a very special day!! Why, you ask?`
 },
 {
-// Full-art: Tapo with birthday vibes
-bg: 'assets/ribbleton-tadpole.png',
-text: `Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂<br><br>The whole town is celebrating the little tadpole's special day!`
+// Tapo with birthday vibes - animated jumping tapo
+html: `
+<div style="text-align:center;padding:2rem">
+<h2 style="font-size:2rem;margin-bottom:1.5rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
+<div style="animation:tapoHappyJump 0.6s ease-in-out infinite;display:inline-block;margin:2rem 0">
+<img src="assets/tapo-nobg.png" style="width:180px;height:auto">
+</div>
+<p style="font-size:1.2rem;line-height:1.8;margin-top:1.5rem">The whole town is celebrating the little tadpole's special day!</p>
+</div>
+<style>
+@keyframes tapoHappyJump {
+0%, 100% { transform: translateY(0) rotate(-3deg); }
+50% { transform: translateY(-30px) rotate(3deg); }
+}
+</style>
+`
 },
 {
 html: `
@@ -8868,7 +8908,7 @@ remaining.forEach(r => r.remove());
 }
 
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "Warrior hits harder than mage! Click the Warrior's Attack sigil.", () => {
+showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior hits harder than Mage! Click the Warrior's Attack sigil.", () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -8905,7 +8945,7 @@ S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
-{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Attack','Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Add permanently upgraded passives (Expand, Asterisk, Star) to tutorial heroes
@@ -9070,7 +9110,7 @@ const heroData = {
 warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], bonus: '+1 POW'},
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
 mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
 tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], bonus: 'ALL sigils'}
 };
 
@@ -14430,12 +14470,14 @@ const GamepadController = {
 
       // Click targets up to targetsNeeded
       const toTarget = aliveEnemies.slice(0, targetsNeeded);
+      S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
       for (const enemy of toTarget) {
         const card = document.getElementById(enemy.id);
         if (card) {
           card.click();
         }
       }
+      S.autoSelectInProgress = false;
 
       if (toTarget.length > 0) {
         toast(`Auto-targeted ${toTarget.length} enem${toTarget.length === 1 ? 'y' : 'ies'}!`, 1200);
@@ -14476,12 +14518,14 @@ const GamepadController = {
 
       // Click targets up to targetsNeeded
       const toTarget = aliveHeroes.slice(0, targetsNeeded);
+      S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
       for (const hero of toTarget) {
         const card = document.getElementById(hero.id);
         if (card) {
           card.click();
         }
       }
+      S.autoSelectInProgress = false;
 
       if (toTarget.length > 0) {
         toast(`Auto-targeted ${toTarget.length} hero${toTarget.length === 1 ? '' : 'es'}!`, 1200);

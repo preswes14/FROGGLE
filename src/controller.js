@@ -1252,12 +1252,14 @@ const GamepadController = {
 
       // Click targets up to targetsNeeded
       const toTarget = aliveEnemies.slice(0, targetsNeeded);
+      S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
       for (const enemy of toTarget) {
         const card = document.getElementById(enemy.id);
         if (card) {
           card.click();
         }
       }
+      S.autoSelectInProgress = false;
 
       if (toTarget.length > 0) {
         toast(`Auto-targeted ${toTarget.length} enem${toTarget.length === 1 ? 'y' : 'ies'}!`, 1200);
@@ -1298,12 +1300,14 @@ const GamepadController = {
 
       // Click targets up to targetsNeeded
       const toTarget = aliveHeroes.slice(0, targetsNeeded);
+      S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
       for (const hero of toTarget) {
         const card = document.getElementById(hero.id);
         if (card) {
           card.click();
         }
       }
+      S.autoSelectInProgress = false;
 
       if (toTarget.length > 0) {
         toast(`Auto-targeted ${toTarget.length} hero${toTarget.length === 1 ? '' : 'es'}!`, 1200);

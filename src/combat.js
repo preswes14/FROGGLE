@@ -514,7 +514,7 @@ S.d20HeroIdx = heroIdx;
 
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
-showTutorialPop('healer_expand_explain', "Healer also has Expand - just like Mage used with Attack! This lets you add a target to your D20 gambit. Try selecting 2 enemies to Confuse!", () => {
+showTutorialPop('healer_expand_explain', "Healer has Expand, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!", () => {
 S.pending = 'D20_TARGET';
 S.targets = [];
 render();
@@ -839,8 +839,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 } else if(S.pending === 'Grapple') {
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
@@ -856,8 +860,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 }
 }
 
@@ -884,8 +892,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 } else if(S.pending === 'Alpha') {
 // Alpha: can't target self or already-acted heroes
 const alphaUser = S.heroes[S.activeIdx];
@@ -907,8 +919,12 @@ if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full (manual selection only, not auto-select)
+if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded && !S.autoSelectInProgress) {
+  confirmTargets();
+} else {
+  render();
+}
 }
 }
 
