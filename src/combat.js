@@ -41,6 +41,7 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 }
 
 function startFloor(f) {
+console.log(`[FLOOR] startFloor(${f}) called, type=${typeof f}, isOdd=${f % 2 === 1}`);
 S.floor=f;
 upd();
 // Special: Floor 20 in Frogged Up mode shows Old Tapo encounter
@@ -55,8 +56,10 @@ S.ambushed = true;
 }
 // Show interstitial for combat floors
 if(f % 2 === 1) {
+console.log(`[FLOOR] Floor ${f} is odd, starting combat`);
 showFloorInterstitial(f, () => combat(f));
 } else {
+console.log(`[FLOOR] Floor ${f} is even, starting neutral`);
 neutral(f);
 }
 }
@@ -108,6 +111,7 @@ return ['goblin'];
  * @param {number} f - Floor number (1-19, or 0 for tutorial)
  */
 function combat(f) {
+console.log(`[FLOOR] combat(${f}) called, enemies will be created for floor ${f}`);
 // Show header during combat
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
@@ -2322,18 +2326,22 @@ v.innerHTML = `
 }
 
 function nextFloor() {
+console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
 // Clear any pending recruit replacement choice
 S.pendingNewRecruit = null;
 S.pendingOldRecruitId = null;
 saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
+console.log(`[FLOOR] Floor 2 complete, showing faq_intro tutorial`);
 S.tutorialFlags.faq_intro = true;
 showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br>🌀 <strong>Sigilarium</strong> - View all sigils and their effects<br>🪵 <strong>Log</strong> - See combat message history<br>❓ <strong>FAQ</strong> - Frequently asked questions about game mechanics<br>⚙️ <strong>Settings</strong> - Adjust game options and preferences", () => {
+console.log(`[FLOOR] faq_intro callback, calling startFloor(${S.floor + 1})`);
 startFloor(S.floor + 1);
 });
 return;
 }
+console.log(`[FLOOR] Calling startFloor(${S.floor + 1})`);
 startFloor(S.floor + 1);
 }
 
