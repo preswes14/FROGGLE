@@ -1227,7 +1227,7 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 }
 
 function neutral(f) {
-debugLog(`[FLOOR] neutral(${f}) called for neutral encounter`);
+console.log(`[FLOOR] neutral(${f}) called for neutral encounter`);
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
