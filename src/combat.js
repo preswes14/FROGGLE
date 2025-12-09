@@ -2120,7 +2120,7 @@ const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
-if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
 html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
@@ -2169,7 +2169,7 @@ html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
-if(heroImage) html += `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px">`;
+if(heroImage) html += `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
 html += `</div>`;
 // Extra info

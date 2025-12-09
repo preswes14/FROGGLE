@@ -542,19 +542,32 @@ bg: 'assets/ribbleton.png',
 text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">Ribbleton</strong>.<br><br>Today is a very special day!! Why, you ask?`
 },
 {
-// Tapo with birthday vibes - animated jumping tapo
+// Tapo with birthday vibes - signature double jump + flip animation
 html: `
 <div style="text-align:center;padding:2rem">
 <h2 style="font-size:2rem;margin-bottom:1.5rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
-<div style="animation:tapoHappyJump 0.6s ease-in-out infinite;display:inline-block;margin:2rem 0">
+<div style="animation:tapoSignature 2.4s ease-in-out infinite;display:inline-block;margin:2rem 0">
 <img src="assets/tapo-nobg.png" style="width:180px;height:auto">
 </div>
 <p style="font-size:1.2rem;line-height:1.8;margin-top:1.5rem">The whole town is celebrating the little tadpole's special day!</p>
 </div>
 <style>
-@keyframes tapoHappyJump {
-0%, 100% { transform: translateY(0) rotate(-3deg); }
-50% { transform: translateY(-30px) rotate(3deg); }
+@keyframes tapoSignature {
+  /* Double jump */
+  0% { transform: translateY(0) scaleX(1); }
+  8% { transform: translateY(-25px) scaleX(1); }
+  16% { transform: translateY(0) scaleX(1); }
+  24% { transform: translateY(-35px) scaleX(1); }
+  32% { transform: translateY(0) scaleX(1); }
+  /* Pause, then horizontal flip */
+  45% { transform: translateY(0) scaleX(1); }
+  55% { transform: translateY(-10px) scaleX(0); }
+  65% { transform: translateY(0) scaleX(-1); }
+  /* Hold flipped */
+  80% { transform: translateY(0) scaleX(-1); }
+  /* Flip back */
+  90% { transform: translateY(-10px) scaleX(0); }
+  100% { transform: translateY(0) scaleX(1); }
 }
 </style>
 `
@@ -569,7 +582,7 @@ html: `
 <div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
 </div>
 <div style="font-size:3rem">🎁</div>
-<div style="animation:tapoBounceSmall 2s ease-in-out infinite">
+<div style="animation:tapoSignature 2.4s ease-in-out infinite">
 <img src="assets/tapo-nobg.png" style="width:120px;height:auto">
 <div style="text-align:center;margin-top:0.5rem;font-weight:bold">Tapo</div>
 </div>
@@ -579,9 +592,22 @@ As a birthday gift, <strong>Mage</strong> promised to teach Tapo how to catch fl
 </p>
 </div>
 <style>
-@keyframes tapoBounceSmall {
-0%, 100% { transform: translateY(0); }
-50% { transform: translateY(-15px); }
+@keyframes tapoSignature {
+  /* Double jump */
+  0% { transform: translateY(0) scaleX(1); }
+  8% { transform: translateY(-25px) scaleX(1); }
+  16% { transform: translateY(0) scaleX(1); }
+  24% { transform: translateY(-35px) scaleX(1); }
+  32% { transform: translateY(0) scaleX(1); }
+  /* Pause, then horizontal flip */
+  45% { transform: translateY(0) scaleX(1); }
+  55% { transform: translateY(-10px) scaleX(0); }
+  65% { transform: translateY(0) scaleX(-1); }
+  /* Hold flipped */
+  80% { transform: translateY(0) scaleX(-1); }
+  /* Flip back */
+  90% { transform: translateY(-10px) scaleX(0); }
+  100% { transform: translateY(0) scaleX(1); }
 }
 </style>
 `
@@ -634,23 +660,14 @@ render();
 
 function startTaposBirthdayTutorial() {
 // Phase 1: Mage vs 3 Flies - Mage starts with Attack and Expand (no D20, too confusing)
+// NOTE: Permanent sigils (Asterisk/Star) are NOT added to Phase 1 tutorial
+// to ensure consistent tutorial experience for all players
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
 S.heroes = [
 {id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
-
-// Add permanent passives (Asterisk, Star)
-const passiveSigils = ['Asterisk', 'Star'];
-S.heroes.forEach(hero => {
-passiveSigils.forEach(passive => {
-const permLevel = S.sig[passive] || 0;
-if(permLevel > 0 && !hero.s.includes(passive)) {
-hero.s.push(passive);
-}
-});
-});
 
 // Initialize Phase 1 tutorial state
 tutorialState = {
@@ -753,8 +770,8 @@ Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal
 <img src="assets/characters/tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">🛡 On Guard!</div>
 </div>
-<div style="text-align:center">
-<img src="assets/tapo.png" style="width:60px;height:auto;border-radius:6px;border:2px solid #22c55e">
+<div style="text-align:center;animation:tapoSignatureSmall 2.4s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="width:60px;height:auto">
 <div style="font-size:0.65rem;color:#22c55e;margin-top:0.25rem">Protected!</div>
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
@@ -799,6 +816,23 @@ Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the
 @keyframes enemyThreat {
 0%, 100% { transform: scale(1) rotate(0deg); }
 50% { transform: scale(1.2) rotate(10deg); }
+}
+@keyframes tapoSignatureSmall {
+  /* Double jump */
+  0% { transform: translateY(0) scaleX(1); }
+  8% { transform: translateY(-15px) scaleX(1); }
+  16% { transform: translateY(0) scaleX(1); }
+  24% { transform: translateY(-20px) scaleX(1); }
+  32% { transform: translateY(0) scaleX(1); }
+  /* Pause, then horizontal flip */
+  45% { transform: translateY(0) scaleX(1); }
+  55% { transform: translateY(-5px) scaleX(0); }
+  65% { transform: translateY(0) scaleX(-1); }
+  /* Hold flipped */
+  80% { transform: translateY(0) scaleX(-1); }
+  /* Flip back */
+  90% { transform: translateY(-5px) scaleX(0); }
+  100% { transform: translateY(0) scaleX(1); }
 }
 </style>`;
 document.body.appendChild(overlay);

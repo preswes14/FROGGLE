@@ -972,11 +972,32 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 function showTapoVictoryMessage() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
+<style>
+@keyframes tapoSignatureVictory {
+  /* Double jump */
+  0% { transform: translateY(0) scaleX(1); }
+  8% { transform: translateY(-30px) scaleX(1); }
+  16% { transform: translateY(0) scaleX(1); }
+  24% { transform: translateY(-40px) scaleX(1); }
+  32% { transform: translateY(0) scaleX(1); }
+  /* Pause, then horizontal flip */
+  45% { transform: translateY(0) scaleX(1); }
+  55% { transform: translateY(-15px) scaleX(0); }
+  65% { transform: translateY(0) scaleX(-1); }
+  /* Hold flipped */
+  80% { transform: translateY(0) scaleX(-1); }
+  /* Flip back */
+  90% { transform: translateY(-15px) scaleX(0); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+</style>
 <div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
 
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;animation:bounce 2s ease-in-out infinite">
+<div style="display:inline-block;animation:tapoSignatureVictory 2.4s ease-in-out infinite">
+<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto">
+</div>
 </div>
 
 <div style="background:rgba(0,0,0,0.2);padding:2rem;border-radius:12px;margin:2rem 0;border:2px solid rgba(251,191,36,0.5)">
