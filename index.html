@@ -1921,7 +1921,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.49';
+const GAME_VERSION = '11.50';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2112,7 +2112,7 @@ const SIGIL_DESCRIPTIONS = {
 'Heal': 'Restore <b class="sig-scale">2×POW</b> HP to target. L2: 4×. L3: 6×. L4: 8×. Cannot exceed max HP.',
 'D20': 'Attempt a gambit! Roll <b class="sig-scale">ONE</b> d20. L2: 2 dice (take best). L3: 3 dice. L4: 4 dice.',
 'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to Attack/Shield/Heal. Mage/Healer get +1 built-in.',
-'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. You take recoil damage equal to target\'s POW.',
+'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW.',
 'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
 'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
 'Star': 'PASSIVE (works automatically): Multiply combat XP by <b class="sig-scale">1.5×</b>. L2: 2×. L3: 2.5×. L4: 3×. Stacks across all heroes!',
@@ -3782,7 +3782,7 @@ const ProceduralMusic = {
     this.intervalIds.push(cricketInterval);
   },
 
-  // Combat beat - energetic, tension-building
+  // Combat beat - percussive, drum-focused
   startCombat() {
     if (!this.enabled || this.currentMode === 'combat') return;
     this.stopAll();
@@ -3801,8 +3801,23 @@ const ProceduralMusic = {
     masterGain.connect(this.ctx.destination);
     this.gainNodes.push(masterGain);
 
-    // Bass pulse pattern: 1-0-0-1-0-1-0-0 (8 steps)
-    const bassPattern = [1, 0, 0, 1, 0, 1, 0, 0];
+    // Helper: create noise buffer for percussive sounds
+    const createNoise = (duration) => {
+      const bufferSize = this.ctx.sampleRate * duration;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      return buffer;
+    };
+
+    // Kick pattern: 1-0-0-1-0-1-0-0 (8 steps) - punchy drum hits
+    const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0];
+    // Snare on beats 3 and 7 (backbeat)
+    const snarePattern = [0, 0, 1, 0, 0, 0, 1, 0];
+    // Hi-hat on every step for steady pulse
+    const hatPattern = [1, 1, 1, 1, 1, 1, 1, 1];
     let step = 0;
 
     const beatInterval = setInterval(() => {
@@ -3810,47 +3825,82 @@ const ProceduralMusic = {
 
       const t = this.ctx.currentTime;
 
-      // Bass drum on pattern
-      if (bassPattern[step]) {
-        const kick = this.ctx.createOscillator();
+      // Kick drum - low thump with noise click
+      if (kickPattern[step]) {
+        // Low frequency body
+        const kickOsc = this.ctx.createOscillator();
         const kickGain = this.ctx.createGain();
-        kick.connect(kickGain);
+        kickOsc.connect(kickGain);
         kickGain.connect(masterGain);
-        kick.frequency.setValueAtTime(80, t);
-        kick.frequency.exponentialRampToValueAtTime(40, t + 0.1);
-        kickGain.gain.setValueAtTime(0.6, t);
-        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
-        kick.type = 'sine';
-        kick.start(t);
-        kick.stop(t + 0.15);
+        kickOsc.frequency.setValueAtTime(150, t);
+        kickOsc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
+        kickGain.gain.setValueAtTime(0.7, t);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        kickOsc.type = 'sine';
+        kickOsc.start(t);
+        kickOsc.stop(t + 0.12);
+
+        // Noise click for attack
+        const kickNoise = this.ctx.createBufferSource();
+        kickNoise.buffer = createNoise(0.03);
+        const kickNoiseGain = this.ctx.createGain();
+        const kickNoiseFilter = this.ctx.createBiquadFilter();
+        kickNoiseFilter.type = 'lowpass';
+        kickNoiseFilter.frequency.value = 200;
+        kickNoise.connect(kickNoiseFilter);
+        kickNoiseFilter.connect(kickNoiseGain);
+        kickNoiseGain.connect(masterGain);
+        kickNoiseGain.gain.setValueAtTime(0.3, t);
+        kickNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+        kickNoise.start(t);
       }
 
-      // Hi-hat on off-beats (every other step)
-      if (step % 2 === 1) {
-        const hat = this.ctx.createOscillator();
+      // Snare drum - mid punch with noise burst
+      if (snarePattern[step]) {
+        // Body tone
+        const snareOsc = this.ctx.createOscillator();
+        const snareGain = this.ctx.createGain();
+        snareOsc.connect(snareGain);
+        snareGain.connect(masterGain);
+        snareOsc.frequency.setValueAtTime(180, t);
+        snareOsc.frequency.exponentialRampToValueAtTime(120, t + 0.05);
+        snareGain.gain.setValueAtTime(0.35, t);
+        snareGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        snareOsc.type = 'triangle';
+        snareOsc.start(t);
+        snareOsc.stop(t + 0.1);
+
+        // Noise rattle
+        const snareNoise = this.ctx.createBufferSource();
+        snareNoise.buffer = createNoise(0.15);
+        const snareNoiseGain = this.ctx.createGain();
+        const snareNoiseFilter = this.ctx.createBiquadFilter();
+        snareNoiseFilter.type = 'highpass';
+        snareNoiseFilter.frequency.value = 2000;
+        snareNoise.connect(snareNoiseFilter);
+        snareNoiseFilter.connect(snareNoiseGain);
+        snareNoiseGain.connect(masterGain);
+        snareNoiseGain.gain.setValueAtTime(0.25, t);
+        snareNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        snareNoise.start(t);
+      }
+
+      // Hi-hat - quiet tick for steady metronome pulse
+      if (hatPattern[step]) {
+        const hatNoise = this.ctx.createBufferSource();
+        hatNoise.buffer = createNoise(0.04);
         const hatGain = this.ctx.createGain();
-        hat.connect(hatGain);
+        const hatFilter = this.ctx.createBiquadFilter();
+        hatFilter.type = 'highpass';
+        hatFilter.frequency.value = 7000;
+        hatNoise.connect(hatFilter);
+        hatFilter.connect(hatGain);
         hatGain.connect(masterGain);
-        hat.frequency.setValueAtTime(8000, t);
-        hatGain.gain.setValueAtTime(0.08, t);
-        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-        hat.type = 'square';
-        hat.start(t);
-        hat.stop(t + 0.05);
-      }
-
-      // Tension bass drone (continuous low note)
-      if (step === 0) {
-        const bass = this.ctx.createOscillator();
-        const bassGain = this.ctx.createGain();
-        bass.connect(bassGain);
-        bassGain.connect(masterGain);
-        bass.frequency.setValueAtTime(55, t); // A1
-        bassGain.gain.setValueAtTime(0.25, t);
-        bassGain.gain.exponentialRampToValueAtTime(0.01, t + beatDuration * 7.5);
-        bass.type = 'triangle';
-        bass.start(t);
-        bass.stop(t + beatDuration * 8);
+        // Accent on downbeats
+        const accent = (step === 0 || step === 4) ? 0.12 : 0.06;
+        hatGain.gain.setValueAtTime(accent, t);
+        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+        hatNoise.start(t);
       }
 
       step = (step + 1) % 8;
@@ -5939,8 +5989,11 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+// Count available targets (enemies not yet targeted)
+const availableEnemies = S.enemies.filter(e => e.h > 0 && !S.currentInstanceTargets.includes(e.id)).length;
+// Auto-confirm when targets are full OR all available enemies selected (manual only, not auto-select)
+const shouldAutoConfirm = (S.currentInstanceTargets.length >= targetsPerInstance || availableEnemies === 0) && !S.autoSelectInProgress;
+if(shouldAutoConfirm) {
   confirmTargets();
 } else {
   render();
@@ -5960,8 +6013,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+// Grapple L2+ NEVER auto-confirms - player may want to stun fewer targets (less recoil damage)
+const grappleLevel = getLevel('Grapple', heroIdx);
+const availableEnemiesForGrapple = S.enemies.filter(e => e.h > 0 && !S.currentInstanceTargets.includes(e.id)).length;
+// Only auto-confirm for Grapple L1 when all available targets selected
+const shouldAutoConfirmGrapple = grappleLevel <= 1 && availableEnemiesForGrapple === 0 && !S.autoSelectInProgress;
+if(shouldAutoConfirmGrapple) {
   confirmTargets();
 } else {
   render();
@@ -5992,8 +6049,11 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+// Count available heroes (alive heroes not yet targeted)
+const availableHeroes = S.heroes.filter(hero => (hero.h > 0 || hero.ls) && !S.currentInstanceTargets.includes(hero.id)).length;
+// Auto-confirm when targets are full OR all available heroes selected (manual only, not auto-select)
+const shouldAutoConfirm = (S.currentInstanceTargets.length >= targetsPerInstance || availableHeroes === 0) && !S.autoSelectInProgress;
+if(shouldAutoConfirm) {
   confirmTargets();
 } else {
   render();
@@ -6019,8 +6079,17 @@ if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded && !S.autoSelectInProgress) {
+// Count available Alpha targets (alive heroes who haven't acted, not self, not already targeted)
+const availableAlphaTargets = S.heroes.filter((hero, idx) => {
+  if(hero.id === alphaUser.id) return false; // Can't target self
+  if(S.acted.includes(idx)) return false; // Already acted
+  if(hero.h <= 0 && !hero.ls) return false; // Dead
+  if(S.currentInstanceTargets.includes(hero.id)) return false; // Already targeted
+  return true;
+}).length;
+// Auto-confirm when targets are full OR all available heroes selected (manual only, not auto-select)
+const shouldAutoConfirmAlpha = (S.currentInstanceTargets.length >= S.alphaTargetsNeeded || availableAlphaTargets === 0) && !S.autoSelectInProgress;
+if(shouldAutoConfirmAlpha) {
   confirmTargets();
 } else {
   render();

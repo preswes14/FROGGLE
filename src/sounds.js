@@ -800,7 +800,7 @@ const ProceduralMusic = {
     this.intervalIds.push(cricketInterval);
   },
 
-  // Combat beat - energetic, tension-building
+  // Combat beat - percussive, drum-focused
   startCombat() {
     if (!this.enabled || this.currentMode === 'combat') return;
     this.stopAll();
@@ -819,8 +819,23 @@ const ProceduralMusic = {
     masterGain.connect(this.ctx.destination);
     this.gainNodes.push(masterGain);
 
-    // Bass pulse pattern: 1-0-0-1-0-1-0-0 (8 steps)
-    const bassPattern = [1, 0, 0, 1, 0, 1, 0, 0];
+    // Helper: create noise buffer for percussive sounds
+    const createNoise = (duration) => {
+      const bufferSize = this.ctx.sampleRate * duration;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      return buffer;
+    };
+
+    // Kick pattern: 1-0-0-1-0-1-0-0 (8 steps) - punchy drum hits
+    const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0];
+    // Snare on beats 3 and 7 (backbeat)
+    const snarePattern = [0, 0, 1, 0, 0, 0, 1, 0];
+    // Hi-hat on every step for steady pulse
+    const hatPattern = [1, 1, 1, 1, 1, 1, 1, 1];
     let step = 0;
 
     const beatInterval = setInterval(() => {
@@ -828,47 +843,82 @@ const ProceduralMusic = {
 
       const t = this.ctx.currentTime;
 
-      // Bass drum on pattern
-      if (bassPattern[step]) {
-        const kick = this.ctx.createOscillator();
+      // Kick drum - low thump with noise click
+      if (kickPattern[step]) {
+        // Low frequency body
+        const kickOsc = this.ctx.createOscillator();
         const kickGain = this.ctx.createGain();
-        kick.connect(kickGain);
+        kickOsc.connect(kickGain);
         kickGain.connect(masterGain);
-        kick.frequency.setValueAtTime(80, t);
-        kick.frequency.exponentialRampToValueAtTime(40, t + 0.1);
-        kickGain.gain.setValueAtTime(0.6, t);
-        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
-        kick.type = 'sine';
-        kick.start(t);
-        kick.stop(t + 0.15);
+        kickOsc.frequency.setValueAtTime(150, t);
+        kickOsc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
+        kickGain.gain.setValueAtTime(0.7, t);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        kickOsc.type = 'sine';
+        kickOsc.start(t);
+        kickOsc.stop(t + 0.12);
+
+        // Noise click for attack
+        const kickNoise = this.ctx.createBufferSource();
+        kickNoise.buffer = createNoise(0.03);
+        const kickNoiseGain = this.ctx.createGain();
+        const kickNoiseFilter = this.ctx.createBiquadFilter();
+        kickNoiseFilter.type = 'lowpass';
+        kickNoiseFilter.frequency.value = 200;
+        kickNoise.connect(kickNoiseFilter);
+        kickNoiseFilter.connect(kickNoiseGain);
+        kickNoiseGain.connect(masterGain);
+        kickNoiseGain.gain.setValueAtTime(0.3, t);
+        kickNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+        kickNoise.start(t);
       }
 
-      // Hi-hat on off-beats (every other step)
-      if (step % 2 === 1) {
-        const hat = this.ctx.createOscillator();
+      // Snare drum - mid punch with noise burst
+      if (snarePattern[step]) {
+        // Body tone
+        const snareOsc = this.ctx.createOscillator();
+        const snareGain = this.ctx.createGain();
+        snareOsc.connect(snareGain);
+        snareGain.connect(masterGain);
+        snareOsc.frequency.setValueAtTime(180, t);
+        snareOsc.frequency.exponentialRampToValueAtTime(120, t + 0.05);
+        snareGain.gain.setValueAtTime(0.35, t);
+        snareGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        snareOsc.type = 'triangle';
+        snareOsc.start(t);
+        snareOsc.stop(t + 0.1);
+
+        // Noise rattle
+        const snareNoise = this.ctx.createBufferSource();
+        snareNoise.buffer = createNoise(0.15);
+        const snareNoiseGain = this.ctx.createGain();
+        const snareNoiseFilter = this.ctx.createBiquadFilter();
+        snareNoiseFilter.type = 'highpass';
+        snareNoiseFilter.frequency.value = 2000;
+        snareNoise.connect(snareNoiseFilter);
+        snareNoiseFilter.connect(snareNoiseGain);
+        snareNoiseGain.connect(masterGain);
+        snareNoiseGain.gain.setValueAtTime(0.25, t);
+        snareNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        snareNoise.start(t);
+      }
+
+      // Hi-hat - quiet tick for steady metronome pulse
+      if (hatPattern[step]) {
+        const hatNoise = this.ctx.createBufferSource();
+        hatNoise.buffer = createNoise(0.04);
         const hatGain = this.ctx.createGain();
-        hat.connect(hatGain);
+        const hatFilter = this.ctx.createBiquadFilter();
+        hatFilter.type = 'highpass';
+        hatFilter.frequency.value = 7000;
+        hatNoise.connect(hatFilter);
+        hatFilter.connect(hatGain);
         hatGain.connect(masterGain);
-        hat.frequency.setValueAtTime(8000, t);
-        hatGain.gain.setValueAtTime(0.08, t);
-        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
-        hat.type = 'square';
-        hat.start(t);
-        hat.stop(t + 0.05);
-      }
-
-      // Tension bass drone (continuous low note)
-      if (step === 0) {
-        const bass = this.ctx.createOscillator();
-        const bassGain = this.ctx.createGain();
-        bass.connect(bassGain);
-        bassGain.connect(masterGain);
-        bass.frequency.setValueAtTime(55, t); // A1
-        bassGain.gain.setValueAtTime(0.25, t);
-        bassGain.gain.exponentialRampToValueAtTime(0.01, t + beatDuration * 7.5);
-        bass.type = 'triangle';
-        bass.start(t);
-        bass.stop(t + beatDuration * 8);
+        // Accent on downbeats
+        const accent = (step === 0 || step === 4) ? 0.12 : 0.06;
+        hatGain.gain.setValueAtTime(accent, t);
+        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+        hatNoise.start(t);
       }
 
       step = (step + 1) % 8;
