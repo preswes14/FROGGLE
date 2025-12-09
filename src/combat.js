@@ -843,8 +843,11 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+// Count available targets (enemies not yet targeted)
+const availableEnemies = S.enemies.filter(e => e.h > 0 && !S.currentInstanceTargets.includes(e.id)).length;
+// Auto-confirm when targets are full OR all available enemies selected (manual only, not auto-select)
+const shouldAutoConfirm = (S.currentInstanceTargets.length >= targetsPerInstance || availableEnemies === 0) && !S.autoSelectInProgress;
+if(shouldAutoConfirm) {
   confirmTargets();
 } else {
   render();
@@ -864,8 +867,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+// Grapple L2+ NEVER auto-confirms - player may want to stun fewer targets (less recoil damage)
+const grappleLevel = getLevel('Grapple', heroIdx);
+const availableEnemiesForGrapple = S.enemies.filter(e => e.h > 0 && !S.currentInstanceTargets.includes(e.id)).length;
+// Only auto-confirm for Grapple L1 when all available targets selected
+const shouldAutoConfirmGrapple = grappleLevel <= 1 && availableEnemiesForGrapple === 0 && !S.autoSelectInProgress;
+if(shouldAutoConfirmGrapple) {
   confirmTargets();
 } else {
   render();
@@ -896,8 +903,11 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= targetsPerInstance && !S.autoSelectInProgress) {
+// Count available heroes (alive heroes not yet targeted)
+const availableHeroes = S.heroes.filter(hero => (hero.h > 0 || hero.ls) && !S.currentInstanceTargets.includes(hero.id)).length;
+// Auto-confirm when targets are full OR all available heroes selected (manual only, not auto-select)
+const shouldAutoConfirm = (S.currentInstanceTargets.length >= targetsPerInstance || availableHeroes === 0) && !S.autoSelectInProgress;
+if(shouldAutoConfirm) {
   confirmTargets();
 } else {
   render();
@@ -923,8 +933,17 @@ if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Auto-confirm when targets are full (manual selection only, not auto-select)
-if(S.currentInstanceTargets.length >= S.alphaTargetsNeeded && !S.autoSelectInProgress) {
+// Count available Alpha targets (alive heroes who haven't acted, not self, not already targeted)
+const availableAlphaTargets = S.heroes.filter((hero, idx) => {
+  if(hero.id === alphaUser.id) return false; // Can't target self
+  if(S.acted.includes(idx)) return false; // Already acted
+  if(hero.h <= 0 && !hero.ls) return false; // Dead
+  if(S.currentInstanceTargets.includes(hero.id)) return false; // Already targeted
+  return true;
+}).length;
+// Auto-confirm when targets are full OR all available heroes selected (manual only, not auto-select)
+const shouldAutoConfirmAlpha = (S.currentInstanceTargets.length >= S.alphaTargetsNeeded || availableAlphaTargets === 0) && !S.autoSelectInProgress;
+if(shouldAutoConfirmAlpha) {
   confirmTargets();
 } else {
   render();
