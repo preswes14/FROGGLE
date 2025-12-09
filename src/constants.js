@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.53';
+const GAME_VERSION = '11.56';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -550,8 +550,11 @@ if(options.isHero) {
 if(tutorialState && S.floor === 0 && tutorialState.phase === 1) {
 // Tapo saves the day! Auto-win tutorial
 target.h = 1; // Prevent actual death
-toast("Tapo reaches out his sticky tongue and swallows the last fly whole!", 3000);
 SoundFX.play('ribbit');
+// Grammar: "fly" vs "flies" based on remaining count
+const aliveEnemies = S.enemies.filter(e => e.h > 0);
+const flyText = aliveEnemies.length === 1 ? 'fly' : 'flies';
+toast(`Tapo reaches out his sticky tongue and swallows the ${flyText} whole!`, 3000);
 // Clear all remaining enemies
 S.enemies = [];
 // Trigger victory after short delay

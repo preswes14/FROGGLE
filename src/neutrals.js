@@ -546,27 +546,29 @@ text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">
 html: `
 <div style="text-align:center;padding:2rem">
 <h2 style="font-size:2rem;margin-bottom:1.5rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
-<div style="animation:tapoSignature 2.4s ease-in-out infinite;display:inline-block;margin:2rem 0">
+<div style="animation:tapoSignature 4.8s ease-in-out infinite;display:inline-block;margin:2rem 0">
 <img src="assets/tapo-nobg.png" style="width:180px;height:auto">
 </div>
 <p style="font-size:1.2rem;line-height:1.8;margin-top:1.5rem">The whole town is celebrating the little tadpole's special day!</p>
 </div>
 <style>
 @keyframes tapoSignature {
-  /* Double jump */
+  /* Double jump RIGHT */
   0% { transform: translateY(0) scaleX(1); }
-  8% { transform: translateY(-25px) scaleX(1); }
-  16% { transform: translateY(0) scaleX(1); }
-  24% { transform: translateY(-35px) scaleX(1); }
-  32% { transform: translateY(0) scaleX(1); }
-  /* Pause, then horizontal flip */
-  45% { transform: translateY(0) scaleX(1); }
-  55% { transform: translateY(-10px) scaleX(0); }
-  65% { transform: translateY(0) scaleX(-1); }
-  /* Hold flipped */
-  80% { transform: translateY(0) scaleX(-1); }
-  /* Flip back */
-  90% { transform: translateY(-10px) scaleX(0); }
+  10% { transform: translateY(-25px) scaleX(1); }
+  20% { transform: translateY(0) scaleX(1); }
+  30% { transform: translateY(-35px) scaleX(1); }
+  40% { transform: translateY(0) scaleX(1); }
+  /* Flip to LEFT */
+  45% { transform: translateY(-10px) scaleX(0); }
+  50% { transform: translateY(0) scaleX(-1); }
+  /* Double jump LEFT */
+  60% { transform: translateY(-25px) scaleX(-1); }
+  70% { transform: translateY(0) scaleX(-1); }
+  80% { transform: translateY(-35px) scaleX(-1); }
+  90% { transform: translateY(0) scaleX(-1); }
+  /* Flip back to RIGHT */
+  95% { transform: translateY(-10px) scaleX(0); }
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>
@@ -582,7 +584,7 @@ html: `
 <div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
 </div>
 <div style="font-size:3rem">🎁</div>
-<div style="animation:tapoSignature 2.4s ease-in-out infinite">
+<div style="animation:tapoSignature 4.8s ease-in-out infinite">
 <img src="assets/tapo-nobg.png" style="width:120px;height:auto">
 <div style="text-align:center;margin-top:0.5rem;font-weight:bold">Tapo</div>
 </div>
@@ -593,20 +595,22 @@ As a birthday gift, <strong>Mage</strong> promised to teach Tapo how to catch fl
 </div>
 <style>
 @keyframes tapoSignature {
-  /* Double jump */
+  /* Double jump RIGHT */
   0% { transform: translateY(0) scaleX(1); }
-  8% { transform: translateY(-25px) scaleX(1); }
-  16% { transform: translateY(0) scaleX(1); }
-  24% { transform: translateY(-35px) scaleX(1); }
-  32% { transform: translateY(0) scaleX(1); }
-  /* Pause, then horizontal flip */
-  45% { transform: translateY(0) scaleX(1); }
-  55% { transform: translateY(-10px) scaleX(0); }
-  65% { transform: translateY(0) scaleX(-1); }
-  /* Hold flipped */
-  80% { transform: translateY(0) scaleX(-1); }
-  /* Flip back */
-  90% { transform: translateY(-10px) scaleX(0); }
+  10% { transform: translateY(-25px) scaleX(1); }
+  20% { transform: translateY(0) scaleX(1); }
+  30% { transform: translateY(-35px) scaleX(1); }
+  40% { transform: translateY(0) scaleX(1); }
+  /* Flip to LEFT */
+  45% { transform: translateY(-10px) scaleX(0); }
+  50% { transform: translateY(0) scaleX(-1); }
+  /* Double jump LEFT */
+  60% { transform: translateY(-25px) scaleX(-1); }
+  70% { transform: translateY(0) scaleX(-1); }
+  80% { transform: translateY(-35px) scaleX(-1); }
+  90% { transform: translateY(0) scaleX(-1); }
+  /* Flip back to RIGHT */
+  95% { transform: translateY(-10px) scaleX(0); }
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>
@@ -770,7 +774,7 @@ Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal
 <img src="assets/characters/tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">🛡 On Guard!</div>
 </div>
-<div style="text-align:center;animation:tapoSignatureSmall 2.4s ease-in-out infinite">
+<div style="text-align:center;animation:tapoSignatureSmall 4.8s ease-in-out infinite">
 <img src="assets/tapo-nobg.png" style="width:60px;height:auto">
 <div style="font-size:0.65rem;color:#22c55e;margin-top:0.25rem">Protected!</div>
 </div>
@@ -818,20 +822,22 @@ Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the
 50% { transform: scale(1.2) rotate(10deg); }
 }
 @keyframes tapoSignatureSmall {
-  /* Double jump */
+  /* Double jump RIGHT */
   0% { transform: translateY(0) scaleX(1); }
-  8% { transform: translateY(-15px) scaleX(1); }
-  16% { transform: translateY(0) scaleX(1); }
-  24% { transform: translateY(-20px) scaleX(1); }
-  32% { transform: translateY(0) scaleX(1); }
-  /* Pause, then horizontal flip */
-  45% { transform: translateY(0) scaleX(1); }
-  55% { transform: translateY(-5px) scaleX(0); }
-  65% { transform: translateY(0) scaleX(-1); }
-  /* Hold flipped */
-  80% { transform: translateY(0) scaleX(-1); }
-  /* Flip back */
-  90% { transform: translateY(-5px) scaleX(0); }
+  10% { transform: translateY(-15px) scaleX(1); }
+  20% { transform: translateY(0) scaleX(1); }
+  30% { transform: translateY(-20px) scaleX(1); }
+  40% { transform: translateY(0) scaleX(1); }
+  /* Flip to LEFT */
+  45% { transform: translateY(-5px) scaleX(0); }
+  50% { transform: translateY(0) scaleX(-1); }
+  /* Double jump LEFT */
+  60% { transform: translateY(-15px) scaleX(-1); }
+  70% { transform: translateY(0) scaleX(-1); }
+  80% { transform: translateY(-20px) scaleX(-1); }
+  90% { transform: translateY(0) scaleX(-1); }
+  /* Flip back to RIGHT */
+  95% { transform: translateY(-5px) scaleX(0); }
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>`;

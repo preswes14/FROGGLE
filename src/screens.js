@@ -974,20 +974,22 @@ const v = document.getElementById('gameView');
 v.innerHTML = `
 <style>
 @keyframes tapoSignatureVictory {
-  /* Double jump */
+  /* Double jump RIGHT */
   0% { transform: translateY(0) scaleX(1); }
-  8% { transform: translateY(-30px) scaleX(1); }
-  16% { transform: translateY(0) scaleX(1); }
-  24% { transform: translateY(-40px) scaleX(1); }
-  32% { transform: translateY(0) scaleX(1); }
-  /* Pause, then horizontal flip */
-  45% { transform: translateY(0) scaleX(1); }
-  55% { transform: translateY(-15px) scaleX(0); }
-  65% { transform: translateY(0) scaleX(-1); }
-  /* Hold flipped */
-  80% { transform: translateY(0) scaleX(-1); }
-  /* Flip back */
-  90% { transform: translateY(-15px) scaleX(0); }
+  10% { transform: translateY(-30px) scaleX(1); }
+  20% { transform: translateY(0) scaleX(1); }
+  30% { transform: translateY(-40px) scaleX(1); }
+  40% { transform: translateY(0) scaleX(1); }
+  /* Flip to LEFT */
+  45% { transform: translateY(-15px) scaleX(0); }
+  50% { transform: translateY(0) scaleX(-1); }
+  /* Double jump LEFT */
+  60% { transform: translateY(-30px) scaleX(-1); }
+  70% { transform: translateY(0) scaleX(-1); }
+  80% { transform: translateY(-40px) scaleX(-1); }
+  90% { transform: translateY(0) scaleX(-1); }
+  /* Flip back to RIGHT */
+  95% { transform: translateY(-15px) scaleX(0); }
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>
@@ -995,7 +997,7 @@ v.innerHTML = `
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
 
 <div style="text-align:center;margin:2rem 0">
-<div style="display:inline-block;animation:tapoSignatureVictory 2.4s ease-in-out infinite">
+<div style="display:inline-block;animation:tapoSignatureVictory 4.8s ease-in-out infinite">
 <img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto">
 </div>
 </div>
