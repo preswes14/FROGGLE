@@ -455,10 +455,16 @@ ${skipButton}
 
 window.currentNarrativeSlides = slides;
 window.currentNarrativeIndex = currentIndex;
+window.narrativeSlideShownAt = Date.now(); // Track when slide was shown for minimum display time
 debugLog('[FROGGLE] Slide', currentIndex, 'rendered successfully');
 }
 
 function continueNarrative() {
+// Enforce minimum 500ms display time to prevent accidental skips
+if(window.narrativeSlideShownAt && Date.now() - window.narrativeSlideShownAt < 500) {
+return; // Too soon, ignore the click
+}
+
 const slides = window.currentNarrativeSlides;
 const currentSlide = slides[window.currentNarrativeIndex];
 const nextIndex = window.currentNarrativeIndex + 1;

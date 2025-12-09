@@ -1921,7 +1921,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.50';
+const GAME_VERSION = '11.51';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8499,10 +8499,16 @@ ${skipButton}
 
 window.currentNarrativeSlides = slides;
 window.currentNarrativeIndex = currentIndex;
+window.narrativeSlideShownAt = Date.now(); // Track when slide was shown for minimum display time
 debugLog('[FROGGLE] Slide', currentIndex, 'rendered successfully');
 }
 
 function continueNarrative() {
+// Enforce minimum 500ms display time to prevent accidental skips
+if(window.narrativeSlideShownAt && Date.now() - window.narrativeSlideShownAt < 500) {
+return; // Too soon, ignore the click
+}
+
 const slides = window.currentNarrativeSlides;
 const currentSlide = slides[window.currentNarrativeIndex];
 const nextIndex = window.currentNarrativeIndex + 1;
