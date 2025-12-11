@@ -821,8 +821,14 @@ if(S.targets.length >= maxTargets) {
   return;
 }
 S.targets.push(id);
-// Don't auto-execute, require confirmation
-render();
+// Auto-confirm when targets are full OR all available enemies selected (manual only, not auto-select)
+const aliveEnemies = S.enemies.filter(e => e.h > 0 && !S.targets.includes(e.id)).length;
+const shouldAutoConfirm = (S.targets.length >= maxTargets || aliveEnemies === 0) && !S.autoSelectInProgress;
+if(shouldAutoConfirm) {
+  executeD20Action();
+} else {
+  render();
+}
 return;
 }
 if(!S.pending || !needsEnemyTarget(S.pending)) return;
