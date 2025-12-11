@@ -927,6 +927,14 @@ toast('Continuing from last defeat...', 1800);
 setTimeout(() => transitionScreen(showDeathScreen), 500);
 return true;
 }
+// CRITICAL: Check for invalid tutorial floor save (floor 0)
+// Tutorial shouldn't be saved mid-combat - advance to floor 1
+if(S.floor === 0) {
+debugLog('[SAVE] Detected invalid tutorial save: floor 0, advancing to floor 1');
+S.floor = 1;
+// Clear the corrupted save and re-save with correct floor
+localStorage.removeItem(`froggle8_slot${slot}`);
+}
 upd();
 startFloor(S.floor);
 toast('Slot loaded!');
@@ -1008,8 +1016,8 @@ toast('Warning: Game could not be saved', 2000);
 const AUTOSAVE_THROTTLE = 5000; // Minimum 5 seconds between autosaves
 
 function autosave() {
-// Only autosave if we have an active slot and are in combat
-if(!S.currentSlot || !S.inCombat) return;
+// Only autosave if we have an active slot and are in combat (not during tutorial)
+if(!S.currentSlot || !S.inCombat || S.floor === 0) return;
 
 // Throttle autosaves
 const now = Date.now();
