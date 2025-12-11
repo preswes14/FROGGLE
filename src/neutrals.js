@@ -214,53 +214,51 @@ const slot1 = getSlotMetadata(1);
 const slot2 = getSlotMetadata(2);
 
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow-y:auto">
-<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1.5rem;max-width:600px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
-<h2 style="text-align:center;margin-bottom:1.5rem;font-size:1.5rem">Select Save Slot</h2>
+<div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow:hidden;box-sizing:border-box">
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1rem;max-width:500px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
+<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Select Save Slot</h2>
 
 <!-- Slot 1 -->
-<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<h3 style="font-size:1.2rem;margin:0">Slot 1</h3>
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
+<h3 style="font-size:1.1rem;margin:0">Slot 1</h3>
 </div>
 ${slot1.exists ? `
-<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
-<div>📊 Runs Attempted: <strong>${slot1.runsAttempted}</strong></div>
-<div>💰 Going Rate: <strong>${slot1.goingRate}G</strong></div>
-${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+<div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs: <strong>${slot1.runsAttempted}</strong> | 💰 Rate: <strong>${slot1.goingRate}G</strong></div>
+${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run</div>' : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(1)">🗑️</button>
+<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(1)" style="padding:0.5rem">🗑️</button>
 </div>
 ` : `
-<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
+<p style="opacity:0.6;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
 `}
 </div>
 
 <!-- Slot 2 -->
-<div style="background:white;border:3px solid #000;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<h3 style="font-size:1.2rem;margin:0">Slot 2</h3>
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
+<h3 style="font-size:1.1rem;margin:0">Slot 2</h3>
 </div>
 ${slot2.exists ? `
-<div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem">
-<div>📊 Runs Attempted: <strong>${slot2.runsAttempted}</strong></div>
-<div>💰 Going Rate: <strong>${slot2.goingRate}G</strong></div>
-${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run In Progress</div>' : ''}
+<div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
+<div>📊 Runs: <strong>${slot2.runsAttempted}</strong> | 💰 Rate: <strong>${slot2.goingRate}G</strong></div>
+${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run</div>' : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(2)">🗑️</button>
+<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(2)" style="padding:0.5rem">🗑️</button>
 </div>
 ` : `
-<p style="opacity:0.6;margin-bottom:0.5rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold">🆕 New Game</button>
+<p style="opacity:0.6;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
 `}
 </div>
 
-<button class="btn secondary" onclick="mainTitlePage()" style="width:100%">← Back</button>
+<button class="btn secondary" onclick="mainTitlePage()" style="width:100%;padding:0.5rem">← Back</button>
 </div>
 </div>`;
 }
