@@ -101,57 +101,59 @@ menus.forEach(m => m.remove());
 // ===== SETTINGS MENU =====
 function showSettingsMenu() {
 const v = document.getElementById('gameView');
-const inGame = S.heroes && S.heroes.length > 0;
+const inGame = S.heroes && S.heroes.length > 0 && S.floor > 0;
+const inRibbleton = S.inRibbleton;
 
 let html = `
 <div class="modal-container dark">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">⚙️ SETTINGS ⚙️</h2>
 
 ${inGame ? `
-<h3 class="modal-section-title green">Game</h3>
 <button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
-<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#dc2626">🔄 Restart Level</button>
-<button class="btn" onclick="resetTutorialFlags()" style="margin-bottom:0.5rem;background:#f97316">🔄 Reset Tutorial</button>
+<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#f97316">🔄 Restart Level</button>
 ` : ''}
 
-<h3 class="modal-section-title green">Audio</h3>
+<div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay Settings</button>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display Settings</button>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller Settings</button>
+</div>
+
+${inGame ? `
+<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-top:1rem;background:#dc2626">🚪 Quit to Ribbleton</button>
+` : inRibbleton ? `
+<button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">🚪 Quit Game</button>
+` : ''}
+
+<button class="settings-back-btn" onclick="closeSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
+</div>
+<div class="modal-overlay" onclick="closeSettingsMenu()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+// ===== GAMEPLAY SETTINGS SUBMENU =====
+function showGameplaySettings() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+
+let html = `
+<div class="modal-container dark">
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY SETTINGS</h2>
+
+<h3 class="modal-section-title green">Animation Speed</h3>
+<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+<button class="btn ${S.animationSpeed === 1 ? 'selected' : ''}" onclick="setAnimationSpeed(1, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 1 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸 Normal</button>
+<button class="btn ${S.animationSpeed === 2 ? 'selected' : ''}" onclick="setAnimationSpeed(2, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 2 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨 2x</button>
+<button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨💨 4x</button>
+<button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">⚡ Instant</button>
+</div>
+
+<h3 class="modal-section-title green">Sound</h3>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${SoundFX.enabled ? 'checked' : ''} onchange="toggleSoundFX(this.checked)">
 <span>🔊 Sound Effects</span>
 </label>
-
-<h3 class="modal-section-title green">Animation Speed</h3>
-<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
-<button class="btn ${S.animationSpeed === 1 ? 'selected' : ''}" onclick="setAnimationSpeed(1)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 1 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸 Normal</button>
-<button class="btn ${S.animationSpeed === 2 ? 'selected' : ''}" onclick="setAnimationSpeed(2)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 2 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨 2x</button>
-<button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨💨 4x</button>
-<button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">⚡ Instant</button>
-</div>
-<p style="font-size:0.8rem;opacity:0.7;margin:0 0 0.5rem 0;padding-left:0.5rem">Speed up animations for faster gameplay</p>
-
-<h3 class="modal-section-title green">Display</h3>
-<label class="modal-checkbox-label">
-<input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)">
-<span>Show Toast Log</span>
-</label>
-<label class="modal-checkbox-label">
-<input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)">
-<span>💡 Show Help/Tips</span>
-</label>
-<label class="modal-checkbox-label">
-<input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
-<span>🔍 Show Sigil Tooltips</span>
-</label>
-
-<h3 class="modal-section-title green">Controller / Steam Deck</h3>
-<label class="modal-checkbox-label">
-<input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
-<span>🎮 Controller Support</span>
-</label>
-<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
-<button class="btn" onclick="showSteamDeckSetup()" style="margin-bottom:0.5rem;background:#1a9fff;font-size:0.8rem">🎮 Steam Deck Setup</button>
-<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.8rem">🔄 Re-Init Controller</button>
-<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.8rem">🔍 Live Debug Overlay</button>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
@@ -160,19 +162,63 @@ ${inGame ? `
 </label>
 ${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">🛠️ Open Debug Tools</button>` : ''}
 
-${inGame ? `
-<h3 class="modal-section-title" style="color:#dc2626">Quit</h3>
-<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-bottom:0.5rem;background:#dc2626">🚪 Quit to Ribbleton</button>
-<p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Progress is saved at the start of each floor. Current floor progress will be lost.</p>
-` : ''}
-
-<h3 class="modal-section-title" style="color:#6b7280">Exit</h3>
-<button class="btn" onclick="confirmExitGame()" style="margin-bottom:0.5rem;background:#374151">🚪 Exit Game</button>
-<p style="font-size:0.75rem;opacity:0.7;margin:-0.25rem 0 0.5rem 0;padding-left:0.5rem">Return to title screen (permanent progress is always saved)</p>
-
-<button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem;background:#888">Close</button>
+<button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu()"></div>
+<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+// ===== DISPLAY SETTINGS SUBMENU =====
+function showDisplaySettings() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+
+let html = `
+<div class="modal-container dark">
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY SETTINGS</h2>
+
+<label class="modal-checkbox-label">
+<input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)">
+<span>📜 Show Toast Log</span>
+</label>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)">
+<span>💡 Show Help/Tips</span>
+</label>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">Turning this on resets all tutorial popups</p>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
+<span>🔍 Show Sigil Tooltips</span>
+</label>
+
+<button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
+</div>
+<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+// ===== CONTROLLER SETTINGS SUBMENU =====
+function showControllerSettings() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+
+let html = `
+<div class="modal-container dark">
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER SETTINGS</h2>
+
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
+<span>🎮 Controller Support</span>
+</label>
+<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
+<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">🔄 Re-Init Controller</button>
+<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.9rem">🔍 Input Overlay</button>
+
+<button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
+</div>
+<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -245,47 +291,6 @@ mainTitlePage();
 });
 }
 
-function resetTutorialFlags() {
-showConfirmModal('Reset tutorial? This will show all tutorial pop-ups again.', () => {
-S.tutorialFlags = {
-ribbleton_intro: false,
-ribbleton_warrior_attack: false,
-ribbleton_targeting: false,
-ribbleton_healer_d20: false,
-ribbleton_d20_menu: false,
-healer_expand_explain: false,
-ribbleton_enemy_turn: false,
-ribbleton_healer_heal: false,
-ribbleton_expand: false,
-ribbleton_finish_wolf: false,
-enemies_get_sigils: false,
-ribbleton_shield_sigil: false,
-ribbleton_handoff: false,
-ribbleton_tooltip_intro: false,
-ribbleton_hub_intro: false,
-levelup_intro: false,
-levelup_stat_upgrade: false,
-levelup_add_active: false,
-levelup_upgrade_active: false,
-levelup_upgrade_passive: false,
-death_intro: false,
-death_exit_warning: false,
-neutral_intro: false,
-neutral_d20_level: false,
-faq_intro: false,
-last_stand_intro: false,
-recruit_intro: false,
-run2_hero_lock: false,
-first_victory_sequence: false,
-first_fu_victory: false,
-pedestal_first_placement: false,
-tapo_victory_message: false
-};
-savePermanent();
-toast('Tutorial reset! Will show again next run.', 2000);
-closeSettingsMenu();
-});
-}
 
 function toggleHelpTips(enabled) {
 S.helpTipsDisabled = !enabled;
@@ -328,15 +333,19 @@ toast('Sound effects disabled!', 1200);
 }
 }
 
-function setAnimationSpeed(speed) {
+function setAnimationSpeed(speed, fromSubmenu = false) {
 S.animationSpeed = speed;
 const labels = {0: '⚡ Instant', 1: '🐸 Normal', 2: '🐸💨 2x', 4: '🐸💨💨 4x'};
 toast(`Animation speed: ${labels[speed]}`, 1200);
 SoundFX.play('hop');
 savePermanent();
-// Refresh settings menu to update button states
+// Refresh gameplay settings submenu to update button states
 closeSettingsMenu();
+if (fromSubmenu) {
+showGameplaySettings();
+} else {
 showSettingsMenu();
+}
 }
 
 function toggleControllerSupport(enabled) {
@@ -510,10 +519,6 @@ toast('Controller debug enabled - overlay shown', 1500);
 closeSettingsMenu();
 }
 
-function showSteamDeckSetup() {
-closeSettingsMenu();
-GamepadController.showSteamControllerSetupHelp(true); // forceShow=true from settings
-}
 
 function showControlsGuide() {
 closeSettingsMenu();
