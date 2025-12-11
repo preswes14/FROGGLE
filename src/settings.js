@@ -111,15 +111,19 @@ let html = `
 ${inGame ? `
 <button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
 <button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#f97316">🔄 Restart Level</button>
-<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-bottom:0.5rem;background:#dc2626">🚪 Quit to Ribbleton</button>
-` : inRibbleton ? `
-<button class="btn" onclick="confirmExitGame()" style="margin-bottom:0.5rem;background:#dc2626">🚪 Quit Game</button>
 ` : ''}
 
-<div style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem">
+<div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
 <button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay Settings</button>
 <button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display Settings</button>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller Settings</button>
 </div>
+
+${inGame ? `
+<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-top:1rem;background:#dc2626">🚪 Quit to Ribbleton</button>
+` : inRibbleton ? `
+<button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">🚪 Quit Game</button>
+` : ''}
 
 <button class="settings-back-btn" onclick="closeSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
@@ -150,15 +154,6 @@ let html = `
 <input type="checkbox" ${SoundFX.enabled ? 'checked' : ''} onchange="toggleSoundFX(this.checked)">
 <span>🔊 Sound Effects</span>
 </label>
-
-<h3 class="modal-section-title green">Controller</h3>
-<label class="modal-checkbox-label">
-<input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
-<span>🎮 Controller Support</span>
-</label>
-<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
-<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">🔄 Re-Init Controller</button>
-<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.9rem">🔍 Input Overlay</button>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
@@ -196,6 +191,30 @@ let html = `
 <input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
 <span>🔍 Show Sigil Tooltips</span>
 </label>
+
+<button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
+</div>
+<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+// ===== CONTROLLER SETTINGS SUBMENU =====
+function showControllerSettings() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+
+let html = `
+<div class="modal-container dark">
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER SETTINGS</h2>
+
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
+<span>🎮 Controller Support</span>
+</label>
+<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
+<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">🔄 Re-Init Controller</button>
+<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.9rem">🔍 Input Overlay</button>
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
