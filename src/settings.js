@@ -114,9 +114,9 @@ ${inGame ? `
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay Settings</button>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display Settings</button>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller Settings</button>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay</button>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display</button>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller</button>
 </div>
 
 ${inGame ? `
@@ -139,7 +139,7 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY SETTINGS</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY</h2>
 
 <h3 class="modal-section-title green">Animation Speed</h3>
 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
@@ -176,7 +176,7 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY SETTINGS</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)">
@@ -206,7 +206,7 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER SETTINGS</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">

@@ -788,11 +788,20 @@ try {
 let d = localStorage.getItem(`froggle8_permanent_slot${slot}`);
 if(d) {
 const j = JSON.parse(d);
+const runData = localStorage.getItem(`froggle8_slot${slot}`);
+let activeFloor = null;
+if(runData) {
+try {
+const r = JSON.parse(runData);
+activeFloor = r.f || null;
+} catch(e) {}
+}
 return {
 exists: true,
 runsAttempted: j.runsAttempted || j.runNumber || 1,
 goingRate: j.goingRate || 1,
-hasActiveRun: !!localStorage.getItem(`froggle8_slot${slot}`)
+hasActiveRun: !!runData,
+activeFloor: activeFloor
 };
 }
 // Check old system for migration
@@ -800,11 +809,20 @@ if(slot === 1) {
 d = localStorage.getItem('froggle8_permanent');
 if(d) {
 const j = JSON.parse(d);
+const oldRunData = localStorage.getItem('froggle8');
+let activeFloor = null;
+if(oldRunData) {
+try {
+const r = JSON.parse(oldRunData);
+activeFloor = r.f || null;
+} catch(e) {}
+}
 return {
 exists: true,
 runsAttempted: j.runNumber || 1,
 goingRate: j.goingRate || 1,
-hasActiveRun: !!localStorage.getItem('froggle8'),
+hasActiveRun: !!oldRunData,
+activeFloor: activeFloor,
 needsMigration: true
 };
 }

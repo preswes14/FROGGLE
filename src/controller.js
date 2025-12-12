@@ -723,22 +723,8 @@ const GamepadController = {
         this.confirmSelection();
         break;
       case this.BUTTONS.START:
-        // START on title/menu screens should also advance (like A)
-        // Only open settings if we're in combat or other gameplay screens
-        if (context === 'combat' || context === 'targeting') {
-          this.openMenu();
-        } else {
-          // Try to find primary action first, fall back to menu
-          const primaryBtn = this.findPrimaryAction();
-          if (primaryBtn) {
-            if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-              SoundFX.play('click');
-            }
-            primaryBtn.click();
-          } else {
-            this.openMenu();
-          }
-        }
+        // START always opens settings menu
+        this.openMenu();
         break;
       case this.BUTTONS.B:
         this.goBack();
