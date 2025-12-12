@@ -984,7 +984,10 @@ const GamepadController = {
 
   confirmSelection() {
     // If we have targets selected, confirm them directly
-    if (typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+    // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
+    const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
+    const hasInstanceTargets = typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0;
+    if (hasD20Targets || hasInstanceTargets) {
       if (typeof SoundFX !== 'undefined' && SoundFX.play) {
         SoundFX.play('click');
       }

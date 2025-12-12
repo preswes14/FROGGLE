@@ -748,21 +748,23 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
-if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
-toast('Select at least one target first!');
-return;
-}
-const heroIdx = S.activeIdx;
 
+// D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
 if(S.pending === 'D20_TARGET') {
-// D20 targeting uses S.targets directly
-if(S.targets.length === 0) {
+if(!S.targets || S.targets.length === 0) {
   toast('Select at least one target first!');
   return;
 }
 rollD20();
 return;
 }
+
+// For other actions, check S.currentInstanceTargets
+if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
+toast('Select at least one target first!');
+return;
+}
+const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
