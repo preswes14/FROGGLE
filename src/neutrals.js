@@ -226,7 +226,7 @@ v.innerHTML = `
 ${slot1.exists ? `
 <div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
 <div>📊 Runs: <strong>${slot1.runsAttempted}</strong> | 💰 Rate: <strong>${slot1.goingRate}G</strong></div>
-${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run</div>' : ''}
+${slot1.hasActiveRun ? `<div style="color:#22c55e;font-weight:bold">🎮 Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
@@ -246,7 +246,7 @@ ${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active 
 ${slot2.exists ? `
 <div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
 <div>📊 Runs: <strong>${slot2.runsAttempted}</strong> | 💰 Rate: <strong>${slot2.goingRate}G</strong></div>
-${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run</div>' : ''}
+${slot2.hasActiveRun ? `<div style="color:#22c55e;font-weight:bold">🎮 Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>

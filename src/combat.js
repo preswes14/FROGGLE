@@ -748,21 +748,23 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
-if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
-toast('Select at least one target first!');
-return;
-}
-const heroIdx = S.activeIdx;
 
+// D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
 if(S.pending === 'D20_TARGET') {
-// D20 targeting uses S.targets directly
-if(S.targets.length === 0) {
+if(!S.targets || S.targets.length === 0) {
   toast('Select at least one target first!');
   return;
 }
 rollD20();
 return;
 }
+
+// For other actions, check S.currentInstanceTargets
+if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
+toast('Select at least one target first!');
+return;
+}
+const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
@@ -2114,6 +2116,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isActive = S.activeIdx === i;
 let lsClasses = 'card hero last-stand-flipped';
+if(i === 0) lsClasses += ' chosen-one';
 if(isActive) lsClasses += ' active';
 if(isTargetable) lsClasses += ' targetable';
 if(hasActed) lsClasses += ' acted';
@@ -2148,6 +2151,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isStunned = h.st > 0;
 let cardClasses = 'card hero';
+if(i === 0) cardClasses += ' chosen-one';
 if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';

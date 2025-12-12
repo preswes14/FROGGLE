@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.59';
+const GAME_VERSION = '11.61';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -482,9 +482,14 @@ else html += `${h.n}'s Turn`;
 html += '</div>';
 
 // Add action bar when we have targets selected - simplified for controller flow
-if(S.turn === 'player' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
-const targetCount = S.currentInstanceTargets.length;
-const targetNames = S.currentInstanceTargets.map(t => {
+// D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
+const hasTargetsForActionBar = S.pending === 'D20_TARGET'
+? (S.targets && S.targets.length > 0)
+: (S.currentInstanceTargets && S.currentInstanceTargets.length > 0);
+if(S.turn === 'player' && S.pending && hasTargetsForActionBar) {
+const targetArray = S.pending === 'D20_TARGET' ? S.targets : S.currentInstanceTargets;
+const targetCount = targetArray.length;
+const targetNames = targetArray.map(t => {
 const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
 return unit ? unit.n : 'target';
 }).join(', ');

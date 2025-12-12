@@ -723,22 +723,8 @@ const GamepadController = {
         this.confirmSelection();
         break;
       case this.BUTTONS.START:
-        // START on title/menu screens should also advance (like A)
-        // Only open settings if we're in combat or other gameplay screens
-        if (context === 'combat' || context === 'targeting') {
-          this.openMenu();
-        } else {
-          // Try to find primary action first, fall back to menu
-          const primaryBtn = this.findPrimaryAction();
-          if (primaryBtn) {
-            if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-              SoundFX.play('click');
-            }
-            primaryBtn.click();
-          } else {
-            this.openMenu();
-          }
-        }
+        // START always opens settings menu
+        this.openMenu();
         break;
       case this.BUTTONS.B:
         this.goBack();
@@ -998,7 +984,10 @@ const GamepadController = {
 
   confirmSelection() {
     // If we have targets selected, confirm them directly
-    if (typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+    // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
+    const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
+    const hasInstanceTargets = typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0;
+    if (hasD20Targets || hasInstanceTargets) {
       if (typeof SoundFX !== 'undefined' && SoundFX.play) {
         SoundFX.play('click');
       }

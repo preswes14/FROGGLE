@@ -352,6 +352,22 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .card.hero { background: #2c63c7; color: white; width: 160px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 .card.enemy { background: #b64141; color: white; width: 160px; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
+.card.hero.chosen-one { position: relative; overflow: visible; }
+.card.hero.chosen-one::before {
+  content: '🌼';
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.3rem;
+  filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24);
+  z-index: 1;
+  animation: chosen-glow 2s ease-in-out infinite;
+}
+@keyframes chosen-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24); }
+  50% { filter: drop-shadow(0 0 6px #fcd34d) drop-shadow(0 0 12px #fbbf24); }
+}
 .card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
 .card.selectable:active { transform: scale(0.98); }
 .card.targetable { cursor: pointer; }
@@ -1939,7 +1955,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.59';
+const GAME_VERSION = '11.61';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2422,9 +2438,14 @@ else html += `${h.n}'s Turn`;
 html += '</div>';
 
 // Add action bar when we have targets selected - simplified for controller flow
-if(S.turn === 'player' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
-const targetCount = S.currentInstanceTargets.length;
-const targetNames = S.currentInstanceTargets.map(t => {
+// D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
+const hasTargetsForActionBar = S.pending === 'D20_TARGET'
+? (S.targets && S.targets.length > 0)
+: (S.currentInstanceTargets && S.currentInstanceTargets.length > 0);
+if(S.turn === 'player' && S.pending && hasTargetsForActionBar) {
+const targetArray = S.pending === 'D20_TARGET' ? S.targets : S.currentInstanceTargets;
+const targetCount = targetArray.length;
+const targetNames = targetArray.map(t => {
 const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
 return unit ? unit.n : 'target';
 }).join(', ');
@@ -4793,11 +4814,20 @@ try {
 let d = localStorage.getItem(`froggle8_permanent_slot${slot}`);
 if(d) {
 const j = JSON.parse(d);
+const runData = localStorage.getItem(`froggle8_slot${slot}`);
+let activeFloor = null;
+if(runData) {
+try {
+const r = JSON.parse(runData);
+activeFloor = r.f || null;
+} catch(e) {}
+}
 return {
 exists: true,
 runsAttempted: j.runsAttempted || j.runNumber || 1,
 goingRate: j.goingRate || 1,
-hasActiveRun: !!localStorage.getItem(`froggle8_slot${slot}`)
+hasActiveRun: !!runData,
+activeFloor: activeFloor
 };
 }
 // Check old system for migration
@@ -4805,11 +4835,20 @@ if(slot === 1) {
 d = localStorage.getItem('froggle8_permanent');
 if(d) {
 const j = JSON.parse(d);
+const oldRunData = localStorage.getItem('froggle8');
+let activeFloor = null;
+if(oldRunData) {
+try {
+const r = JSON.parse(oldRunData);
+activeFloor = r.f || null;
+} catch(e) {}
+}
 return {
 exists: true,
 runsAttempted: j.runNumber || 1,
 goingRate: j.goingRate || 1,
-hasActiveRun: !!localStorage.getItem('froggle8'),
+hasActiveRun: !!oldRunData,
+activeFloor: activeFloor,
 needsMigration: true
 };
 }
@@ -5923,21 +5962,23 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
-if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
-toast('Select at least one target first!');
-return;
-}
-const heroIdx = S.activeIdx;
 
+// D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
 if(S.pending === 'D20_TARGET') {
-// D20 targeting uses S.targets directly
-if(S.targets.length === 0) {
+if(!S.targets || S.targets.length === 0) {
   toast('Select at least one target first!');
   return;
 }
 rollD20();
 return;
 }
+
+// For other actions, check S.currentInstanceTargets
+if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
+toast('Select at least one target first!');
+return;
+}
+const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
@@ -7289,6 +7330,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isActive = S.activeIdx === i;
 let lsClasses = 'card hero last-stand-flipped';
+if(i === 0) lsClasses += ' chosen-one';
 if(isActive) lsClasses += ' active';
 if(isTargetable) lsClasses += ' targetable';
 if(hasActed) lsClasses += ' acted';
@@ -7323,6 +7365,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isStunned = h.st > 0;
 let cardClasses = 'card hero';
+if(i === 0) cardClasses += ' chosen-one';
 if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';
@@ -8305,7 +8348,7 @@ v.innerHTML = `
 ${slot1.exists ? `
 <div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
 <div>📊 Runs: <strong>${slot1.runsAttempted}</strong> | 💰 Rate: <strong>${slot1.goingRate}G</strong></div>
-${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run</div>' : ''}
+${slot1.hasActiveRun ? `<div style="color:#22c55e;font-weight:bold">🎮 Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
@@ -8325,7 +8368,7 @@ ${slot1.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active 
 ${slot2.exists ? `
 <div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
 <div>📊 Runs: <strong>${slot2.runsAttempted}</strong> | 💰 Rate: <strong>${slot2.goingRate}G</strong></div>
-${slot2.hasActiveRun ? '<div style="color:#22c55e;font-weight:bold">🎮 Active Run</div>' : ''}
+${slot2.hasActiveRun ? `<div style="color:#22c55e;font-weight:bold">🎮 Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
@@ -12396,9 +12439,9 @@ ${inGame ? `
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay Settings</button>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display Settings</button>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller Settings</button>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay</button>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display</button>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller</button>
 </div>
 
 ${inGame ? `
@@ -12421,7 +12464,7 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY SETTINGS</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY</h2>
 
 <h3 class="modal-section-title green">Animation Speed</h3>
 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
@@ -12458,7 +12501,7 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY SETTINGS</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)">
@@ -12488,7 +12531,7 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER SETTINGS</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
@@ -14005,22 +14048,8 @@ const GamepadController = {
         this.confirmSelection();
         break;
       case this.BUTTONS.START:
-        // START on title/menu screens should also advance (like A)
-        // Only open settings if we're in combat or other gameplay screens
-        if (context === 'combat' || context === 'targeting') {
-          this.openMenu();
-        } else {
-          // Try to find primary action first, fall back to menu
-          const primaryBtn = this.findPrimaryAction();
-          if (primaryBtn) {
-            if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-              SoundFX.play('click');
-            }
-            primaryBtn.click();
-          } else {
-            this.openMenu();
-          }
-        }
+        // START always opens settings menu
+        this.openMenu();
         break;
       case this.BUTTONS.B:
         this.goBack();
@@ -14280,7 +14309,10 @@ const GamepadController = {
 
   confirmSelection() {
     // If we have targets selected, confirm them directly
-    if (typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+    // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
+    const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
+    const hasInstanceTargets = typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0;
+    if (hasD20Targets || hasInstanceTargets) {
       if (typeof SoundFX !== 'undefined' && SoundFX.play) {
         SoundFX.play('click');
       }
