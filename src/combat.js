@@ -182,6 +182,26 @@ for(let j = 0; j < base.startRandom; j++) {
 drawEnemyStartSigil(enemy, base, true); // true = force level 1
 }
 }
+// ORC ALTERNATING: Start with either Attack L2 or random pool sigil
+if(base.alternating && base.altSigil) {
+enemy.alternating = true;
+enemy.altSigil = base.altSigil;
+// Randomly choose which to start with (true = altSigil/Attack, false = pool)
+enemy.altState = Math.random() < 0.5;
+if(enemy.altState) {
+enemy.s.push({sig: base.altSigil.s, level: base.altSigil.l, perm: false});
+} else {
+drawEnemyStartSigil(enemy, base, false);
+}
+}
+// CAVE TROLL RAGE: Rolling Attack L1→L2→L3→L1 pattern
+if(base.rage && base.ragePattern) {
+enemy.rage = true;
+enemy.ragePattern = base.ragePattern;
+enemy.rageIndex = 0; // Start at first level (L1)
+// Start with Attack at first level of pattern
+enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
+}
 return enemy;
 });
 if(S.ambushed) {
@@ -1862,7 +1882,40 @@ S.enemies.forEach(e => {
 // RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
 const isTutorial = tutorialState && S.floor === 0;
 const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
-if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+
+// CAVE TROLL RAGE: Rolling Attack L1→L2→L3→L1 pattern (every turn)
+if(e.rage && !isTutorial) {
+const oldIndex = e.rageIndex;
+e.rageIndex = (e.rageIndex + 1) % e.ragePattern.length;
+const isReset = oldIndex === e.ragePattern.length - 1; // Was at L3, now at L1
+
+// Update Attack level to match current rage index
+const attackSigil = e.s.find(sig => sig.sig === 'Attack');
+if(attackSigil) {
+attackSigil.level = e.ragePattern[e.rageIndex];
+}
+
+// Draw additional sigil every turn EXCEPT on reset turns
+if(!isReset) {
+drawEnemySigil(e);
+}
+render();
+}
+// ORC ALTERNATING: Toggle between Attack L2 and random pool sigil
+else if(e.alternating && e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+e.turnsSinceGain = 0;
+e.altState = !e.altState; // Toggle
+// Clear non-permanent sigils and set the new one
+e.s = e.s.filter(sig => sig.perm);
+if(e.altState) {
+e.s.push({sig: e.altSigil.s, level: e.altSigil.l, perm: false});
+} else {
+drawEnemySigil(e);
+}
+render();
+}
+// Normal sigil drawing for other enemies
+else if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
 e.turnsSinceGain = 0;
 // Draw multiple sigils per turn if specified (Dragons draw 2)
 const draws = e.drawsPerTurn || 1;

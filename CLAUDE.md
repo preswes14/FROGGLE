@@ -142,20 +142,22 @@ Defined in `E` object (constants.js).
 
 | Enemy | POW | HP | Gold | XP | Draw Rate | Sigil Pool | Starting Sigils |
 |-------|-----|-----|------|-----|-----------|------------|-----------------|
-| Fly | 1 | 2 | 0 | 1 | never | *(none)* | Attack L1 |
+| Fly | 1 | 2 | 0 | 0 | never | *(none)* | Attack L1 |
 | Goblin | 1 | 5 | 1 | 2 | 3 turns | Asterisk, Expand, Shield | — |
 | Wolf | 2 | 5 | 2 | 4 | 2 turns | Asterisk, Expand, Shield, Grapple, Alpha | — |
-| Orc | 3 | 10 | 3 | 6 | 2 turns | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | 1 random |
-| Giant | 4 | 12 | 6 | 12 | 1 turn | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | Shield L1 |
-| Cave Troll | 5 | 15 | 5 | 15 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack | Asterisk L1 + 1 random |
+| Orc | 2 | 10 | 3 | 6 | 2 turns | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost | **ALT:** Attack L2 ↔ random |
+| Giant | 3 | 12 | 6 | 12 | 1 turn | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | Shield L1 |
+| Cave Troll | 4 | 15 | 5 | 15 | special | Expand, Shield, Grapple, Alpha, Heal, Ghost | **RAGE:** Attack L1→L2→L3→L1 |
 | Dragon | 5 | 20 | 10 | 25 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L1 |
 | Flydra | 5 | 25 | 15 | 50 | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
 
-†Orc/Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2.
+†Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2.
 
 **Special Mechanics:**
-- **Fly**: Tutorial only, never draws sigils
-- **Cave Troll**: Starts with Asterisk (first attack hits twice)
+- **Fly**: Tutorial only, never draws sigils, awards no rewards
+- **Orc**: Alternates between Attack L2 and a random pool sigil every 2 turns (clears old sigil when switching)
+- **Cave Troll**: Rolling rage mechanic - Attack level cycles L1→L2→L3→L1. Draws a sigil each turn EXCEPT on reset turns (when L3→L1)
+- **Giant**: Starts with Shield L1, can draw Attack/Shield/Heal at L2
 - **Dragon**: Permanent Attack L2 + Expand L1 (always hits 2 targets twice)
 - **Flydra** (Floor 19 boss): Multi-headed, revives at 50% HP if other heads alive, grants Ghost charges to surviving heads on death
 
