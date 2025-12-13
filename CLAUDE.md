@@ -138,11 +138,40 @@ Enemy Turn:
 | Star | Multiply combat XP (1.5×, 2×, 2.5×, 3× by level) |
 
 ### Enemies
-Defined in `E` object (constants.js): Fly, Goblin, Wolf, Orc, Giant, Cave Troll, Dragon, Flydra
+Defined in `E` object (constants.js).
 
-Each enemy has: `n` (name), `p` (POW), `h/m` (HP/max), `goldDrop`, `x` (XP), `pool` (available sigils), `gainRate` (turns between sigil draws)
+| Enemy | POW | HP | Gold | XP | Draw Rate | Sigil Pool | Starting Sigils |
+|-------|-----|-----|------|-----|-----------|------------|-----------------|
+| Fly | 1 | 2 | 0 | 1 | never | *(none)* | Attack L1 |
+| Goblin | 1 | 5 | 1 | 2 | 3 turns | Asterisk, Expand, Shield | — |
+| Wolf | 2 | 5 | 2 | 4 | 2 turns | Asterisk, Expand, Shield, Grapple, Alpha | — |
+| Orc | 3 | 10 | 3 | 6 | 2 turns | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | 1 random |
+| Giant | 4 | 12 | 6 | 12 | 1 turn | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | Shield L1 |
+| Cave Troll | 5 | 15 | 5 | 15 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack | Asterisk L1 + 1 random |
+| Dragon | 5 | 20 | 10 | 25 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L1 |
+| Flydra | 5 | 25 | 15 | 50 | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
 
-**Flydra** (Floor 19 boss): Multi-headed, revives if other heads alive, grants Ghost charges on partial death.
+†Orc/Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2.
+
+**Special Mechanics:**
+- **Fly**: Tutorial only, never draws sigils
+- **Cave Troll**: Starts with Asterisk (first attack hits twice)
+- **Dragon**: Permanent Attack L2 + Expand L1 (always hits 2 targets twice)
+- **Flydra** (Floor 19 boss): Multi-headed, revives at 50% HP if other heads alive, grants Ghost charges to surviving heads on death
+
+**Floor Appearances** (N = hero count, 2 or 3):
+| Floor | Encounter |
+|-------|-----------|
+| 1 | N× Goblin |
+| 3 | N× Wolf |
+| 5 | 2N× Orc |
+| 7 | N× (Giant + Wolf + Goblin) |
+| 9 | N× Cave Troll |
+| 11 | 5N× Goblin (AMBUSH - heroes stunned turn 1) |
+| 13 | 5N× Wolf |
+| 15 | N× Dragon |
+| 17 | N× (Cave Troll + Giant + Orc + Wolf + Goblin) |
+| 19 | N× Flydra |
 
 ---
 
