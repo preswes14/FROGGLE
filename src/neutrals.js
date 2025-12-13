@@ -691,6 +691,95 @@ round: 1
 combat(0);
 }
 
+// Tapo rescue sequence - called when Mage would die in Phase 1 tutorial
+// Shows a narrative interstitial, then animates flies dying one by one
+function showTapoRescueSequence() {
+// Save reference to remaining flies for the death sequence
+const remainingFlies = [...S.enemies];
+const flyCount = remainingFlies.length;
+const flyText = flyCount === 1 ? 'fly' : 'flies';
+
+// Create narrative overlay explaining what happened
+const overlay = document.createElement('div');
+overlay.className = 'tutorial-modal-backdrop';
+overlay.innerHTML = `
+<div class="tutorial-modal" style="max-width:600px">
+<div style="text-align:center">
+<div style="font-size:4rem;margin-bottom:1rem;animation:tapoJump 0.6s ease-in-out infinite">🐸</div>
+<h2 style="color:#22c55e;margin-bottom:1rem">Tapo to the Rescue!</h2>
+<p style="font-size:1.1rem;line-height:1.7;margin-bottom:1.5rem">
+Just as the ${flyText} ${flyCount === 1 ? 'was' : 'were'} about to finish off Mage, <strong style="color:#22c55e">Tapo</strong> leaps into action!
+<br><br>
+His sticky tongue lashes out and <strong>swallows the ${flyText} whole!</strong>
+<br><br>
+<span style="font-size:0.9rem;opacity:0.8">(In normal combat, your hero would enter "Last Stand" mode - but Tapo's got your back for now!)</span>
+</p>
+<button onclick="continueTapoRescue()" style="padding:1rem 2.5rem;font-size:1.3rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">
+*ribbit* 🪰
+</button>
+</div>
+</div>
+<style>
+@keyframes tapoJump {
+0%, 100% { transform: translateY(0); }
+50% { transform: translateY(-15px); }
+}
+</style>`;
+document.body.appendChild(overlay);
+
+// Store flies for death animation
+window.tapoRescueFlies = remainingFlies;
+}
+
+// Continue after Tapo rescue narrative - animate flies dying
+function continueTapoRescue() {
+// Remove narrative overlay
+const backdrops = document.querySelectorAll('.tutorial-modal-backdrop');
+backdrops.forEach(b => b.remove());
+
+// Play ribbit sound
+SoundFX.play('ribbit');
+
+// Get the saved flies
+const flies = window.tapoRescueFlies || [];
+window.tapoRescueFlies = null;
+
+// Re-render combat view to show the battlefield
+render();
+
+// Kill flies one by one with staggered timing
+flies.forEach((fly, index) => {
+setTimeout(() => {
+// Set fly HP to 0
+fly.h = 0;
+// Trigger knockout animation
+if(typeof triggerKnockout === 'function') {
+triggerKnockout(fly.id);
+}
+// Remove fly after animation
+setTimeout(() => {
+S.enemies = S.enemies.filter(e => e.id !== fly.id);
+render();
+
+// After last fly is removed, wait then proceed
+if(index === flies.length - 1) {
+setTimeout(() => {
+// Show brief "battlefield clear" moment, then proceed
+finishTaposBirthdayPhase();
+}, 800); // Pause on empty battlefield
+}
+}, 300); // Death animation duration
+}, index * 500); // Stagger each fly death by 500ms
+});
+
+// If no flies for some reason, just proceed
+if(flies.length === 0) {
+setTimeout(() => {
+finishTaposBirthdayPhase();
+}, 500);
+}
+}
+
 function finishTaposBirthdayPhase() {
 // Phase 1 victory celebration
 const v = document.getElementById('gameView');
