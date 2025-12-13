@@ -1955,7 +1955,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.61';
+const GAME_VERSION = '11.64';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2508,7 +2508,10 @@ toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 target.h = 0;
 if(options.isHero) {
 // TUTORIAL PHASE 1: Override Last Stand with Tapo rescue
-if(tutorialState && S.floor === 0 && tutorialState.phase === 1) {
+// IMPORTANT: Only trigger during ENEMY turn, not player turn (e.g., Grapple recoil)
+console.log('[TAPO] Phase 1 death check - S.turn:', S.turn, 'target:', target.n, 'HP was:', target.h);
+if(tutorialState && S.floor === 0 && tutorialState.phase === 1 && S.turn === 'enemy') {
+console.log('[TAPO] Rescue triggered! Eating flies.');
 // Tapo saves the day! Auto-win tutorial
 target.h = 1; // Prevent actual death
 SoundFX.play('ribbit');
@@ -5423,7 +5426,11 @@ const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 // Star, Asterisk, and Expand are global passives - all heroes get them when upgraded
 if(sig === 'Star' || sig === 'Asterisk' || sig === 'Expand') {
 // Special case: Mage and Healer get +1 to Expand
-if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return totalLevel + 1;
+if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) {
+console.log('[EXPAND] Mage/Healer bonus: totalLevel:', totalLevel, '+1 =', totalLevel + 1);
+return totalLevel + 1;
+}
+if(sig === 'Expand') console.log('[EXPAND] No bonus: hero.n:', h?.n, 'totalLevel:', totalLevel);
 return totalLevel;
 }
 // For other sigils, check if hero has it
@@ -5437,6 +5444,8 @@ return totalLevel;
 
 function getTargetsPerInstance(action, heroIdx) {
 const expandLevel = getLevel('Expand', heroIdx);
+const hero = S.heroes[heroIdx];
+console.log('[TARGETING] getTargetsPerInstance:', action, 'heroIdx:', heroIdx, 'hero.n:', hero?.n, 'expandLevel:', expandLevel, 'totalTargets:', 1 + expandLevel);
 return 1 + expandLevel;
 }
 
