@@ -209,7 +209,11 @@ const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 // Star, Asterisk, and Expand are global passives - all heroes get them when upgraded
 if(sig === 'Star' || sig === 'Asterisk' || sig === 'Expand') {
 // Special case: Mage and Healer get +1 to Expand
-if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) return totalLevel + 1;
+if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) {
+console.log('[EXPAND] Mage/Healer bonus: totalLevel:', totalLevel, '+1 =', totalLevel + 1);
+return totalLevel + 1;
+}
+if(sig === 'Expand') console.log('[EXPAND] No bonus: hero.n:', h?.n, 'totalLevel:', totalLevel);
 return totalLevel;
 }
 // For other sigils, check if hero has it
@@ -223,6 +227,8 @@ return totalLevel;
 
 function getTargetsPerInstance(action, heroIdx) {
 const expandLevel = getLevel('Expand', heroIdx);
+const hero = S.heroes[heroIdx];
+console.log('[TARGETING] getTargetsPerInstance:', action, 'heroIdx:', heroIdx, 'hero.n:', hero?.n, 'expandLevel:', expandLevel, 'totalTargets:', 1 + expandLevel);
 return 1 + expandLevel;
 }
 
