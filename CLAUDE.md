@@ -105,13 +105,13 @@ Enemy Turn:
 ```
 
 ### Heroes
-| Hero | POW | Starting Sigils | Special |
-|------|-----|-----------------|---------|
-| Warrior | 2 | Attack | High damage |
-| Tank | 1 | Shield, Grapple | Defensive |
-| Mage | 1 | Attack, Expand | Multi-target (+1 built-in Expand) |
-| Healer | 1 | Heal, D20, Expand | Support (+1 built-in Expand) |
-| Tapo | 1 | ALL sigils | Unlockable, versatile |
+| Hero | POW | HP | Starting Sigils | Special |
+|------|-----|-----|-----------------|---------|
+| Warrior | 2 | 5 | Attack, D20 | High damage |
+| Tank | 1 | 10 | Attack, Shield, D20 | Defensive, high HP |
+| Mage | 1 | 5 | Attack, D20, Expand | Multi-target (+1 built-in Expand) |
+| Healer | 1 | 5 | Heal, D20, Expand | Support (+1 built-in Expand) |
+| Tapo | 1 | 1 | ALL sigils | Unlockable, versatile |
 
 ### Sigils (10 Types)
 
@@ -123,14 +123,14 @@ Enemy Turn:
 | Heal | Restore 2×POW HP | Cannot exceed max HP |
 | D20 | Roll dice, pick gambit | CONFUSE/STARTLE/MEND/STEAL/RECRUIT |
 | Grapple | Stun target L turns | User takes recoil = target's POW |
-| Alpha | Grant L extra actions to ally | Alpha user skips their turn |
+| Alpha | Grant L extra actions to ally | Alpha user spends their turn to grant actions |
 | Ghost | Gain L ghost charges | Each charge blocks one lethal hit |
 
 **Passive Sigils** (always active, no action cost):
 | Sigil | Effect |
 |-------|--------|
 | Expand | Add L+1 targets to Attack/Shield/Heal (Mage/Healer get +1 extra) |
-| Asterisk | First action per combat triggers L+1 times |
+| Asterisk | First action per combat triggers additional times (L1: +1 extra, L2: +2 extra, etc.) |
 | Star | Multiply combat XP (1.5×, 2×, 2.5×, 3× by level) |
 
 ### Enemies
@@ -172,7 +172,7 @@ Each enemy has: `n` (name), `p` (POW), `h/m` (HP/max), `goldDrop`, `x` (XP), `po
 | Modifying `S.targets` mid-action | Use `S.currentInstanceTargets` for current instance |
 | Assuming sigil level = stored value | Use `getLevel(sigil)` which adds permanent + temp |
 | Hardcoding hero count | Use `S.heroes.length` (can be 2 or 3) |
-| Ignoring Asterisk multiplier | First action triggers `getLevel('Asterisk')+1` times |
+| Ignoring Asterisk multiplier | First action triggers `1 + getLevel('Asterisk')` total times (L1 = 2 total) |
 | Not handling recruits | `S.recruits` array contains recruited enemies |
 | Forgetting animation timing | Use `T(ANIMATION_TIMINGS.X)` for speed-adjusted delays |
 
@@ -185,14 +185,14 @@ Each enemy has: `n` (name), `p` (POW), `h/m` (HP/max), `goldDrop`, `x` (XP), `po
 S.heroes[i] = {
   n: 'Warrior',      // Name
   p: 2,              // POW (damage/heal scaling)
-  h: 10,             // Current HP
-  m: 10,             // Max HP
+  h: 5,              // Current HP (Warrior starts at 5)
+  m: 5,              // Max HP
   sh: 0,             // Shield (persists, caps at m)
   g: 0,              // Ghost charges (0-9)
   st: 0,             // Stun turns remaining (>0 = stunned)
   ls: false,         // Last Stand mode
   lst: 0,            // Last Stand turn counter (for DC increase)
-  s: ['Attack'],     // Starting sigils
+  s: ['Attack', 'D20'],  // Starting sigils (from H object)
   ts: [],            // Temporary sigils gained this run
   c: 'warrior'       // Class (lowercase)
 }
@@ -237,11 +237,11 @@ S.hasReachedFloor20, S.fuUnlocked, S.tapoUnlocked  // Unlock flags
 | Function | Location | Purpose |
 |----------|----------|---------|
 | `render()` | combat.js | Rebuild entire UI from state |
-| `act(heroIdx, sigil)` | combat.js | Start an action |
+| `act(sigil, heroIdx)` | combat.js | Start an action |
 | `executeInstance()` | combat.js | Execute one instance of multi-target action |
 | `finishAction()` | combat.js | Complete action, check if turn ends |
 | `enemyTurn()` | combat.js | Run all enemy phases |
-| `applyDamageToTarget()` | combat.js | Unified damage with shield/ghost handling |
+| `applyDamageToTarget()` | constants.js | Unified damage with shield/ghost handling |
 | `getLevel(sigil, heroIdx)` | combat.js | Get total sigil level (perm + temp) |
 | `saveGame()` | state.js | Persist to localStorage |
 | `startFloor(f)` | combat.js | Initialize floor (combat or neutral) |
@@ -267,7 +267,8 @@ S.hasReachedFloor20, S.fuUnlocked, S.tapoUnlocked  // Unlock flags
 4. Handle any special mechanics (like Flydra revival)
 
 ### New Neutral Encounter Checklist
-1. Create `showEncounterName()` function in neutrals.js
-2. Add to neutral deck: `S.neutralDeck.push('encountername1')`
-3. Add case in `neutral()` switch statement
-4. Call `resultFromNeutral()` when player makes choice
+1. Create `showEncounterName1()` and `showEncounterName2()` functions in neutrals.js
+2. Add to neutral deck in `initNeutralDeck()`: include 'encountername1' in the array
+3. Add routing in `neutral()` function's if/else chain (e.g., `else if(enc === 'encountername1') showEncounterName1();`)
+4. Use `nextFloor()` to proceed after player makes choice
+5. Use `replaceStage1WithStage2('encountername')` to upgrade encounter for later floors
