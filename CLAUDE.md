@@ -70,3 +70,204 @@ extract.sh            # Extract modules from index.html
 2. Run `./build.sh` to rebuild `index.html`
 3. Test in browser
 4. Commit both `src/` and `index.html`
+
+---
+
+## Game Architecture
+
+### Game Flow
+```
+Title → Hero Select (2-3 heroes) → Ribbleton Hub → Floor Loop → Victory/Death
+                                                        ↓
+                                              Combat (odd floors 1,3,5...)
+                                              Neutral Encounter (even floors 2,4,6...)
+```
+- **Floor 0**: Tutorial (two phases: Tapo's Birthday → Portal Invasion)
+- **Floors 1-19**: Alternating combat/neutral
+- **Floor 20**: Victory
+
+### Combat Flow (Per Round)
+```
+Player Turn:
+  For each hero (not stunned):
+    1. Select sigil (action)
+    2. Select target(s) - may have multiple instances
+    3. Execute action
+    4. Mark hero as acted
+  → When all non-stunned heroes acted → Enemy Turn
+
+Enemy Turn:
+  1. Alpha Phase (enemies with Alpha grant bonus actions to allies)
+  2. Recruit Phase (recruited enemies attack)
+  3. Normal Phase (all other enemies attack + may draw sigils)
+  4. Decrement stun counters (st--)
+  → Round++, back to Player Turn
+```
+
+### Heroes
+| Hero | POW | Starting Sigils | Special |
+|------|-----|-----------------|---------|
+| Warrior | 2 | Attack | High damage |
+| Tank | 1 | Shield, Grapple | Defensive |
+| Mage | 1 | Attack, Expand | Multi-target (+1 built-in Expand) |
+| Healer | 1 | Heal, D20, Expand | Support (+1 built-in Expand) |
+| Tapo | 1 | ALL sigils | Unlockable, versatile |
+
+### Sigils (10 Types)
+
+**Active Sigils** (use hero's action):
+| Sigil | Effect | Notes |
+|-------|--------|-------|
+| Attack | Deal POW damage × level hits | Multi-instance |
+| Shield | Grant 2×POW shield | Persists between battles, caps at max HP |
+| Heal | Restore 2×POW HP | Cannot exceed max HP |
+| D20 | Roll dice, pick gambit | CONFUSE/STARTLE/MEND/STEAL/RECRUIT |
+| Grapple | Stun target L turns | User takes recoil = target's POW |
+| Alpha | Grant L extra actions to ally | Alpha user skips their turn |
+| Ghost | Gain L ghost charges | Each charge blocks one lethal hit |
+
+**Passive Sigils** (always active, no action cost):
+| Sigil | Effect |
+|-------|--------|
+| Expand | Add L+1 targets to Attack/Shield/Heal (Mage/Healer get +1 extra) |
+| Asterisk | First action per combat triggers L+1 times |
+| Star | Multiply combat XP (1.5×, 2×, 2.5×, 3× by level) |
+
+### Enemies
+Defined in `E` object (constants.js): Fly, Goblin, Wolf, Orc, Giant, Cave Troll, Dragon, Flydra
+
+Each enemy has: `n` (name), `p` (POW), `h/m` (HP/max), `goldDrop`, `x` (XP), `pool` (available sigils), `gainRate` (turns between sigil draws)
+
+**Flydra** (Floor 19 boss): Multi-headed, revives if other heads alive, grants Ghost charges on partial death.
+
+---
+
+## Critical Invariants
+
+**NEVER violate these - they will cause bugs:**
+
+1. **Call `render()` after state changes** - UI won't update otherwise
+2. **Shield caps at max HP**: `if(hero.sh > hero.m) hero.sh = hero.m`
+3. **Check stun before acting**: `if(hero.st > 0)` means hero is stunned, skip their turn
+4. **Sigil level display vs storage**:
+   - Stored: 0-4 in `S.sig[name]` and `S.tempSigUpgrades[name]`
+   - Displayed: stored + 1 for active sigils (L0 stored = "L1" shown)
+   - `getLevel(sigil)` returns the TOTAL (permanent + temp)
+5. **Ghost before Last Stand**: Ghost charges prevent lethal damage BEFORE checking Last Stand
+6. **Last Stand restrictions**: Heroes in Last Stand (`hero.ls === true`) can ONLY use D20
+7. **Damage goes through shield first**: Shield absorbs before HP reduces
+8. **Multi-instance state**: `S.instancesRemaining` tracks remaining instances, `S.currentInstanceTargets` for current selection
+
+---
+
+## Common Pitfalls
+
+**Mistakes that have caused bugs before:**
+
+| Mistake | Correct Approach |
+|---------|------------------|
+| Forgetting `render()` | Always call after modifying `S` |
+| Not rebuilding after src/ edits | Run `./build.sh` before testing |
+| Checking `hero.h <= 0` for death | Check `hero.ls` (Last Stand) instead - heroes at 0 HP aren't dead |
+| Modifying `S.targets` mid-action | Use `S.currentInstanceTargets` for current instance |
+| Assuming sigil level = stored value | Use `getLevel(sigil)` which adds permanent + temp |
+| Hardcoding hero count | Use `S.heroes.length` (can be 2 or 3) |
+| Ignoring Asterisk multiplier | First action triggers `getLevel('Asterisk')+1` times |
+| Not handling recruits | `S.recruits` array contains recruited enemies |
+| Forgetting animation timing | Use `T(ANIMATION_TIMINGS.X)` for speed-adjusted delays |
+
+---
+
+## State Reference (`S` Object)
+
+### Hero State
+```javascript
+S.heroes[i] = {
+  n: 'Warrior',      // Name
+  p: 2,              // POW (damage/heal scaling)
+  h: 10,             // Current HP
+  m: 10,             // Max HP
+  sh: 0,             // Shield (persists, caps at m)
+  g: 0,              // Ghost charges (0-9)
+  st: 0,             // Stun turns remaining (>0 = stunned)
+  ls: false,         // Last Stand mode
+  lst: 0,            // Last Stand turn counter (for DC increase)
+  s: ['Attack'],     // Starting sigils
+  ts: [],            // Temporary sigils gained this run
+  c: 'warrior'       // Class (lowercase)
+}
+```
+
+### Combat State
+```javascript
+S.activeIdx        // Currently acting hero index (-1 = none)
+S.acted            // Array of hero indices that acted this turn
+S.pending          // Current action string ('Attack', 'Shield', 'D20_TARGET', etc.)
+S.targets          // All confirmed target IDs across instances
+S.currentInstanceTargets  // Target IDs for current instance
+S.instancesRemaining      // Instances left to execute
+S.enemies          // Array of enemy objects
+S.recruits         // Array of recruited enemies
+S.round            // Current combat round
+S.turn             // 'player' or 'enemy'
+```
+
+### Progression State
+```javascript
+S.floor            // Current floor (0-20)
+S.gold             // Permanent gold
+S.xp               // Permanent XP (for upgrades)
+S.sig              // Permanent sigil levels {Attack: 0, Shield: 1, ...}
+S.tempSigUpgrades  // Run-only upgrades {Attack: 1, ...}
+S.gameMode         // 'Standard' or 'fu' (Frogged Up)
+```
+
+### Persistent State (survives death)
+```javascript
+S.pedestal         // Champion figurines
+S.pondHistory      // Run history
+S.tutorialFlags    // Tutorial completion tracking
+S.hasReachedFloor20, S.fuUnlocked, S.tapoUnlocked  // Unlock flags
+```
+
+---
+
+## Key Functions
+
+| Function | Location | Purpose |
+|----------|----------|---------|
+| `render()` | combat.js | Rebuild entire UI from state |
+| `act(heroIdx, sigil)` | combat.js | Start an action |
+| `executeInstance()` | combat.js | Execute one instance of multi-target action |
+| `finishAction()` | combat.js | Complete action, check if turn ends |
+| `enemyTurn()` | combat.js | Run all enemy phases |
+| `applyDamageToTarget()` | combat.js | Unified damage with shield/ghost handling |
+| `getLevel(sigil, heroIdx)` | combat.js | Get total sigil level (perm + temp) |
+| `saveGame()` | state.js | Persist to localStorage |
+| `startFloor(f)` | combat.js | Initialize floor (combat or neutral) |
+| `neutral(f)` | neutrals.js | Handle neutral encounters |
+| `T(ms)` | state.js | Adjust timing for animation speed |
+
+---
+
+## Adding New Content
+
+### New Sigil Checklist
+1. Add to `SIGIL_DESCRIPTIONS` in constants.js
+2. Add image path to `SIGIL_IMAGES`
+3. Add to `SIGIL_ORDER` array
+4. Initialize in `S.sig` and `S.tempSigUpgrades` (state.js)
+5. Add logic in `act()` for active, or appropriate phase for passive
+6. Update enemy pools if enemies can use it
+
+### New Enemy Checklist
+1. Define in `E` object (constants.js): `{n, p, h, m, goldDrop, x, pool, maxLevel, gainRate}`
+2. Add emoji to `ENEMY_EMOJI`
+3. Add to floor composition in `getEnemyComp()`
+4. Handle any special mechanics (like Flydra revival)
+
+### New Neutral Encounter Checklist
+1. Create `showEncounterName()` function in neutrals.js
+2. Add to neutral deck: `S.neutralDeck.push('encountername1')`
+3. Add case in `neutral()` switch statement
+4. Call `resultFromNeutral()` when player makes choice
