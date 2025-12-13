@@ -1382,11 +1382,16 @@ const GamepadController = {
     }
 
     // Calculate total targets based on expand
-    const expandLevel = typeof getLevel === 'function' ? getLevel('Expand') : 0;
-    const heroClass = hero.c || '';
-    const hasBuiltInExpand = (heroClass === 'Mage' || heroClass === 'Healer');
-    const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
-    targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
+    // Use getTargetsPerInstance if available (respects Mage/Healer bonus properly)
+    let totalTargets = 1;
+    if (typeof getTargetsPerInstance === 'function') {
+      totalTargets = getTargetsPerInstance(pending, heroIdx);
+    } else {
+      // Fallback: manually calculate (shouldn't normally be needed)
+      const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
+      totalTargets = 1 + expandLevel;
+    }
+    const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
     // Different targeting logic based on action type
     if (['Attack', 'Grapple', 'D20_TARGET'].includes(pending)) {
