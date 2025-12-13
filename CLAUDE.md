@@ -99,18 +99,22 @@ Player Turn:
 Enemy Turn:
   1. Alpha Phase (enemies with Alpha grant bonus actions to allies)
   2. Recruit Phase (recruited enemies attack)
-  3. Normal Phase (all other enemies attack + may draw sigils)
-  4. Decrement stun counters (st--)
-  → Round++, back to Player Turn
+  3. Normal Phase (all other enemies attack)
+  4. End of Turn: Decrement ALL stun counters (heroes, enemies, recruits)
+  → Round++, enemies draw new sigils, back to Player Turn
 ```
+
+**Stun Timing**: Stun counters decrement at END of enemy turn, AFTER that unit's team has acted. This ensures "stun for 1 turn" actually skips 1 turn.
+
+**Enemy Sigil Draw**: Enemies draw sigils at the START of player turn (after Round++), so players can see and strategize against new enemy abilities.
 
 ### Heroes
 | Hero | POW | HP | Starting Sigils | Special |
 |------|-----|-----|-----------------|---------|
 | Warrior | 2 | 5 | Attack, D20 | High damage |
 | Tank | 1 | 10 | Attack, Shield, D20 | Defensive, high HP |
-| Mage | 1 | 5 | Attack, D20, Expand | Multi-target (+1 built-in Expand) |
-| Healer | 1 | 5 | Heal, D20, Expand | Support (+1 built-in Expand) |
+| Mage | 1 | 5 | Attack, D20, Expand | Multi-target (Expand always +1 level higher) |
+| Healer | 1 | 5 | Heal, D20, Expand | Support (Expand always +1 level higher) |
 | Tapo | 1 | 1 | ALL sigils | Unlockable, versatile |
 
 ### Sigils (10 Types)
@@ -129,7 +133,7 @@ Enemy Turn:
 **Passive Sigils** (always active, no action cost):
 | Sigil | Effect |
 |-------|--------|
-| Expand | Add L+1 targets to Attack/Shield/Heal (Mage/Healer get +1 extra) |
+| Expand | Total targets = 1 + Expand level. Mage/Healer always have +1 Expand level vs base. |
 | Asterisk | First action per combat triggers additional times (L1: +1 extra, L2: +2 extra, etc.) |
 | Star | Multiply combat XP (1.5×, 2×, 2.5×, 3× by level) |
 

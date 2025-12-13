@@ -1440,14 +1440,13 @@ S.acted = [];
 S.activeIdx = -1;
 render();
 S.enemies.forEach(e => {
-if(e.st > 0) e.st--;
+// NOTE: Stun decrement moved to endEnemyTurn() so enemies actually skip their turn
 e.turnsSinceGain++;
 e.alphaActed = false;
 });
-// Process recruits - stun decrement
+// Process recruits - increment turnsSinceGain (stun decrement moved to endEnemyTurn)
 if(S.recruits) {
 S.recruits.forEach(r => {
-if(r.st > 0) r.st--;
 if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
 });
@@ -1832,12 +1831,29 @@ toast(msg);
 }
 
 function endEnemyTurn() {
+// Decrement hero stun at end of enemy turn (heroes skip player turn, then decrement)
 S.heroes.forEach(h => {
 if(h.st > 0) {
 h.st--;
 if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 }
 });
+// Decrement enemy stun at end of enemy turn (enemies skip their turn, then decrement)
+S.enemies.forEach(e => {
+if(e.st > 0) {
+e.st--;
+if(e.st === 0) toast(`${getEnemyDisplayName(e)} is no longer stunned!`);
+}
+});
+// Decrement recruit stun at end of enemy turn (recruits act during enemy turn)
+if(S.recruits) {
+S.recruits.forEach(r => {
+if(r.st > 0) {
+r.st--;
+if(r.st === 0) toast(`${r.n} (Recruit) is no longer stunned!`);
+}
+});
+}
 if(checkCombatEnd()) return;
 S.round++;
 
