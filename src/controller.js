@@ -668,6 +668,12 @@ const GamepadController = {
     console.log('[GAMEPAD] Context:', context);
 
     // Handle blocking overlays - only allow specific actions
+    // START button should ALWAYS open menu (except during suspend)
+    if (buttonIndex === this.BUTTONS.START && context !== 'suspend') {
+      this.openMenu();
+      return;
+    }
+
     if (context === 'tutorial') {
       // Tutorial modal: only A button works to dismiss
       if (buttonIndex === this.BUTTONS.A) {
@@ -983,6 +989,12 @@ const GamepadController = {
   },
 
   confirmSelection() {
+    // Cooldown after tutorial popup dismissal to prevent click-through
+    if (window.tutorialDismissTime && Date.now() - window.tutorialDismissTime < 200) {
+      console.log('[GAMEPAD] Ignoring confirm - tutorial popup just dismissed');
+      return;
+    }
+
     // If we have targets selected, confirm them directly
     // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
     const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;

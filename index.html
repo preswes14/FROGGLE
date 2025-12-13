@@ -1955,7 +1955,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.64';
+const GAME_VERSION = '11.68';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4142,6 +4142,7 @@ first_victory_sequence: false,
 first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false,
+tapo_first_attack: false,
 auto_target_intro: false,
 steam_controller_setup: false
 },
@@ -4611,6 +4612,10 @@ function dismissTutorialPop(flagName) {
 debugLog('[TUTORIAL] dismissTutorialPop called:', flagName);
 S.tutorialFlags[flagName] = true;
 savePermanent();
+
+// Set cooldown to prevent click-through to game elements behind popup
+// This prevents controller A button from selecting sigils after dismissing popup
+window.tutorialDismissTime = Date.now();
 
 // Capture callback before removal (prevent race conditions)
 const callback = window.tutorialCallback;
@@ -6867,9 +6872,10 @@ toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
-// PHASE 1 TUTORIAL: Flies attack back to teach players that enemies fight back!
+// Filter out Attack sigil - the base attack mechanism handles it
+// Attack sigil is a marker indicating the enemy attacks, not an additional action
+const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Attack');
 executeEnemyBaseAttack(enemy);
-const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
 
 // Filter out suicidal grapples - enemies should never kill themselves
 const safeSigils = drawnSigils.filter(sigil => {
@@ -8798,6 +8804,11 @@ function startTaposBirthdayTutorial() {
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
+// Initialize sigils to base levels for clean tutorial state
+S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// Reset tutorial-specific flags to ensure popups show for fresh tutorial
+S.tutorialFlags.tapo_first_attack = false;
 S.heroes = [
 {id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
@@ -14002,6 +14013,12 @@ const GamepadController = {
     console.log('[GAMEPAD] Context:', context);
 
     // Handle blocking overlays - only allow specific actions
+    // START button should ALWAYS open menu (except during suspend)
+    if (buttonIndex === this.BUTTONS.START && context !== 'suspend') {
+      this.openMenu();
+      return;
+    }
+
     if (context === 'tutorial') {
       // Tutorial modal: only A button works to dismiss
       if (buttonIndex === this.BUTTONS.A) {
@@ -14317,6 +14334,12 @@ const GamepadController = {
   },
 
   confirmSelection() {
+    // Cooldown after tutorial popup dismissal to prevent click-through
+    if (window.tutorialDismissTime && Date.now() - window.tutorialDismissTime < 200) {
+      console.log('[GAMEPAD] Ignoring confirm - tutorial popup just dismissed');
+      return;
+    }
+
     // If we have targets selected, confirm them directly
     // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
     const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
