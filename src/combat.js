@@ -2042,6 +2042,8 @@ GamepadController.saveFocusState();
 }
 
 const v = document.getElementById('gameView');
+// Combat screens are scrollable (no-scroll is for narrative/cutscene screens)
+v.classList.remove('no-scroll');
 // Toggle FU mode class for compact 3-hero layout
 v.classList.toggle('fu-mode', S.gameMode === 'fu');
 // Special state: Encampment enemy selection
