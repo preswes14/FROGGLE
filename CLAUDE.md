@@ -147,9 +147,9 @@ Defined in `E` object (constants.js).
 | Wolf | 2 | 5 | 2 | 4 | 2 turns | Asterisk, Expand, Shield, Grapple, Alpha | — |
 | Orc | 2 | 10 | 3 | 6 | 2 turns | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost | **ALT:** Attack L2 ↔ random |
 | Giant | 3 | 12 | 6 | 12 | 1 turn | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | Shield L1 |
-| Cave Troll | 4 | 15 | 5 | 15 | special | Expand, Shield, Grapple, Alpha, Heal, Ghost | **RAGE:** Attack L1→L2→L3→L1 |
-| Dragon | 5 | 20 | 10 | 25 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L1 |
-| Flydra | 5 | 25 | 15 | 50 | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
+| Cave Troll | 4 | 15 | 10 | 15 | special | Expand, Shield, Grapple, Alpha, Heal, Ghost | **RAGE:** Attack L1→L2→L3→L1 |
+| Dragon | 5 | 20 | 20 | 25 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L1 |
+| Flydra | 5 | 25 | 100 | 50 | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
 
 †Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2.
 
