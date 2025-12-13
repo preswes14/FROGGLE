@@ -2214,7 +2214,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isActive = S.activeIdx === i;
 let lsClasses = 'card hero last-stand-flipped';
-if(i === 0) lsClasses += ' chosen-one';
+if(S.chosenHeroIdx === i) lsClasses += ' chosen-one';
 if(isActive) lsClasses += ' active';
 if(isTargetable) lsClasses += ' targetable';
 if(hasActed) lsClasses += ' acted';
@@ -2249,7 +2249,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isStunned = h.st > 0;
 let cardClasses = 'card hero';
-if(i === 0) cardClasses += ' chosen-one';
+if(S.chosenHeroIdx === i) cardClasses += ' chosen-one';
 if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';
@@ -2454,6 +2454,11 @@ v.innerHTML = `
 
 function nextFloor() {
 console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
+// Tapo's Chosen bonus: +1G per floor cleared
+if(S.chosenHeroIdx >= 0 && S.heroes[S.chosenHeroIdx]) {
+S.gold += 1;
+toast(`${S.heroes[S.chosenHeroIdx].n} earned +1G (Tapo's Chosen)`, 1200);
+}
 // Clear any pending recruit replacement choice
 S.pendingNewRecruit = null;
 S.pendingOldRecruitId = null;

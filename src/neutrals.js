@@ -1289,8 +1289,49 @@ hero.m += 5;
 hero.h += 5;
 }
 });
+
+// Chosen Hero: On run 2+, pick randomly from least-used heroes among selected
+S.chosenHeroIdx = -1; // Reset (no chosen hero by default)
+if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
+// Count usage of each hero from pond history
+const usageCounts = {};
+S.pondHistory.forEach(run => {
+(run.heroes || []).forEach(heroName => {
+usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
+});
+});
+// Find usage counts for heroes in current party
+const heroUsages = S.heroes.map((h, idx) => ({
+idx,
+name: h.n,
+usage: usageCounts[h.n] || 0
+}));
+// Find the minimum usage count
+const minUsage = Math.min(...heroUsages.map(h => h.usage));
+// Get all heroes with minimum usage
+const leastUsed = heroUsages.filter(h => h.usage === minUsage);
+// Randomly pick one from least-used
+const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
+S.chosenHeroIdx = chosen.idx;
+}
+
 initNeutralDeck();
 upd();
+
+// Show chosen hero tutorial on first occurrence (run 2)
+if(S.chosenHeroIdx >= 0 && !S.tutorialFlags.chosen_hero_intro) {
+const chosenHero = S.heroes[S.chosenHeroIdx];
+showTutorialPop('chosen_hero_intro', `Somehow, somewhere, Tapo smiles upon <strong>${chosenHero.n}</strong>. They'll gain an extra 1G for each floor cleared this run!`, () => {
+if(S.startingXP > 0) {
+S.xp = S.startingXP;
+showStartingXPScreen();
+} else {
+startFloor(1);
+}
+});
+return;
+}
+
 // Check if player has starting XP from Death Boy sacrifices
 if(S.startingXP > 0) {
 S.xp = S.startingXP;

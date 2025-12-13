@@ -17,6 +17,7 @@ levelUpCount: 0,
 goingRate: 1,
 runsAttempted: 0,
 startingXP: 0,
+chosenHeroIdx: -1, // Index of "chosen one" hero (-1 = none, only set on run 2+)
 
 // ===== COMBAT STATE (resets each combat) =====
 activeIdx: -1,      // Currently acting hero index (-1 = none)
@@ -111,6 +112,7 @@ ghost_intro: false,
 grapple_intro: false,
 alpha_intro: false,
 recruit_intro: false,
+chosen_hero_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
@@ -729,7 +731,8 @@ h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 hasAncientStatuette: S.hasAncientStatuette,
 tempSigUpgrades: S.tempSigUpgrades,
-gameMode: S.gameMode
+gameMode: S.gameMode,
+chosenHeroIdx: S.chosenHeroIdx
 }));
 savePermanent();
 } catch(e) {
@@ -755,6 +758,7 @@ S.lastNeutral=j.lastNeutral || null;
 S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = j.gameMode || 'Standard';
+S.chosenHeroIdx = j.chosenHeroIdx !== undefined ? j.chosenHeroIdx : -1;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -930,6 +934,7 @@ S.lastNeutral = r.lastNeutral || null;
 S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
+S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -1025,7 +1030,8 @@ h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 hasAncientStatuette: S.hasAncientStatuette,
 tempSigUpgrades: S.tempSigUpgrades,
-gameMode: S.gameMode
+gameMode: S.gameMode,
+chosenHeroIdx: S.chosenHeroIdx
 }));
 savePermanent();
 } catch(e) {

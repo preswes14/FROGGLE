@@ -1956,7 +1956,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.83';
+const GAME_VERSION = '11.86';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4044,6 +4044,7 @@ levelUpCount: 0,
 goingRate: 1,
 runsAttempted: 0,
 startingXP: 0,
+chosenHeroIdx: -1, // Index of "chosen one" hero (-1 = none, only set on run 2+)
 
 // ===== COMBAT STATE (resets each combat) =====
 activeIdx: -1,      // Currently acting hero index (-1 = none)
@@ -4138,6 +4139,7 @@ ghost_intro: false,
 grapple_intro: false,
 alpha_intro: false,
 recruit_intro: false,
+chosen_hero_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
@@ -4756,7 +4758,8 @@ h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 hasAncientStatuette: S.hasAncientStatuette,
 tempSigUpgrades: S.tempSigUpgrades,
-gameMode: S.gameMode
+gameMode: S.gameMode,
+chosenHeroIdx: S.chosenHeroIdx
 }));
 savePermanent();
 } catch(e) {
@@ -4782,6 +4785,7 @@ S.lastNeutral=j.lastNeutral || null;
 S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = j.gameMode || 'Standard';
+S.chosenHeroIdx = j.chosenHeroIdx !== undefined ? j.chosenHeroIdx : -1;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -4957,6 +4961,7 @@ S.lastNeutral = r.lastNeutral || null;
 S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
+S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -5052,7 +5057,8 @@ h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 hasAncientStatuette: S.hasAncientStatuette,
 tempSigUpgrades: S.tempSigUpgrades,
-gameMode: S.gameMode
+gameMode: S.gameMode,
+chosenHeroIdx: S.chosenHeroIdx
 }));
 savePermanent();
 } catch(e) {
@@ -7437,7 +7443,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isActive = S.activeIdx === i;
 let lsClasses = 'card hero last-stand-flipped';
-if(i === 0) lsClasses += ' chosen-one';
+if(S.chosenHeroIdx === i) lsClasses += ' chosen-one';
 if(isActive) lsClasses += ' active';
 if(isTargetable) lsClasses += ' targetable';
 if(hasActed) lsClasses += ' acted';
@@ -7472,7 +7478,7 @@ const isTargetable = S.pending && needsHeroTarget(S.pending);
 const hasActed = S.acted.includes(i);
 const isStunned = h.st > 0;
 let cardClasses = 'card hero';
-if(i === 0) cardClasses += ' chosen-one';
+if(S.chosenHeroIdx === i) cardClasses += ' chosen-one';
 if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';
@@ -7677,6 +7683,11 @@ v.innerHTML = `
 
 function nextFloor() {
 console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
+// Tapo's Chosen bonus: +1G per floor cleared
+if(S.chosenHeroIdx >= 0 && S.heroes[S.chosenHeroIdx]) {
+S.gold += 1;
+toast(`${S.heroes[S.chosenHeroIdx].n} earned +1G (Tapo's Chosen)`, 1200);
+}
 // Clear any pending recruit replacement choice
 S.pendingNewRecruit = null;
 S.pendingOldRecruitId = null;
@@ -9518,8 +9529,49 @@ hero.m += 5;
 hero.h += 5;
 }
 });
+
+// Chosen Hero: On run 2+, pick randomly from least-used heroes among selected
+S.chosenHeroIdx = -1; // Reset (no chosen hero by default)
+if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
+// Count usage of each hero from pond history
+const usageCounts = {};
+S.pondHistory.forEach(run => {
+(run.heroes || []).forEach(heroName => {
+usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
+});
+});
+// Find usage counts for heroes in current party
+const heroUsages = S.heroes.map((h, idx) => ({
+idx,
+name: h.n,
+usage: usageCounts[h.n] || 0
+}));
+// Find the minimum usage count
+const minUsage = Math.min(...heroUsages.map(h => h.usage));
+// Get all heroes with minimum usage
+const leastUsed = heroUsages.filter(h => h.usage === minUsage);
+// Randomly pick one from least-used
+const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
+S.chosenHeroIdx = chosen.idx;
+}
+
 initNeutralDeck();
 upd();
+
+// Show chosen hero tutorial on first occurrence (run 2)
+if(S.chosenHeroIdx >= 0 && !S.tutorialFlags.chosen_hero_intro) {
+const chosenHero = S.heroes[S.chosenHeroIdx];
+showTutorialPop('chosen_hero_intro', `Somehow, somewhere, Tapo smiles upon <strong>${chosenHero.n}</strong>. They'll gain an extra 1G for each floor cleared this run!`, () => {
+if(S.startingXP > 0) {
+S.xp = S.startingXP;
+showStartingXPScreen();
+} else {
+startFloor(1);
+}
+});
+return;
+}
+
 // Check if player has starting XP from Death Boy sacrifices
 if(S.startingXP > 0) {
 S.xp = S.startingXP;
