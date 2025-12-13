@@ -1099,17 +1099,6 @@ ${S.tapoUnlocked ? `
 
 debugLog('[FROGGLE] title() innerHTML set successfully');
 
-// Shield persistence tutorial (after first run with shield usage or death)
-if(!S.helpTipsDisabled && !S.tutorialFlags.shield_persistence && S.runsAttempted >= 2) {
-// Check if they used shield or died (runsAttempted >= 2 means they finished at least one run)
-const usedShield = S.sig.Shield > 0 || (S.tempSigUpgrades && S.tempSigUpgrades.Shield > 0);
-if(usedShield || S.runsAttempted >= 2) {
-setTimeout(() => {
-showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next floor with protection. Use this to survive tough encounters!");
-}, 100);
-}
-}
-
 // Update selection display
 updateSelectionDisplay();
 }

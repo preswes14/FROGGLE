@@ -349,6 +349,10 @@ S.instancesRemaining = level * repeats;
 S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
+// Shield persistence tutorial: show first time player clicks Shield
+if(sig === 'Shield') {
+showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next fight with protection.");
+}
 render();
 // Auto-focus target for controller users
 if(sig === 'Attack') {

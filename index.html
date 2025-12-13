@@ -1956,7 +1956,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.78';
+const GAME_VERSION = '11.79';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -5569,6 +5569,10 @@ S.instancesRemaining = level * repeats;
 S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
+// Shield persistence tutorial: show first time player clicks Shield
+if(sig === 'Shield') {
+showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next fight with protection.");
+}
 render();
 // Auto-focus target for controller users
 if(sig === 'Attack') {
@@ -9314,17 +9318,6 @@ ${S.tapoUnlocked ? `
 </div>`;
 
 debugLog('[FROGGLE] title() innerHTML set successfully');
-
-// Shield persistence tutorial (after first run with shield usage or death)
-if(!S.helpTipsDisabled && !S.tutorialFlags.shield_persistence && S.runsAttempted >= 2) {
-// Check if they used shield or died (runsAttempted >= 2 means they finished at least one run)
-const usedShield = S.sig.Shield > 0 || (S.tempSigUpgrades && S.tempSigUpgrades.Shield > 0);
-if(usedShield || S.runsAttempted >= 2) {
-setTimeout(() => {
-showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next floor with protection. Use this to survive tough encounters!");
-}, 100);
-}
-}
 
 // Update selection display
 updateSelectionDisplay();
