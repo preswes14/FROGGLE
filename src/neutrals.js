@@ -667,6 +667,11 @@ function startTaposBirthdayTutorial() {
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
+// Initialize sigils to base levels for clean tutorial state
+S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// Reset tutorial-specific flags to ensure popups show for fresh tutorial
+S.tutorialFlags.tapo_first_attack = false;
 S.heroes = [
 {id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];

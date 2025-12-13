@@ -1650,9 +1650,10 @@ toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
 return;
 }
-// PHASE 1 TUTORIAL: Flies attack back to teach players that enemies fight back!
+// Filter out Attack sigil - the base attack mechanism handles it
+// Attack sigil is a marker indicating the enemy attacks, not an additional action
+const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Attack');
 executeEnemyBaseAttack(enemy);
-const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha');
 
 // Filter out suicidal grapples - enemies should never kill themselves
 const safeSigils = drawnSigils.filter(sigil => {

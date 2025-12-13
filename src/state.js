@@ -113,6 +113,7 @@ first_victory_sequence: false,
 first_fu_victory: false,
 pedestal_first_placement: false,
 tapo_victory_message: false,
+tapo_first_attack: false,
 auto_target_intro: false,
 steam_controller_setup: false
 },
@@ -582,6 +583,10 @@ function dismissTutorialPop(flagName) {
 debugLog('[TUTORIAL] dismissTutorialPop called:', flagName);
 S.tutorialFlags[flagName] = true;
 savePermanent();
+
+// Set cooldown to prevent click-through to game elements behind popup
+// This prevents controller A button from selecting sigils after dismissing popup
+window.tutorialDismissTime = Date.now();
 
 // Capture callback before removal (prevent race conditions)
 const callback = window.tutorialCallback;
