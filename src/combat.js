@@ -377,7 +377,7 @@ autoFocusTargetForController(heroIdx, 'enemy');
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 // Alpha tutorial: show first time player clicks Alpha
-showTutorialPop('alpha_intro', "Alpha lets you give bonus actions to an ally! You spend your turn, but they get to act again immediately - great for letting your strongest attacker strike twice!");
+showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher levels, one turn can grant several to an ally! Great for letting your strongest attacker strike twice.");
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
