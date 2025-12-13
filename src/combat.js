@@ -2454,10 +2454,10 @@ v.innerHTML = `
 
 function nextFloor() {
 console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
-// Chosen Hero bonus: +1G per floor cleared
+// Tapo's Chosen bonus: +1G per floor cleared
 if(S.chosenHeroIdx >= 0 && S.heroes[S.chosenHeroIdx]) {
 S.gold += 1;
-toast(`${S.heroes[S.chosenHeroIdx].n} earned +1G (Chosen Hero)`, 1200);
+toast(`${S.heroes[S.chosenHeroIdx].n} earned +1G (Tapo's Chosen)`, 1200);
 }
 // Clear any pending recruit replacement choice
 S.pendingNewRecruit = null;
