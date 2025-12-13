@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.68';
+const GAME_VERSION = '11.71';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -555,20 +555,13 @@ if(options.isHero) {
 // IMPORTANT: Only trigger during ENEMY turn, not player turn (e.g., Grapple recoil)
 console.log('[TAPO] Phase 1 death check - S.turn:', S.turn, 'target:', target.n, 'HP was:', target.h);
 if(tutorialState && S.floor === 0 && tutorialState.phase === 1 && S.turn === 'enemy') {
-console.log('[TAPO] Rescue triggered! Eating flies.');
-// Tapo saves the day! Auto-win tutorial
-target.h = 1; // Prevent actual death
-SoundFX.play('ribbit');
-// Grammar: "fly" vs "flies" based on remaining count
-const aliveEnemies = S.enemies.filter(e => e.h > 0);
-const flyText = aliveEnemies.length === 1 ? 'fly' : 'flies';
-toast(`Tapo reaches out his sticky tongue and swallows the ${flyText} whole!`, 3000);
-// Clear all remaining enemies
-S.enemies = [];
-// Trigger victory after short delay
-setTimeout(() => {
-checkCombatEnd();
-}, 500);
+console.log('[TAPO] Rescue triggered! Starting rescue sequence.');
+// Tapo saves the day! Prevent actual death
+target.h = 1;
+// Show the full Tapo rescue sequence with narrative and animated fly deaths
+if(typeof showTapoRescueSequence === 'function') {
+showTapoRescueSequence();
+}
 return {hpLost: 0, shieldLost, totalDamage: rawDamage};
 }
 // Heroes enter Last Stand
