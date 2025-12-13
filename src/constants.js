@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.63';
+const GAME_VERSION = '11.64';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -552,7 +552,10 @@ toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 target.h = 0;
 if(options.isHero) {
 // TUTORIAL PHASE 1: Override Last Stand with Tapo rescue
-if(tutorialState && S.floor === 0 && tutorialState.phase === 1) {
+// IMPORTANT: Only trigger during ENEMY turn, not player turn (e.g., Grapple recoil)
+console.log('[TAPO] Phase 1 death check - S.turn:', S.turn, 'target:', target.n, 'HP was:', target.h);
+if(tutorialState && S.floor === 0 && tutorialState.phase === 1 && S.turn === 'enemy') {
+console.log('[TAPO] Rescue triggered! Eating flies.');
 // Tapo saves the day! Auto-win tutorial
 target.h = 1; // Prevent actual death
 SoundFX.play('ribbit');
