@@ -55,7 +55,8 @@ S.neutralDeck.push(`${base}2`);
 
 // ===== D20 ROLLS FOR NEUTRALS =====
 function rollD20Neutral() {
-const d20Level = S.sig.D20 || 1;
+// Include both permanent AND temporary upgrades for neutral D20 rolls
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
 showTutorialPop('neutral_d20_level', "These D20 checks use the same Level as your D20 sigil from combat - leveling it up improves your odds everywhere!");
 return rollDice(d20Level, 20);
@@ -1949,14 +1950,16 @@ return;
 if(!h.ts) h.ts = [];
 if(!h.ts.includes(chosenSigil)) h.ts.push(chosenSigil);
 
-const oldLevel = S.sig[chosenSigil] || 0;
-S.sig[chosenSigil] = oldLevel + bonusLevels;
+// Use tempSigUpgrades for temporary upgrades (not S.sig which is permanent!)
+const oldTotalLevel = (S.sig[chosenSigil] || 0) + (S.tempSigUpgrades[chosenSigil] || 0);
+S.tempSigUpgrades[chosenSigil] = (S.tempSigUpgrades[chosenSigil] || 0) + bonusLevels;
+const newTotalLevel = oldTotalLevel + bonusLevels;
 
 S.wizardHero = heroIdx;
 S.wizardSigil = chosenSigil;
 
 const critText = best === 20 ? ` <span style="color:#3b82f6;font-weight:bold">(CRITICAL!)</span>` : '';
-toast(`${chosenSigil} temporarily upgraded to L${S.sig[chosenSigil]} for ${h.n}!`, 1800);
+toast(`${chosenSigil} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
 
 replaceStage1WithStage2('wizard');
 setTimeout(() => {
@@ -2078,15 +2081,16 @@ function selectWizardUpgrade(sig) {
 const heroIdx = S.wizardHero;
 const h = S.heroes[heroIdx];
 
-// Apply temp upgrade
+// Apply temp upgrade (use tempSigUpgrades, not S.sig which is permanent!)
 if(!h.ts) h.ts = [];
 if(!h.ts.includes(sig)) h.ts.push(sig);
 
-const oldLevel = S.sig[sig] || 0;
-S.sig[sig] = oldLevel + 1;
+const oldTotalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+const newTotalLevel = oldTotalLevel + 1;
 
 S.wizardUpgradedSigils.push(sig);
-toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 1800);
+toast(`${sig} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
 
 S.wizardChallengeIndex++;
 
@@ -2556,7 +2560,8 @@ buttons: `
 
 function playBetween20s(stage, wager) {
 const v = document.getElementById('gameView');
-const d20Level = S.sig.D20 || 1;
+// Include both permanent AND temporary upgrades
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 
 // PHASE 1: Establish Range
 const boundsCount = stage === 1 ? (d20Level + 1) : 2; // Stage 1: level+1, Stage 2: always 2
@@ -2649,7 +2654,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function targetRollBetween20s() {
 const state = window.between20sState;
 const v = document.getElementById('gameView');
-const d20Level = S.sig.D20 || 1;
+// Include both permanent AND temporary upgrades
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 
 // PHASE 3: Target Roll
 const targetRolls = [];

@@ -1956,7 +1956,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.73';
+const GAME_VERSION = '11.77';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2083,14 +2083,14 @@ tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alp
 // - sigilLevels: override max level for specific sigils {Attack:2, Shield:2, etc}
 // - Star and D20 are NEVER available to enemies
 const E = {
-fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:1, pool:[], gainRate:999, startSigils:[{s:'Attack',l:1}] },
+fly: { n:'Fly', p:1, h:2, m:2, goldDrop:0, x:0, pool:[], gainRate:999, startSigils:[{s:'Attack',l:1}] },
 goblin: { n:'Goblin', p:1, h:5, m:5, goldDrop:1, x:2, pool:['Asterisk','Expand','Shield'], maxLevel:1, gainRate:3 },
 wolf: { n:'Wolf', p:2, h:5, m:5, goldDrop:2, x:4, pool:['Asterisk','Expand','Shield','Grapple','Alpha'], maxLevel:1, gainRate:2 },
-orc: { n:'Orc', p:3, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack'], maxLevel:1, sigilLevels:{Attack:2}, gainRate:2, startSigils:1 },
-giant: { n:'Giant', p:4, h:12, m:12, goldDrop:6, x:12, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack'], maxLevel:1, sigilLevels:{Attack:2,Shield:2,Heal:2}, gainRate:1, startSigils:[{s:'Shield',l:1}] },
-caveTroll: { n:'Cave Troll', p:5, h:15, m:15, goldDrop:5, x:15, pool:['Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack'], maxLevel:2, gainRate:1, startSigils:[{s:'Asterisk',l:1}], startRandom:1 },
-dragon: { n:'Dragon', p:5, h:20, m:20, goldDrop:10, x:25, pool:['Expand','Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:2, gainRate:1, drawsPerTurn:1, permSigils:[{s:'Attack',l:2},{s:'Expand',l:1}] },
-flydra: { n:'Flydra', p:5, h:25, m:25, goldDrop:15, x:50, pool:['Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:2, gainRate:1, isFlydra:true, permSigils:[{s:'Attack',l:2},{s:'Expand',l:2}] }
+orc: { n:'Orc', p:2, h:10, m:10, goldDrop:3, x:6, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:1, gainRate:2, alternating: true, altSigil: {s:'Attack',l:2} },
+giant: { n:'Giant', p:3, h:12, m:12, goldDrop:6, x:12, pool:['Asterisk','Expand','Shield','Grapple','Alpha','Heal','Ghost','Attack'], maxLevel:1, sigilLevels:{Attack:2,Shield:2,Heal:2}, gainRate:1, startSigils:[{s:'Shield',l:1}] },
+caveTroll: { n:'Cave Troll', p:4, h:15, m:15, goldDrop:10, x:15, pool:['Expand','Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:2, gainRate:1, rage: true, ragePattern: [1,2,3] },
+dragon: { n:'Dragon', p:5, h:20, m:20, goldDrop:20, x:25, pool:['Expand','Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:2, gainRate:1, drawsPerTurn:1, permSigils:[{s:'Attack',l:2},{s:'Expand',l:1}] },
+flydra: { n:'Flydra', p:5, h:25, m:25, goldDrop:0, x:50, pool:['Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:2, gainRate:1, isFlydra:true, permSigils:[{s:'Attack',l:2},{s:'Expand',l:2}] }
 };
 
 // Enemy emoji icons
@@ -2537,11 +2537,15 @@ showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last 
 // Enemies die - award gold/XP and schedule removal
 // Skip rewards for Floor 0 tutorial
 if(!options.skipRewards && S.floor !== 0) {
+// FLYDRA: Skip gold on head "death" - heads can revive! Gold awarded at combat completion
+if(!target.isFlydra) {
 S.gold += target.goldDrop || 0;
 S.combatGold += target.goldDrop || 0;
-S.combatXP += target.x;
 // JUICE: Coin sound for gold drops
 if(target.goldDrop > 0) SoundFX.play('coinDrop');
+}
+// XP is fine to award per head (player can't spend it after victory anyway)
+S.combatXP += target.x;
 upd();
 }
 }
@@ -5398,6 +5402,26 @@ for(let j = 0; j < base.startRandom; j++) {
 drawEnemyStartSigil(enemy, base, true); // true = force level 1
 }
 }
+// ORC ALTERNATING: Start with either Attack L2 or random pool sigil
+if(base.alternating && base.altSigil) {
+enemy.alternating = true;
+enemy.altSigil = base.altSigil;
+// Randomly choose which to start with (true = altSigil/Attack, false = pool)
+enemy.altState = Math.random() < 0.5;
+if(enemy.altState) {
+enemy.s.push({sig: base.altSigil.s, level: base.altSigil.l, perm: false});
+} else {
+drawEnemyStartSigil(enemy, base, false);
+}
+}
+// CAVE TROLL RAGE: Rolling Attack L1→L2→L3→L1 pattern
+if(base.rage && base.ragePattern) {
+enemy.rage = true;
+enemy.ragePattern = base.ragePattern;
+enemy.rageIndex = 0; // Start at first level (L1)
+// Start with Attack at first level of pattern
+enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
+}
 return enemy;
 });
 if(S.ambushed) {
@@ -6619,6 +6643,12 @@ triggerHealAnimation(flydra.id, reviveHP);
 });
 } else {
 // All Flydras are dying - they all die for real
+// Award flat 100 gold for defeating the Flydra (entire boss, not per-head)
+const flydraGold = 100 * (S.gameMode === 'fu' ? 3 : 1); // Frogged Up multiplier
+S.gold += flydraGold;
+S.combatGold += flydraGold;
+SoundFX.play('coinDrop');
+upd();
 dyingFlydras.forEach(flydra => {
 flydra.flydraState = 'dead';
 });
@@ -6656,14 +6686,13 @@ S.acted = [];
 S.activeIdx = -1;
 render();
 S.enemies.forEach(e => {
-if(e.st > 0) e.st--;
+// NOTE: Stun decrement moved to endEnemyTurn() so enemies actually skip their turn
 e.turnsSinceGain++;
 e.alphaActed = false;
 });
-// Process recruits - stun decrement
+// Process recruits - increment turnsSinceGain (stun decrement moved to endEnemyTurn)
 if(S.recruits) {
 S.recruits.forEach(r => {
-if(r.st > 0) r.st--;
 if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
 });
@@ -7048,12 +7077,29 @@ toast(msg);
 }
 
 function endEnemyTurn() {
+// Decrement hero stun at end of enemy turn (heroes skip player turn, then decrement)
 S.heroes.forEach(h => {
 if(h.st > 0) {
 h.st--;
 if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 }
 });
+// Decrement enemy stun at end of enemy turn (enemies skip their turn, then decrement)
+S.enemies.forEach(e => {
+if(e.st > 0) {
+e.st--;
+if(e.st === 0) toast(`${getEnemyDisplayName(e)} is no longer stunned!`);
+}
+});
+// Decrement recruit stun at end of enemy turn (recruits act during enemy turn)
+if(S.recruits) {
+S.recruits.forEach(r => {
+if(r.st > 0) {
+r.st--;
+if(r.st === 0) toast(`${r.n} (Recruit) is no longer stunned!`);
+}
+});
+}
 if(checkCombatEnd()) return;
 S.round++;
 
@@ -7062,7 +7108,40 @@ S.enemies.forEach(e => {
 // RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
 const isTutorial = tutorialState && S.floor === 0;
 const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
-if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+
+// CAVE TROLL RAGE: Rolling Attack L1→L2→L3→L1 pattern (every turn)
+if(e.rage && !isTutorial) {
+const oldIndex = e.rageIndex;
+e.rageIndex = (e.rageIndex + 1) % e.ragePattern.length;
+const isReset = oldIndex === e.ragePattern.length - 1; // Was at L3, now at L1
+
+// Update Attack level to match current rage index
+const attackSigil = e.s.find(sig => sig.sig === 'Attack');
+if(attackSigil) {
+attackSigil.level = e.ragePattern[e.rageIndex];
+}
+
+// Draw additional sigil every turn EXCEPT on reset turns
+if(!isReset) {
+drawEnemySigil(e);
+}
+render();
+}
+// ORC ALTERNATING: Toggle between Attack L2 and random pool sigil
+else if(e.alternating && e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+e.turnsSinceGain = 0;
+e.altState = !e.altState; // Toggle
+// Clear non-permanent sigils and set the new one
+e.s = e.s.filter(sig => sig.perm);
+if(e.altState) {
+e.s.push({sig: e.altSigil.s, level: e.altSigil.l, perm: false});
+} else {
+drawEnemySigil(e);
+}
+render();
+}
+// Normal sigil drawing for other enemies
+else if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
 e.turnsSinceGain = 0;
 // Draw multiple sigils per turn if specified (Dragons draw 2)
 const draws = e.drawsPerTurn || 1;
@@ -8192,7 +8271,8 @@ S.neutralDeck.push(`${base}2`);
 
 // ===== D20 ROLLS FOR NEUTRALS =====
 function rollD20Neutral() {
-const d20Level = S.sig.D20 || 1;
+// Include both permanent AND temporary upgrades for neutral D20 rolls
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
 showTutorialPop('neutral_d20_level', "These D20 checks use the same Level as your D20 sigil from combat - leveling it up improves your odds everywhere!");
 return rollDice(d20Level, 20);
@@ -10086,14 +10166,16 @@ return;
 if(!h.ts) h.ts = [];
 if(!h.ts.includes(chosenSigil)) h.ts.push(chosenSigil);
 
-const oldLevel = S.sig[chosenSigil] || 0;
-S.sig[chosenSigil] = oldLevel + bonusLevels;
+// Use tempSigUpgrades for temporary upgrades (not S.sig which is permanent!)
+const oldTotalLevel = (S.sig[chosenSigil] || 0) + (S.tempSigUpgrades[chosenSigil] || 0);
+S.tempSigUpgrades[chosenSigil] = (S.tempSigUpgrades[chosenSigil] || 0) + bonusLevels;
+const newTotalLevel = oldTotalLevel + bonusLevels;
 
 S.wizardHero = heroIdx;
 S.wizardSigil = chosenSigil;
 
 const critText = best === 20 ? ` <span style="color:#3b82f6;font-weight:bold">(CRITICAL!)</span>` : '';
-toast(`${chosenSigil} temporarily upgraded to L${S.sig[chosenSigil]} for ${h.n}!`, 1800);
+toast(`${chosenSigil} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
 
 replaceStage1WithStage2('wizard');
 setTimeout(() => {
@@ -10215,15 +10297,16 @@ function selectWizardUpgrade(sig) {
 const heroIdx = S.wizardHero;
 const h = S.heroes[heroIdx];
 
-// Apply temp upgrade
+// Apply temp upgrade (use tempSigUpgrades, not S.sig which is permanent!)
 if(!h.ts) h.ts = [];
 if(!h.ts.includes(sig)) h.ts.push(sig);
 
-const oldLevel = S.sig[sig] || 0;
-S.sig[sig] = oldLevel + 1;
+const oldTotalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+const newTotalLevel = oldTotalLevel + 1;
 
 S.wizardUpgradedSigils.push(sig);
-toast(`${sig} temporarily upgraded to L${S.sig[sig]} for ${h.n}!`, 1800);
+toast(`${sig} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
 
 S.wizardChallengeIndex++;
 
@@ -10693,7 +10776,8 @@ buttons: `
 
 function playBetween20s(stage, wager) {
 const v = document.getElementById('gameView');
-const d20Level = S.sig.D20 || 1;
+// Include both permanent AND temporary upgrades
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 
 // PHASE 1: Establish Range
 const boundsCount = stage === 1 ? (d20Level + 1) : 2; // Stage 1: level+1, Stage 2: always 2
@@ -10786,7 +10870,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function targetRollBetween20s() {
 const state = window.between20sState;
 const v = document.getElementById('gameView');
-const d20Level = S.sig.D20 || 1;
+// Include both permanent AND temporary upgrades
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 
 // PHASE 3: Target Roll
 const targetRolls = [];
@@ -12003,8 +12088,10 @@ SoundFX.play('treasure');
 // Record victory to The Pond!
 recordPondHistory('victory');
 
-// Gold is lost on victory (reset to 0)
-S.gold = 0;
+// Reset run state on victory
+S.gold = 0; // Gold is lost on victory
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}; // Clear temp upgrades
+S.recruits = []; // Clear recruits
 savePermanent();
 
 // Award figurines for heroes who survived (HP > 0, not Last Stand)

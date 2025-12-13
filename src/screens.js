@@ -755,8 +755,10 @@ SoundFX.play('treasure');
 // Record victory to The Pond!
 recordPondHistory('victory');
 
-// Gold is lost on victory (reset to 0)
-S.gold = 0;
+// Reset run state on victory
+S.gold = 0; // Gold is lost on victory
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}; // Clear temp upgrades
+S.recruits = []; // Clear recruits
 savePermanent();
 
 // Award figurines for heroes who survived (HP > 0, not Last Stand)

@@ -182,6 +182,26 @@ for(let j = 0; j < base.startRandom; j++) {
 drawEnemyStartSigil(enemy, base, true); // true = force level 1
 }
 }
+// ORC ALTERNATING: Start with either Attack L2 or random pool sigil
+if(base.alternating && base.altSigil) {
+enemy.alternating = true;
+enemy.altSigil = base.altSigil;
+// Randomly choose which to start with (true = altSigil/Attack, false = pool)
+enemy.altState = Math.random() < 0.5;
+if(enemy.altState) {
+enemy.s.push({sig: base.altSigil.s, level: base.altSigil.l, perm: false});
+} else {
+drawEnemyStartSigil(enemy, base, false);
+}
+}
+// CAVE TROLL RAGE: Rolling Attack L1→L2→L3→L1 pattern
+if(base.rage && base.ragePattern) {
+enemy.rage = true;
+enemy.ragePattern = base.ragePattern;
+enemy.rageIndex = 0; // Start at first level (L1)
+// Start with Attack at first level of pattern
+enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
+}
 return enemy;
 });
 if(S.ambushed) {
@@ -1403,6 +1423,12 @@ triggerHealAnimation(flydra.id, reviveHP);
 });
 } else {
 // All Flydras are dying - they all die for real
+// Award flat 100 gold for defeating the Flydra (entire boss, not per-head)
+const flydraGold = 100 * (S.gameMode === 'fu' ? 3 : 1); // Frogged Up multiplier
+S.gold += flydraGold;
+S.combatGold += flydraGold;
+SoundFX.play('coinDrop');
+upd();
 dyingFlydras.forEach(flydra => {
 flydra.flydraState = 'dead';
 });
@@ -1440,14 +1466,13 @@ S.acted = [];
 S.activeIdx = -1;
 render();
 S.enemies.forEach(e => {
-if(e.st > 0) e.st--;
+// NOTE: Stun decrement moved to endEnemyTurn() so enemies actually skip their turn
 e.turnsSinceGain++;
 e.alphaActed = false;
 });
-// Process recruits - stun decrement
+// Process recruits - increment turnsSinceGain (stun decrement moved to endEnemyTurn)
 if(S.recruits) {
 S.recruits.forEach(r => {
-if(r.st > 0) r.st--;
 if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
 });
@@ -1832,12 +1857,29 @@ toast(msg);
 }
 
 function endEnemyTurn() {
+// Decrement hero stun at end of enemy turn (heroes skip player turn, then decrement)
 S.heroes.forEach(h => {
 if(h.st > 0) {
 h.st--;
 if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 }
 });
+// Decrement enemy stun at end of enemy turn (enemies skip their turn, then decrement)
+S.enemies.forEach(e => {
+if(e.st > 0) {
+e.st--;
+if(e.st === 0) toast(`${getEnemyDisplayName(e)} is no longer stunned!`);
+}
+});
+// Decrement recruit stun at end of enemy turn (recruits act during enemy turn)
+if(S.recruits) {
+S.recruits.forEach(r => {
+if(r.st > 0) {
+r.st--;
+if(r.st === 0) toast(`${r.n} (Recruit) is no longer stunned!`);
+}
+});
+}
 if(checkCombatEnd()) return;
 S.round++;
 
@@ -1846,7 +1888,40 @@ S.enemies.forEach(e => {
 // RIBBLETON TUTORIAL: Enemies don't gain sigils (except Goblin on Round 3)
 const isTutorial = tutorialState && S.floor === 0;
 const isGoblinRound3 = isTutorial && e.n === 'Goblin' && S.round === 3;
-if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+
+// CAVE TROLL RAGE: Rolling Attack L1→L2→L3→L1 pattern (every turn)
+if(e.rage && !isTutorial) {
+const oldIndex = e.rageIndex;
+e.rageIndex = (e.rageIndex + 1) % e.ragePattern.length;
+const isReset = oldIndex === e.ragePattern.length - 1; // Was at L3, now at L1
+
+// Update Attack level to match current rage index
+const attackSigil = e.s.find(sig => sig.sig === 'Attack');
+if(attackSigil) {
+attackSigil.level = e.ragePattern[e.rageIndex];
+}
+
+// Draw additional sigil every turn EXCEPT on reset turns
+if(!isReset) {
+drawEnemySigil(e);
+}
+render();
+}
+// ORC ALTERNATING: Toggle between Attack L2 and random pool sigil
+else if(e.alternating && e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
+e.turnsSinceGain = 0;
+e.altState = !e.altState; // Toggle
+// Clear non-permanent sigils and set the new one
+e.s = e.s.filter(sig => sig.perm);
+if(e.altState) {
+e.s.push({sig: e.altSigil.s, level: e.altSigil.l, perm: false});
+} else {
+drawEnemySigil(e);
+}
+render();
+}
+// Normal sigil drawing for other enemies
+else if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
 e.turnsSinceGain = 0;
 // Draw multiple sigils per turn if specified (Dragons draw 2)
 const draws = e.drawsPerTurn || 1;
