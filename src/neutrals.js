@@ -1317,6 +1317,21 @@ S.chosenHeroIdx = chosen.idx;
 
 initNeutralDeck();
 upd();
+
+// Show chosen hero tutorial on first occurrence (run 2)
+if(S.chosenHeroIdx >= 0 && !S.tutorialFlags.chosen_hero_intro) {
+const chosenHero = S.heroes[S.chosenHeroIdx];
+showTutorialPop('chosen_hero_intro', `Somehow, somewhere, Tapo smiles upon <strong>${chosenHero.n}</strong>. They'll gain an extra 1G for each floor cleared this run!`, () => {
+if(S.startingXP > 0) {
+S.xp = S.startingXP;
+showStartingXPScreen();
+} else {
+startFloor(1);
+}
+});
+return;
+}
+
 // Check if player has starting XP from Death Boy sacrifices
 if(S.startingXP > 0) {
 S.xp = S.startingXP;

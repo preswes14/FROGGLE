@@ -1956,7 +1956,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.84';
+const GAME_VERSION = '11.85';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4139,6 +4139,7 @@ ghost_intro: false,
 grapple_intro: false,
 alpha_intro: false,
 recruit_intro: false,
+chosen_hero_intro: false,
 run2_hero_lock: false,
 first_victory_sequence: false,
 first_fu_victory: false,
@@ -7682,6 +7683,11 @@ v.innerHTML = `
 
 function nextFloor() {
 console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
+// Chosen Hero bonus: +1G per floor cleared
+if(S.chosenHeroIdx >= 0 && S.heroes[S.chosenHeroIdx]) {
+S.gold += 1;
+toast(`${S.heroes[S.chosenHeroIdx].n} earned +1G (Chosen Hero)`, 1200);
+}
 // Clear any pending recruit replacement choice
 S.pendingNewRecruit = null;
 S.pendingOldRecruitId = null;
@@ -9551,6 +9557,21 @@ S.chosenHeroIdx = chosen.idx;
 
 initNeutralDeck();
 upd();
+
+// Show chosen hero tutorial on first occurrence (run 2)
+if(S.chosenHeroIdx >= 0 && !S.tutorialFlags.chosen_hero_intro) {
+const chosenHero = S.heroes[S.chosenHeroIdx];
+showTutorialPop('chosen_hero_intro', `Somehow, somewhere, Tapo smiles upon <strong>${chosenHero.n}</strong>. They'll gain an extra 1G for each floor cleared this run!`, () => {
+if(S.startingXP > 0) {
+S.xp = S.startingXP;
+showStartingXPScreen();
+} else {
+startFloor(1);
+}
+});
+return;
+}
+
 // Check if player has starting XP from Death Boy sacrifices
 if(S.startingXP > 0) {
 S.xp = S.startingXP;
