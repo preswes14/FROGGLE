@@ -408,6 +408,9 @@ debugLog('[FROGGLE] showNarrativeSlide called - currentIndex:', currentIndex, 't
 if(currentIndex >= slides.length) {
 // All slides shown, call completion callback
 debugLog('[FROGGLE] All slides complete, calling onComplete');
+// Remove no-scroll class when narrative is done
+const gameArea = document.getElementById('gameView');
+if(gameArea) gameArea.classList.remove('no-scroll');
 if(slides.onComplete) slides.onComplete();
 return;
 }
@@ -416,13 +419,15 @@ const slide = slides[currentIndex];
 debugLog('[FROGGLE] Rendering slide', currentIndex);
 const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.6rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:0.9rem">Skip</button>` : '';
+// Add no-scroll class to prevent scrolling on full-screen slides
+v.classList.add('no-scroll');
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:1rem">Skip</button>` : '';
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 
 // Full-art mode: background image takes up screen, text in bottom bar
 if(slide.bg) {
 v.innerHTML = `
-<div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
+<div style="position:relative;width:100%;height:calc(100vh - 44px);overflow:hidden">
 <!-- Full-page background image -->
 <img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
@@ -430,8 +435,8 @@ v.innerHTML = `
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);padding:1.5rem 1rem 1rem 1rem">
 <div style="max-width:700px;margin:0 auto">
 ${slide.html || `<div style="font-size:1.15rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.8)">${slide.text}</div>`}
-<div style="display:flex;gap:0.75rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
-<button class="btn" onclick="continueNarrative()" style="padding:0.6rem 2rem;font-size:1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
 <div style="text-align:center;margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
@@ -439,15 +444,17 @@ ${skipButton}
 </div>
 </div>`;
 } else {
-// Standard mode: centered content (for slides with custom HTML or no background)
+// Standard mode: fullscreen centered content (no scrolling allowed)
 v.innerHTML = `
-<div style="max-width:600px;margin:2rem auto;padding:1rem">
-${slide.html || `<div style="font-size:1.1rem;line-height:1.8;margin-bottom:2rem;text-align:center">${slide.text}</div>`}
-<div style="text-align:center;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem">${slide.buttonText || 'Continue'}</button>
+<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
+<div style="max-width:600px;text-align:center">
+${slide.html || `<div style="font-size:1.15rem;line-height:1.7;margin-bottom:1.5rem">${slide.text}</div>`}
+<div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
+<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
-<div style="text-align:center;margin-top:1rem;font-size:0.85rem;opacity:0.6">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+<div style="margin-top:0.75rem;font-size:0.85rem;opacity:0.6">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+</div>
 </div>`;
 }
 
@@ -525,6 +532,9 @@ window.skipTutorialProceedCallback = null;
 function skipTutorialFromSlide() {
 // Show confirmation popup before skipping
 showSkipTutorialConfirmation(() => {
+// Remove no-scroll class when leaving narrative
+const gameArea = document.getElementById('gameView');
+if(gameArea) gameArea.classList.remove('no-scroll');
 toast('Tutorial skipped!', ANIMATION_TIMINGS.TOAST_SHORT);
 setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPLETE);
 });
@@ -542,30 +552,24 @@ text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">
 {
 // Tapo with birthday vibes - signature double jump + flip animation
 html: `
-<div style="text-align:center;padding:2rem">
-<h2 style="font-size:2rem;margin-bottom:1.5rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
-<div style="animation:tapoSignature 4.8s ease-in-out infinite;display:inline-block;margin:2rem 0">
-<img src="assets/tapo-nobg.png" style="width:180px;height:auto">
+<h2 style="font-size:1.8rem;margin-bottom:1rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
+<div style="animation:tapoSignature 4.8s ease-in-out infinite;display:inline-block;margin:1.5rem 0">
+<img src="assets/tapo-nobg.png" style="width:170px;height:auto">
 </div>
-<p style="font-size:1.2rem;line-height:1.8;margin-top:1.5rem">The whole town is celebrating the little tadpole's special day!</p>
-</div>
+<p style="font-size:1.15rem;line-height:1.7;margin-top:1rem">The whole town is celebrating the little tadpole's special day!</p>
 <style>
 @keyframes tapoSignature {
-  /* Double jump RIGHT */
   0% { transform: translateY(0) scaleX(1); }
   10% { transform: translateY(-25px) scaleX(1); }
   20% { transform: translateY(0) scaleX(1); }
   30% { transform: translateY(-35px) scaleX(1); }
   40% { transform: translateY(0) scaleX(1); }
-  /* Flip to LEFT */
   45% { transform: translateY(-10px) scaleX(0); }
   50% { transform: translateY(0) scaleX(-1); }
-  /* Double jump LEFT */
   60% { transform: translateY(-25px) scaleX(-1); }
   70% { transform: translateY(0) scaleX(-1); }
   80% { transform: translateY(-35px) scaleX(-1); }
   90% { transform: translateY(0) scaleX(-1); }
-  /* Flip back to RIGHT */
   95% { transform: translateY(-10px) scaleX(0); }
   100% { transform: translateY(0) scaleX(1); }
 }
@@ -574,44 +578,21 @@ html: `
 },
 {
 html: `
-<div style="text-align:center">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#2c63c7">A Special Gift</h2>
-<div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:2rem 0">
+<h2 style="font-size:1.7rem;margin-bottom:1rem;color:#2c63c7">A Special Gift</h2>
+<div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:1.5rem 0">
 <div>
-<img src="assets/characters/magefull.png" style="width:150px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
-<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Mage</div>
+<img src="assets/characters/magefull.png" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<div style="margin-top:0.5rem;font-weight:bold;font-size:1rem">Mage</div>
 </div>
-<div style="font-size:3rem">🎁</div>
+<div style="font-size:2.5rem">🎁</div>
 <div style="animation:tapoSignature 4.8s ease-in-out infinite">
-<img src="assets/tapo-nobg.png" style="width:120px;height:auto">
-<div style="text-align:center;margin-top:0.5rem;font-weight:bold">Tapo</div>
+<img src="assets/tapo-nobg.png" style="width:110px;height:auto">
+<div style="margin-top:0.5rem;font-weight:bold;font-size:1rem">Tapo</div>
 </div>
 </div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<p style="font-size:1.15rem;line-height:1.7;margin-top:1rem">
 As a birthday gift, <strong>Mage</strong> promised to teach Tapo how to catch flies.
 </p>
-</div>
-<style>
-@keyframes tapoSignature {
-  /* Double jump RIGHT */
-  0% { transform: translateY(0) scaleX(1); }
-  10% { transform: translateY(-25px) scaleX(1); }
-  20% { transform: translateY(0) scaleX(1); }
-  30% { transform: translateY(-35px) scaleX(1); }
-  40% { transform: translateY(0) scaleX(1); }
-  /* Flip to LEFT */
-  45% { transform: translateY(-10px) scaleX(0); }
-  50% { transform: translateY(0) scaleX(-1); }
-  /* Double jump LEFT */
-  60% { transform: translateY(-25px) scaleX(-1); }
-  70% { transform: translateY(0) scaleX(-1); }
-  80% { transform: translateY(-35px) scaleX(-1); }
-  90% { transform: translateY(0) scaleX(-1); }
-  /* Flip back to RIGHT */
-  95% { transform: translateY(-10px) scaleX(0); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-</style>
 `
 }
 ];
@@ -783,14 +764,17 @@ finishTaposBirthdayPhase();
 function finishTaposBirthdayPhase() {
 // Phase 1 victory celebration
 const v = document.getElementById('gameView');
+v.classList.add('no-scroll');
 v.innerHTML = `
-<div style="text-align:center;padding:2rem">
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
+<div style="max-width:600px;text-align:center">
+<h2 style="font-size:2rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
+<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0">
 Tapo squeals with delight as you knock the flies out of the air!<br>
 Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton. 🎉
 </p>
-<button onclick="transitionToPortalInvasion()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1rem">Continue</button>
+<button onclick="transitionToPortalInvasion()" style="padding:1rem 2rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1.5rem">Continue</button>
+</div>
 </div>`;
 }
 
@@ -799,20 +783,18 @@ function transitionToPortalInvasion() {
 const slides = [
 {
 html: `
-<div style="text-align:center">
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<div style="width:200px;height:200px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:spin 2s linear infinite">🌀</div>
+<div style="width:160px;height:160px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite">🌀</div>
 </div>
-<p style="font-size:1.1rem;line-height:1.8;margin:1rem 0">
+<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0">
 As Mage and Tapo enter Ribbleton, something seems off..<br>
 Whoa! <strong>A dark portal</strong> is open in the center of square!
 </p>
-<div style="display:flex;justify-content:center;gap:2rem;margin:1.5rem 0;font-size:3rem">
+<div style="display:flex;justify-content:center;gap:2rem;margin:1rem 0;font-size:2.5rem">
 <div style="animation:enemyAppear 1s ease-out">👺</div>
 <div style="animation:enemyAppear 1.3s ease-out">🐺</div>
-</div>
 </div>
 <style>
 @keyframes shake {
@@ -1043,16 +1025,18 @@ showNarrativeSlide(slides, 0);
 
 function showTitleCard() {
 const v = document.getElementById('gameView');
+v.classList.add('no-scroll');
 v.innerHTML = `
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center">
 <div style="text-align:center;color:#fff">
-<div style="font-size:3rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
+<div style="font-size:3.5rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
 <div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
 </div>
 </div>`;
 
 setTimeout(() => {
 tutorialState = null;
+v.classList.remove('no-scroll');
 showRibbleton(); // Go to Ribbleton hub
 }, 3000); // Reduced from 5500ms to 3000ms for faster flow
 }
@@ -1072,6 +1056,8 @@ upd();
 sel = [];
 
 const v = document.getElementById('gameView');
+// Hero selection is a normal scrollable screen
+v.classList.remove('no-scroll');
 const pedestalCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 const maxSlots = 8;
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
