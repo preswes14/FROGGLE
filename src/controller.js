@@ -1391,7 +1391,7 @@ const GamepadController = {
       const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
       totalTargets = 1 + expandLevel;
     }
-    const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
+    targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
     // Different targeting logic based on action type
     if (['Attack', 'Grapple', 'D20_TARGET'].includes(pending)) {
