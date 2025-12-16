@@ -1956,7 +1956,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.86';
+const GAME_VERSION = '11.87';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -14955,7 +14955,7 @@ const GamepadController = {
       const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
       totalTargets = 1 + expandLevel;
     }
-    const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
+    targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
     // Different targeting logic based on action type
     if (['Attack', 'Grapple', 'D20_TARGET'].includes(pending)) {
