@@ -66,3 +66,4 @@ console.error('[FROGGLE] Stack:', e.error ? e.error.stack : 'No stack trace');
 window.addEventListener('unhandledrejection', (e) => {
 console.error('[FROGGLE] UNHANDLED PROMISE REJECTION:', e.reason);
 });
+
