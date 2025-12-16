@@ -160,6 +160,15 @@ v.innerHTML = `
 <!-- Play button on the right -->
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
 </div>`;
+
+// Auto-select Play button for controller users
+setTimeout(() => {
+if (typeof GamepadController !== 'undefined' && GamepadController.active) {
+GamepadController.updateFocusableElements();
+const playBtn = document.querySelector('.title-play-btn');
+if (playBtn) GamepadController.setFocus(playBtn);
+}
+}, 100);
 }
 
 // Show credits screen
@@ -428,19 +437,19 @@ debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 // Full-art mode: background image takes up screen, text in bottom bar
 if(slide.bg) {
 v.innerHTML = `
-<div style="position:relative;width:100%;height:calc(100vh - 44px);overflow:hidden">
+<div style="position:relative;width:100%;height:calc(100vh - 44px);overflow:hidden;background:#1a5c3a">
 <!-- Full-page background image -->
 <img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
 <!-- Text bar at bottom with gradient fade -->
-<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);padding:1.5rem 1rem 1rem 1rem">
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(26,92,58,0.95) 0%, rgba(26,92,58,0.85) 40%, rgba(0,0,0,0.4) 75%, transparent 100%);padding:0.75rem 1rem 0.5rem 1rem">
 <div style="max-width:700px;margin:0 auto">
-${slide.html || `<div style="font-size:1.15rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.8)">${slide.text}</div>`}
-<div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
-<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+${slide.html || `<div style="font-size:1.1rem;line-height:1.6;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.8)">${slide.text}</div>`}
+<div style="display:flex;gap:1rem;justify-content:center;margin-top:0.75rem;flex-wrap:wrap">
+<button class="btn" onclick="continueNarrative()" style="padding:0.6rem 1.5rem;font-size:1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
-<div style="text-align:center;margin-top:0.5rem;font-size:0.8rem;color:rgba(255,255,255,0.5)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+<div style="text-align:center;margin-top:0.4rem;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>
 </div>
 </div>`;
@@ -554,7 +563,7 @@ text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">
 // Tapo with birthday vibes - signature double jump + flip animation
 html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
-<div style="animation:tapoSignature 4.8s ease-in-out infinite;display:inline-block;margin:1.5rem 0">
+<div style="animation:tapoSignature 3.6s ease-in-out infinite;display:inline-block;margin:1.5rem 0">
 <img src="assets/tapo-nobg.png" style="width:170px;height:auto">
 </div>
 <p style="font-size:1.15rem;line-height:1.7;margin-top:1rem">The whole town is celebrating the little tadpole's special day!</p>
@@ -562,27 +571,27 @@ html: `
 @keyframes tapoSignature {
   /* Quick hop 1 */
   0% { transform: translateY(0) scaleX(1); }
-  5% { transform: translateY(-20px) scaleX(1); }
-  10% { transform: translateY(0) scaleX(1); }
+  7% { transform: translateY(-20px) scaleX(1); }
+  14% { transform: translateY(0) scaleX(1); }
   /* Quick hop 2 */
-  15% { transform: translateY(-28px) scaleX(1); }
-  20% { transform: translateY(0) scaleX(1); }
+  21% { transform: translateY(-28px) scaleX(1); }
+  28% { transform: translateY(0) scaleX(1); }
   /* Flip to face LEFT */
-  22% { transform: translateY(-8px) scaleX(0); }
-  25% { transform: translateY(0) scaleX(-1); }
-  /* Pause facing left */
-  48% { transform: translateY(0) scaleX(-1); }
+  31% { transform: translateY(-8px) scaleX(0); }
+  35% { transform: translateY(0) scaleX(-1); }
+  /* Pause facing left - halved */
+  47% { transform: translateY(0) scaleX(-1); }
   /* Quick hop 1 LEFT */
   50% { transform: translateY(0) scaleX(-1); }
-  55% { transform: translateY(-20px) scaleX(-1); }
-  60% { transform: translateY(0) scaleX(-1); }
+  57% { transform: translateY(-20px) scaleX(-1); }
+  64% { transform: translateY(0) scaleX(-1); }
   /* Quick hop 2 LEFT */
-  65% { transform: translateY(-28px) scaleX(-1); }
-  70% { transform: translateY(0) scaleX(-1); }
+  71% { transform: translateY(-28px) scaleX(-1); }
+  78% { transform: translateY(0) scaleX(-1); }
   /* Flip back to RIGHT */
-  72% { transform: translateY(-8px) scaleX(0); }
-  75% { transform: translateY(0) scaleX(1); }
-  /* Pause facing right */
+  81% { transform: translateY(-8px) scaleX(0); }
+  85% { transform: translateY(0) scaleX(1); }
+  /* Pause facing right - halved */
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>
@@ -593,11 +602,14 @@ html: `
 <h2 style="font-size:1.7rem;margin-bottom:1rem;color:#2c63c7">A Special Gift</h2>
 <div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:1.5rem 0">
 <div>
-<img src="assets/characters/magefull.png" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<img src="assets/reactions/mage-happy.jpeg" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem">Mage</div>
 </div>
-<div style="font-size:2.5rem">🎁</div>
-<div style="animation:tapoSignature 4.8s ease-in-out infinite">
+<div style="font-size:2.5rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem">
+<span>🪰</span>
+<span>🎁</span>
+</div>
+<div style="animation:tapoSignature 3.6s ease-in-out infinite">
 <img src="assets/tapo-nobg.png" style="width:110px;height:auto">
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem">Tapo</div>
 </div>
@@ -644,7 +656,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage has two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
+showTutorialPop('tapo_first_attack', "Mage starts with two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
