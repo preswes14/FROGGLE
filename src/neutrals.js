@@ -161,14 +161,19 @@ v.innerHTML = `
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
 </div>`;
 
-// Auto-select Play button for controller users
+// Auto-select Play button - always show focus highlight on load
 setTimeout(() => {
-if (typeof GamepadController !== 'undefined' && GamepadController.active) {
-GamepadController.updateFocusableElements();
 const playBtn = document.querySelector('.title-play-btn');
-if (playBtn) GamepadController.setFocus(playBtn);
+if (playBtn) {
+  // Always add controller-focus class to show the green highlight
+  playBtn.classList.add('controller-focus');
+  // Also set up GamepadController if available
+  if (typeof GamepadController !== 'undefined') {
+    GamepadController.updateFocusableElements();
+    GamepadController.focusedElement = playBtn;
+  }
 }
-}, 100);
+}, 50);
 }
 
 // Show credits screen
@@ -3193,4 +3198,5 @@ savePermanent();
 // Show the actual death screen with upgrades
 showDeathScreen();
 }
+
 
