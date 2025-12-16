@@ -1486,17 +1486,17 @@ img[src*="tankfull"] {
 /* ===== STEAM DECK / CONTROLLER SUPPORT ===== */
 /* Controller focus indicator - glowing ring around focused element */
 .controller-focus {
-  outline: 4px solid #22c55e !important;
-  outline-offset: 4px;
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 0 40px rgba(34, 197, 94, 0.3) !important;
-  animation: controllerFocusPulse 1s ease-in-out infinite;
+  outline: 3px solid #22c55e !important;
+  outline-offset: 3px;
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.5), 0 0 24px rgba(34, 197, 94, 0.25) !important;
+  animation: controllerFocusPulse 2.5s ease-in-out infinite;
   position: relative;
   z-index: 25001; /* Above tooltips (25000) but below modals (29999) */
 }
 
 @keyframes controllerFocusPulse {
-  0%, 100% { outline-color: #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 0 40px rgba(34, 197, 94, 0.3); }
-  50% { outline-color: #16a34a; box-shadow: 0 0 30px rgba(34, 197, 94, 0.8), 0 0 50px rgba(34, 197, 94, 0.4); }
+  0%, 100% { outline-color: #22c55e; box-shadow: 0 0 12px rgba(34, 197, 94, 0.5), 0 0 24px rgba(34, 197, 94, 0.25); }
+  50% { outline-color: #4ade80; box-shadow: 0 0 18px rgba(34, 197, 94, 0.7), 0 0 36px rgba(34, 197, 94, 0.35); }
 }
 
 /* When controller is active, hide cursor and add focus-visible styles */
@@ -8403,14 +8403,19 @@ v.innerHTML = `
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
 </div>`;
 
-// Auto-select Play button for controller users
+// Auto-select Play button - always show focus highlight on load
 setTimeout(() => {
-if (typeof GamepadController !== 'undefined' && GamepadController.active) {
-GamepadController.updateFocusableElements();
 const playBtn = document.querySelector('.title-play-btn');
-if (playBtn) GamepadController.setFocus(playBtn);
+if (playBtn) {
+  // Always add controller-focus class to show the green highlight
+  playBtn.classList.add('controller-focus');
+  // Also set up GamepadController if available
+  if (typeof GamepadController !== 'undefined') {
+    GamepadController.updateFocusableElements();
+    GamepadController.focusedElement = playBtn;
+  }
 }
-}, 100);
+}, 50);
 }
 
 // Show credits screen
