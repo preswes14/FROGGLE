@@ -2143,11 +2143,14 @@ return;
 
 // RIBBLETON TUTORIAL: Show targeting prompts
 if(tutorialState && S.floor === 0 && S.pending) {
-// REMOVED: Targeting popup is now batched with Attack popup
 // Auto-advance stage when Attack is pending
 if(tutorialState.stage === 'warrior_attack' && S.pending === 'Attack' && S.targets.length === 0) {
 tutorialState.stage = 'targeting_wolf';
-// No popup - already explained in popup 1
+// Popup explaining heroes can target any enemy
+showTutorialPop('ribbleton_targeting', "Heroes can attack ANY enemy, not just the one across from them! The Wolf is about to hit your Healer hard - take it out first to protect her!", () => {
+render();
+});
+return;
 }
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {

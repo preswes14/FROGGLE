@@ -601,7 +601,7 @@ a: `Sigils are your heroes' special abilities! Each hero has sigils they can use
 • <strong>Attack</strong> - Deal damage to enemies<br>
 • <strong>Shield</strong> - Protect heroes from damage<br>
 • <strong>Heal</strong> - Restore HP to heroes<br>
-• <strong>D20</strong> - Roll the dice for risky gambit actions<br><br>
+• <strong>D20</strong> - Roll the dice for powerful gambit actions (not guaranteed to succeed)<br><br>
 You can see your sigils at the bottom of your hero card during combat. Hover / long-press any sigil icon to see what it does!`
 },
 {
