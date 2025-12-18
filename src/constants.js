@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.88';
+const GAME_VERSION = '11.89';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -643,7 +643,7 @@ const messages = {
 'waiting_for_start': "Wait for the tutorial to begin!",
 'warrior_attack': "Click the Warrior's Attack sigil, then target the Wolf!",
 'targeting_wolf': "Click the Wolf to target it with your Attack!",
-'healer_d20': "Click the Healer's D20 to see risky gambit actions!",
+'healer_d20': "Click the Healer's D20 for powerful gambit actions!",
 'd20_menu': "Select a D20 gambit option!",
 'enemy_turn_wait': "Wait for the enemy turn to complete!",
 'enemy_turn_explained': "Wait for the next round to begin!",
@@ -665,7 +665,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Nice hit! Before we heal, let's learn about gambits - click the Healer's D20 to see risky actions!", () => {
+showTutorialPop('ribbleton_healer_d20', "Nice hit! Before we heal, let's learn about gambits - powerful actions that aren't guaranteed to succeed. Click the Healer's D20!", () => {
 S.activeIdx = 1;
 render();
 });

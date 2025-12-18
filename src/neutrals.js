@@ -581,10 +581,10 @@ html: `
   /* Quick hop 2 */
   21% { transform: translateY(-28px) scaleX(1); }
   28% { transform: translateY(0) scaleX(1); }
-  /* Flip to face LEFT */
-  31% { transform: translateY(-8px) scaleX(0); }
-  35% { transform: translateY(0) scaleX(-1); }
-  /* Pause facing left - halved */
+  /* Flip to face LEFT - halved stationary gap */
+  29.5% { transform: translateY(-8px) scaleX(0); }
+  33.5% { transform: translateY(0) scaleX(-1); }
+  /* Pause facing left */
   47% { transform: translateY(0) scaleX(-1); }
   /* Quick hop 1 LEFT */
   50% { transform: translateY(0) scaleX(-1); }
@@ -593,10 +593,10 @@ html: `
   /* Quick hop 2 LEFT */
   71% { transform: translateY(-28px) scaleX(-1); }
   78% { transform: translateY(0) scaleX(-1); }
-  /* Flip back to RIGHT */
-  81% { transform: translateY(-8px) scaleX(0); }
-  85% { transform: translateY(0) scaleX(1); }
-  /* Pause facing right - halved */
+  /* Flip back to RIGHT - halved stationary gap */
+  79.5% { transform: translateY(-8px) scaleX(0); }
+  83.5% { transform: translateY(0) scaleX(1); }
+  /* Pause facing right */
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>
