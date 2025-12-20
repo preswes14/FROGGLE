@@ -1366,6 +1366,19 @@ checkTurnEnd();
 render();
 }
 
+// Handle ambush situation where all heroes are stunned - player confirms to proceed to enemy turn
+function confirmAmbushSkip() {
+// Mark all stunned heroes as having "acted" (they skip their turn)
+S.heroes.forEach((h, idx) => {
+if(h.st > 0 && !S.acted.includes(idx)) {
+S.acted.push(idx);
+}
+});
+toast('Heroes skip their turn!', 1000);
+checkTurnEnd();
+render();
+}
+
 function checkTurnEnd() {
 // First check if combat has ended (all enemies dead or all heroes in last stand)
 // This prevents continuing turn progression after victory/defeat
