@@ -2957,6 +2957,15 @@ S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+// When passive is first acquired (level becomes 1), add it to all heroes' sigil lists
+if(newLevel === 1) {
+S.heroes.forEach(hero => {
+if(!hero.s.includes(sig) && !(hero.ts && hero.ts.includes(sig))) {
+hero.s.push(sig);
+hero.s = sortSigils(hero.s);
+}
+});
+}
 toast(`${sig} ${newLevel === 1 ? 'added' : 'upgraded to L' + newLevel}! All heroes benefit!`);
 upd();
 saveGame();
