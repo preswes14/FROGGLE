@@ -1366,6 +1366,19 @@ checkTurnEnd();
 render();
 }
 
+// Handle ambush situation where all heroes are stunned - player confirms to proceed to enemy turn
+function confirmAmbushSkip() {
+// Mark all stunned heroes as having "acted" (they skip their turn)
+S.heroes.forEach((h, idx) => {
+if(h.st > 0 && !S.acted.includes(idx)) {
+S.acted.push(idx);
+}
+});
+toast('Heroes skip their turn!', 1000);
+checkTurnEnd();
+render();
+}
+
 function checkTurnEnd() {
 // First check if combat has ended (all enemies dead or all heroes in last stand)
 // This prevents continuing turn progression after victory/defeat
@@ -2957,6 +2970,15 @@ S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+// When passive is first acquired (level becomes 1), add it to all heroes' sigil lists
+if(newLevel === 1) {
+S.heroes.forEach(hero => {
+if(!hero.s.includes(sig) && !(hero.ts && hero.ts.includes(sig))) {
+hero.s.push(sig);
+hero.s = sortSigils(hero.s);
+}
+});
+}
 toast(`${sig} ${newLevel === 1 ? 'added' : 'upgraded to L' + newLevel}! All heroes benefit!`);
 upd();
 saveGame();

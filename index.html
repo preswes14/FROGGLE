@@ -1958,7 +1958,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.89';
+const GAME_VERSION = '11.91';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2429,8 +2429,15 @@ html += `<div class="combat-header-subtitle">${targetText}</div>`;
 }
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
+const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
+if(allStunned) {
+html += `<div class="combat-header-title" style="color:#f97316">⚠️ AMBUSH! ⚠️</div>`;
+html += `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
+html += `<button class="btn" onclick="confirmAmbushSkip()" style="margin-top:0.5rem;padding:0.5rem 1.5rem">Continue to Enemy Turn</button>`;
+} else {
 html += `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
 html += `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+}
 } else {
 const h = S.heroes[S.activeIdx];
 if(h) {
@@ -6597,6 +6604,19 @@ checkTurnEnd();
 render();
 }
 
+// Handle ambush situation where all heroes are stunned - player confirms to proceed to enemy turn
+function confirmAmbushSkip() {
+// Mark all stunned heroes as having "acted" (they skip their turn)
+S.heroes.forEach((h, idx) => {
+if(h.st > 0 && !S.acted.includes(idx)) {
+S.acted.push(idx);
+}
+});
+toast('Heroes skip their turn!', 1000);
+checkTurnEnd();
+render();
+}
+
 function checkTurnEnd() {
 // First check if combat has ended (all enemies dead or all heroes in last stand)
 // This prevents continuing turn progression after victory/defeat
@@ -8188,6 +8208,15 @@ S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+// When passive is first acquired (level becomes 1), add it to all heroes' sigil lists
+if(newLevel === 1) {
+S.heroes.forEach(hero => {
+if(!hero.s.includes(sig) && !(hero.ts && hero.ts.includes(sig))) {
+hero.s.push(sig);
+hero.s = sortSigils(hero.s);
+}
+});
+}
 toast(`${sig} ${newLevel === 1 ? 'added' : 'upgraded to L' + newLevel}! All heroes benefit!`);
 upd();
 saveGame();
