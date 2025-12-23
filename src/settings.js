@@ -71,6 +71,7 @@ ${heroNames.map(h => `<option value="${h.idx}">${h.name} (POW:${S.heroes[h.idx].
 </div>
 </div>
 <button class="btn" onclick="debugSetHeroStats()" style="background:#3b82f6;margin-bottom:0.5rem">Update Hero Stats</button>
+${S.heroes.some(h => h.ls) ? `<button class="btn" onclick="debugReviveFromLastStand()" style="background:#dc2626;margin-bottom:0.5rem">💀 Revive from Last Stand</button>` : ''}
 </div>
 ` : ''}
 
@@ -992,6 +993,26 @@ hero.h = newMaxHP;
 saveGame();
 upd();
 toast(`Updated ${hero.n}: POW=${newPOW}, HP=${newMaxHP}!`, 1200);
+closeDebugMenu();
+render();
+}
+
+function debugReviveFromLastStand() {
+// Find heroes in Last Stand and revive them
+const lastStandHeroes = S.heroes.filter(h => h.ls);
+if(lastStandHeroes.length === 0) {
+toast('No heroes in Last Stand!', 1200);
+closeDebugMenu();
+return;
+}
+lastStandHeroes.forEach(h => {
+h.ls = false;
+h.lst = 0;
+h.h = Math.max(1, Math.floor(h.m / 2)); // Restore to 50% HP
+});
+saveGame();
+upd();
+toast(`Revived ${lastStandHeroes.length} hero(es) from Last Stand!`, 1500);
 closeDebugMenu();
 render();
 }
