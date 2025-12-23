@@ -65,6 +65,57 @@ forcedFUEntry: false,            // True after first Standard win, forces FU run
 tapoUnlocked: false,             // Unlocked after first FU victory
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
+// ===== QUEST BOARD STATE (persistent) =====
+questsCompleted: {},             // Quest IDs that have been turned in: {quest_id: true}
+questsClaimed: {},               // Quest IDs that have been claimed (rewards collected): {quest_id: true}
+questProgress: {
+  // Combat stats
+  enemiesKilled: 0,
+  totalDamageDealt: 0,
+  maxDamageOneAction: 0,
+  maxTargetsOneAction: 0,
+  lastStandSurvived: false,
+
+  // Action usage (ever)
+  d20Used: false,
+  shieldApplied: false,
+  healUsed: false,
+  grappleUsed: false,
+  alphaUsed: false,
+  ghostBlocked: false,
+
+  // Per-hero tracking
+  heroesPlayed: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+  heroWins: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+
+  // Neutral encounters completed (by base name, any stage)
+  neutralsCompleted: {
+    shopkeeper: false, wishingwell: false, treasurechest: false,
+    wizard: false, oracle: false, encampment: false,
+    gambling: false, ghost: false, royal: false
+  },
+
+  // Enemy types defeated
+  enemyTypesDefeated: {
+    Goblin: false, Wolf: false, Orc: false, Giant: false,
+    'Cave Troll': false, Dragon: false, Flydra: false
+  },
+
+  // Milestone tracking
+  highestFloor: 0,
+  totalGoldEarned: 0,
+  totalRunsCompleted: 0,
+  standardWins: 0,
+  fuWins: 0,
+  maxRecruitsHeld: 0,
+  purchasedUpgrade: false,
+
+  // Repeatable quest tiers completed
+  slayerTier: 0,
+  goldDiggerTier: 0,
+  veteranTier: 0
+},
+
 // ===== UI STATE =====
 toastHistory: [],               // Array of recent toast messages
 toastLogLocked: false,          // Whether toast log is locked open (persistent)
@@ -133,6 +184,95 @@ combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
 };
 
 let sel = [];
+
+// ===== QUEST PROGRESS TRACKING =====
+// Helper function to track quest progress
+function trackQuestProgress(type, value) {
+  if(!S.questProgress) return; // Guard against undefined
+
+  switch(type) {
+    case 'enemyKill':
+      S.questProgress.enemiesKilled++;
+      // Track enemy type
+      if(value && S.questProgress.enemyTypesDefeated.hasOwnProperty(value)) {
+        S.questProgress.enemyTypesDefeated[value] = true;
+      }
+      break;
+    case 'd20':
+      S.questProgress.d20Used = true;
+      break;
+    case 'shield':
+      S.questProgress.shieldApplied = true;
+      break;
+    case 'heal':
+      S.questProgress.healUsed = true;
+      break;
+    case 'grapple':
+      S.questProgress.grappleUsed = true;
+      break;
+    case 'alpha':
+      S.questProgress.alphaUsed = true;
+      break;
+    case 'ghostBlock':
+      S.questProgress.ghostBlocked = true;
+      break;
+    case 'lastStandSurvive':
+      S.questProgress.lastStandSurvived = true;
+      break;
+    case 'damage':
+      S.questProgress.totalDamageDealt += value;
+      if(value > S.questProgress.maxDamageOneAction) {
+        S.questProgress.maxDamageOneAction = value;
+      }
+      break;
+    case 'targets':
+      if(value > S.questProgress.maxTargetsOneAction) {
+        S.questProgress.maxTargetsOneAction = value;
+      }
+      break;
+    case 'floor':
+      if(value > S.questProgress.highestFloor) {
+        S.questProgress.highestFloor = value;
+      }
+      break;
+    case 'gold':
+      S.questProgress.totalGoldEarned += value;
+      break;
+    case 'upgrade':
+      S.questProgress.purchasedUpgrade = true;
+      break;
+    case 'recruits':
+      if(value > S.questProgress.maxRecruitsHeld) {
+        S.questProgress.maxRecruitsHeld = value;
+      }
+      break;
+    case 'runComplete':
+      S.questProgress.totalRunsCompleted++;
+      break;
+    case 'standardWin':
+      S.questProgress.standardWins++;
+      break;
+    case 'fuWin':
+      S.questProgress.fuWins++;
+      break;
+    case 'heroPlayed':
+      if(value && S.questProgress.heroesPlayed.hasOwnProperty(value)) {
+        S.questProgress.heroesPlayed[value]++;
+      }
+      break;
+    case 'heroWin':
+      if(value && S.questProgress.heroWins.hasOwnProperty(value)) {
+        S.questProgress.heroWins[value]++;
+      }
+      break;
+    case 'neutral':
+      if(value && S.questProgress.neutralsCompleted.hasOwnProperty(value)) {
+        S.questProgress.neutralsCompleted[value] = true;
+      }
+      break;
+  }
+  savePermanent();
+}
 
 // ===== RIBBLETON TUTORIAL STATE =====
 let tutorialState = null;
@@ -666,7 +806,10 @@ tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
-pondHistory: S.pondHistory
+pondHistory: S.pondHistory,
+questsCompleted: S.questsCompleted,
+questsClaimed: S.questsClaimed,
+questProgress: S.questProgress
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -717,6 +860,18 @@ S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
 S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
 S.pondHistory = j.pondHistory || [];
+// Load quest data with defaults
+S.questsCompleted = j.questsCompleted || {};
+S.questsClaimed = j.questsClaimed || {};
+if(j.questProgress) {
+  // Merge loaded progress with defaults to handle new fields
+  Object.assign(S.questProgress, j.questProgress);
+  // Ensure nested objects exist
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+}
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -924,6 +1079,16 @@ S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+// Load quest data with defaults
+S.questsCompleted = j.questsCompleted || {};
+S.questsClaimed = j.questsClaimed || {};
+if(j.questProgress) {
+  Object.assign(S.questProgress, j.questProgress);
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+}
 }
 // Try to load active run
 const runData = localStorage.getItem(`froggle8_slot${slot}`);
@@ -1010,7 +1175,10 @@ tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
-pondHistory: S.pondHistory
+pondHistory: S.pondHistory,
+questsCompleted: S.questsCompleted,
+questsClaimed: S.questsClaimed,
+questProgress: S.questProgress
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);

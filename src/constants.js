@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.95';
+const GAME_VERSION = '11.97';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -551,6 +551,8 @@ if(target.g > 0) {
 target.g--;
 target.h += dmg;
 hpLost = 0; // Ghost prevented the HP loss
+// QUEST TRACKING: Ghost blocked damage
+if(options.isHero && typeof trackQuestProgress === 'function') trackQuestProgress('ghostBlock');
 if(!options.silent) {
 toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 }
@@ -591,6 +593,8 @@ if(!options.skipRewards && S.floor !== 0) {
 if(!target.isFlydra) {
 S.gold += target.goldDrop || 0;
 S.combatGold += target.goldDrop || 0;
+// QUEST TRACKING: Gold earned
+if(target.goldDrop > 0 && typeof trackQuestProgress === 'function') trackQuestProgress('gold', target.goldDrop);
 // JUICE: Coin sound for gold drops
 if(target.goldDrop > 0) SoundFX.play('coinDrop');
 }

@@ -312,7 +312,8 @@ S.runNumber = (S.runsAttempted || 1);
 if(S.runNumber === 1 && !S.helpTipsDisabled) {
 showTutorialStory();
 } else {
-title();
+// Go to Ribbleton hub first, player clicks red portal to start run
+showRibbleton();
 }
 }
 
@@ -338,8 +339,9 @@ if(S.runNumber === 1 && !S.helpTipsDisabled) {
 debugLog('[FROGGLE] Showing tutorial story');
 showTutorialStory();
 } else {
-debugLog('[FROGGLE] Skipping tutorial, going to title()');
-title();
+debugLog('[FROGGLE] Skipping tutorial, going to Ribbleton');
+// Go to Ribbleton hub first, player clicks red portal to start run
+showRibbleton();
 }
 }
 
@@ -1392,6 +1394,11 @@ S.chosenHeroIdx = chosen.idx;
 
 initNeutralDeck();
 upd();
+
+// QUEST TRACKING: Track heroes played this run
+S.heroes.forEach(hero => {
+  trackQuestProgress('heroPlayed', hero.n);
+});
 
 // Show chosen hero tutorial on first occurrence (run 2)
 if(S.chosenHeroIdx >= 0 && !S.tutorialFlags.chosen_hero_intro) {
