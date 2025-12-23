@@ -1001,6 +1001,8 @@ console.error('[TUTORIAL] ERROR: Still have backdrops!', remaining);
 remaining.forEach(r => r.remove());
 }
 
+// Wait for DOM to fully update before showing popup
+requestAnimationFrame(() => {
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
 showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior hits harder than Mage! Click the Warrior's Attack sigil.", () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
@@ -1008,6 +1010,7 @@ tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
 debugLog('[TUTORIAL] S.activeIdx is now:', S.activeIdx);
 render();
+});
 });
 } catch (error) {
 console.error('[TUTORIAL] Error in story overlay cleanup:', error);
@@ -1037,6 +1040,14 @@ function startRibbletonTutorial() {
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
+// Reset Phase 2 tutorial flags to ensure popups show for fresh tutorial
+S.tutorialFlags.ribbleton_warrior_attack = false;
+S.tutorialFlags.ribbleton_targeting = false;
+S.tutorialFlags.ribbleton_healer_d20 = false;
+S.tutorialFlags.ribbleton_d20_menu = false;
+S.tutorialFlags.ribbleton_enemy_turn = false;
+S.tutorialFlags.ribbleton_healer_heal = false;
+S.tutorialFlags.enemies_get_sigils = false;
 S.heroes = [
 {id:'h_tutorial_warrior', n:'Warrior', p:2, h:5, m:5, s:['Attack','D20'], sh:0, g:0, ls:false, lst:0, ts:[], st:0},
 {id:'h_tutorial_healer', n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
