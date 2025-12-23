@@ -43,6 +43,8 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 function startFloor(f) {
 console.log(`[FLOOR] startFloor(${f}) called, type=${typeof f}, isOdd=${f % 2 === 1}`);
 S.floor=f;
+// QUEST TRACKING: Floor reached
+trackQuestProgress('floor', f);
 upd();
 // Special: Floor 20 in Frogged Up mode shows Old Tapo encounter
 if(f === 20 && S.gameMode === 'fu') {
@@ -650,6 +652,8 @@ best = fudgedRoll;
 ({rolls, best} = rollDice(d20Level, 20));
 }
 const rollText = formatD20Compact(rolls, best);
+// QUEST TRACKING: D20 used
+trackQuestProgress('d20');
 
 if(best >= dc) {
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span>`, 1800);
@@ -740,6 +744,8 @@ if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
 toast(`${recruitName} recruited by ${hero.n}!`, 1500);
+// QUEST TRACKING: Recruits held
+trackQuestProgress('recruits', S.recruits.length);
 } else {
 toast(`Squad full! Cannot recruit ${recruitName}.`, 1500);
 }
@@ -1007,6 +1013,8 @@ S.acted.push(alphaUserIdx);
 S.pending = null;
 S.targets = [];
 toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
+// QUEST TRACKING: Alpha used
+trackQuestProgress('alpha');
 // Set up multi-action state for granted heroes
 S.alphaGrantedActions = [];
 targetIds.forEach(id => {
@@ -1182,6 +1190,9 @@ shieldedIds.push(target.id);
 shieldedIds.forEach(id => triggerShieldAnimation(id, shieldAmt));
 if(targetNames.length > 0) {
 toast(`${targetNames.join(' and ')} gained ${shieldAmt} shield!`);
+// QUEST TRACKING: Shield applied
+trackQuestProgress('shield');
+trackQuestProgress('targets', targetNames.length);
 }
 } else if(action === 'Heal') {
 const healed = [];
@@ -1211,6 +1222,9 @@ setHeroReaction(h.id, 'happy', 1000);
 healedIds.forEach(id => setHeroReaction(id, 'happy', 1200));
 if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
 if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} HP!`);
+// QUEST TRACKING: Heal used
+trackQuestProgress('heal');
+trackQuestProgress('targets', healedIds.length);
 }
 }
 
@@ -1234,7 +1248,12 @@ S.royalQuestCompleted = true;
 toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 });
-if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
+if(targetNames.length > 0) {
+toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
+// QUEST TRACKING: Grapple used
+trackQuestProgress('grapple');
+trackQuestProgress('targets', targetNames.length);
+}
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
@@ -1306,6 +1325,9 @@ if(tutorialState && S.floor === 0) {
 if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
 }
+
+// QUEST TRACKING: Enemy killed
+trackQuestProgress('enemyKill', enemy.n);
 
 // Remove enemy after knockout animation
 setTimeout(() => {
@@ -1454,6 +1476,8 @@ SoundFX.play('coinDrop');
 upd();
 dyingFlydras.forEach(flydra => {
 flydra.flydraState = 'dead';
+// QUEST TRACKING: Flydra head killed
+trackQuestProgress('enemyKill', 'Flydra');
 });
 // Remove all dead Flydras
 S.enemies = S.enemies.filter(e => !e.isFlydra || e.flydraState !== 'dead');
@@ -2470,6 +2494,12 @@ v.innerHTML = `
 
 function nextFloor() {
 console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
+// QUEST TRACKING: Neutral encounter completed (even floors are neutrals)
+if(S.floor % 2 === 0 && S.lastNeutral) {
+  // Extract base neutral type from encounter name (e.g., 'shopkeeper1' -> 'shopkeeper')
+  const neutralBase = S.lastNeutral.replace(/[12]$/, '');
+  trackQuestProgress('neutral', neutralBase);
+}
 // Tapo's Chosen bonus: +1G per floor cleared
 if(S.chosenHeroIdx >= 0 && S.heroes[S.chosenHeroIdx]) {
 S.gold += 1;

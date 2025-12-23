@@ -1689,7 +1689,7 @@ body.controller-active .toast {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center bottom; /* Keep Tapo visible, crop dungeon top */
 }
 
 .title-version {
@@ -1958,7 +1958,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.95';
+const GAME_VERSION = '11.97';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2510,6 +2510,8 @@ if(target.g > 0) {
 target.g--;
 target.h += dmg;
 hpLost = 0; // Ghost prevented the HP loss
+// QUEST TRACKING: Ghost blocked damage
+if(options.isHero && typeof trackQuestProgress === 'function') trackQuestProgress('ghostBlock');
 if(!options.silent) {
 toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
 }
@@ -2550,6 +2552,8 @@ if(!options.skipRewards && S.floor !== 0) {
 if(!target.isFlydra) {
 S.gold += target.goldDrop || 0;
 S.combatGold += target.goldDrop || 0;
+// QUEST TRACKING: Gold earned
+if(target.goldDrop > 0 && typeof trackQuestProgress === 'function') trackQuestProgress('gold', target.goldDrop);
 // JUICE: Coin sound for gold drops
 if(target.goldDrop > 0) SoundFX.play('coinDrop');
 }
@@ -4101,6 +4105,57 @@ forcedFUEntry: false,            // True after first Standard win, forces FU run
 tapoUnlocked: false,             // Unlocked after first FU victory
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
+// ===== QUEST BOARD STATE (persistent) =====
+questsCompleted: {},             // Quest IDs that have been turned in: {quest_id: true}
+questsClaimed: {},               // Quest IDs that have been claimed (rewards collected): {quest_id: true}
+questProgress: {
+  // Combat stats
+  enemiesKilled: 0,
+  totalDamageDealt: 0,
+  maxDamageOneAction: 0,
+  maxTargetsOneAction: 0,
+  lastStandSurvived: false,
+
+  // Action usage (ever)
+  d20Used: false,
+  shieldApplied: false,
+  healUsed: false,
+  grappleUsed: false,
+  alphaUsed: false,
+  ghostBlocked: false,
+
+  // Per-hero tracking
+  heroesPlayed: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+  heroWins: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+
+  // Neutral encounters completed (by base name, any stage)
+  neutralsCompleted: {
+    shopkeeper: false, wishingwell: false, treasurechest: false,
+    wizard: false, oracle: false, encampment: false,
+    gambling: false, ghost: false, royal: false
+  },
+
+  // Enemy types defeated
+  enemyTypesDefeated: {
+    Goblin: false, Wolf: false, Orc: false, Giant: false,
+    'Cave Troll': false, Dragon: false, Flydra: false
+  },
+
+  // Milestone tracking
+  highestFloor: 0,
+  totalGoldEarned: 0,
+  totalRunsCompleted: 0,
+  standardWins: 0,
+  fuWins: 0,
+  maxRecruitsHeld: 0,
+  purchasedUpgrade: false,
+
+  // Repeatable quest tiers completed
+  slayerTier: 0,
+  goldDiggerTier: 0,
+  veteranTier: 0
+},
+
 // ===== UI STATE =====
 toastHistory: [],               // Array of recent toast messages
 toastLogLocked: false,          // Whether toast log is locked open (persistent)
@@ -4169,6 +4224,95 @@ combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
 };
 
 let sel = [];
+
+// ===== QUEST PROGRESS TRACKING =====
+// Helper function to track quest progress
+function trackQuestProgress(type, value) {
+  if(!S.questProgress) return; // Guard against undefined
+
+  switch(type) {
+    case 'enemyKill':
+      S.questProgress.enemiesKilled++;
+      // Track enemy type
+      if(value && S.questProgress.enemyTypesDefeated.hasOwnProperty(value)) {
+        S.questProgress.enemyTypesDefeated[value] = true;
+      }
+      break;
+    case 'd20':
+      S.questProgress.d20Used = true;
+      break;
+    case 'shield':
+      S.questProgress.shieldApplied = true;
+      break;
+    case 'heal':
+      S.questProgress.healUsed = true;
+      break;
+    case 'grapple':
+      S.questProgress.grappleUsed = true;
+      break;
+    case 'alpha':
+      S.questProgress.alphaUsed = true;
+      break;
+    case 'ghostBlock':
+      S.questProgress.ghostBlocked = true;
+      break;
+    case 'lastStandSurvive':
+      S.questProgress.lastStandSurvived = true;
+      break;
+    case 'damage':
+      S.questProgress.totalDamageDealt += value;
+      if(value > S.questProgress.maxDamageOneAction) {
+        S.questProgress.maxDamageOneAction = value;
+      }
+      break;
+    case 'targets':
+      if(value > S.questProgress.maxTargetsOneAction) {
+        S.questProgress.maxTargetsOneAction = value;
+      }
+      break;
+    case 'floor':
+      if(value > S.questProgress.highestFloor) {
+        S.questProgress.highestFloor = value;
+      }
+      break;
+    case 'gold':
+      S.questProgress.totalGoldEarned += value;
+      break;
+    case 'upgrade':
+      S.questProgress.purchasedUpgrade = true;
+      break;
+    case 'recruits':
+      if(value > S.questProgress.maxRecruitsHeld) {
+        S.questProgress.maxRecruitsHeld = value;
+      }
+      break;
+    case 'runComplete':
+      S.questProgress.totalRunsCompleted++;
+      break;
+    case 'standardWin':
+      S.questProgress.standardWins++;
+      break;
+    case 'fuWin':
+      S.questProgress.fuWins++;
+      break;
+    case 'heroPlayed':
+      if(value && S.questProgress.heroesPlayed.hasOwnProperty(value)) {
+        S.questProgress.heroesPlayed[value]++;
+      }
+      break;
+    case 'heroWin':
+      if(value && S.questProgress.heroWins.hasOwnProperty(value)) {
+        S.questProgress.heroWins[value]++;
+      }
+      break;
+    case 'neutral':
+      if(value && S.questProgress.neutralsCompleted.hasOwnProperty(value)) {
+        S.questProgress.neutralsCompleted[value] = true;
+      }
+      break;
+  }
+  savePermanent();
+}
 
 // ===== RIBBLETON TUTORIAL STATE =====
 let tutorialState = null;
@@ -4702,7 +4846,10 @@ tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
-pondHistory: S.pondHistory
+pondHistory: S.pondHistory,
+questsCompleted: S.questsCompleted,
+questsClaimed: S.questsClaimed,
+questProgress: S.questProgress
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -4753,6 +4900,18 @@ S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
 S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
 S.pondHistory = j.pondHistory || [];
+// Load quest data with defaults
+S.questsCompleted = j.questsCompleted || {};
+S.questsClaimed = j.questsClaimed || {};
+if(j.questProgress) {
+  // Merge loaded progress with defaults to handle new fields
+  Object.assign(S.questProgress, j.questProgress);
+  // Ensure nested objects exist
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+}
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
@@ -4960,6 +5119,16 @@ S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+// Load quest data with defaults
+S.questsCompleted = j.questsCompleted || {};
+S.questsClaimed = j.questsClaimed || {};
+if(j.questProgress) {
+  Object.assign(S.questProgress, j.questProgress);
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+}
 }
 // Try to load active run
 const runData = localStorage.getItem(`froggle8_slot${slot}`);
@@ -5046,7 +5215,10 @@ tooltipsDisabled: S.tooltipsDisabled,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
-pondHistory: S.pondHistory
+pondHistory: S.pondHistory,
+questsCompleted: S.questsCompleted,
+questsClaimed: S.questsClaimed,
+questProgress: S.questProgress
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -5286,6 +5458,8 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 function startFloor(f) {
 console.log(`[FLOOR] startFloor(${f}) called, type=${typeof f}, isOdd=${f % 2 === 1}`);
 S.floor=f;
+// QUEST TRACKING: Floor reached
+trackQuestProgress('floor', f);
 upd();
 // Special: Floor 20 in Frogged Up mode shows Old Tapo encounter
 if(f === 20 && S.gameMode === 'fu') {
@@ -5893,6 +6067,8 @@ best = fudgedRoll;
 ({rolls, best} = rollDice(d20Level, 20));
 }
 const rollText = formatD20Compact(rolls, best);
+// QUEST TRACKING: D20 used
+trackQuestProgress('d20');
 
 if(best >= dc) {
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span>`, 1800);
@@ -5983,6 +6159,8 @@ if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
 S.recruits.push(recruit);
 toast(`${recruitName} recruited by ${hero.n}!`, 1500);
+// QUEST TRACKING: Recruits held
+trackQuestProgress('recruits', S.recruits.length);
 } else {
 toast(`Squad full! Cannot recruit ${recruitName}.`, 1500);
 }
@@ -6250,6 +6428,8 @@ S.acted.push(alphaUserIdx);
 S.pending = null;
 S.targets = [];
 toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
+// QUEST TRACKING: Alpha used
+trackQuestProgress('alpha');
 // Set up multi-action state for granted heroes
 S.alphaGrantedActions = [];
 targetIds.forEach(id => {
@@ -6425,6 +6605,9 @@ shieldedIds.push(target.id);
 shieldedIds.forEach(id => triggerShieldAnimation(id, shieldAmt));
 if(targetNames.length > 0) {
 toast(`${targetNames.join(' and ')} gained ${shieldAmt} shield!`);
+// QUEST TRACKING: Shield applied
+trackQuestProgress('shield');
+trackQuestProgress('targets', targetNames.length);
 }
 } else if(action === 'Heal') {
 const healed = [];
@@ -6454,6 +6637,9 @@ setHeroReaction(h.id, 'happy', 1000);
 healedIds.forEach(id => setHeroReaction(id, 'happy', 1200));
 if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
 if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} HP!`);
+// QUEST TRACKING: Heal used
+trackQuestProgress('heal');
+trackQuestProgress('targets', healedIds.length);
 }
 }
 
@@ -6477,7 +6663,12 @@ S.royalQuestCompleted = true;
 toast(`Royal Quest completed! Ring retrieved!`, 1800);
 }
 });
-if(targetNames.length > 0) toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
+if(targetNames.length > 0) {
+toast(`${h.n} grappled ${targetNames.join(', ')} - stunned ${stunDuration} turn${stunDuration>1?'s':''}!`);
+// QUEST TRACKING: Grapple used
+trackQuestProgress('grapple');
+trackQuestProgress('targets', targetNames.length);
+}
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
@@ -6549,6 +6740,9 @@ if(tutorialState && S.floor === 0) {
 if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
 }
+
+// QUEST TRACKING: Enemy killed
+trackQuestProgress('enemyKill', enemy.n);
 
 // Remove enemy after knockout animation
 setTimeout(() => {
@@ -6697,6 +6891,8 @@ SoundFX.play('coinDrop');
 upd();
 dyingFlydras.forEach(flydra => {
 flydra.flydraState = 'dead';
+// QUEST TRACKING: Flydra head killed
+trackQuestProgress('enemyKill', 'Flydra');
 });
 // Remove all dead Flydras
 S.enemies = S.enemies.filter(e => !e.isFlydra || e.flydraState !== 'dead');
@@ -7713,6 +7909,12 @@ v.innerHTML = `
 
 function nextFloor() {
 console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
+// QUEST TRACKING: Neutral encounter completed (even floors are neutrals)
+if(S.floor % 2 === 0 && S.lastNeutral) {
+  // Extract base neutral type from encounter name (e.g., 'shopkeeper1' -> 'shopkeeper')
+  const neutralBase = S.lastNeutral.replace(/[12]$/, '');
+  trackQuestProgress('neutral', neutralBase);
+}
 // Tapo's Chosen bonus: +1G per floor cleared
 if(S.chosenHeroIdx >= 0 && S.heroes[S.chosenHeroIdx]) {
 S.gold += 1;
@@ -8591,7 +8793,8 @@ S.runNumber = (S.runsAttempted || 1);
 if(S.runNumber === 1 && !S.helpTipsDisabled) {
 showTutorialStory();
 } else {
-title();
+// Go to Ribbleton hub first, player clicks red portal to start run
+showRibbleton();
 }
 }
 
@@ -8617,8 +8820,9 @@ if(S.runNumber === 1 && !S.helpTipsDisabled) {
 debugLog('[FROGGLE] Showing tutorial story');
 showTutorialStory();
 } else {
-debugLog('[FROGGLE] Skipping tutorial, going to title()');
-title();
+debugLog('[FROGGLE] Skipping tutorial, going to Ribbleton');
+// Go to Ribbleton hub first, player clicks red portal to start run
+showRibbleton();
 }
 }
 
@@ -9671,6 +9875,11 @@ S.chosenHeroIdx = chosen.idx;
 
 initNeutralDeck();
 upd();
+
+// QUEST TRACKING: Track heroes played this run
+S.heroes.forEach(hero => {
+  trackQuestProgress('heroPlayed', hero.n);
+});
 
 // Show chosen hero tutorial on first occurrence (run 2)
 if(S.chosenHeroIdx >= 0 && !S.tutorialFlags.chosen_hero_intro) {
@@ -11761,6 +11970,9 @@ function showDeathScreen() {
 savePermanent(); // Save gold, goingRate, sig upgrades
 // Recruits persist until killed - don't clear here
 
+// QUEST TRACKING: Run completed (death)
+trackQuestProgress('runComplete');
+
 // Check if this is the first time meeting Death
 if(!S.tutorialFlags.death_intro) {
 showDeathIntroDialogue();
@@ -11962,6 +12174,8 @@ S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
 S.goingRate += 5;
+// QUEST TRACKING: Upgrade purchased
+trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
 SoundFX.play('powerUp');
 toast(`${sig} upgraded to L${S.sig[sig]}!`, 1200);
@@ -12322,6 +12536,17 @@ SoundFX.play('treasure');
 
 // Record victory to The Pond!
 recordPondHistory('victory');
+
+// QUEST TRACKING: Run completed, victory, hero wins
+trackQuestProgress('runComplete');
+if(S.gameMode === 'fu') {
+  trackQuestProgress('fuWin');
+} else {
+  trackQuestProgress('standardWin');
+}
+S.heroes.forEach(hero => {
+  trackQuestProgress('heroWin', hero.n);
+});
 
 // Reset run state on victory
 S.gold = 0; // Gold is lost on victory
@@ -12750,6 +12975,683 @@ html += `<div style="text-align:center;margin-top:2rem">
 v.innerHTML = html;
 }
 
+// ===== QUEST BOARD SYSTEM =====
+// Quest definitions - all quests are passive (no acceptance required)
+const QUESTS = {
+  // === LEARNING QUESTS (Always visible) ===
+  first_blood: {
+    name: 'First Blood',
+    desc: 'Defeat your first enemy',
+    reward: 5,
+    category: 'learning',
+    check: () => S.questProgress.enemiesKilled >= 1
+  },
+  tactical_roller: {
+    name: 'Tactical Roller',
+    desc: 'Use the D20 sigil',
+    reward: 5,
+    category: 'learning',
+    check: () => S.questProgress.d20Used
+  },
+  shield_bearer: {
+    name: 'Shield Bearer',
+    desc: 'Apply a shield to any hero',
+    reward: 5,
+    category: 'learning',
+    check: () => S.questProgress.shieldApplied
+  },
+  healers_touch: {
+    name: "Healer's Touch",
+    desc: 'Heal any hero',
+    reward: 5,
+    category: 'learning',
+    check: () => S.questProgress.healUsed
+  },
+  survivor: {
+    name: 'Survivor',
+    desc: 'Reach Floor 3',
+    reward: 10,
+    category: 'learning',
+    check: () => S.questProgress.highestFloor >= 3
+  },
+  battle_hardened: {
+    name: 'Battle Hardened',
+    desc: 'Reach Floor 5',
+    reward: 15,
+    category: 'learning',
+    check: () => S.questProgress.highestFloor >= 5
+  },
+
+  // === HERO EXPLORATION (Unlock after 1 run) ===
+  warrior_path: {
+    name: "Warrior's Path",
+    desc: 'Play a run with Warrior',
+    reward: 10,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
+    check: () => S.questProgress.heroesPlayed.Warrior >= 1
+  },
+  tank_path: {
+    name: "Tank's Path",
+    desc: 'Play a run with Tank',
+    reward: 10,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
+    check: () => S.questProgress.heroesPlayed.Tank >= 1
+  },
+  mage_path: {
+    name: "Mage's Path",
+    desc: 'Play a run with Mage',
+    reward: 10,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
+    check: () => S.questProgress.heroesPlayed.Mage >= 1
+  },
+  healer_path: {
+    name: "Healer's Path",
+    desc: 'Play a run with Healer',
+    reward: 10,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
+    check: () => S.questProgress.heroesPlayed.Healer >= 1
+  },
+  diverse_squad: {
+    name: 'Diverse Squad',
+    desc: 'Play with all 4 base heroes',
+    reward: 25,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
+    check: () => S.questProgress.heroesPlayed.Warrior >= 1 && S.questProgress.heroesPlayed.Tank >= 1 && S.questProgress.heroesPlayed.Mage >= 1 && S.questProgress.heroesPlayed.Healer >= 1
+  },
+  champion_warrior: {
+    name: 'Champion: Warrior',
+    desc: 'Win a run with Warrior',
+    reward: 25,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1,
+    check: () => S.questProgress.heroWins.Warrior >= 1
+  },
+  champion_tank: {
+    name: 'Champion: Tank',
+    desc: 'Win a run with Tank',
+    reward: 25,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1,
+    check: () => S.questProgress.heroWins.Tank >= 1
+  },
+  champion_mage: {
+    name: 'Champion: Mage',
+    desc: 'Win a run with Mage',
+    reward: 25,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1,
+    check: () => S.questProgress.heroWins.Mage >= 1
+  },
+  champion_healer: {
+    name: 'Champion: Healer',
+    desc: 'Win a run with Healer',
+    reward: 25,
+    category: 'heroes',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1,
+    check: () => S.questProgress.heroWins.Healer >= 1
+  },
+  army_of_frogs: {
+    name: 'Army of Frogs',
+    desc: 'Win with all 4 base heroes',
+    reward: 50,
+    category: 'heroes',
+    unlock: () => S.questProgress.standardWins >= 1,
+    check: () => S.questProgress.heroWins.Warrior >= 1 && S.questProgress.heroWins.Tank >= 1 && S.questProgress.heroWins.Mage >= 1 && S.questProgress.heroWins.Healer >= 1
+  },
+
+  // === NEUTRAL EXPLORATION (Unlock after Floor 2) ===
+  neutral_shop: {
+    name: 'The Shop',
+    desc: 'Complete Shopkeeper encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.shopkeeper
+  },
+  neutral_well: {
+    name: 'Make a Wish',
+    desc: 'Complete Wishing Well encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.wishingwell
+  },
+  neutral_chest: {
+    name: 'Treasure Hunter',
+    desc: 'Complete Treasure Chest encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.treasurechest
+  },
+  neutral_wizard: {
+    name: "Wizard's Test",
+    desc: 'Complete Wizard encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.wizard
+  },
+  neutral_oracle: {
+    name: "Oracle's Wisdom",
+    desc: 'Complete Oracle encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.oracle
+  },
+  neutral_camp: {
+    name: 'Camp Visitor',
+    desc: 'Complete Encampment encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.encampment
+  },
+  neutral_gambling: {
+    name: 'High Roller',
+    desc: 'Complete Gambling Den encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.gambling
+  },
+  neutral_ghost: {
+    name: 'Ghost Whisperer',
+    desc: 'Complete Ghost Boys encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.ghost
+  },
+  neutral_royal: {
+    name: 'Royal Audience',
+    desc: 'Complete Royal Court encounter',
+    reward: 10,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 2,
+    check: () => S.questProgress.neutralsCompleted.royal
+  },
+  neutral_explorer: {
+    name: 'Neutral Explorer',
+    desc: 'Complete all Stage 1 neutrals',
+    reward: 40,
+    category: 'neutrals',
+    unlock: () => S.questProgress.highestFloor >= 4,
+    check: () => Object.values(S.questProgress.neutralsCompleted).every(v => v)
+  },
+
+  // === PROGRESSION MILESTONES ===
+  dragon_slayer: {
+    name: 'Dragon Slayer',
+    desc: 'Defeat a Dragon',
+    reward: 20,
+    category: 'milestones',
+    unlock: () => S.questProgress.highestFloor >= 10,
+    check: () => S.questProgress.enemyTypesDefeated.Dragon
+  },
+  flydra_hunter: {
+    name: 'Flydra Hunter',
+    desc: 'Defeat a Flydra head',
+    reward: 25,
+    category: 'milestones',
+    unlock: () => S.questProgress.highestFloor >= 15,
+    check: () => S.questProgress.enemyTypesDefeated.Flydra
+  },
+  first_victory: {
+    name: 'First Victory',
+    desc: 'Complete Floor 20 (Standard)',
+    reward: 100,
+    category: 'milestones',
+    check: () => S.questProgress.standardWins >= 1
+  },
+  eternal_power: {
+    name: 'Eternal Power',
+    desc: 'Purchase a permanent upgrade',
+    reward: 15,
+    category: 'milestones',
+    unlock: () => S.runsAttempted >= 2,
+    check: () => S.questProgress.purchasedUpgrade
+  },
+  spreading_wealth: {
+    name: 'Spreading the Wealth',
+    desc: 'Upgrade all sigils to L1',
+    reward: 50,
+    category: 'milestones',
+    unlock: () => S.questProgress.purchasedUpgrade,
+    check: () => Object.values(S.sig).every(v => v >= 1)
+  },
+
+  // === COMBAT MASTERY (Unlock after Floor 10) ===
+  combo_striker: {
+    name: 'Combo Striker',
+    desc: 'Deal 10+ damage in one action',
+    reward: 15,
+    category: 'combat',
+    unlock: () => S.questProgress.highestFloor >= 10,
+    check: () => S.questProgress.maxDamageOneAction >= 10
+  },
+  multi_target: {
+    name: 'Multi-Target',
+    desc: 'Hit 3+ targets with one action',
+    reward: 15,
+    category: 'combat',
+    unlock: () => S.questProgress.highestFloor >= 10,
+    check: () => S.questProgress.maxTargetsOneAction >= 3
+  },
+  ghost_walk: {
+    name: 'Ghost Walk',
+    desc: 'Block damage with Ghost charges',
+    reward: 15,
+    category: 'combat',
+    unlock: () => S.questProgress.highestFloor >= 10,
+    check: () => S.questProgress.ghostBlocked
+  },
+  grappler: {
+    name: 'Grappler',
+    desc: 'Stun an enemy with Grapple',
+    reward: 15,
+    category: 'combat',
+    unlock: () => S.questProgress.highestFloor >= 10,
+    check: () => S.questProgress.grappleUsed
+  },
+  alpha_strike: {
+    name: 'Alpha Strike',
+    desc: 'Grant bonus actions with Alpha',
+    reward: 15,
+    category: 'combat',
+    unlock: () => S.questProgress.highestFloor >= 10,
+    check: () => S.questProgress.alphaUsed
+  },
+  last_stand_hero: {
+    name: 'Last Stand Hero',
+    desc: 'Survive a round in Last Stand',
+    reward: 20,
+    category: 'combat',
+    unlock: () => S.questProgress.highestFloor >= 10,
+    check: () => S.questProgress.lastStandSurvived
+  },
+
+  // === REPEATABLE/SCALING QUESTS ===
+  slayer_1: {
+    name: 'Slayer I',
+    desc: 'Defeat 25 enemies',
+    reward: 25,
+    category: 'repeatable',
+    unlock: () => S.questProgress.highestFloor >= 5,
+    check: () => S.questProgress.enemiesKilled >= 25 && S.questProgress.slayerTier === 0
+  },
+  slayer_2: {
+    name: 'Slayer II',
+    desc: 'Defeat 100 enemies',
+    reward: 50,
+    category: 'repeatable',
+    unlock: () => S.questProgress.slayerTier >= 1,
+    check: () => S.questProgress.enemiesKilled >= 100 && S.questProgress.slayerTier === 1
+  },
+  slayer_3: {
+    name: 'Slayer III',
+    desc: 'Defeat 250 enemies',
+    reward: 75,
+    category: 'repeatable',
+    unlock: () => S.questProgress.slayerTier >= 2,
+    check: () => S.questProgress.enemiesKilled >= 250 && S.questProgress.slayerTier === 2
+  },
+  slayer_4: {
+    name: 'Slayer IV',
+    desc: 'Defeat 500 enemies',
+    reward: 100,
+    category: 'repeatable',
+    unlock: () => S.questProgress.slayerTier >= 3,
+    check: () => S.questProgress.enemiesKilled >= 500 && S.questProgress.slayerTier === 3
+  },
+  slayer_5: {
+    name: 'Slayer V',
+    desc: 'Defeat 1000 enemies',
+    reward: 150,
+    category: 'repeatable',
+    unlock: () => S.questProgress.slayerTier >= 4,
+    check: () => S.questProgress.enemiesKilled >= 1000 && S.questProgress.slayerTier === 4
+  },
+  gold_digger_1: {
+    name: 'Gold Digger I',
+    desc: 'Earn 250G total',
+    reward: 25,
+    category: 'repeatable',
+    unlock: () => S.questProgress.highestFloor >= 5,
+    check: () => S.questProgress.totalGoldEarned >= 250 && S.questProgress.goldDiggerTier === 0
+  },
+  gold_digger_2: {
+    name: 'Gold Digger II',
+    desc: 'Earn 1000G total',
+    reward: 50,
+    category: 'repeatable',
+    unlock: () => S.questProgress.goldDiggerTier >= 1,
+    check: () => S.questProgress.totalGoldEarned >= 1000 && S.questProgress.goldDiggerTier === 1
+  },
+  gold_digger_3: {
+    name: 'Gold Digger III',
+    desc: 'Earn 2500G total',
+    reward: 75,
+    category: 'repeatable',
+    unlock: () => S.questProgress.goldDiggerTier >= 2,
+    check: () => S.questProgress.totalGoldEarned >= 2500 && S.questProgress.goldDiggerTier === 2
+  },
+  veteran_1: {
+    name: 'Veteran I',
+    desc: 'Complete 5 runs',
+    reward: 25,
+    category: 'repeatable',
+    unlock: () => S.questProgress.totalRunsCompleted >= 1,
+    check: () => S.questProgress.totalRunsCompleted >= 5 && S.questProgress.veteranTier === 0
+  },
+  veteran_2: {
+    name: 'Veteran II',
+    desc: 'Complete 15 runs',
+    reward: 50,
+    category: 'repeatable',
+    unlock: () => S.questProgress.veteranTier >= 1,
+    check: () => S.questProgress.totalRunsCompleted >= 15 && S.questProgress.veteranTier === 1
+  },
+  veteran_3: {
+    name: 'Veteran III',
+    desc: 'Complete 30 runs',
+    reward: 75,
+    category: 'repeatable',
+    unlock: () => S.questProgress.veteranTier >= 2,
+    check: () => S.questProgress.totalRunsCompleted >= 30 && S.questProgress.veteranTier === 2
+  },
+
+  // === FU MODE QUESTS (Unlock after FU unlock) ===
+  fu_taste: {
+    name: 'This is Frogged Up',
+    desc: 'Complete Floor 1 in FU mode',
+    reward: 25,
+    category: 'fu',
+    unlock: () => S.fuUnlocked,
+    check: () => S.questProgress.highestFloor >= 1 && S.gameMode === 'fu'
+  },
+  recruiter: {
+    name: 'Recruiter',
+    desc: 'Recruit an enemy',
+    reward: 25,
+    category: 'fu',
+    unlock: () => S.fuUnlocked,
+    check: () => S.questProgress.maxRecruitsHeld >= 1
+  },
+  squad_goals: {
+    name: 'Squad Goals',
+    desc: 'Have 3 recruits at once',
+    reward: 50,
+    category: 'fu',
+    unlock: () => S.questProgress.maxRecruitsHeld >= 1,
+    check: () => S.questProgress.maxRecruitsHeld >= 3
+  },
+  fu_champion: {
+    name: 'FU Champion',
+    desc: 'Complete FU mode',
+    reward: 150,
+    category: 'fu',
+    unlock: () => S.fuUnlocked,
+    check: () => S.questProgress.fuWins >= 1
+  },
+
+  // === SECRET/HIDDEN QUESTS ===
+  tapos_hero: {
+    name: "Tapo's Hero",
+    desc: 'Unlock Tapo',
+    reward: 100,
+    category: 'secret',
+    unlock: () => S.fuUnlocked,
+    check: () => S.tapoUnlocked
+  },
+  bruce_willis: {
+    name: 'Bruce & Willis',
+    desc: 'Help the Ghost Boys realize something',
+    reward: 25,
+    category: 'secret',
+    unlock: () => S.questProgress.neutralsCompleted.ghost,
+    check: () => S.ghostBoysConverted
+  },
+  true_champion: {
+    name: 'True Champion',
+    desc: 'Win FU mode with Tapo',
+    reward: 200,
+    category: 'secret',
+    unlock: () => S.tapoUnlocked,
+    check: () => S.questProgress.heroWins.Tapo >= 1 && S.questProgress.fuWins >= 1
+  }
+};
+
+// Category display names and order
+const QUEST_CATEGORIES = {
+  learning: { name: 'Getting Started', icon: '📚', order: 1 },
+  heroes: { name: 'Hero Exploration', icon: '🦸', order: 2 },
+  neutrals: { name: 'Neutral Encounters', icon: '🏕️', order: 3 },
+  milestones: { name: 'Milestones', icon: '🏆', order: 4 },
+  combat: { name: 'Combat Mastery', icon: '⚔️', order: 5 },
+  repeatable: { name: 'Ongoing Challenges', icon: '🔄', order: 6 },
+  fu: { name: 'Frogged Up', icon: '🔥', order: 7 },
+  secret: { name: 'Secrets', icon: '🔮', order: 8 }
+};
+
+// Check if a quest is unlocked (visible)
+function isQuestUnlocked(questId) {
+  const quest = QUESTS[questId];
+  if(!quest) return false;
+  // Learning quests always visible
+  if(quest.category === 'learning') return true;
+  // Check unlock condition if exists
+  if(quest.unlock && !quest.unlock()) return false;
+  return true;
+}
+
+// Check if a quest is complete (can be claimed)
+function isQuestComplete(questId) {
+  const quest = QUESTS[questId];
+  if(!quest) return false;
+  if(S.questsClaimed[questId]) return false; // Already claimed
+  return quest.check();
+}
+
+// Get count of claimable quests
+function getClaimableQuestCount() {
+  let count = 0;
+  for(const questId in QUESTS) {
+    if(isQuestUnlocked(questId) && isQuestComplete(questId) && !S.questsClaimed[questId]) {
+      count++;
+    }
+  }
+  return count;
+}
+
+// Claim a quest reward
+function claimQuest(questId) {
+  const quest = QUESTS[questId];
+  if(!quest || S.questsClaimed[questId]) return;
+  if(!isQuestComplete(questId)) return;
+
+  // Award gold
+  S.gold += quest.reward;
+  S.questsClaimed[questId] = true;
+  S.questsCompleted[questId] = true;
+
+  // Handle tier progression for repeatable quests
+  if(questId.startsWith('slayer_')) {
+    S.questProgress.slayerTier = parseInt(questId.split('_')[1]);
+  } else if(questId.startsWith('gold_digger_')) {
+    S.questProgress.goldDiggerTier = parseInt(questId.split('_')[1]);
+  } else if(questId.startsWith('veteran_')) {
+    S.questProgress.veteranTier = parseInt(questId.split('_')[1]);
+  }
+
+  savePermanent();
+  SoundFX.play('coin');
+  toast(`+${quest.reward}G from "${quest.name}"!`);
+
+  // Refresh quest board
+  showQuestBoard();
+}
+
+// Show Quest Board UI
+function showQuestBoard() {
+  const v = document.getElementById('gameView');
+
+  // Group quests by category
+  const questsByCategory = {};
+  for(const questId in QUESTS) {
+    const quest = QUESTS[questId];
+    if(!questsByCategory[quest.category]) {
+      questsByCategory[quest.category] = [];
+    }
+    questsByCategory[quest.category].push({ id: questId, ...quest });
+  }
+
+  // Sort categories by order
+  const sortedCategories = Object.keys(questsByCategory).sort((a, b) =>
+    (QUEST_CATEGORIES[a]?.order || 99) - (QUEST_CATEGORIES[b]?.order || 99)
+  );
+
+  let html = `
+<style>
+.quest-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0;
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.quest-item.complete {
+  border-color: #22c55e;
+  background: rgba(34,197,94,0.15);
+}
+.quest-item.claimed {
+  opacity: 0.5;
+  border-color: #666;
+}
+.quest-item.locked {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+}
+.quest-reward {
+  font-weight: bold;
+  color: #fbbf24;
+  min-width: 50px;
+  text-align: right;
+}
+.quest-claim-btn {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: 2px solid #000;
+  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #fff;
+  font-size: 0.85rem;
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px #22c55e; }
+  50% { box-shadow: 0 0 15px #22c55e; }
+}
+.quest-category {
+  margin-bottom: 1rem;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+.quest-category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  padding-bottom: 0.5rem;
+}
+</style>
+
+<div style="max-width:600px;margin:0 auto;padding:1rem">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+  <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">📋 Quest Board</h1>
+  <div style="font-size:1rem;color:#22c55e">💰 ${S.gold}G</div>
+</div>
+
+<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.8">Complete quests to earn gold rewards!</p>
+`;
+
+  for(const category of sortedCategories) {
+    const quests = questsByCategory[category];
+    const catInfo = QUEST_CATEGORIES[category] || { name: category, icon: '📋' };
+
+    // Count unlocked quests in this category
+    const unlockedQuests = quests.filter(q => isQuestUnlocked(q.id));
+    if(unlockedQuests.length === 0) continue; // Skip empty categories
+
+    // Count completed/claimed
+    const claimable = unlockedQuests.filter(q => isQuestComplete(q.id) && !S.questsClaimed[q.id]).length;
+
+    html += `
+<div class="quest-category">
+  <div class="quest-category-header">
+    <span>${catInfo.icon}</span>
+    <span>${catInfo.name}</span>
+    ${claimable > 0 ? `<span style="background:#22c55e;color:#000;padding:0 0.5rem;border-radius:10px;font-size:0.8rem;margin-left:auto">${claimable} ready</span>` : ''}
+  </div>`;
+
+    for(const quest of quests) {
+      const unlocked = isQuestUnlocked(quest.id);
+      const complete = isQuestComplete(quest.id);
+      const claimed = S.questsClaimed[quest.id];
+
+      if(!unlocked) continue; // Don't show locked quests
+
+      let statusClass = '';
+      let statusText = '';
+      if(claimed) {
+        statusClass = 'claimed';
+        statusText = '✓ Claimed';
+      } else if(complete) {
+        statusClass = 'complete';
+      }
+
+      html += `
+<div class="quest-item ${statusClass}">
+  <div>
+    <div style="font-weight:bold;font-size:0.95rem">${quest.name}</div>
+    <div style="font-size:0.8rem;opacity:0.8">${quest.desc}</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:0.5rem">
+    ${claimed ? `<span style="color:#888;font-size:0.85rem">${statusText}</span>` :
+      complete ? `<button class="quest-claim-btn" onclick="claimQuest('${quest.id}')">Claim ${quest.reward}G</button>` :
+      `<span class="quest-reward">${quest.reward}G</span>`}
+  </div>
+</div>`;
+    }
+
+    html += `</div>`;
+  }
+
+  html += `
+<div style="text-align:center;margin-top:1.5rem">
+  <button class="btn" onclick="showRibbleton()" style="padding:0.75rem 2rem">Back to Ribbleton</button>
+</div>
+</div>`;
+
+  v.innerHTML = html;
+}
+
 // ===== RIBBLETON HUB =====
 function showRibbleton() {
 // Show game header in Ribbleton with location label
@@ -12821,6 +13723,19 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
 🪷 The Pond
 </button>
 ` : ''}
+</div>
+
+<!-- Quest Board in bottom-center -->
+<div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:10">
+  <div onclick="showQuestBoard()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+       onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+       title="View available quests and claim rewards">
+    <div style="width:80px;height:80px;position:relative;background:linear-gradient(135deg, #92400e, #78350f);border-radius:8px;border:4px solid #451a03;box-shadow:0 4px 16px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center">
+      <span style="font-size:3rem">🪧</span>
+      ${getClaimableQuestCount() > 0 ? `<span style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#000;font-weight:bold;font-size:0.9rem;padding:0.15rem 0.5rem;border-radius:10px;border:2px solid #000;animation:pulse-glow 1.5s ease-in-out infinite">${getClaimableQuestCount()}</span>` : ''}
+    </div>
+    <p style="margin-top:0.4rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(146,64,14,0.9);padding:0.2rem 0.6rem;border-radius:4px;border:2px solid #78350f">📋 Quests</p>
+  </div>
 </div>
 </div>`;
 
