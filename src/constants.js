@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.98';
+const GAME_VERSION = '11.99';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -186,7 +186,7 @@ return icon;
 // Format: scaling values use <b class="sig-scale">ONE</b> to indicate level-dependent values
 const SIGIL_DESCRIPTIONS = {
 'Attack': 'Deal POW damage to target <b class="sig-scale">ONE</b> time. L2: twice. L3: 3×. L4: 4×.',
-'Shield': 'Grant target <b class="sig-scale">2×POW</b> shield. L2: 4×. L3: 6×. L4: 8×. Shields persist between battles (capped at max HP).',
+'Shield': 'Grant target <b class="sig-scale">+2×POW</b> shield. L2: +4×. L3: +6×. L4: +8×. Shields persist between battles (capped at max HP).',
 'Heal': 'Restore <b class="sig-scale">2×POW</b> HP to target. L2: 4×. L3: 6×. L4: 8×. Cannot exceed max HP.',
 'D20': 'Attempt a gambit! Roll <b class="sig-scale">ONE</b> d20. L2: 2 dice (take best). L3: 3 dice. L4: 4 dice.',
 'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to Attack/Shield/Heal. Mage/Healer get +1 built-in.',
@@ -793,7 +793,7 @@ const descriptions = {
 'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
-'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (deal enemy POW to all), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
+'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (enemy hurts itself), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
 'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Stun target for ${boldNum(level)} turn${level > 1 ? 's' : ''}. You take damage equal to target's POW`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death (persists between combats, max 9)`,

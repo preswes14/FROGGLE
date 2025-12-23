@@ -695,11 +695,9 @@ function executeD20ActionOnTarget(enemyId, action) {
 const enemy = S.enemies.find(e => e.id === enemyId);
 if(!enemy) return;
 if(action === 'CONFUSE') {
+// Confused enemy deals its own POW damage to itself
 const dmg = enemy.p;
-// Deal this enemy's POW to all enemies
-S.enemies.forEach(e => {
-dealDamageToEnemy(e, dmg);
-});
+dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
 // Check royal quest completion
@@ -872,7 +870,7 @@ S.targets.push(id);
 const aliveEnemies = S.enemies.filter(e => e.h > 0 && !S.targets.includes(e.id)).length;
 const shouldAutoConfirm = (S.targets.length >= maxTargets || aliveEnemies === 0) && !S.autoSelectInProgress;
 if(shouldAutoConfirm) {
-  executeD20Action();
+  rollD20();
 } else {
   render();
 }
@@ -2359,9 +2357,14 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Alpha'].includes(s);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
+// Asterisk expended indicator: red X overlay when first action used
+const asteriskExpended = (s === 'Asterisk' && h.firstActionUsed);
+const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem;color:#dc2626;text-shadow:0 0 3px #000;pointer-events:none">❌</span>' : '';
+const sigilStyle = asteriskExpended ? 'position:relative;opacity:0.5' : '';
 return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
+${sigilStyle ? `style="${sigilStyle}"` : ''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}</span>`;
+ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}${asteriskOverlay}</span>`;
 };
 
 html += `<div class="${rowClass}">`;
@@ -2859,9 +2862,9 @@ if(availableInCategory.length === 0) return '';
 let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
 availableInCategory.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const displayLevel = level === 0 ? 1 : level;
+const displayLevel = level + 1;  // Internal 0 = display L1, etc.
 categoryHtml += `<div class="choice" onclick="confirmAddActiveSigil(${heroIdx}, '${sig}')">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(L${displayLevel})</span>
+<strong>${sigilWithTooltip(sig, displayLevel)}</strong> <span style="opacity:0.7">(L${displayLevel})</span>
 </div>`;
 });
 return categoryHtml;
@@ -2885,7 +2888,7 @@ if(!h.ts) h.ts = [];
 h.ts.push(sig);
 h.ts = sortSigils(h.ts);
 const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const displayLevel = totalLevel === 0 ? 1 : totalLevel;
+const displayLevel = totalLevel + 1;  // Internal 0 = display L1, etc.
 toast(`${h.n} learned ${sig} (L${displayLevel})!`);
 upd();
 saveGame();
@@ -2921,11 +2924,11 @@ if(availableInCategory.length === 0) return '';
 let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;font-size:1rem">${categoryName}</h3>`;
 availableInCategory.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const displayLevel = level === 0 ? 1 : level;
+const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = display L2, etc.
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilWithTooltip(sig, displayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -2947,7 +2950,7 @@ S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
-const displayLevel = newLevel === 0 ? 1 : newLevel;
+const displayLevel = newLevel + 1;  // Internal 0 = display L1, etc.
 toast(`${sig} upgraded to L${displayLevel}!`);
 upd();
 saveGame();
@@ -2983,7 +2986,8 @@ available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
 const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → L${level + 1}`;
-html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIcon(sig)} ${displayText}</strong></div>`;
+const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
+html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
 });
 }
 }
