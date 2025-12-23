@@ -333,7 +333,7 @@ if(sig === 'Ghost') {
 const level = getLevel('Ghost', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Ghost! Add it in Level-Up menu (costs XP).`); return; }
 // Ghost tutorial: show first time player clicks Ghost
-showTutorialPop('ghost_intro', "Ghost charges prevent lethal hits! Each charge blocks one death, and they persist between battles. Max 9 charges per hero.");
+showTutorialPop('ghost_intro', "Ghost prevents the next lethal hit! Each charge blocks one otherwise-fatal blow, and charges persist between battles. Max 9 charges per hero.");
 const totalCharges = level * repeats;
 h.g = Math.min((h.g || 0) + totalCharges, 9);
 toast(`${h.n} gained ${totalCharges} Ghost charge${totalCharges>1?'s':''}!`);
@@ -353,7 +353,7 @@ S.targets = [];
 S.currentInstanceTargets = [];
 // Shield persistence tutorial: show first time player clicks Shield
 if(sig === 'Shield') {
-showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next fight with protection.");
+showTutorialPop('shield_persistence', "Shields cap at max HP, but persist between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!");
 }
 render();
 // Auto-focus target for controller users
@@ -366,7 +366,7 @@ autoFocusTargetForController(heroIdx, 'hero');
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
 // Grapple tutorial: show first time player clicks Grapple
-showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. High risk, high reward!");
+showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Worth it... sometimes.");
 S.pending = 'Grapple';
 S.grappleRepeats = repeats;
 S.grappleLevel = level;
@@ -377,7 +377,7 @@ autoFocusTargetForController(heroIdx, 'enemy');
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 // Alpha tutorial: show first time player clicks Alpha
-showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher levels, one turn can grant several to an ally! Great for letting your strongest attacker strike twice.");
+showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant another hero multiple turns! Great ROI.");
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
@@ -2926,7 +2926,7 @@ levelUpMenu();
 
 // NEW: Add/Upgrade Passive Sigil (All Heroes)
 function upgradePassiveSigil() {
-showTutorialPop('levelup_upgrade_passive', "Passive sigils (Expand, Asterisk, Star) work AUTOMATICALLY for ALL heroes! They enhance your existing actions without needing to click them.");
+showTutorialPop('levelup_upgrade_passive', "Once upgraded, Passive sigils (Expand, Asterisk, Star) work AUTOMATICALLY for ALL heroes! They enhance your abilities without needing to click them.");
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive Sigil</h2>
