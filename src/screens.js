@@ -825,12 +825,12 @@ showSimpleVictoryScreen();
 
 function showFirstVictoryCutscene() {
 const slides = [
-{bg: 'assets/victory-room.png', text: "19 grueling floors later, your heroes finally find him - <strong style='color:#22c55e'>Tapo the Tadpole</strong>, happily playing with a collection of strange glowing figurines!"},
-{bg: 'assets/victory-room.png', text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
-{bg: 'assets/victory-room.png', text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
-{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's <strong style='color:#ef4444'>POW (+1)</strong> or <strong style='color:#22c55e'>HP (+5)</strong>. With Tapo safely in the hero's arms, the heroes step back through the portal..."},
-{bg: 'assets/ribbleton.png', text: "The portal deposits them back in <strong style='color:#22c55e'>Ribbleton's square</strong>. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
-{bg: 'assets/ribbleton.png', text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
+{bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, you finally come upon the still form of <strong style='color:#22c55e'>Tapo the Tadpole</strong>..."},
+{bg: 'assets/victory-room.png', text: "Perhaps he succumbed to the FLYDRA's terrible bite? The heroes gathered around Tapo..."},
+{bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awoke from his well-earned nap! Clutched in his budding appendages, he held carvings of the heroes who had saved him!"},
+{bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
+{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues into the pedestals, they feel a ripple of power surge through them as their stats permanently increase!"},
+{bg: 'assets/ribbleton.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
 {bg: 'assets/victory-room.png', text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a <strong style='color:#9333ea'>new portal</strong> that has emerged in the room, crackling with black and green arcane energy."},
 {bg: 'assets/victory-room.png', text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.3em;font-weight:bold;color:#9333ea'>Here we go again!</span>"}
 ];

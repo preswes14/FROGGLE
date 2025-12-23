@@ -1958,7 +1958,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.91';
+const GAME_VERSION = '11.92';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -5571,7 +5571,7 @@ if(sig === 'Ghost') {
 const level = getLevel('Ghost', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Ghost! Add it in Level-Up menu (costs XP).`); return; }
 // Ghost tutorial: show first time player clicks Ghost
-showTutorialPop('ghost_intro', "Ghost charges prevent lethal hits! Each charge blocks one death, and they persist between battles. Max 9 charges per hero.");
+showTutorialPop('ghost_intro', "Ghost prevents the next lethal hit! Each charge blocks one otherwise-fatal blow, and charges persist between battles. Max 9 charges per hero.");
 const totalCharges = level * repeats;
 h.g = Math.min((h.g || 0) + totalCharges, 9);
 toast(`${h.n} gained ${totalCharges} Ghost charge${totalCharges>1?'s':''}!`);
@@ -5591,7 +5591,7 @@ S.targets = [];
 S.currentInstanceTargets = [];
 // Shield persistence tutorial: show first time player clicks Shield
 if(sig === 'Shield') {
-showTutorialPop('shield_persistence', "Shields persist between battles! They're capped at max HP, so you can shield up before finishing a floor to enter the next fight with protection.");
+showTutorialPop('shield_persistence', "Shields cap at max HP, but persist between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!");
 }
 render();
 // Auto-focus target for controller users
@@ -5604,7 +5604,7 @@ autoFocusTargetForController(heroIdx, 'hero');
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
 // Grapple tutorial: show first time player clicks Grapple
-showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. High risk, high reward!");
+showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Worth it... sometimes.");
 S.pending = 'Grapple';
 S.grappleRepeats = repeats;
 S.grappleLevel = level;
@@ -5615,7 +5615,7 @@ autoFocusTargetForController(heroIdx, 'enemy');
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 // Alpha tutorial: show first time player clicks Alpha
-showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher levels, one turn can grant several to an ally! Great for letting your strongest attacker strike twice.");
+showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant another hero multiple turns! Great ROI.");
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
@@ -8164,7 +8164,7 @@ levelUpMenu();
 
 // NEW: Add/Upgrade Passive Sigil (All Heroes)
 function upgradePassiveSigil() {
-showTutorialPop('levelup_upgrade_passive', "Passive sigils (Expand, Asterisk, Star) work AUTOMATICALLY for ALL heroes! They enhance your existing actions without needing to click them.");
+showTutorialPop('levelup_upgrade_passive', "Once upgraded, Passive sigils (Expand, Asterisk, Star) work AUTOMATICALLY for ALL heroes! They enhance your abilities without needing to click them.");
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive Sigil</h2>
@@ -8332,7 +8332,7 @@ function rollD20Neutral() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
 const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
-showTutorialPop('neutral_d20_level', "These D20 checks use the same Level as your D20 sigil from combat - leveling it up improves your odds everywhere!");
+showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
 return rollDice(d20Level, 20);
 }
 
@@ -9946,19 +9946,19 @@ let goldGain = 0;
 let hpLoss = 0;
 
 if(best === 1) {
-outcome = 'You lose your grip and plummet, smacking your head on the stone! The landing is brutal, and some coins get knocked out of your pouch.';
+outcome = 'You lose your grip on the slick stone and plummet, smacking your head HARD! The landing is brutal, and by the time you scramble out, you realize that some coins must have gotten knocked out of your pouch.';
 hpLoss = 3;
 goldGain = -5;
 } else if(best >= 2 && best <= 10) {
-outcome = 'You climb carefully and manage to grab a single coin, but scrape yourself climbing out of the well.';
+outcome = 'You climb carefully and manage to grab a single coin, but get a booboo climbing out of the well.';
 hpLoss = 1;
 goldGain = 1;
 } else if(best >= 11 && best <= 19) {
-outcome = 'Your climbing skills are impressive! You retrieve a small cache of coins from the bottom.';
+outcome = 'Your climbing skills are impressive! You retrieve a small cache of coins from the bottom. (+3 Gold)';
 goldGain = 3;
 } else if(best === 20) {
-outcome = 'Your descent is flawless! At the bottom, you discover a hidden cache of coins. As you climb out, the well begins to fill with crystal-clear water!';
-goldGain = 2 * S.heroes.length;
+outcome = 'Hardcore Parkour! You effortlessly dip into the well, snatch the cache of coins, and leap out. As you leave the room, the well somehow seems to begin to fill... (+10 Gold)';
+goldGain = 10;
 replaceStage1WithStage2('wishingwell');
 }
 
@@ -10068,7 +10068,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wishingwell2.png',
 title: 'Fully Restored',
 outcomes: [
-'The water tastes impossibly pure and refreshing. Warmth spreads through your body as all wounds close and exhaustion fades. You feel completely restored.',
+'The crisp water tastes impossibly pure and refreshing. A pleasant coolness spreads through your body as your wounds close and your exhaustion fades. You feel completely restored.',
 'The well\'s glow fades as the water recedes to its normal level. Its magic has been spent, for now.'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -10490,7 +10490,7 @@ function showOracle1() {
 // Mark tutorial as seen so future runs have random neutrals
 S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
-let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, child, and I shall ponder your future within my orb. Tell me, child, crave you Power or Life?" Choose a hero and their desired fortune:';
+let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?" Choose a hero and their desired fortune:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
 buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (+1⚡)</button>`;
@@ -10578,11 +10578,11 @@ outcome = `"Cursed! Cursed!" Dark light surges from the orb, and ${h.n} feels th
 // OPPOSITE
 if(stat === 'HP') {
 h.p++;
-outcome = `"We cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Power! POW +1!`;
+outcome = `"Alas, we cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Power! POW +1!`;
 } else {
 h.m += 5;
 h.h += 5;
-outcome = `"We cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Life! Maximum HP +5!`;
+outcome = `"Alas, we cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Life! Maximum HP +5!`;
 }
 } else if(roll >= 16 && roll <= 19) {
 // DESIRED
@@ -12302,12 +12302,12 @@ showSimpleVictoryScreen();
 
 function showFirstVictoryCutscene() {
 const slides = [
-{bg: 'assets/victory-room.png', text: "19 grueling floors later, your heroes finally find him - <strong style='color:#22c55e'>Tapo the Tadpole</strong>, happily playing with a collection of strange glowing figurines!"},
-{bg: 'assets/victory-room.png', text: "The little tadpole squeaks excitedly as the heroes approach. Around him lay scattered statues - each one depicting a heroic frog warrior."},
-{bg: 'assets/victory-room.png', text: "The heroes carefully gather the mysterious figurines. The statues pulse with magical energy, and match the carvings on the nearby ancient pedestal.", action: 'statue_slotting'},
-{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues, they feel immense power surge through them! Each figurine permanently boosts a hero's <strong style='color:#ef4444'>POW (+1)</strong> or <strong style='color:#22c55e'>HP (+5)</strong>. With Tapo safely in the hero's arms, the heroes step back through the portal..."},
-{bg: 'assets/ribbleton.png', text: "The portal deposits them back in <strong style='color:#22c55e'>Ribbleton's square</strong>. The townspeople erupt in cheers as the heroes emerge victorious, and Tapo is carried away on an epic froggy crowd surf!"},
-{bg: 'assets/ribbleton.png', text: "Exhausted but triumphant, the heroes finally get a moment to rest and celebrate their victory. The red portal behind them shimmers ominously. Had Tapo gone back through?"},
+{bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, you finally come upon the still form of <strong style='color:#22c55e'>Tapo the Tadpole</strong>..."},
+{bg: 'assets/victory-room.png', text: "Perhaps he succumbed to the FLYDRA's terrible bite? The heroes gathered around Tapo..."},
+{bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awoke from his well-earned nap! Clutched in his budding appendages, he held carvings of the heroes who had saved him!"},
+{bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
+{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues into the pedestals, they feel a ripple of power surge through them as their stats permanently increase!"},
+{bg: 'assets/ribbleton.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
 {bg: 'assets/victory-room.png', text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a <strong style='color:#9333ea'>new portal</strong> that has emerged in the room, crackling with black and green arcane energy."},
 {bg: 'assets/victory-room.png', text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.3em;font-weight:bold;color:#9333ea'>Here we go again!</span>"}
 ];
@@ -13345,7 +13345,7 @@ let html = `
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
 <h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">🐸 FROGGLE</h3>
-<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Gain and upgrade powerful sigils to advance through the dungeon and save Tapo the tadpole! On death, you'll have a chance to spend gold you've earned to make your team permanently stronger!</p>
+<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Advance through the dungeon and save Tapo the tadpole! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
 <div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem">
 <h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">⚔️ HOW LEVEL-UPS WORK</h4>

@@ -58,7 +58,7 @@ function rollD20Neutral() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
 const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
-showTutorialPop('neutral_d20_level', "These D20 checks use the same Level as your D20 sigil from combat - leveling it up improves your odds everywhere!");
+showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
 return rollDice(d20Level, 20);
 }
 
@@ -1672,19 +1672,19 @@ let goldGain = 0;
 let hpLoss = 0;
 
 if(best === 1) {
-outcome = 'You lose your grip and plummet, smacking your head on the stone! The landing is brutal, and some coins get knocked out of your pouch.';
+outcome = 'You lose your grip on the slick stone and plummet, smacking your head HARD! The landing is brutal, and by the time you scramble out, you realize that some coins must have gotten knocked out of your pouch.';
 hpLoss = 3;
 goldGain = -5;
 } else if(best >= 2 && best <= 10) {
-outcome = 'You climb carefully and manage to grab a single coin, but scrape yourself climbing out of the well.';
+outcome = 'You climb carefully and manage to grab a single coin, but get a booboo climbing out of the well.';
 hpLoss = 1;
 goldGain = 1;
 } else if(best >= 11 && best <= 19) {
-outcome = 'Your climbing skills are impressive! You retrieve a small cache of coins from the bottom.';
+outcome = 'Your climbing skills are impressive! You retrieve a small cache of coins from the bottom. (+3 Gold)';
 goldGain = 3;
 } else if(best === 20) {
-outcome = 'Your descent is flawless! At the bottom, you discover a hidden cache of coins. As you climb out, the well begins to fill with crystal-clear water!';
-goldGain = 2 * S.heroes.length;
+outcome = 'Hardcore Parkour! You effortlessly dip into the well, snatch the cache of coins, and leap out. As you leave the room, the well somehow seems to begin to fill... (+10 Gold)';
+goldGain = 10;
 replaceStage1WithStage2('wishingwell');
 }
 
@@ -1794,7 +1794,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wishingwell2.png',
 title: 'Fully Restored',
 outcomes: [
-'The water tastes impossibly pure and refreshing. Warmth spreads through your body as all wounds close and exhaustion fades. You feel completely restored.',
+'The crisp water tastes impossibly pure and refreshing. A pleasant coolness spreads through your body as your wounds close and your exhaustion fades. You feel completely restored.',
 'The well\'s glow fades as the water recedes to its normal level. Its magic has been spent, for now.'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -2216,7 +2216,7 @@ function showOracle1() {
 // Mark tutorial as seen so future runs have random neutrals
 S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
-let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, child, and I shall ponder your future within my orb. Tell me, child, crave you Power or Life?" Choose a hero and their desired fortune:';
+let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?" Choose a hero and their desired fortune:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
 buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (+1⚡)</button>`;
@@ -2304,11 +2304,11 @@ outcome = `"Cursed! Cursed!" Dark light surges from the orb, and ${h.n} feels th
 // OPPOSITE
 if(stat === 'HP') {
 h.p++;
-outcome = `"We cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Power! POW +1!`;
+outcome = `"Alas, we cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Power! POW +1!`;
 } else {
 h.m += 5;
 h.h += 5;
-outcome = `"We cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Life! Maximum HP +5!`;
+outcome = `"Alas, we cannot always choose our destiny", the Oracle intones. The light coalesces around ${h.n}. ${h.n} gains unexpected Life! Maximum HP +5!`;
 }
 } else if(roll >= 16 && roll <= 19) {
 // DESIRED
