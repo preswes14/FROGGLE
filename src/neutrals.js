@@ -449,10 +449,11 @@ debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 
 // Full-art mode: background image takes up screen, text in bottom bar
 if(slide.bg) {
+const bgStyle = slide.bgStyle || '';
 v.innerHTML = `
 <div style="position:relative;width:100%;height:calc(100vh - 44px);overflow:hidden;background:#1a5c3a">
 <!-- Full-page background image -->
-<img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
+<img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;${bgStyle}">
 
 <!-- Text bar at bottom with gradient fade -->
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(26,92,58,0.95) 0%, rgba(26,92,58,0.85) 40%, rgba(0,0,0,0.4) 75%, transparent 100%);padding:0.75rem 1rem 0.5rem 1rem">
@@ -1525,25 +1526,39 @@ showNeutralInterstitial(f, enc, launchEncounter);
 }
 
 // ===== 1. SHOPKEEPER =====
+let shopSmallBought = false;
+let shopLargeBought = false;
+
 function showShopkeeper1() {
-// Reset shopkeeper state at start of each encounter (fixes bug where state persisted between runs)
+// Reset shopkeeper state at start of each encounter
 shopSmallBought = false;
 shopLargeBought = false;
+renderShopkeeper();
+}
+
+function renderShopkeeper() {
+// Build buttons based on what's already been bought (limit 1 of each per visit)
+let buttons = '';
+if(!shopSmallBought) {
+buttons += `<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>`;
+} else {
+buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Small Potion - SOLD</button>`;
+}
+if(!shopLargeBought) {
+buttons += `<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>`;
+} else {
+buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Large Potion - SOLD</button>`;
+}
+buttons += `<button class="neutral-btn secondary" onclick="declineShopkeeper()">Leave Shop</button>`;
+
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
 title: 'Potions for Sale',
 description: 'A cheerful gnome stands behind a small cart laden with vials and bottles. Their voice is excited and earnest: "Healing Potions for sale!"',
-buttons: `
-<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>
-<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>
-<button class="neutral-btn secondary" onclick="declineShopkeeper()">Do Not Engage</button>
-`
+buttons: buttons
 });
 }
-
-let shopSmallBought = false;
-let shopLargeBought = false;
 
 function buySmallPotion() {
 if(S.gold < 3) { toast('Not enough Gold!'); return; }
@@ -1556,7 +1571,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
 title: 'Choose Hero',
 description: 'Select a hero to restore 3 HP.',
-buttons: heroButtons + `<button class="neutral-btn secondary" onclick="showShopkeeper1()">Back</button>`
+buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
 });
 }
 
@@ -1571,7 +1586,7 @@ if(shopSmallBought && shopLargeBought) {
 replaceStage1WithStage2('shopkeeper');
 toast('Death will remember this...', 1800);
 }
-showShopkeeper1();
+renderShopkeeper();
 }
 
 function buyLargePotion() {
@@ -1585,7 +1600,7 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
 title: 'Choose Hero',
 description: 'Select a hero to restore 8 HP.',
-buttons: heroButtons + `<button class="neutral-btn secondary" onclick="showShopkeeper1()">Back</button>`
+buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
 });
 }
 
@@ -1600,7 +1615,7 @@ if(shopSmallBought && shopLargeBought) {
 replaceStage1WithStage2('shopkeeper');
 toast('Death will remember this...', 1800);
 }
-showShopkeeper1();
+renderShopkeeper();
 }
 
 function declineShopkeeper() {
