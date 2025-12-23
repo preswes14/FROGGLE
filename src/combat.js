@@ -2269,8 +2269,17 @@ if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" st
 html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
-html += `<div>D20 only!</div>`;
 html += `<div style="font-size:0.65rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
+html += `</div>`;
+// Render clickable D20 sigil for Last Stand hero
+const d20Level = getLevel('D20', i);
+const d20Cl = d20Level===0?'l0':d20Level===1?'l1':d20Level===2?'l2':d20Level===3?'l3':d20Level===4?'l4':'l5';
+const canUseD20 = !hasActed && h.st === 0 && !S.pending;
+const isD20Active = (S.pending === 'D20' && S.activeIdx === i);
+html += `<div class="sigil-row" style="justify-content:center;margin:0.3rem 0">`;
+html += `<span class="sigil ${d20Cl} ${isD20Active?'active-action':''} ${canUseD20?'clickable':''}" ${canUseD20?`onclick="act('D20', ${i})"`:''}
+style="font-size:1.5rem" onmouseenter="showTooltip('D20', this, ${d20Level})" onmouseleave="hideTooltip()"
+ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('D20', this, ${d20Level}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly('D20', d20Level)}</span>`;
 html += `</div>`;
 // Show shield/ghost if any
 const lsExtra = [];
@@ -2483,6 +2492,9 @@ S.hasReachedFloor20 = true;
 S.hasAncientStatuette = true;
 savePermanent();
 toast('🗿 Ancient Statuette acquired! The blue portal in Ribbleton has awakened!', 2500);
+// Skip level up menu on floor 19 - no point spending XP before victory
+setTimeout(() => nextFloor(), 2000);
+return;
 }
 
 const v = document.getElementById('gameView');

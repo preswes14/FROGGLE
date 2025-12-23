@@ -837,8 +837,7 @@ S.heroes.forEach(hero => {
   trackQuestProgress('heroWin', hero.n);
 });
 
-// Reset run state on victory
-S.gold = 0; // Gold is lost on victory
+// Reset run state on victory (gold persists between runs)
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}; // Clear temp upgrades
 S.recruits = []; // Clear recruits
 savePermanent();
@@ -935,8 +934,8 @@ const slides = [
 {bg: 'assets/ribbleton.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
 {bg: 'assets/ribbleton.png', text: "WHOOSH! One portal trip later, and the crew is back safe and sound in Ribbleton. Off to the Lilypad Pond for a well-earned night of sleep!"},
 {bg: 'assets/ribbleton.png', text: "INTERSTITIAL_HERO_CARDS", action: 'hero_cards_interstitial'},
-{bg: 'assets/victory-room.png', text: "As the sun rises, the town of Ribbleton awakens, delighted to see their heroes home safe. There is only one problem... Where is Tapo? Our heroes gear up and take the portal back to the statue room where they found him last time."},
-{bg: 'assets/victory-room.png', text: "...and there he is! Staring at YET ANOTHER portal, this one crackling with black and green energy. But before anyone can stop him, the little bugger squirms his way in. <span style='font-size:1.2em;font-weight:bold;color:#22c55e'>Here we go again!</span>"}
+{bg: 'assets/ribbleton.png', text: "As the sun rises, the town of Ribbleton awakens, delighted to see their heroes home safe. There is only one problem... Where is Tapo? Our heroes gear up and take the portal back to the statue room where they found him last time."},
+{bg: 'assets/victory-room.png', bgStyle: 'transform:scaleX(-1)', text: "...and there he is! Staring at YET ANOTHER portal, this one crackling with black and green energy. But before anyone can stop him, the little bugger squirms his way in. <span style='font-size:1.2em;font-weight:bold;color:#22c55e'>Here we go again!</span>"}
 ];
 
 // Custom slide handler for statue slotting and hero cards
@@ -1023,13 +1022,9 @@ const stats = ['POW', 'HP'];
 const earnedFigurines = window.earnedFigurines || [];
 const totalToSlot = earnedFigurines.length;
 
-// Count how many of the earned figurines have been slotted this session
-// We track by checking if earned heroes have new slots since victory
-const slotsThisSession = S.pedestal.filter(p =>
-p.mode === S.gameMode &&
-earnedFigurines.includes(p.hero) &&
-p.source === 'hero'
-).length;
+// Track which heroes have slotted THIS session (to enforce 1 figurine per hero per victory)
+if(!window.heroesSlottedThisVictory) window.heroesSlottedThisVictory = [];
+const slotsThisSession = window.heroesSlottedThisVictory.length;
 
 // Only show heroes who earned figurines
 const heroesToShow = earnedFigurines.length > 0 ? earnedFigurines : ['Warrior', 'Tank', 'Mage', 'Healer'];
@@ -1040,7 +1035,9 @@ stats.forEach((stat) => {
 heroesToShow.forEach((hero) => {
 const slotted = S.pedestal.find(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
 const isSlotted = !!slotted;
-const canSlot = earnedFigurines.includes(hero) && !isSlotted;
+// Can only slot if: hero earned a figurine AND this slot not filled AND hero hasn't slotted THIS victory session
+const heroAlreadySlottedThisVictory = window.heroesSlottedThisVictory.includes(hero);
+const canSlot = earnedFigurines.includes(hero) && !isSlotted && !heroAlreadySlottedThisVictory;
 
 slotsHTML += `
 <div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;${canSlot ? 'cursor:pointer' : 'opacity:0.5'}" onclick="${canSlot ? `slotFirstVicFigurine('${hero}','${stat}')` : ''}">
@@ -1080,6 +1077,11 @@ if(S.pedestal.find(p => p.hero === hero && p.stat === stat && p.mode === S.gameM
 toast('Slot already filled!');
 return;
 }
+// Check if this hero already slotted their figurine THIS victory session
+if(window.heroesSlottedThisVictory && window.heroesSlottedThisVictory.includes(hero)) {
+toast(`${hero} already placed their figurine!`);
+return;
+}
 const slotsUsed = S.pedestal.filter(p => p.mode === S.gameMode).length;
 if(slotsUsed >= 8) {
 toast('All 8 slots filled! Remove a figurine first.');
@@ -1091,6 +1093,9 @@ toast(`${hero} already has 2 figurines in ${S.gameMode} mode!`, 1800);
 return;
 }
 S.pedestal.push({hero, stat, mode: S.gameMode, source: 'hero'});
+// Track that this hero has slotted their figurine this victory session
+if(!window.heroesSlottedThisVictory) window.heroesSlottedThisVictory = [];
+window.heroesSlottedThisVictory.push(hero);
 savePermanent();
 toast(`${hero} ${stat} figurine placed!`, 1200);
 showFirstVictoryPedestal(window.firstVicPedestalComplete);
