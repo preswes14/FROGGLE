@@ -1144,9 +1144,10 @@ ${S.tapoUnlocked ? `
 </button>
 </div>` : ''}
 
-<!-- Selection display -->
+<!-- Selection display with X/Y counter -->
 <div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
 <strong>Selected:</strong> <span id="selection-display" style="font-size:1rem;color:#2563eb"></span>
+<span id="selection-counter" style="font-size:1.1rem;font-weight:bold;margin-left:0.5rem"></span>
 </div>
 
 <button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Delve into Floor 1</button>
@@ -1255,6 +1256,7 @@ updateSelectionDisplay();
 function updateSelectionDisplay() {
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 const display = document.getElementById('selection-display');
+const counter = document.getElementById('selection-counter');
 if(!display) return;
 
 if(sel.length === 0) {
@@ -1264,6 +1266,13 @@ display.style.color = '#6b7280';
 const heroNames = sel.map(h => H[h].n);
 display.textContent = heroNames.join(' + ');
 display.style.color = '#2563eb';
+}
+
+// Update X/Y counter
+if(counter) {
+const isComplete = sel.length === requiredHeroes;
+counter.textContent = `(${sel.length}/${requiredHeroes})`;
+counter.style.color = isComplete ? '#22c55e' : '#f59e0b';
 }
 
 const btn = document.getElementById('start');

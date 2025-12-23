@@ -61,6 +61,7 @@ pedestal: [],                    // Champion hero figurines [{hero, mode, stats}
 hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
 fuUnlocked: false,
+forcedFUEntry: false,            // True after first Standard win, forces FU run
 tapoUnlocked: false,             // Unlocked after first FU victory
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
@@ -655,6 +656,7 @@ ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
+forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 runsAttempted: S.runsAttempted,
@@ -705,6 +707,7 @@ S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
+S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
@@ -914,6 +917,7 @@ S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
+S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -997,6 +1001,7 @@ ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
+forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,

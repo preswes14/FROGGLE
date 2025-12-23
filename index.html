@@ -1958,7 +1958,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '11.92';
+const GAME_VERSION = '11.94';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4097,6 +4097,7 @@ pedestal: [],                    // Champion hero figurines [{hero, mode, stats}
 hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
 fuUnlocked: false,
+forcedFUEntry: false,            // True after first Standard win, forces FU run
 tapoUnlocked: false,             // Unlocked after first FU victory
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
@@ -4691,6 +4692,7 @@ ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
+forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 runsAttempted: S.runsAttempted,
@@ -4741,6 +4743,7 @@ S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
+S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
@@ -4950,6 +4953,7 @@ S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
+S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -5033,6 +5037,7 @@ ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
+forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
@@ -9418,9 +9423,10 @@ ${S.tapoUnlocked ? `
 </button>
 </div>` : ''}
 
-<!-- Selection display -->
+<!-- Selection display with X/Y counter -->
 <div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
 <strong>Selected:</strong> <span id="selection-display" style="font-size:1rem;color:#2563eb"></span>
+<span id="selection-counter" style="font-size:1.1rem;font-weight:bold;margin-left:0.5rem"></span>
 </div>
 
 <button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Delve into Floor 1</button>
@@ -9529,6 +9535,7 @@ updateSelectionDisplay();
 function updateSelectionDisplay() {
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 const display = document.getElementById('selection-display');
+const counter = document.getElementById('selection-counter');
 if(!display) return;
 
 if(sel.length === 0) {
@@ -9538,6 +9545,13 @@ display.style.color = '#6b7280';
 const heroNames = sel.map(h => H[h].n);
 display.textContent = heroNames.join(' + ');
 display.style.color = '#2563eb';
+}
+
+// Update X/Y counter
+if(counter) {
+const isComplete = sel.length === requiredHeroes;
+counter.textContent = `(${sel.length}/${requiredHeroes})`;
+counter.style.color = isComplete ? '#22c55e' : '#f59e0b';
 }
 
 const btn = document.getElementById('start');
@@ -12009,6 +12023,16 @@ actuallyRestartAfterDeath();
 function actuallyRestartAfterDeath() {
 // Increment run number
 S.runNumber++;
+
+// Check if this was the forced FU entry (after first Standard win)
+if(S.forcedFUEntry) {
+S.forcedFUEntry = false;
+S.gameMode = 'Standard'; // Reset to Standard mode
+savePermanent();
+showFUIntroPopup();
+return;
+}
+
 savePermanent();
 // Clear run-specific save (slot-specific)
 if(S.currentSlot) {
@@ -12017,6 +12041,47 @@ localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 // Also clear old save format for backwards compatibility
 localStorage.removeItem('froggle8');
 // Return to Ribbleton hub
+toast('Returning to Ribbleton...', 1200);
+setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
+}
+
+// Popup explaining Standard vs FU paths after first FU taste
+function showFUIntroPopup() {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
+<h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">🐸 Welcome to the Endgame! 🐸</h2>
+
+<p style="margin-bottom:1.5rem;font-size:1.1rem;line-height:1.6">
+You've conquered the Flydra and saved Tapo once... but there's always more to do!
+</p>
+
+<div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin:2rem 0">
+<div style="flex:1;min-width:200px;background:rgba(59,130,246,0.2);border:2px solid #3b82f6;border-radius:8px;padding:1rem">
+<h3 style="color:#3b82f6;margin-bottom:0.5rem">🔵 Standard Runs</h3>
+<p style="font-size:0.9rem;color:#94a3b8">Earn <strong style="color:#fbbf24">Figurines</strong> for surviving heroes. Permanently boost your stats!</p>
+</div>
+
+<div style="flex:1;min-width:200px;background:rgba(34,197,94,0.2);border:2px solid #22c55e;border-radius:8px;padding:1rem">
+<h3 style="color:#22c55e;margin-bottom:0.5rem">🟢 Frogged Up Runs</h3>
+<p style="font-size:0.9rem;color:#94a3b8">Earn <strong style="color:#d97706">bonus Gold</strong> for upgrades. Higher risk, higher rewards!</p>
+</div>
+</div>
+
+<p style="margin-bottom:1.5rem;font-size:0.95rem;color:#94a3b8">
+Visit the <strong style="color:#3b82f6">Statue Room</strong> via the blue portal in Ribbleton to switch between modes!
+</p>
+
+<button class="btn" onclick="continueFUIntro()" style="padding:1rem 2rem;font-size:1.1rem">Got it! Back to Ribbleton</button>
+</div>`;
+}
+
+function continueFUIntro() {
+// Clear run-specific save
+if(S.currentSlot) {
+localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
+}
+localStorage.removeItem('froggle8');
 toast('Returning to Ribbleton...', 1200);
 setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
@@ -12049,15 +12114,20 @@ let html = `
 <!-- Clickable pedestal hotspot (center) -->
 <div onclick="showPedestal()" style="position:absolute;left:35%;top:30%;width:30%;height:50%;cursor:pointer" title="View Pedestal"></div>
 
-<!-- Clickable left portal (blue portal - leads to Standard mode) -->
-<div onclick="enterPortal('Standard')" style="position:absolute;left:5%;top:20%;width:20%;height:60%;cursor:pointer" title="${S.gameMode === 'Standard' ? 'Current Mode' : 'Enter Standard Realm'}"></div>
+<!-- Clickable left portal (blue portal - leads to Ribbleton/Standard mode) -->
+<div onclick="goToRibbleton()" style="position:absolute;left:5%;top:20%;width:20%;height:60%;cursor:pointer;display:flex;align-items:center;justify-content:center"
+     onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+     title="Return to Ribbleton">
+  <div style="width:90px;height:90px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:champions-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem">🐸</div>
+  </div>
+</div>
 
-<!-- Clickable right portal (green portal - leads to FU mode) - Animated swirling portal -->
+<!-- Clickable right portal (green-black portal - leads to FU mode) - no emoji, just ominous -->
 <div onclick="enterPortal('fu')" style="position:absolute;right:5%;top:20%;width:20%;height:60%;cursor:pointer;transition:transform 0.2s;display:flex;align-items:center;justify-content:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
-     title="${S.gameMode === 'fu' ? 'Current Mode' : 'Enter Frogged Up Realm 🔥'}">
-  <div style="width:100px;height:100px;position:relative;border-radius:50%;background:radial-gradient(circle, #22c55e, #064e3b);animation:champions-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #22c55e">
-    <div style="position:absolute;top:50%;left:50%;font-size:3.5rem;animation:champions-portal-spin 2s linear infinite">🌀</div>
+     title="${S.gameMode === 'fu' ? 'Current Mode' : 'Enter Frogged Up Realm'}">
+  <div style="width:100px;height:100px;position:relative;border-radius:50%;background:radial-gradient(circle, #22c55e 0%, #0a0a0a 60%, #000 100%);animation:champions-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px rgba(34,197,94,0.5), inset 0 0 30px rgba(0,0,0,0.8)">
   </div>
 </div>
 </div>
@@ -12082,8 +12152,18 @@ toast('You are already in this realm!');
 return;
 }
 S.gameMode = targetMode;
+savePermanent();
 toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Realm!`);
-showChampionsMenu();
+// Go to hero select for the new mode
+title();
+}
+
+function goToRibbleton() {
+S.gameMode = 'Standard';
+savePermanent();
+SoundFX.play('portal');
+toast('Returning to Ribbleton...', 1200);
+setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 
 // NOTE: Waiting on Champions Hall toggle button image asset from Preston
@@ -12241,13 +12321,25 @@ savePermanent();
 // Award figurines for heroes who survived (HP > 0, not Last Stand)
 const survivedHeroes = S.heroes.filter(h => h.h > 0 && !h.ls);
 const earnedFigurines = [];
+const maxedHeroes = [];
 survivedHeroes.forEach(h => {
 // Check if this hero already has 2 figurines for this mode
 const existingCount = S.pedestal.filter(slot => slot.hero === h.n && slot.mode === S.gameMode).length;
 if(existingCount < 2) {
 earnedFigurines.push(h.n);
+} else {
+maxedHeroes.push(h.n);
 }
 });
+
+// Award 25 gold per maxed hero
+if(maxedHeroes.length > 0) {
+const goldReward = maxedHeroes.length * 25;
+S.gold += goldReward;
+window.maxedHeroesGold = { heroes: maxedHeroes, gold: goldReward };
+} else {
+window.maxedHeroesGold = null;
+}
 
 // Unlock Frogged Up mode if Standard victory
 const firstStandardVictory = S.gameMode === 'Standard' && !S.tutorialFlags.first_victory_sequence;
@@ -12301,72 +12393,157 @@ showSimpleVictoryScreen();
 }
 
 function showFirstVictoryCutscene() {
+// Build dynamic stats text based on what was slotted
+const getSlottedStatsText = () => {
+const slotted = S.pedestal.filter(p => p.mode === S.gameMode);
+if(slotted.length === 0) return "The statues remain unslotted... for now.";
+const statTexts = slotted.map(p => `${p.hero} ${p.stat === 'POW' ? '+1 POW' : '+5 HP'}`);
+return statTexts.join('! ') + '!';
+};
+
 const slides = [
 {bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, you finally come upon the still form of <strong style='color:#22c55e'>Tapo the Tadpole</strong>..."},
-{bg: 'assets/victory-room.png', text: "Perhaps he succumbed to the FLYDRA's terrible bite? The heroes gathered around Tapo..."},
-{bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awoke from his well-earned nap! Clutched in his budding appendages, he held carvings of the heroes who had saved him!"},
+{bg: 'assets/victory-room.png', text: "Perhaps he succumbed to the FLYDRA's terrible bite? The heroes gather around Tapo..."},
+{bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awakens from his well-earned nap! Clutched in his budding appendages, he holds carvings of the heroes who saved him!"},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
-{bg: 'assets/ribbleton.png', text: "As the heroes slot the statues into the pedestals, they feel a ripple of power surge through them as their stats permanently increase!"},
+{bg: 'assets/victory-room.png', text: () => `As the statues click into place, a warm ripple of power surges through the heroes. <strong style='color:#fbbf24'>${getSlottedStatsText()}</strong>`, dynamic: true},
 {bg: 'assets/ribbleton.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
-{bg: 'assets/victory-room.png', text: "A quick trip back to the statue room later, and there's Tapo! But he's staring at a <strong style='color:#9333ea'>new portal</strong> that has emerged in the room, crackling with black and green arcane energy."},
-{bg: 'assets/victory-room.png', text: "Before anyone can stop him, the little bugger squirms his way into this green-black portal - uh oh! <span style='font-size:1.3em;font-weight:bold;color:#9333ea'>Here we go again!</span>"}
+{bg: 'assets/ribbleton.png', text: "WHOOSH! One portal trip later, and the crew is back safe and sound in Ribbleton. Off to the Lilypad Pond for a well-earned night of sleep!"},
+{bg: 'assets/ribbleton.png', text: "INTERSTITIAL_HERO_CARDS", action: 'hero_cards_interstitial'},
+{bg: 'assets/victory-room.png', text: "As the sun rises, the town of Ribbleton awakens, delighted to see their heroes home safe. There is only one problem... Where is Tapo? Our heroes gear up and take the portal back to the statue room where they found him last time."},
+{bg: 'assets/victory-room.png', text: "...and there he is! Staring at YET ANOTHER portal, this one crackling with black and green energy. But before anyone can stop him, the little bugger squirms his way in. <span style='font-size:1.2em;font-weight:bold;color:#22c55e'>Here we go again!</span>"}
 ];
 
-// Custom slide handler for statue slotting
+// Custom slide handler for statue slotting and hero cards
 window.firstVictorySlideAction = (action, slideIndex, callback) => {
 if(action === 'statue_slotting') {
-// Show pedestal after this slide, then continue cutscene
 showFirstVictoryPedestal(() => {
 callback();
 });
-return true; // Handled
+return true;
 }
-return false; // Not handled
+if(action === 'hero_cards_interstitial') {
+showVictoryHeroCardsInterstitial(() => {
+callback();
+});
+return true;
+}
+return false;
 };
 
 slides.onComplete = () => {
 window.firstVictorySlideAction = null;
-showChampionsMenu();
+// Force player into FU mode for their first taste!
+S.gameMode = 'fu';
+S.forcedFUEntry = true; // Track that this is the forced entry
+savePermanent();
+toast('Tapo has entered the Frogged Up realm! You must follow!', 2500);
+setTimeout(() => title(), T(1500));
 };
 
 showNarrativeSlide(slides, 0);
 }
 
+// Hero cards interstitial showing final stats
+function showVictoryHeroCardsInterstitial(onComplete) {
+const v = document.getElementById('gameView');
+
+// Get pedestal bonuses for display
+const getPedestalBonus = (heroName) => {
+const bonuses = S.pedestal.filter(p => p.hero === heroName && p.mode === 'Standard');
+if(bonuses.length === 0) return '';
+return bonuses.map(b => b.stat === 'POW' ? '+1⚡' : '+5❤').join(' ');
+};
+
+// Build hero cards
+let heroCardsHTML = '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin:1.5rem 0">';
+S.heroes.forEach(hero => {
+const pedestalBonus = getPedestalBonus(hero.n);
+const sigilsHTML = hero.s.map(sig => {
+const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
+const displayLevel = ['Expand', 'Asterisk', 'Star'].includes(sig) ? level : level + 1;
+return `<span style="background:#1e293b;padding:2px 6px;border-radius:4px;font-size:0.75rem;margin:2px">${sigilIconOnly(sig)}L${displayLevel}</span>`;
+}).join(' ');
+heroCardsHTML += `
+<div style="background:linear-gradient(135deg,#1e3a5f,#0f172a);border:3px solid #22c55e;border-radius:12px;padding:1rem;min-width:140px;text-align:center">
+<div style="font-size:1.2rem;font-weight:bold;color:#22c55e;margin-bottom:0.5rem">${hero.n}</div>
+<div style="font-size:0.9rem;margin-bottom:0.5rem">${hero.p}⚡ | ${hero.m}❤</div>
+${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5rem">🗿 ${pedestalBonus}</div>` : ''}
+<div style="font-size:0.7rem">${sigilsHTML}</div>
+</div>`;
+});
+heroCardsHTML += '</div>';
+
+v.innerHTML = `
+<div style="max-width:700px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
+<h2 style="margin-bottom:0.5rem;color:#22c55e;font-size:1.8rem">🏆 Congratulations! 🏆</h2>
+<p style="margin-bottom:1.5rem;font-size:1.1rem">You've cleared Standard Mode!</p>
+${heroCardsHTML}
+<p style="margin-top:1.5rem;font-size:0.9rem;color:#94a3b8">Your heroes rest peacefully in Ribbleton...</p>
+<div style="margin-top:2rem">
+<button class="btn" onclick="window.heroCardsInterstitialComplete()" style="padding:1rem 2rem;font-size:1.1rem">Continue</button>
+</div>
+</div>`;
+
+window.heroCardsInterstitialComplete = onComplete;
+}
+
 function showFirstVictoryPedestal(onComplete) {
 // Show a simplified pedestal UI during the first victory cutscene
 const v = document.getElementById('gameView');
-const heroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
 const heroIcons = {'Warrior': '⚔', 'Tank': '🛡', 'Mage': '📖', 'Healer': '✚'};
 const stats = ['POW', 'HP'];
 
-// Build slot grid
-let slotsHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin:1rem 0">';
-stats.forEach((stat, rowIdx) => {
-heroes.forEach((hero, colIdx) => {
+// Get earned figurines - only heroes who earned one this run
+const earnedFigurines = window.earnedFigurines || [];
+const totalToSlot = earnedFigurines.length;
+
+// Count how many of the earned figurines have been slotted this session
+// We track by checking if earned heroes have new slots since victory
+const slotsThisSession = S.pedestal.filter(p =>
+p.mode === S.gameMode &&
+earnedFigurines.includes(p.hero) &&
+p.source === 'hero'
+).length;
+
+// Only show heroes who earned figurines
+const heroesToShow = earnedFigurines.length > 0 ? earnedFigurines : ['Warrior', 'Tank', 'Mage', 'Healer'];
+
+// Build slot grid - only for heroes who earned figurines
+let slotsHTML = `<div style="display:grid;grid-template-columns:repeat(${Math.min(heroesToShow.length, 4)},1fr);gap:1rem;margin:1rem 0">`;
+stats.forEach((stat) => {
+heroesToShow.forEach((hero) => {
 const slotted = S.pedestal.find(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
 const isSlotted = !!slotted;
+const canSlot = earnedFigurines.includes(hero) && !isSlotted;
 
 slotsHTML += `
-<div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;cursor:pointer" onclick="${isSlotted ? `removeFirstVicFigurine('${hero}','${stat}')` : `slotFirstVicFigurine('${hero}','${stat}')`}">
-<div style="font-size:1.5rem">${heroIcons[hero]}</div>
+<div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;${canSlot ? 'cursor:pointer' : 'opacity:0.5'}" onclick="${canSlot ? `slotFirstVicFigurine('${hero}','${stat}')` : ''}">
+<div style="font-size:1.5rem">${heroIcons[hero] || '🐸'}</div>
 <div style="font-size:0.8rem;font-weight:bold">${hero}</div>
 <div style="font-size:0.7rem;color:#94a3b8">${stat === 'POW' ? '+1 POW' : '+5 HP'}</div>
-${isSlotted ? '<div style="color:#fbbf24;font-size:0.8rem;margin-top:0.5rem">✓ Slotted</div>' : '<div style="color:#64748b;font-size:0.8rem;margin-top:0.5rem">Click to slot</div>'}
+${isSlotted ? '<div style="color:#fbbf24;font-size:0.8rem;margin-top:0.5rem">✓ Slotted</div>' : (canSlot ? '<div style="color:#64748b;font-size:0.8rem;margin-top:0.5rem">Click to slot</div>' : '')}
 </div>`;
 });
 });
 slotsHTML += '</div>';
 
-const slotsUsed = S.pedestal.filter(p => p.mode === S.gameMode).length;
+// Check if all earned figurines have been slotted
+const allSlotted = slotsThisSession >= totalToSlot;
+const buttonDisabled = !allSlotted && totalToSlot > 0;
 
 v.innerHTML = `
 <div style="max-width:800px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #fbbf24;color:#fff">
 <h2 style="text-align:center;margin-bottom:1rem;color:#fbbf24">⚱️ Slot Your Figurines!</h2>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.95rem">Place figurines on the pedestal to permanently boost your heroes. Each hero can have up to 2 figurines per mode.</p>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.85rem;color:#94a3b8">Slots used: ${slotsUsed}/8</p>
+<p style="text-align:center;margin-bottom:1rem;font-size:0.95rem">Each surviving hero earns a figurine! Place them to permanently boost that hero's stats.</p>
+<p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;color:${allSlotted ? '#22c55e' : '#fbbf24'}">
+<strong>Figurines placed: ${slotsThisSession}/${totalToSlot}</strong>
+</p>
 ${slotsHTML}
 <div style="text-align:center;margin-top:1.5rem">
-<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem">Continue Story</button>
+<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem;${buttonDisabled ? 'opacity:0.4;cursor:not-allowed' : ''}" ${buttonDisabled ? 'disabled' : ''}>
+${buttonDisabled ? `Slot all ${totalToSlot} figurines to continue` : 'Continue Story'}
+</button>
 </div>
 </div>`;
 
@@ -12547,6 +12724,13 @@ html += `<li style="margin:0.5rem 0;font-weight:bold">${name}</li>`;
 html += `</ul></div>`;
 }
 
+// Show gold reward for maxed heroes
+if(window.maxedHeroesGold && window.maxedHeroesGold.heroes.length > 0) {
+html += `<div style="background:rgba(234,179,8,0.15);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px;border:2px solid #fbbf24">
+<p style="text-align:center;margin:0;color:#fbbf24;font-weight:bold">Each hero can earn only 2 statues - take <span style="color:#22c55e">${window.maxedHeroesGold.gold} gold</span> instead for ${window.maxedHeroesGold.heroes.length === 1 ? window.maxedHeroesGold.heroes[0] + ' who is' : window.maxedHeroesGold.heroes.join(' & ') + ' who are'} already maxed!</p>
+</div>`;
+}
+
 html += `<div style="text-align:center;margin-top:2rem">
 <button class="btn" onclick="showStatueRoom()" style="padding:1rem 2rem;font-size:1.1rem;margin-right:1rem">Place Figurines</button>
 <button class="btn secondary" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">Return to Ribbleton</button>
@@ -12599,23 +12783,23 @@ let html = `
 <!-- Portal area in bottom-right corner -->
 <div style="position:absolute;bottom:1rem;right:1rem;z-index:10;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end">
 
-<!-- Red Portal (Always Available) - Animated swirling portal -->
+<!-- Red Portal (Always Available) - Animated swirling portal with goblin emoji -->
 <div onclick="enterRedPortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Click to begin your adventure and save Tapo!">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:ribbleton-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem;animation:ribbleton-portal-spin 2s linear infinite">🌀</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">👺</div>
   </div>
   <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
 </div>
 
 ${bluePortalUnlocked ? `
-<!-- Blue Portal (Unlocked after Floor 20) - Animated swirling portal -->
+<!-- Blue Portal (Unlocked after Floor 20) - with frog emoji -->
 <div onclick="enterBluePortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
-     title="Return to Floor 20 - Champions Hall">
+     title="Return to the Statue Room">
   <div style="width:90px;height:90px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem;animation:ribbleton-portal-spin 2.5s linear infinite">🌀</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem">🐸</div>
   </div>
   <p style="margin-top:0.25rem;font-size:0.85rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.2rem 0.5rem;border-radius:4px;border:2px solid #3b82f6">🏆 Champions</p>
 </div>
