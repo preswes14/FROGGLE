@@ -1961,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.07';
+const GAME_VERSION = '12.08';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -6458,7 +6458,7 @@ if(S.instancesRemaining <= 0) {
   setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 } else if(S.pending === 'Alpha') {
-executeAlpha(heroIdx, [...S.currentInstanceTargets]);
+executeAlphaAction(heroIdx, [...S.currentInstanceTargets]);
 S.currentInstanceTargets = [];
 finishAction(heroIdx);
 }

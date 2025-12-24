@@ -879,7 +879,7 @@ if(S.instancesRemaining <= 0) {
   setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 } else if(S.pending === 'Alpha') {
-executeAlpha(heroIdx, [...S.currentInstanceTargets]);
+executeAlphaAction(heroIdx, [...S.currentInstanceTargets]);
 S.currentInstanceTargets = [];
 finishAction(heroIdx);
 }
