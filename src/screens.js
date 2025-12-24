@@ -800,8 +800,23 @@ toast(`${hero} already has 2 figurines in ${S.gameMode} mode!`, 1800);
 return;
 }
 
+// Check if hero already slotted their figurine THIS victory session (1 per hero per victory)
+if(window.heroesSlottedThisVictory && window.heroesSlottedThisVictory.includes(hero)) {
+toast(`${hero} already placed their figurine this victory!`, 1800);
+return;
+}
+
+// Check if hero earned a figurine this victory (only survivors who aren't maxed)
+if(window.earnedFigurines && !window.earnedFigurines.includes(hero)) {
+toast(`${hero} didn't earn a figurine this victory!`, 1800);
+return;
+}
+
 // Place the hero figurine
 S.pedestal.push({hero, stat, mode: S.gameMode, source: 'hero'});
+// Track that this hero slotted their figurine this victory
+if(!window.heroesSlottedThisVictory) window.heroesSlottedThisVictory = [];
+window.heroesSlottedThisVictory.push(hero);
 savePermanent();
 toast(`${hero} ${stat} figurine placed!`, 1800);
 showPedestal();
@@ -884,6 +899,8 @@ savePermanent();
 
 // Store earned figurines for later display
 window.earnedFigurines = earnedFigurines;
+// Reset per-victory slotting tracker (each hero can only slot 1 figurine per victory)
+window.heroesSlottedThisVictory = [];
 
 // FIRST STANDARD VICTORY: Show cutscene
 if(firstStandardVictory) {
@@ -1987,6 +2004,20 @@ let html = `
 </h1>
 </div>
 
+${bluePortalUnlocked ? `
+<!-- Blue Portal (Unlocked after Floor 20) - CENTER TOP position -->
+<div style="position:absolute;top:5rem;left:50%;transform:translateX(-50%);z-index:10">
+<div onclick="enterBluePortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+     title="Return to the Statue Room">
+  <div style="width:100px;height:100px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem">🐸</div>
+  </div>
+  <p style="margin-top:0.25rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.25rem 0.6rem;border-radius:4px;border:2px solid #3b82f6">🏆 Champions</p>
+</div>
+</div>
+` : ''}
+
 <!-- Portal area in bottom-right corner -->
 <div style="position:absolute;bottom:1rem;right:1rem;z-index:10;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end">
 
@@ -1999,18 +2030,6 @@ let html = `
   </div>
   <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
 </div>
-
-${bluePortalUnlocked ? `
-<!-- Blue Portal (Unlocked after Floor 20) - with frog emoji -->
-<div onclick="enterBluePortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
-     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
-     title="Return to the Statue Room">
-  <div style="width:90px;height:90px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem">🐸</div>
-  </div>
-  <p style="margin-top:0.25rem;font-size:0.85rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.2rem 0.5rem;border-radius:4px;border:2px solid #3b82f6">🏆 Champions</p>
-</div>
-` : ''}
 
 ${S.pondHistory && S.pondHistory.length > 0 ? `
 <button class="btn small" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.9),rgba(59,130,246,0.8));border:2px solid #60a5fa;font-size:0.9rem;padding:0.5rem 1rem;box-shadow:0 4px 12px rgba(0,0,0,0.5)">
