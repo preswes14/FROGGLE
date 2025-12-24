@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.04';
+const GAME_VERSION = '12.05';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -146,6 +146,15 @@ const ENEMY_EMOJI = {
 'Cave Troll': '👹',
 'Dragon': '🐉',
 'Flydra': '🐲'
+};
+
+// Flydra head images and names (for multi-headed boss)
+// Standard mode (2 heroes): uses 'left' and 'right' heads
+// FU mode (3 heroes): uses all three heads
+const FLYDRA_HEADS = {
+left: { name: 'Venomwing', image: 'assets/flydra_venomwing.png' },
+center: { name: 'Dreadmaw', image: 'assets/flydra_dreadmaw.png' },
+right: { name: 'Blightfang', image: 'assets/flydra_blightfang.png' }
 };
 
 // Sigil icons - now using extracted PNG images with transparent backgrounds
