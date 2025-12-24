@@ -1961,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.20';
+const GAME_VERSION = '12.21';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2916,14 +2916,15 @@ const ANIMATION_TIMINGS = {
 // Helper function to apply animation speed multiplier
 // Speed: 1 = normal, 2 = 2x faster, 4 = 4x faster, 0 = instant
 function T(baseTime) {
-  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  // Note: Use !== undefined to properly handle 0 (instant mode)
+  const speed = (typeof S !== 'undefined' && S.animationSpeed !== undefined) ? S.animationSpeed : 1;
   if (speed === 0) return 1; // Instant mode: 1ms minimum
   return Math.max(1, Math.round(baseTime / speed));
 }
 
 // Get current animation speed label
 function getSpeedLabel() {
-  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  const speed = (typeof S !== 'undefined' && S.animationSpeed !== undefined) ? S.animationSpeed : 1;
   switch(speed) {
     case 0: return 'Instant';
     case 2: return '2x';

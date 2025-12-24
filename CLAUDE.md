@@ -68,8 +68,74 @@ extract.sh            # Extract modules from index.html
 ### Editing Workflow
 1. Edit files in `src/`
 2. Run `./build.sh` to rebuild `index.html`
-3. Test in browser
-4. Commit both `src/` and `index.html`
+3. Run `npm test` to verify no regressions
+4. Test in browser
+5. Commit both `src/` and `index.html`
+
+---
+
+## Testing
+
+**Status:** Implemented ✓
+
+FROGGLE has automated tests to prevent regressions. Run them before pushing any changes.
+
+### Test Commands
+```bash
+npm install         # First time only - install test dependencies
+npm test            # Run all tests (92 tests across 4 files)
+npm run test:watch  # Watch mode - re-run on file changes
+```
+
+### Test Files
+```
+tests/
+├── setup.js                    # Test harness - loads game code, mocks browser APIs
+├── game-initialization.test.js # Fresh game state, hero/enemy definitions
+├── save-load.test.js           # Save/load roundtrips, slot management
+├── screen-flow.test.js         # Neutral deck, game flags, screen transitions
+└── regression.test.js          # Specific bugs that have occurred before
+```
+
+### What's Tested
+- **Fresh game initialization** - No leftover gold, level-ups, or sigil upgrades
+- **Save/load roundtrips** - State persists correctly through localStorage
+- **Save clearing** - Run saves are cleared on death, permanent data persists
+- **Slot system** - Metadata, active run detection, slot switching
+- **Screen transitions** - Neutral deck, Ribbleton state, tutorial flags
+- **Known bugs** - Regression tests for bugs that have occurred (see below)
+
+### Regression Tests (Bugs We've Caught)
+| Bug | Test |
+|-----|------|
+| Leftover gold/upgrades after death | `regression.test.js` |
+| Ghost quest blocking Ribbleton | `regression.test.js` |
+| Healer having Attack sigil | `regression.test.js` |
+| Instant animation mode not working | `regression.test.js` |
+| All heroes in Last Stand (game over) | `save-load.test.js` |
+| Floor 0 persisting (tutorial state) | `save-load.test.js` |
+
+### Adding New Tests
+When fixing a bug, add a regression test to ensure it never returns:
+
+```javascript
+// In tests/regression.test.js
+describe('BUG: Description of the bug', () => {
+  it('should behave correctly now', () => {
+    // Set up the problematic state
+    S.someProperty = problematicValue;
+
+    // Verify the fix works
+    expect(resultOfFix).toBe(expectedBehavior);
+  });
+});
+```
+
+### Test Development Notes
+- Tests run in jsdom (Node.js browser simulation)
+- Game code is loaded via the src/ modules
+- `testHelpers.resetGameState()` clears state between tests
+- `loadSlot(1)` is the correct way to load saved data (not `loadPermanent()`)
 
 ---
 
