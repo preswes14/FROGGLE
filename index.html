@@ -1961,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.13';
+const GAME_VERSION = '12.14';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9934,8 +9934,8 @@ function showTitleCard() {
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
-<div onclick="window.titleCardClicked && window.titleCardClicked()" style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer">
-<div style="text-align:center;color:#fff">
+<div id="titleCardScreen" style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer">
+<div style="text-align:center;color:#fff;pointer-events:none">
 <div style="font-size:3.5rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
 <div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
 <div style="font-size:0.9rem;margin-top:2rem;opacity:0.6">Tap to continue</div>
@@ -9944,14 +9944,27 @@ v.innerHTML = `
 
 let proceeded = false;
 const proceed = () => {
+try {
 if(proceeded) return;
 proceeded = true;
 tutorialState = null;
 v.classList.remove('no-scroll');
 showRibbleton();
+} catch(e) {
+console.error('Title card proceed error:', e);
+v.innerHTML = '';
+showRibbleton();
+}
 };
 
-window.titleCardClicked = proceed;
+// Add click listener directly via JS (more reliable than inline onclick)
+const screen = document.getElementById('titleCardScreen');
+if(screen) {
+screen.addEventListener('click', proceed);
+screen.addEventListener('touchend', proceed);
+}
+
+// Auto-advance after 3 seconds
 setTimeout(proceed, 3000);
 }
 
