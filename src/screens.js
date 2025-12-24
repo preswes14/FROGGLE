@@ -1952,8 +1952,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for Ribbleton hub
-ProceduralMusic.startAmbient();
+// JUICE: Froggy beat for Ribbleton hub
+ProceduralMusic.startFroggyBeat();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');

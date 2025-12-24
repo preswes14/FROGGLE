@@ -1125,8 +1125,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for title/hero select
-ProceduralMusic.startAmbient();
+// JUICE: Froggy beat for title/hero select
+ProceduralMusic.startFroggyBeat();
 upd();
 // Reset selection first
 sel = [];
