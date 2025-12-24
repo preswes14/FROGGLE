@@ -319,7 +319,15 @@ S.tapoUnlocked = false;
 S.pondHistory = [];
 S.questsCompleted = [];
 S.questsClaimed = [];
-S.questProgress = {};
+S.questProgress = {
+  highestFloor: 0,
+  enemiesKilled: 0,
+  totalDamageDealt: 0,
+  heroesPlayed: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+  heroWins: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+  neutralsCompleted: { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false },
+  enemyTypesDefeated: { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false }
+};
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
 S.runsAttempted = 1;
