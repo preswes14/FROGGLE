@@ -318,14 +318,14 @@ const SoundFX = {
         break;
 
       case 'splash':
-        // Water splash for D20 rolls - noise-like falling tone
-        osc.frequency.setValueAtTime(800, now);
-        osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
-        gain.gain.setValueAtTime(this.volume * 0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        // Water splash for D20 rolls - lower pitch, softer volume
+        osc.frequency.setValueAtTime(500, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.35);
+        gain.gain.setValueAtTime(this.volume * 0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
         osc.type = 'sawtooth';
         osc.start(now);
-        osc.stop(now + 0.35);
+        osc.stop(now + 0.4);
         break;
 
       case 'hop':
