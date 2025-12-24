@@ -24,6 +24,33 @@ return;
 // JUICE: Floor enter sound
 SoundFX.play('floorEnter');
 const v = document.getElementById('gameView');
+
+// Special boss intro for Floor 19 (Flydra)
+if(f === 19) {
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.8s ease">
+<div style="font-size:2rem;font-weight:bold;margin-bottom:0.5rem;color:#e94560">Floor ${f}</div>
+<div style="font-size:1.5rem;font-style:italic;margin-bottom:1rem;color:#fbbf24">${floorName}</div>
+<img src="assets/Flydra Boss.png" alt="The Flydra" style="max-width:90vw;max-height:60vh;object-fit:contain;border-radius:8px;box-shadow:0 0 40px rgba(233,69,96,0.6);animation:flydraReveal 1.2s ease">
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes flydraReveal {
+  0% { opacity: 0; transform: scale(0.8); filter: brightness(0); }
+  50% { opacity: 1; filter: brightness(1.3); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+</style>`;
+// Longer display time for boss intro
+setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL * 2));
+return;
+}
+
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
@@ -159,6 +186,15 @@ enemy.isFlydra = true;
 enemy.flydraState = 'alive'; // 'alive', 'dying', 'reviving'
 enemy.flydraReviveTimer = 0;
 enemy.flydraLevel = S.heroes.length; // L2 normal, L3 in Frogged Up
+// Assign head position based on hero count:
+// 2 heroes (Standard): left, right
+// 3 heroes (FU): left, center, right
+const headOrder = S.heroes.length === 2 ? ['left', 'right'] : ['left', 'center', 'right'];
+const headPosition = headOrder[i % headOrder.length];
+const headData = FLYDRA_HEADS[headPosition];
+enemy.flydraHead = headPosition;
+enemy.flydraHeadImage = headData.image;
+enemy.n = headData.name; // Override name with head-specific name
 }
 // Add permanent sigils (Flydra uses hero count for level)
 if(base.permSigils) {
@@ -2491,7 +2527,12 @@ laneEnemies.forEach(e => {
 if(e.isFlydra && e.flydraState === 'dying') {
 html += `<div id="${e.id}" class="card enemy flydra-dying" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:3px solid #e94560;opacity:0.9">`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">⚠️ ${e.n} ⚠️</div>`;
+// Show greyed-out head image if available
+if(e.flydraHeadImage) {
+html += `<div style="text-align:center;margin:0.5rem 0"><img src="${e.flydraHeadImage}" alt="${e.n}" style="width:50px;height:50px;object-fit:contain;filter:grayscale(80%) brightness(0.5);border-radius:4px"></div>`;
+} else {
 html += `<div style="text-align:center;font-size:2.5rem;margin:0.5rem 0;filter:grayscale(50%)">💀</div>`;
+}
 html += `<div style="text-align:center;font-size:0.75rem;color:#f1f5f9;line-height:1.4;padding:0.5rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24;margin-bottom:0.3rem">REGENERATING...</div>`;
 html += `<div>Revives at ${Math.ceil(e.m/2)} HP next turn unless ALL heads are defeated!</div>`;
@@ -2514,10 +2555,15 @@ const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
-// POW - emoji - HP row (horizontal)
+// POW - image/emoji - HP row (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${e.p}</div>`;
+// FLYDRA: Show head image instead of emoji
+if(e.isFlydra && e.flydraHeadImage) {
+html += `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+} else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
+}
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${e.h}/${e.m}</div>`;
 html += `</div>`;
 // Extra info

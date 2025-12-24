@@ -1125,8 +1125,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for title/hero select
-ProceduralMusic.startAmbient();
+// JUICE: Froggy beat for title/hero select
+ProceduralMusic.startFroggyBeat();
 upd();
 // Reset selection first
 sel = [];
@@ -1542,12 +1542,12 @@ let buttons = '';
 if(!shopSmallBought) {
 buttons += `<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Small Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Small Potion - SOLD</button>`;
 }
 if(!shopLargeBought) {
 buttons += `<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Large Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Large Potion - SOLD</button>`;
 }
 buttons += `<button class="neutral-btn secondary" onclick="declineShopkeeper()">Leave Shop</button>`;
 

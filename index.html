@@ -208,7 +208,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .btn.risky { background: #f97316; }
 .btn.danger { background: #dc2626; }
 .btn.secondary { background: #6b7280; }
-.btn.disabled {
+.btn.disabled, .btn:disabled, button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
@@ -249,6 +249,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .neutral-btn.risky { background: #f97316; color: white; }
 .neutral-btn.danger { background: #dc2626; color: white; }
 .neutral-btn.secondary { background: #6b7280; color: white; }
+.neutral-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 .neutral-container {
   width: 100%;
   height: 100vh;
@@ -1960,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.04';
+const GAME_VERSION = '12.07';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2107,6 +2108,15 @@ const ENEMY_EMOJI = {
 'Cave Troll': '👹',
 'Dragon': '🐉',
 'Flydra': '🐲'
+};
+
+// Flydra head images and names (for multi-headed boss)
+// Standard mode (2 heroes): uses 'left' and 'right' heads (A, B)
+// FU mode (3 heroes): uses all three heads (A, B, C)
+const FLYDRA_HEADS = {
+left: { name: 'Flydra A', image: 'assets/flydra_venomwing.png' },
+center: { name: 'Flydra B', image: 'assets/flydra_dreadmaw.png' },
+right: { name: 'Flydra C', image: 'assets/flydra_blightfang.png' }
 };
 
 // Sigil icons - now using extracted PNG images with transparent backgrounds
@@ -2792,10 +2802,25 @@ const tooltipRect = tooltip.getBoundingClientRect();
 let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
 let top = rect.top - tooltipRect.height - 10;
 
-// Keep tooltip on screen
+// Keep tooltip on screen horizontally
 if(left < 10) left = 10;
 if(left + tooltipRect.width > window.innerWidth - 10) left = window.innerWidth - tooltipRect.width - 10;
-if(top < 10) top = rect.bottom + 10;
+
+// Keep tooltip on screen vertically - prefer above, fallback to below
+if(top < 10) {
+top = rect.bottom + 10;
+}
+// If tooltip would go off bottom of screen, try above again or clamp
+if(top + tooltipRect.height > window.innerHeight - 10) {
+// Try putting it above
+const aboveTop = rect.top - tooltipRect.height - 10;
+if(aboveTop >= 10) {
+top = aboveTop;
+} else {
+// Clamp to bottom of screen
+top = window.innerHeight - tooltipRect.height - 10;
+}
+}
 
 tooltip.style.left = left + 'px';
 tooltip.style.top = top + 'px';
@@ -3840,6 +3865,131 @@ const ProceduralMusic = {
     this.intervalIds.push(cricketInterval);
   },
 
+  // Froggy beat - same drums as combat but with splash and ribbit sounds
+  // Used for title screen and Ribbleton (froggy areas)
+  startFroggyBeat() {
+    if (!this.enabled || this.currentMode === 'froggy') return;
+    this.stopAll();
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+
+    this.currentMode = 'froggy';
+    const now = this.ctx.currentTime;
+    const bpm = 100;
+    const beatDuration = 60 / bpm;
+
+    // Create master gain for froggy beat
+    const masterGain = this.ctx.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(this.volume * 1.0, now + 0.5);
+    masterGain.connect(this.ctx.destination);
+    this.gainNodes.push(masterGain);
+
+    // Helper: create noise buffer for percussive sounds
+    const createNoise = (duration) => {
+      const bufferSize = this.ctx.sampleRate * duration;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      return buffer;
+    };
+
+    // 16-step patterns (two measures of 8)
+    // Kick pattern: same as combat but extended to 16 steps
+    const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0];
+    // Snare on beats 3, 7, 11, 15 (backbeat) - 0-indexed: 2, 6, 10, 14
+    const snarePattern = [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0];
+    // Hi-hat on every step for steady pulse
+    const hatPattern = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    // Splash on beats 3, 7, 11 (0-indexed: 2, 6, 10)
+    const splashPattern = [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0];
+    // Ribbit on beat 16 (0-indexed: 15)
+    const ribbitPattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
+    let step = 0;
+
+    const beatInterval = setInterval(() => {
+      if (this.currentMode !== 'froggy' || !this.ctx) return;
+
+      const t = this.ctx.currentTime;
+
+      // Kick drum - low thump (slightly quieter than combat)
+      if (kickPattern[step]) {
+        const kickOsc = this.ctx.createOscillator();
+        const kickGain = this.ctx.createGain();
+        kickOsc.connect(kickGain);
+        kickGain.connect(masterGain);
+        kickOsc.frequency.setValueAtTime(150, t);
+        kickOsc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
+        kickGain.gain.setValueAtTime(0.5, t);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        kickOsc.type = 'sine';
+        kickOsc.start(t);
+        kickOsc.stop(t + 0.12);
+      }
+
+      // Snare drum - mid punch (slightly quieter)
+      if (snarePattern[step]) {
+        const snareOsc = this.ctx.createOscillator();
+        const snareGain = this.ctx.createGain();
+        snareOsc.connect(snareGain);
+        snareGain.connect(masterGain);
+        snareOsc.frequency.setValueAtTime(180, t);
+        snareOsc.frequency.exponentialRampToValueAtTime(120, t + 0.05);
+        snareGain.gain.setValueAtTime(0.25, t);
+        snareGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        snareOsc.type = 'triangle';
+        snareOsc.start(t);
+        snareOsc.stop(t + 0.1);
+
+        // Noise rattle
+        const snareNoise = this.ctx.createBufferSource();
+        snareNoise.buffer = createNoise(0.15);
+        const snareNoiseGain = this.ctx.createGain();
+        const snareNoiseFilter = this.ctx.createBiquadFilter();
+        snareNoiseFilter.type = 'highpass';
+        snareNoiseFilter.frequency.value = 2000;
+        snareNoise.connect(snareNoiseFilter);
+        snareNoiseFilter.connect(snareNoiseGain);
+        snareNoiseGain.connect(masterGain);
+        snareNoiseGain.gain.setValueAtTime(0.18, t);
+        snareNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+        snareNoise.start(t);
+      }
+
+      // Hi-hat - quiet tick (quieter than combat for more chill vibe)
+      if (hatPattern[step]) {
+        const hatNoise = this.ctx.createBufferSource();
+        hatNoise.buffer = createNoise(0.04);
+        const hatGain = this.ctx.createGain();
+        const hatFilter = this.ctx.createBiquadFilter();
+        hatFilter.type = 'highpass';
+        hatFilter.frequency.value = 7000;
+        hatNoise.connect(hatFilter);
+        hatFilter.connect(hatGain);
+        hatGain.connect(masterGain);
+        const accent = (step === 0 || step === 8) ? 0.08 : 0.04;
+        hatGain.gain.setValueAtTime(accent, t);
+        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
+        hatNoise.start(t);
+      }
+
+      // Splash sound on beats 3, 7, 11
+      if (splashPattern[step]) {
+        SoundFX.play('splash');
+      }
+
+      // Ribbit on beat 16
+      if (ribbitPattern[step]) {
+        SoundFX.play('ribbit');
+      }
+
+      step = (step + 1) % 16;
+    }, beatDuration * 1000);
+    this.intervalIds.push(beatInterval);
+  },
+
   // Combat beat - percussive, drum-focused
   startCombat() {
     if (!this.enabled || this.currentMode === 'combat') return;
@@ -4552,6 +4702,17 @@ addBonusTurnStack(cardId, count);
 // Track active toasts for stacking
 let activeToasts = [];
 
+// Reposition all toasts based on their actual heights
+function repositionToasts() {
+const baseBottom = document.body.classList.contains('controller-active') ? 70 : 20;
+const gap = 8;
+let currentBottom = baseBottom;
+activeToasts.forEach(t => {
+t.style.bottom = `${currentBottom}px`;
+currentBottom += t.offsetHeight + gap;
+});
+}
+
 function toast(msg, dur=1800) {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
@@ -4562,22 +4723,20 @@ updateToastLog();
 const t = document.createElement('div');
 t.className = 'toast';
 t.innerHTML = msg;
-// Calculate offset based on existing toasts
-const toastHeight = 50; // Approximate height + gap
-const offset = activeToasts.length * toastHeight;
-t.style.bottom = `${20 + offset}px`;
+t.style.bottom = '-100px'; // Start off-screen
 document.body.appendChild(t);
 activeToasts.push(t);
+// Wait for render then position based on actual heights
+requestAnimationFrame(() => {
+repositionToasts();
 setTimeout(() => t.classList.add('show'), 10);
+});
 setTimeout(() => {
 t.classList.remove('show');
 setTimeout(() => {
 t.remove();
 activeToasts = activeToasts.filter(toast => toast !== t);
-// Reposition remaining toasts
-activeToasts.forEach((toast, idx) => {
-toast.style.bottom = `${20 + idx * toastHeight}px`;
-});
+repositionToasts();
 }, ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
 }
@@ -4763,6 +4922,9 @@ backdrop.innerHTML = `
 </div>`;
 document.body.appendChild(backdrop);
 debugLog('[TUTORIAL] Backdrop created and appended');
+// Auto-focus the button for keyboard accessibility
+const btn = backdrop.querySelector('button');
+if(btn) setTimeout(() => btn.focus(), 50);
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }
@@ -5441,6 +5603,33 @@ return;
 // JUICE: Floor enter sound
 SoundFX.play('floorEnter');
 const v = document.getElementById('gameView');
+
+// Special boss intro for Floor 19 (Flydra)
+if(f === 19) {
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.8s ease">
+<div style="font-size:2rem;font-weight:bold;margin-bottom:0.5rem;color:#e94560">Floor ${f}</div>
+<div style="font-size:1.5rem;font-style:italic;margin-bottom:1rem;color:#fbbf24">${floorName}</div>
+<img src="assets/Flydra Boss.png" alt="The Flydra" style="max-width:90vw;max-height:60vh;object-fit:contain;border-radius:8px;box-shadow:0 0 40px rgba(233,69,96,0.6);animation:flydraReveal 1.2s ease">
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes flydraReveal {
+  0% { opacity: 0; transform: scale(0.8); filter: brightness(0); }
+  50% { opacity: 1; filter: brightness(1.3); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+</style>`;
+// Longer display time for boss intro
+setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL * 2));
+return;
+}
+
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
@@ -5576,6 +5765,15 @@ enemy.isFlydra = true;
 enemy.flydraState = 'alive'; // 'alive', 'dying', 'reviving'
 enemy.flydraReviveTimer = 0;
 enemy.flydraLevel = S.heroes.length; // L2 normal, L3 in Frogged Up
+// Assign head position based on hero count:
+// 2 heroes (Standard): left, right
+// 3 heroes (FU): left, center, right
+const headOrder = S.heroes.length === 2 ? ['left', 'right'] : ['left', 'center', 'right'];
+const headPosition = headOrder[i % headOrder.length];
+const headData = FLYDRA_HEADS[headPosition];
+enemy.flydraHead = headPosition;
+enemy.flydraHeadImage = headData.image;
+enemy.n = headData.name; // Override name with head-specific name
 }
 // Add permanent sigils (Flydra uses hero count for level)
 if(base.permSigils) {
@@ -7908,7 +8106,12 @@ laneEnemies.forEach(e => {
 if(e.isFlydra && e.flydraState === 'dying') {
 html += `<div id="${e.id}" class="card enemy flydra-dying" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:3px solid #e94560;opacity:0.9">`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">⚠️ ${e.n} ⚠️</div>`;
+// Show greyed-out head image if available
+if(e.flydraHeadImage) {
+html += `<div style="text-align:center;margin:0.5rem 0"><img src="${e.flydraHeadImage}" alt="${e.n}" style="width:50px;height:50px;object-fit:contain;filter:grayscale(80%) brightness(0.5);border-radius:4px"></div>`;
+} else {
 html += `<div style="text-align:center;font-size:2.5rem;margin:0.5rem 0;filter:grayscale(50%)">💀</div>`;
+}
 html += `<div style="text-align:center;font-size:0.75rem;color:#f1f5f9;line-height:1.4;padding:0.5rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24;margin-bottom:0.3rem">REGENERATING...</div>`;
 html += `<div>Revives at ${Math.ceil(e.m/2)} HP next turn unless ALL heads are defeated!</div>`;
@@ -7931,10 +8134,15 @@ const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
-// POW - emoji - HP row (horizontal)
+// POW - image/emoji - HP row (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${e.p}</div>`;
+// FLYDRA: Show head image instead of emoji
+if(e.isFlydra && e.flydraHeadImage) {
+html += `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+} else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
+}
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${e.h}/${e.m}</div>`;
 html += `</div>`;
 // Extra info
@@ -8762,7 +8970,7 @@ v.innerHTML = `
 </picture>
 
 <!-- FROGGLE Title -->
-<div style="position:absolute;top:8%;left:5%;z-index:5;text-align:left">
+<div style="position:absolute;top:8%;left:50%;transform:translateX(-50%);z-index:5;text-align:center">
 <h1 style="font-size:4.5rem;font-weight:bold;color:#22c55e;text-shadow:4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 30px rgba(34,197,94,0.8);margin:0;letter-spacing:0.1em">FROGGLE</h1>
 <p style="font-size:1.2rem;color:#fff;text-shadow:2px 2px 4px #000;margin-top:0.5rem;font-style:italic">A Froggy Roguelike</p>
 </div>
@@ -9737,8 +9945,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for title/hero select
-ProceduralMusic.startAmbient();
+// JUICE: Froggy beat for title/hero select
+ProceduralMusic.startFroggyBeat();
 upd();
 // Reset selection first
 sel = [];
@@ -10154,12 +10362,12 @@ let buttons = '';
 if(!shopSmallBought) {
 buttons += `<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Small Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Small Potion - SOLD</button>`;
 }
 if(!shopLargeBought) {
 buttons += `<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Large Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Large Potion - SOLD</button>`;
 }
 buttons += `<button class="neutral-btn secondary" onclick="declineShopkeeper()">Leave Shop</button>`;
 
@@ -12212,7 +12420,7 @@ cards += `
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
 <div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${cost}G</div>
-<button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
 </div>`;
@@ -12263,7 +12471,7 @@ const canSellBack = permLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
-<button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+<button class="btn" ${!canSellBack ? 'disabled' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
 </button>
 </div>`;
@@ -12288,7 +12496,7 @@ const canSacrifice = permLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
-<button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+<button class="btn" ${!canSacrifice ? 'disabled' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
 </button>
 </div>`;
@@ -12926,7 +13134,7 @@ v.innerHTML = `
 </p>
 ${slotsHTML}
 <div style="text-align:center;margin-top:1.5rem">
-<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem;${buttonDisabled ? 'opacity:0.4;cursor:not-allowed' : ''}" ${buttonDisabled ? 'disabled' : ''}>
+<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem" ${buttonDisabled ? 'disabled' : ''}>
 ${buttonDisabled ? `Slot all ${totalToSlot} figurines to continue` : 'Continue Story'}
 </button>
 </div>
@@ -13815,8 +14023,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for Ribbleton hub
-ProceduralMusic.startAmbient();
+// JUICE: Froggy beat for Ribbleton hub
+ProceduralMusic.startFroggyBeat();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');

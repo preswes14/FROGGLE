@@ -349,7 +349,7 @@ cards += `
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
 <div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${cost}G</div>
-<button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
 </div>`;
@@ -400,7 +400,7 @@ const canSellBack = permLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
-<button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+<button class="btn" ${!canSellBack ? 'disabled' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
 </button>
 </div>`;
@@ -425,7 +425,7 @@ const canSacrifice = permLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
-<button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+<button class="btn" ${!canSacrifice ? 'disabled' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
 </button>
 </div>`;
@@ -1063,7 +1063,7 @@ v.innerHTML = `
 </p>
 ${slotsHTML}
 <div style="text-align:center;margin-top:1.5rem">
-<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem;${buttonDisabled ? 'opacity:0.4;cursor:not-allowed' : ''}" ${buttonDisabled ? 'disabled' : ''}>
+<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem" ${buttonDisabled ? 'disabled' : ''}>
 ${buttonDisabled ? `Slot all ${totalToSlot} figurines to continue` : 'Continue Story'}
 </button>
 </div>
@@ -1952,8 +1952,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for Ribbleton hub
-ProceduralMusic.startAmbient();
+// JUICE: Froggy beat for Ribbleton hub
+ProceduralMusic.startFroggyBeat();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
