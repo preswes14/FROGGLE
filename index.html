@@ -1961,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.12';
+const GAME_VERSION = '12.13';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9934,18 +9934,25 @@ function showTitleCard() {
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
-<div style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center">
+<div onclick="window.titleCardClicked && window.titleCardClicked()" style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer">
 <div style="text-align:center;color:#fff">
 <div style="font-size:3.5rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
 <div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
+<div style="font-size:0.9rem;margin-top:2rem;opacity:0.6">Tap to continue</div>
 </div>
 </div>`;
 
-setTimeout(() => {
+let proceeded = false;
+const proceed = () => {
+if(proceeded) return;
+proceeded = true;
 tutorialState = null;
 v.classList.remove('no-scroll');
-showRibbleton(); // Go to Ribbleton hub
-}, 3000); // Reduced from 5500ms to 3000ms for faster flow
+showRibbleton();
+};
+
+window.titleCardClicked = proceed;
+setTimeout(proceed, 3000);
 }
 
 // ===== TITLE & HERO SELECT =====
