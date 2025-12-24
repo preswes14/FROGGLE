@@ -1976,10 +1976,12 @@ upd(); // Update header to show "Ribbleton"
 const v = document.getElementById('gameView');
 const bluePortalUnlocked = S.hasReachedFloor20;
 
-// Show tutorial for first-time visitors to Ribbleton hub
+// Show tutorial for first-time visitors to Ribbleton hub (delayed to ensure screen is rendered first)
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
 if(isFirstVisit && !S.helpTipsDisabled) {
-  showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal on the right to begin your next rescue mission and save Tapo!");
+  setTimeout(() => {
+    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal on the right to begin your next rescue mission and save Tapo!");
+  }, 500);
 }
 
 let html = `

@@ -1961,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.11';
+const GAME_VERSION = '12.12';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -14058,10 +14058,12 @@ upd(); // Update header to show "Ribbleton"
 const v = document.getElementById('gameView');
 const bluePortalUnlocked = S.hasReachedFloor20;
 
-// Show tutorial for first-time visitors to Ribbleton hub
+// Show tutorial for first-time visitors to Ribbleton hub (delayed to ensure screen is rendered first)
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
 if(isFirstVisit && !S.helpTipsDisabled) {
-  showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal on the right to begin your next rescue mission and save Tapo!");
+  setTimeout(() => {
+    showTutorialPop('ribbleton_hub_intro', "Welcome home to Ribbleton! This is your safe haven between adventures. Click the glowing red portal on the right to begin your next rescue mission and save Tapo!");
+  }, 500);
 }
 
 let html = `
