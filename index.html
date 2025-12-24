@@ -1961,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.19';
+const GAME_VERSION = '12.20';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9134,13 +9134,38 @@ S.pondHistory = [];
 S.questsCompleted = [];
 S.questsClaimed = [];
 S.questProgress = {
-  highestFloor: 0,
+  // Combat stats
   enemiesKilled: 0,
   totalDamageDealt: 0,
+  maxDamageOneAction: 0,
+  maxTargetsOneAction: 0,
+  lastStandSurvived: false,
+  // Action usage
+  d20Used: false,
+  shieldApplied: false,
+  healUsed: false,
+  grappleUsed: false,
+  alphaUsed: false,
+  ghostBlocked: false,
+  // Per-hero tracking
   heroesPlayed: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
   heroWins: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+  // Neutral encounters
   neutralsCompleted: { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false },
-  enemyTypesDefeated: { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false }
+  // Enemy types
+  enemyTypesDefeated: { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false },
+  // Milestones
+  highestFloor: 0,
+  totalGoldEarned: 0,
+  totalRunsCompleted: 0,
+  standardWins: 0,
+  fuWins: 0,
+  maxRecruitsHeld: 0,
+  purchasedUpgrade: false,
+  // Repeatable quest tiers
+  slayerTier: 0,
+  goldDiggerTier: 0,
+  veteranTier: 0
 };
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
