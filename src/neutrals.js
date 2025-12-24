@@ -1117,9 +1117,62 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
-// Skip title card - go straight to Ribbleton
-tutorialState = null;
+console.log('[TITLECARD] showTitleCard called');
+try {
+const v = document.getElementById('gameView');
+if(!v) {
+console.error('[TITLECARD] No gameView element!');
 showRibbleton();
+return;
+}
+v.classList.add('no-scroll');
+v.innerHTML = `
+<div id="titleCardScreen" style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer">
+<div style="text-align:center;color:#fff;pointer-events:none">
+<div style="font-size:3.5rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
+<div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
+<div style="font-size:0.9rem;margin-top:2rem;opacity:0.6">Tap to continue</div>
+</div>
+</div>`;
+console.log('[TITLECARD] HTML set, setting up proceed');
+
+let proceeded = false;
+const proceed = () => {
+console.log('[TITLECARD] proceed called, proceeded=', proceeded);
+if(proceeded) return;
+proceeded = true;
+try {
+tutorialState = null;
+v.classList.remove('no-scroll');
+console.log('[TITLECARD] About to call showRibbleton');
+showRibbleton();
+console.log('[TITLECARD] showRibbleton completed');
+} catch(e) {
+console.error('[TITLECARD] Error in proceed:', e);
+alert('Error: ' + e.message);
+}
+};
+
+// Multiple ways to trigger - belt and suspenders
+const screen = document.getElementById('titleCardScreen');
+if(screen) {
+screen.onclick = proceed;
+screen.ontouchend = (e) => { e.preventDefault(); proceed(); };
+console.log('[TITLECARD] Click handlers attached');
+}
+
+// Auto-advance
+const timerId = setTimeout(() => {
+console.log('[TITLECARD] setTimeout fired');
+proceed();
+}, 2500);
+console.log('[TITLECARD] Timer set:', timerId);
+
+} catch(e) {
+console.error('[TITLECARD] Fatal error:', e);
+alert('Title card error: ' + e.message);
+showRibbleton();
+}
 }
 
 // ===== TITLE & HERO SELECT =====
