@@ -510,6 +510,17 @@ addBonusTurnStack(cardId, count);
 // Track active toasts for stacking
 let activeToasts = [];
 
+// Reposition all toasts based on their actual heights
+function repositionToasts() {
+const baseBottom = document.body.classList.contains('controller-active') ? 70 : 20;
+const gap = 8;
+let currentBottom = baseBottom;
+activeToasts.forEach(t => {
+t.style.bottom = `${currentBottom}px`;
+currentBottom += t.offsetHeight + gap;
+});
+}
+
 function toast(msg, dur=1800) {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
@@ -520,22 +531,20 @@ updateToastLog();
 const t = document.createElement('div');
 t.className = 'toast';
 t.innerHTML = msg;
-// Calculate offset based on existing toasts
-const toastHeight = 50; // Approximate height + gap
-const offset = activeToasts.length * toastHeight;
-t.style.bottom = `${20 + offset}px`;
+t.style.bottom = '-100px'; // Start off-screen
 document.body.appendChild(t);
 activeToasts.push(t);
+// Wait for render then position based on actual heights
+requestAnimationFrame(() => {
+repositionToasts();
 setTimeout(() => t.classList.add('show'), 10);
+});
 setTimeout(() => {
 t.classList.remove('show');
 setTimeout(() => {
 t.remove();
 activeToasts = activeToasts.filter(toast => toast !== t);
-// Reposition remaining toasts
-activeToasts.forEach((toast, idx) => {
-toast.style.bottom = `${20 + idx * toastHeight}px`;
-});
+repositionToasts();
 }, ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
 }
@@ -721,6 +730,9 @@ backdrop.innerHTML = `
 </div>`;
 document.body.appendChild(backdrop);
 debugLog('[TUTORIAL] Backdrop created and appended');
+// Auto-focus the button for keyboard accessibility
+const btn = backdrop.querySelector('button');
+if(btn) setTimeout(() => btn.focus(), 50);
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }

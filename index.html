@@ -208,7 +208,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .btn.risky { background: #f97316; }
 .btn.danger { background: #dc2626; }
 .btn.secondary { background: #6b7280; }
-.btn.disabled {
+.btn.disabled, .btn:disabled, button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
@@ -249,6 +249,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .neutral-btn.risky { background: #f97316; color: white; }
 .neutral-btn.danger { background: #dc2626; color: white; }
 .neutral-btn.secondary { background: #6b7280; color: white; }
+.neutral-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 .neutral-container {
   width: 100%;
   height: 100vh;
@@ -1960,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.05';
+const GAME_VERSION = '12.06';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2110,12 +2111,12 @@ const ENEMY_EMOJI = {
 };
 
 // Flydra head images and names (for multi-headed boss)
-// Standard mode (2 heroes): uses 'left' and 'right' heads
-// FU mode (3 heroes): uses all three heads
+// Standard mode (2 heroes): uses 'left' and 'right' heads (A, B)
+// FU mode (3 heroes): uses all three heads (A, B, C)
 const FLYDRA_HEADS = {
-left: { name: 'Venomwing', image: 'assets/flydra_venomwing.png' },
-center: { name: 'Dreadmaw', image: 'assets/flydra_dreadmaw.png' },
-right: { name: 'Blightfang', image: 'assets/flydra_blightfang.png' }
+left: { name: 'Flydra A', image: 'assets/flydra_venomwing.png' },
+center: { name: 'Flydra B', image: 'assets/flydra_dreadmaw.png' },
+right: { name: 'Flydra C', image: 'assets/flydra_blightfang.png' }
 };
 
 // Sigil icons - now using extracted PNG images with transparent backgrounds
@@ -2801,10 +2802,25 @@ const tooltipRect = tooltip.getBoundingClientRect();
 let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
 let top = rect.top - tooltipRect.height - 10;
 
-// Keep tooltip on screen
+// Keep tooltip on screen horizontally
 if(left < 10) left = 10;
 if(left + tooltipRect.width > window.innerWidth - 10) left = window.innerWidth - tooltipRect.width - 10;
-if(top < 10) top = rect.bottom + 10;
+
+// Keep tooltip on screen vertically - prefer above, fallback to below
+if(top < 10) {
+top = rect.bottom + 10;
+}
+// If tooltip would go off bottom of screen, try above again or clamp
+if(top + tooltipRect.height > window.innerHeight - 10) {
+// Try putting it above
+const aboveTop = rect.top - tooltipRect.height - 10;
+if(aboveTop >= 10) {
+top = aboveTop;
+} else {
+// Clamp to bottom of screen
+top = window.innerHeight - tooltipRect.height - 10;
+}
+}
 
 tooltip.style.left = left + 'px';
 tooltip.style.top = top + 'px';
@@ -4561,6 +4577,17 @@ addBonusTurnStack(cardId, count);
 // Track active toasts for stacking
 let activeToasts = [];
 
+// Reposition all toasts based on their actual heights
+function repositionToasts() {
+const baseBottom = document.body.classList.contains('controller-active') ? 70 : 20;
+const gap = 8;
+let currentBottom = baseBottom;
+activeToasts.forEach(t => {
+t.style.bottom = `${currentBottom}px`;
+currentBottom += t.offsetHeight + gap;
+});
+}
+
 function toast(msg, dur=1800) {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
@@ -4571,22 +4598,20 @@ updateToastLog();
 const t = document.createElement('div');
 t.className = 'toast';
 t.innerHTML = msg;
-// Calculate offset based on existing toasts
-const toastHeight = 50; // Approximate height + gap
-const offset = activeToasts.length * toastHeight;
-t.style.bottom = `${20 + offset}px`;
+t.style.bottom = '-100px'; // Start off-screen
 document.body.appendChild(t);
 activeToasts.push(t);
+// Wait for render then position based on actual heights
+requestAnimationFrame(() => {
+repositionToasts();
 setTimeout(() => t.classList.add('show'), 10);
+});
 setTimeout(() => {
 t.classList.remove('show');
 setTimeout(() => {
 t.remove();
 activeToasts = activeToasts.filter(toast => toast !== t);
-// Reposition remaining toasts
-activeToasts.forEach((toast, idx) => {
-toast.style.bottom = `${20 + idx * toastHeight}px`;
-});
+repositionToasts();
 }, ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
 }
@@ -4772,6 +4797,9 @@ backdrop.innerHTML = `
 </div>`;
 document.body.appendChild(backdrop);
 debugLog('[TUTORIAL] Backdrop created and appended');
+// Auto-focus the button for keyboard accessibility
+const btn = backdrop.querySelector('button');
+if(btn) setTimeout(() => btn.focus(), 50);
 // Store callback for later
 window.tutorialCallback = onDismiss;
 }
@@ -10209,12 +10237,12 @@ let buttons = '';
 if(!shopSmallBought) {
 buttons += `<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Small Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Small Potion - SOLD</button>`;
 }
 if(!shopLargeBought) {
 buttons += `<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Large Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Large Potion - SOLD</button>`;
 }
 buttons += `<button class="neutral-btn secondary" onclick="declineShopkeeper()">Leave Shop</button>`;
 
@@ -12267,7 +12295,7 @@ cards += `
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
 <div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${cost}G</div>
-<button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
 </div>`;
@@ -12318,7 +12346,7 @@ const canSellBack = permLevel > 0;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
-<button class="btn" ${!canSellBack ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+<button class="btn" ${!canSellBack ? 'disabled' : ''} onclick="deathBoySellBack('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSellBack ? `Sell for ${S.goingRate}G` : 'Cannot Sell'}
 </button>
 </div>`;
@@ -12343,7 +12371,7 @@ const canSacrifice = permLevel > 0 && S.goingRate > 1;
 html += `
 <div style="background:rgba(0,0,0,0.3);padding:0.5rem;margin-bottom:0.5rem;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
 <span>${sigilIconWithTooltip(sig, currentLevel, 750)} L${currentLevel}</span>
-<button class="btn" ${!canSacrifice ? 'disabled style="opacity:0.4"' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
+<button class="btn" ${!canSacrifice ? 'disabled' : ''} onclick="deathBoySacrifice('${sig}')" style="padding:0.3rem 0.6rem;font-size:0.75rem">
 ${canSacrifice ? `+${S.goingRate}XP` : 'Cannot'}
 </button>
 </div>`;
@@ -12981,7 +13009,7 @@ v.innerHTML = `
 </p>
 ${slotsHTML}
 <div style="text-align:center;margin-top:1.5rem">
-<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem;${buttonDisabled ? 'opacity:0.4;cursor:not-allowed' : ''}" ${buttonDisabled ? 'disabled' : ''}>
+<button class="btn" onclick="window.firstVicPedestalComplete()" style="padding:1rem 2rem;font-size:1.1rem" ${buttonDisabled ? 'disabled' : ''}>
 ${buttonDisabled ? `Slot all ${totalToSlot} figurines to continue` : 'Continue Story'}
 </button>
 </div>

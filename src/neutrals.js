@@ -1542,12 +1542,12 @@ let buttons = '';
 if(!shopSmallBought) {
 buttons += `<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Small Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Small Potion - SOLD</button>`;
 }
 if(!shopLargeBought) {
 buttons += `<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Large Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Large Potion - SOLD</button>`;
 }
 buttons += `<button class="neutral-btn secondary" onclick="declineShopkeeper()">Leave Shop</button>`;
 
