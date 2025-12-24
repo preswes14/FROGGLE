@@ -305,6 +305,23 @@ newGameInSlot(slot);
 function createNewSlot(slot) {
 S.currentSlot = slot;
 localStorage.setItem('froggle8_current_slot', slot.toString());
+// Reset ALL permanent state for a fresh slot
+S.gold = 0;
+S.goingRate = 1;
+S.startingXP = 0;
+S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sigUpgradeCounts = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.pedestal = [];
+S.hasReachedFloor20 = false;
+S.fuUnlocked = false;
+S.forcedFUEntry = false;
+S.tapoUnlocked = false;
+S.pondHistory = [];
+S.questsCompleted = [];
+S.questsClaimed = [];
+S.questProgress = {};
+S.tutorialFlags = {};
+S.usedDeathQuotes = [];
 S.runsAttempted = 1;
 S.runNumber = 1;
 newGame();
