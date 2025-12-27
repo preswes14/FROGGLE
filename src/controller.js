@@ -1184,8 +1184,6 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
-    console.log('[GAMEPAD] toggleTooltip called, focusedElement:', this.focusedElement);
-
     // If tooltip is already visible, hide it
     if (this.tooltipVisible) {
       this.hideActiveTooltip();
@@ -1193,10 +1191,7 @@ const GamepadController = {
     }
 
     // Try to show tooltip for focused element
-    if (!this.focusedElement) {
-      console.log('[GAMEPAD] No focused element for tooltip');
-      return;
-    }
+    if (!this.focusedElement) return;
 
     // Check if focused element is a sigil
     let sigilEl = null;
@@ -1214,7 +1209,6 @@ const GamepadController = {
           const idx = (this.currentSigilIndex >= 0 && this.currentSigilIndex < sigils.length)
                       ? this.currentSigilIndex : 0;
           sigilEl = sigils[idx];
-          console.log('[GAMEPAD] Found sigil in card at index:', idx, 'of', sigils.length);
         }
       } else {
         // Try direct querySelector as fallback
@@ -1223,10 +1217,7 @@ const GamepadController = {
     }
 
     if (sigilEl) {
-      console.log('[GAMEPAD] Showing tooltip for sigil:', sigilEl);
       this.showSigilTooltip(sigilEl);
-    } else {
-      console.log('[GAMEPAD] No sigil found for tooltip');
     }
   },
 

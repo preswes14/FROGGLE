@@ -351,6 +351,12 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   width: 100%;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
+/* Crowded lanes: scale down enemy cards when 3+ or 5+ enemies */
+.combat-lane.crowded-3 .card.enemy { width: 120px; max-width: 120px; padding: 0.35rem; min-height: 55px; font-size: 0.75rem; }
+.combat-lane.crowded-3 .card.enemy .sigil { width: 20px; height: 20px; font-size: 0.7rem; }
+.combat-lane.crowded-5 .card.enemy { width: 95px; max-width: 95px; padding: 0.25rem; min-height: 45px; font-size: 0.65rem; }
+.combat-lane.crowded-5 .card.enemy .sigil { width: 16px; height: 16px; font-size: 0.6rem; }
+.combat-lane.crowded-5 .card.enemy .sigil-row { gap: 1px; }
 .card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; overflow: hidden; word-wrap: break-word; }
 .card-stats { font-size: 0.8rem; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
 .card.hero { background: #2c63c7; color: white; width: 160px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
@@ -7446,7 +7452,6 @@ const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !=
 const safeSigils = drawnSigils.filter(sigil => {
 if(sigil.sig === 'Grapple') {
 const target = S.heroes[enemy.li];
-console.log(`[GRAPPLE DEBUG] ${enemy.n} has Grapple L${sigil.level}, lane=${enemy.li}, target=${target?.n}, targetHP=${target?.h}, enemyHP=${enemy.h}, targetPOW=${target?.p}`);
 if(target && target.h > 0) {
 const recoilDamage = target.p;
 // Skip grapple if it would kill the enemy
@@ -7454,15 +7459,10 @@ if(enemy.h <= recoilDamage) {
 toast(`${getEnemyDisplayName(enemy)} considered Grapple but chose to survive instead!`);
 return false;
 }
-console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple passed filter - will execute`);
-} else {
-console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple - no valid target (target null or dead)`);
 }
 }
 return true;
 });
-
-console.log(`[GRAPPLE DEBUG] ${enemy.n} safeSigils:`, safeSigils.map(s => s.sig));
 // Execute drawn sigils first (so Grapple stuns before attack)
 safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
 // Then execute base attack
@@ -7569,13 +7569,10 @@ if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
 toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} for ${healAmt}!`);
 }
 } else if(sig === 'Grapple') {
-console.log(`[GRAPPLE EXECUTE] ${enemy.n} executing Grapple L${level}`);
 const target = S.heroes[enemy.li];
-console.log(`[GRAPPLE EXECUTE] target=${target?.n}, targetHP=${target?.h}, lane=${enemy.li}`);
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
 enemy.h -= dmgToEnemy;
-console.log(`[GRAPPLE EXECUTE] Applying stun ${level} to ${target.n}, enemy took ${dmgToEnemy} recoil`);
 toast(`${getEnemyDisplayName(enemy)} grappled ${target.n}!`);
 if(enemy.h <= 0) {
 enemy.h = 0;
@@ -7929,7 +7926,10 @@ const enemyLanes = {};
 S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes[e.li].push(e); });
 
 S.heroes.forEach((h,i) => {
-html += `<div class="combat-lane">`;
+// Add class for crowded lanes (many enemies)
+const laneEnemyCount = (enemyLanes[i] || []).length;
+const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
+html += `<div class="combat-lane ${crowdedClass}">`;
 html += '<div class="lane-content" style="display:flex;gap:2rem;justify-content:center;align-items:stretch">';
 
 // Hero section (left side of lane)
@@ -10155,11 +10155,8 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
-console.log('[TITLECARD] showTitleCard called');
-try {
 const v = document.getElementById('gameView');
 if(!v) {
-console.error('[TITLECARD] No gameView element!');
 showRibbleton();
 return;
 }
@@ -10172,23 +10169,14 @@ v.innerHTML = `
 <div style="font-size:0.9rem;margin-top:2rem;opacity:0.6">Tap to continue</div>
 </div>
 </div>`;
-console.log('[TITLECARD] HTML set, setting up proceed');
 
 let proceeded = false;
 const proceed = () => {
-console.log('[TITLECARD] proceed called, proceeded=', proceeded);
 if(proceeded) return;
 proceeded = true;
-try {
 tutorialState = null;
 v.classList.remove('no-scroll');
-console.log('[TITLECARD] About to call showRibbleton');
 showRibbleton();
-console.log('[TITLECARD] showRibbleton completed');
-} catch(e) {
-console.error('[TITLECARD] Error in proceed:', e);
-alert('Error: ' + e.message);
-}
 };
 
 // Multiple ways to trigger - belt and suspenders
@@ -10196,21 +10184,10 @@ const screen = document.getElementById('titleCardScreen');
 if(screen) {
 screen.onclick = proceed;
 screen.ontouchend = (e) => { e.preventDefault(); proceed(); };
-console.log('[TITLECARD] Click handlers attached');
 }
 
 // Auto-advance
-const timerId = setTimeout(() => {
-console.log('[TITLECARD] setTimeout fired');
-proceed();
-}, 2500);
-console.log('[TITLECARD] Timer set:', timerId);
-
-} catch(e) {
-console.error('[TITLECARD] Fatal error:', e);
-alert('Title card error: ' + e.message);
-showRibbleton();
-}
+setTimeout(proceed, 2500);
 }
 
 // ===== TITLE & HERO SELECT =====
@@ -16651,8 +16628,6 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
-    console.log('[GAMEPAD] toggleTooltip called, focusedElement:', this.focusedElement);
-
     // If tooltip is already visible, hide it
     if (this.tooltipVisible) {
       this.hideActiveTooltip();
@@ -16660,10 +16635,7 @@ const GamepadController = {
     }
 
     // Try to show tooltip for focused element
-    if (!this.focusedElement) {
-      console.log('[GAMEPAD] No focused element for tooltip');
-      return;
-    }
+    if (!this.focusedElement) return;
 
     // Check if focused element is a sigil
     let sigilEl = null;
@@ -16681,7 +16653,6 @@ const GamepadController = {
           const idx = (this.currentSigilIndex >= 0 && this.currentSigilIndex < sigils.length)
                       ? this.currentSigilIndex : 0;
           sigilEl = sigils[idx];
-          console.log('[GAMEPAD] Found sigil in card at index:', idx, 'of', sigils.length);
         }
       } else {
         // Try direct querySelector as fallback
@@ -16690,10 +16661,7 @@ const GamepadController = {
     }
 
     if (sigilEl) {
-      console.log('[GAMEPAD] Showing tooltip for sigil:', sigilEl);
       this.showSigilTooltip(sigilEl);
-    } else {
-      console.log('[GAMEPAD] No sigil found for tooltip');
     }
   },
 

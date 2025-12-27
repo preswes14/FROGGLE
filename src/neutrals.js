@@ -1145,11 +1145,8 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
-console.log('[TITLECARD] showTitleCard called');
-try {
 const v = document.getElementById('gameView');
 if(!v) {
-console.error('[TITLECARD] No gameView element!');
 showRibbleton();
 return;
 }
@@ -1162,23 +1159,14 @@ v.innerHTML = `
 <div style="font-size:0.9rem;margin-top:2rem;opacity:0.6">Tap to continue</div>
 </div>
 </div>`;
-console.log('[TITLECARD] HTML set, setting up proceed');
 
 let proceeded = false;
 const proceed = () => {
-console.log('[TITLECARD] proceed called, proceeded=', proceeded);
 if(proceeded) return;
 proceeded = true;
-try {
 tutorialState = null;
 v.classList.remove('no-scroll');
-console.log('[TITLECARD] About to call showRibbleton');
 showRibbleton();
-console.log('[TITLECARD] showRibbleton completed');
-} catch(e) {
-console.error('[TITLECARD] Error in proceed:', e);
-alert('Error: ' + e.message);
-}
 };
 
 // Multiple ways to trigger - belt and suspenders
@@ -1186,21 +1174,10 @@ const screen = document.getElementById('titleCardScreen');
 if(screen) {
 screen.onclick = proceed;
 screen.ontouchend = (e) => { e.preventDefault(); proceed(); };
-console.log('[TITLECARD] Click handlers attached');
 }
 
 // Auto-advance
-const timerId = setTimeout(() => {
-console.log('[TITLECARD] setTimeout fired');
-proceed();
-}, 2500);
-console.log('[TITLECARD] Timer set:', timerId);
-
-} catch(e) {
-console.error('[TITLECARD] Fatal error:', e);
-alert('Title card error: ' + e.message);
-showRibbleton();
-}
+setTimeout(proceed, 2500);
 }
 
 // ===== TITLE & HERO SELECT =====
