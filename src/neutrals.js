@@ -56,7 +56,8 @@ S.neutralDeck.push(`${base}2`);
 // ===== D20 ROLLS FOR NEUTRALS =====
 function rollD20Neutral() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Active sigils are stored 0-indexed (L1 = 0), so add 1 for actual level
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
 showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
 return rollDice(d20Level, 20);
@@ -2687,8 +2688,8 @@ buttons: `
 
 function playBetween20s(stage, wager) {
 const v = document.getElementById('gameView');
-// Include both permanent AND temporary upgrades
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Include both permanent AND temporary upgrades (active sigils stored 0-indexed)
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 
 // PHASE 1: Establish Range
 const boundsCount = stage === 1 ? (d20Level + 1) : 2; // Stage 1: level+1, Stage 2: always 2
@@ -2781,8 +2782,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function targetRollBetween20s() {
 const state = window.between20sState;
 const v = document.getElementById('gameView');
-// Include both permanent AND temporary upgrades
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Include both permanent AND temporary upgrades (active sigils stored 0-indexed)
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 
 // PHASE 3: Target Roll
 const targetRolls = [];
