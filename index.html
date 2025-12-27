@@ -142,6 +142,8 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .modal-container.faq {
   background: linear-gradient(#fff, #f7f1e3);
   border: 3px solid #f97316;
+  max-height: 90vh;
+  max-width: 600px;
 }
 .modal-title {
   text-align: center;
@@ -588,7 +590,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
 .tutorial-modal { background: linear-gradient(#fff, #e8f5e9); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
 .tutorial-modal h2 { margin-top: 0; color: #6b4423; }
-.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; }
+.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; background: rgba(255,255,255,0.9); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.3); }
 .tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
 .tutorial-modal button:hover { background: #15803d; }
 .tutorial-modal button:active { transform: scale(0.98); }
@@ -1958,7 +1960,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.02';
+const GAME_VERSION = '12.03';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2852,18 +2854,18 @@ const ANIMATION_TIMINGS = {
   FLOOR_INTERSTITIAL: 2000, // Floor name display duration
 
   // Combat turn timings
-  TURN_TRANSITION: 250,   // Hero turn → Enemy turn delay
-  PHASE_TRANSITION: 200,  // Between enemy phases (Alpha/Recruit/Normal)
-  ALPHA_PHASE_START: 400, // Enemy turn start → Alpha phase
-  ENEMY_ACTION_DELAY: 125, // Stagger between enemy actions (reading order)
-  ENEMY_TURN_END: 300,    // After last enemy action
-  ACTION_COMPLETE: 500,   // After hero action completes
+  TURN_TRANSITION: 400,   // Hero turn → Enemy turn delay
+  PHASE_TRANSITION: 300,  // Between enemy phases (Alpha/Recruit/Normal)
+  ALPHA_PHASE_START: 500, // Enemy turn start → Alpha phase
+  ENEMY_ACTION_DELAY: 400, // Stagger between enemy actions (slower for readability)
+  ENEMY_TURN_END: 400,    // After last enemy action
+  ACTION_COMPLETE: 600,   // After hero action completes
 
   // Toast message timings
-  TOAST_SHORT: 1200,      // Short notification
-  TOAST_MEDIUM: 1800,     // Medium notification
-  TOAST_LONG: 2000,       // Long notification
-  TOAST_FADE: 300,        // Toast fade out duration
+  TOAST_SHORT: 1800,      // Short notification
+  TOAST_MEDIUM: 2400,     // Medium notification
+  TOAST_LONG: 3000,       // Long notification
+  TOAST_FADE: 400,        // Toast fade out duration
 
   // Tooltip timings
   TOOLTIP_DELAY: 500,     // Long-press delay for mobile tooltips
@@ -6112,6 +6114,7 @@ if(!enemy) return;
 if(action === 'CONFUSE') {
 // Confused enemy deals its own POW damage to itself
 const dmg = enemy.p;
+toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
@@ -15822,11 +15825,21 @@ const GamepadController = {
       return;
     }
 
-    // If we have targets selected, confirm them directly
+    // If we have targets selected and are at max capacity, confirm them directly
     // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
     const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
     const hasInstanceTargets = typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0;
-    if (hasD20Targets || hasInstanceTargets) {
+
+    // Check if we're at max target capacity (for multi-target actions like Attack with Expand)
+    let atMaxCapacity = true;
+    if (hasInstanceTargets && typeof getTargetsPerInstance === 'function' && S.activeIdx >= 0) {
+      const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
+      atMaxCapacity = S.currentInstanceTargets.length >= targetsPerInstance;
+      console.log('[GAMEPAD] Target capacity check:', S.currentInstanceTargets.length, '/', targetsPerInstance, 'atMax:', atMaxCapacity);
+    }
+
+    // Only auto-confirm when at max capacity or D20 (single target)
+    if (hasD20Targets || (hasInstanceTargets && atMaxCapacity)) {
       if (typeof SoundFX !== 'undefined' && SoundFX.play) {
         SoundFX.play('click');
       }
@@ -16001,6 +16014,8 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
+    console.log('[GAMEPAD] toggleTooltip called, focusedElement:', this.focusedElement);
+
     // If tooltip is already visible, hide it
     if (this.tooltipVisible) {
       this.hideActiveTooltip();
@@ -16008,14 +16023,40 @@ const GamepadController = {
     }
 
     // Try to show tooltip for focused element
-    if (!this.focusedElement) return;
+    if (!this.focusedElement) {
+      console.log('[GAMEPAD] No focused element for tooltip');
+      return;
+    }
 
     // Check if focused element is a sigil
-    const sigilEl = this.focusedElement.classList.contains('sigil') ? this.focusedElement :
-                    this.focusedElement.querySelector('.sigil');
+    let sigilEl = null;
+    if (this.focusedElement.classList.contains('sigil')) {
+      sigilEl = this.focusedElement;
+    } else {
+      // Check if focused element is or contains a card with sigils
+      const card = this.focusedElement.classList.contains('card') ? this.focusedElement :
+                   this.focusedElement.closest('.card');
+      if (card) {
+        // Get all sigils in this card
+        const sigils = Array.from(card.querySelectorAll('.sigil'));
+        if (sigils.length > 0) {
+          // Use currentSigilIndex if valid, otherwise first sigil
+          const idx = (this.currentSigilIndex >= 0 && this.currentSigilIndex < sigils.length)
+                      ? this.currentSigilIndex : 0;
+          sigilEl = sigils[idx];
+          console.log('[GAMEPAD] Found sigil in card at index:', idx, 'of', sigils.length);
+        }
+      } else {
+        // Try direct querySelector as fallback
+        sigilEl = this.focusedElement.querySelector('.sigil');
+      }
+    }
 
     if (sigilEl) {
+      console.log('[GAMEPAD] Showing tooltip for sigil:', sigilEl);
       this.showSigilTooltip(sigilEl);
+    } else {
+      console.log('[GAMEPAD] No sigil found for tooltip');
     }
   },
 

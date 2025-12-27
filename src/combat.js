@@ -697,6 +697,7 @@ if(!enemy) return;
 if(action === 'CONFUSE') {
 // Confused enemy deals its own POW damage to itself
 const dmg = enemy.p;
+toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
