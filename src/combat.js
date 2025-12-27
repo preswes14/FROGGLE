@@ -242,6 +242,11 @@ enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
 }
 return enemy;
 });
+// Shuffle enemies for variety within lanes (Fisher-Yates)
+for(let i = S.enemies.length - 1; i > 0; i--) {
+const j = Math.floor(Math.random() * (i + 1));
+[S.enemies[i], S.enemies[j]] = [S.enemies[j], S.enemies[i]];
+}
 if(S.ambushed) {
 toast('AMBUSHED! All heroes stunned Turn 1!', 1800);
 S.ambushed = false; // Clear flag after use
@@ -357,7 +362,8 @@ let repeats = 1;
 
 if(hasAsterisk && firstAction) {
 repeats = asteriskLevel + 1;
-h.firstActionUsed = true;
+// NOTE: firstActionUsed is set in finishAction(), not here
+// This allows players to cancel and still keep their Asterisk benefit
 toast(`Asterisk activated! ${sig} ×${repeats}!`, 1500);
 }
 
@@ -521,7 +527,7 @@ let html = '';
 if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
-html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
+html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">✅ DC 10: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal this enemy's POW to all enemies</span>
@@ -547,7 +553,7 @@ return;
 } else {
 // Normal D20 menu (centered, blocks view)
 html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px">';
-html += '<h3 style="margin-bottom:1rem">D20: Do Something Crazy</h3>';
+html += '<h3 style="margin-bottom:1rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
 if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">✨ Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
@@ -727,6 +733,7 @@ if(!enemy) return;
 if(action === 'CONFUSE') {
 // Confused enemy deals its own POW damage to itself
 const dmg = enemy.p;
+toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
@@ -1397,6 +1404,9 @@ S.alphaCurrentAction = 0;
 }
 // Normal action finish
 S.acted.push(heroIdx);
+// Mark first action as used (for Asterisk) only when action commits
+const h = S.heroes[heroIdx];
+if(h && !h.firstActionUsed) h.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
@@ -1406,7 +1416,6 @@ S.activeIdx = -1;
 S.turnDamage = 0; // Reset damage counter for next hero's turn
 
 // RIBBLETON TUTORIAL: Check advancement after action using TutorialManager
-const h = S.heroes[heroIdx];
 TutorialManager.advanceStage({action: 'finish', hero: h.n, round: S.round});
 
 // Autosave after each hero action
@@ -1650,7 +1659,12 @@ setTimeout(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
-if(recruit.st > 0) { toast(`${recruit.n} (Recruit) is stunned!`); return; }
+if(recruit.st > 0) {
+toast(`${recruit.n} (Recruit) is stunned!`);
+// Clear drawn sigils even when stunned - they don't persist
+recruit.s = recruit.s.filter(s => s.perm);
+return;
+}
 if(recruit.h <= 0) return; // Dead recruit
 // Recruit attacks enemies (not heroes)
 executeRecruitBaseAttack(recruit);
@@ -1748,7 +1762,12 @@ setTimeout(() => endEnemyTurn(), delay + T(600));
 function executeEnemyTurn(enemy) {
 // FLYDRA: Dying Flydras don't act
 if(enemy.isFlydra && enemy.flydraState === 'dying') { return; }
-if(enemy.st > 0) { toast(`${getEnemyDisplayName(enemy)} is stunned!`); return; }
+if(enemy.st > 0) {
+toast(`${getEnemyDisplayName(enemy)} is stunned!`);
+// Clear drawn sigils even when stunned - they don't persist
+enemy.s = enemy.s.filter(s => s.perm);
+return;
+}
 if(enemy.alphaActed) {
 toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
@@ -1757,12 +1776,14 @@ return;
 // Filter out Attack sigil - the base attack mechanism handles it
 // Attack sigil is a marker indicating the enemy attacks, not an additional action
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Attack');
-executeEnemyBaseAttack(enemy);
 
 // Filter out suicidal grapples - enemies should never kill themselves
+// NOTE: We filter and execute sigils BEFORE base attack so Grapple works
+// (otherwise base attack might put hero in Last Stand, making Grapple fail)
 const safeSigils = drawnSigils.filter(sigil => {
 if(sigil.sig === 'Grapple') {
 const target = S.heroes[enemy.li];
+console.log(`[GRAPPLE DEBUG] ${enemy.n} has Grapple L${sigil.level}, lane=${enemy.li}, target=${target?.n}, targetHP=${target?.h}, enemyHP=${enemy.h}, targetPOW=${target?.p}`);
 if(target && target.h > 0) {
 const recoilDamage = target.p;
 // Skip grapple if it would kill the enemy
@@ -1770,12 +1791,19 @@ if(enemy.h <= recoilDamage) {
 toast(`${getEnemyDisplayName(enemy)} considered Grapple but chose to survive instead!`);
 return false;
 }
+console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple passed filter - will execute`);
+} else {
+console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple - no valid target (target null or dead)`);
 }
 }
 return true;
 });
 
+console.log(`[GRAPPLE DEBUG] ${enemy.n} safeSigils:`, safeSigils.map(s => s.sig));
+// Execute drawn sigils first (so Grapple stuns before attack)
 safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+// Then execute base attack
+executeEnemyBaseAttack(enemy);
 enemy.s = enemy.s.filter(s => s.perm);
 render();
 }
@@ -1878,10 +1906,13 @@ if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
 toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} for ${healAmt}!`);
 }
 } else if(sig === 'Grapple') {
+console.log(`[GRAPPLE EXECUTE] ${enemy.n} executing Grapple L${level}`);
 const target = S.heroes[enemy.li];
+console.log(`[GRAPPLE EXECUTE] target=${target?.n}, targetHP=${target?.h}, lane=${enemy.li}`);
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
 enemy.h -= dmgToEnemy;
+console.log(`[GRAPPLE EXECUTE] Applying stun ${level} to ${target.n}, enemy took ${dmgToEnemy} recoil`);
 toast(`${getEnemyDisplayName(enemy)} grappled ${target.n}!`);
 if(enemy.h <= 0) {
 enemy.h = 0;
@@ -2127,6 +2158,8 @@ if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)
 animateCounterPop('xp');
 upd();
 toast('Victory!');
+// Reset the level up warning flag for this new level up session
+S.levelUpWarningShown = false;
 setTimeout(levelUp, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 }, 500);
 return true;
@@ -2652,12 +2685,91 @@ return;
 
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+const spendStyle = canAfford
+  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.2rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5)'
+  : '';
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()">Spend XP</div>
-<button class="btn safe" onclick="nextFloor()">Next Floor</button>`;
+<div class="choice" onclick="levelUpMenu()" ${spendStyle ? `style="${spendStyle}"` : ''}>Spend XP${canAfford ? ' ✨' : ''}</div>
+<button class="btn secondary" onclick="viewHeroCards()">View Heroes</button>
+<button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
+}
+
+// Check if player should be warned about unspent XP before advancing
+function tryAdvanceFromLevelUp() {
+const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+
+// If player can afford an upgrade and hasn't been warned this floor, show confirmation
+if (canAfford && !S.levelUpWarningShown) {
+  S.levelUpWarningShown = true;
+  showConfirmModal(
+    `You have enough XP (${S.xp}) to spend on an upgrade (costs ${nextCost}). Continue anyway?`,
+    () => nextFloor(),
+    () => levelUp() // Go back to level up screen
+  );
+  return;
+}
+
+// Otherwise proceed normally
+nextFloor();
+}
+
+// View hero cards from level up screen
+function viewHeroCards() {
+const v = document.getElementById('gameView');
+let html = '<div style="display:flex;flex-direction:column;align-items:center;padding:1rem;gap:1rem">';
+html += '<h2 style="text-align:center;margin:0">Your Heroes</h2>';
+html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem">';
+
+S.heroes.forEach((h, idx) => {
+const heroImage = getHeroImage(h);
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(h.st > 0) extra.push(`💥${h.st}T`);
+
+let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';
+if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626';
+
+html += `<div class="card hero" style="${cardStyle}">`;
+// Power at top
+html += `<div style="text-align:center;font-size:1.1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚡</div>`;
+// Hero image
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
+// Name
+html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
+// HP
+if(h.ls) {
+  html += `<div style="text-align:center;font-size:0.85rem;color:#fca5a5">Last Stand (T${h.lst+1})</div>`;
+} else {
+  html += `<div style="text-align:center;font-size:0.85rem">${h.h}/${h.m}❤</div>`;
+}
+// Extra info (shield, ghost, stun)
+if(extra.length > 0) html += `<div style="text-align:center;font-size:0.75rem;margin-top:0.25rem">${extra.join(' ')}</div>`;
+html += '<div class="sigil-divider"></div>';
+// Sigils - combine base sigils + temp sigils
+const allSigils = [...(h.s || []), ...(h.ts || [])];
+const uniqueSigils = [...new Set(allSigils)];
+const totalSigils = uniqueSigils.length;
+const compactClass = totalSigils >= 5 ? 'compact' : '';
+html += `<div class="sigil-row ${compactClass}">`;
+uniqueSigils.forEach(sig => {
+  const level = getLevel(sig, idx);
+  const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
+  html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()">${sigilIconOnly(sig, level)}</span>`;
+});
+html += '</div>';
+html += '</div>';
+});
+
+html += '</div>'; // end flex container
+html += '<button class="btn secondary" onclick="levelUp()" style="margin-top:1rem">Return</button>';
+html += '</div>';
+v.innerHTML = html;
 }
 
 function nextFloor() {

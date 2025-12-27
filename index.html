@@ -142,6 +142,8 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .modal-container.faq {
   background: linear-gradient(#fff, #f7f1e3);
   border: 3px solid #f97316;
+  max-height: 90vh;
+  max-width: 600px;
 }
 .modal-title {
   text-align: center;
@@ -591,7 +593,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
 .tutorial-modal { background: linear-gradient(#fff, #e8f5e9); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
 .tutorial-modal h2 { margin-top: 0; color: #6b4423; }
-.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; }
+.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; background: rgba(255,255,255,0.9); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.3); }
 .tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
 .tutorial-modal button:hover { background: #15803d; }
 .tutorial-modal button:active { transform: scale(0.98); }
@@ -1927,6 +1929,88 @@ body.controller-active .toast {
 body.controller-active .controller-prompts {
   display: flex;
 }
+
+/* ===== NON-COMBAT SCREEN READABILITY ===== */
+/* Semi-opaque backgrounds for text on busy backgrounds */
+.text-backdrop {
+  background: rgba(0,0,0,0.75);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+
+/* Increase font sizes for Steam Deck/TV viewing */
+.neutral-narrative {
+  background: rgba(0,0,0,0.8) !important;
+  font-size: 1.1rem;
+  padding: 1rem 1.25rem;
+}
+
+.neutral-desc {
+  background: rgba(0,0,0,0.7);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Death screen text readability */
+.death-screen-container p {
+  background: rgba(255,255,255,0.9);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.death-screen-container .going-rate-marquee {
+  background: rgba(255,255,255,0.95);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+/* Ribbleton hub text */
+.hub-desc, .location-desc {
+  background: rgba(0,0,0,0.75);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 1.05rem;
+}
+
+/* Victory/narrative slides */
+.narrative-text {
+  background: rgba(0,0,0,0.8);
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+/* General paragraph text on non-combat screens */
+#gameView > div > p:not(.combat-lane *),
+#gameView > p {
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+/* Steam Deck specific: larger text for non-combat screens */
+@media (min-width: 1200px) and (max-height: 900px) {
+  .neutral-desc {
+    font-size: 1.15rem;
+    line-height: 1.55;
+  }
+
+  .neutral-narrative {
+    font-size: 1.2rem;
+  }
+
+  .death-screen-container p {
+    font-size: 1.1rem;
+  }
+
+  .narrative-text {
+    font-size: 1.25rem;
+  }
+}
 </style>
 </head>
 <body>
@@ -2879,18 +2963,18 @@ const ANIMATION_TIMINGS = {
   FLOOR_INTERSTITIAL: 2000, // Floor name display duration
 
   // Combat turn timings
-  TURN_TRANSITION: 250,   // Hero turn → Enemy turn delay
-  PHASE_TRANSITION: 200,  // Between enemy phases (Alpha/Recruit/Normal)
-  ALPHA_PHASE_START: 400, // Enemy turn start → Alpha phase
-  ENEMY_ACTION_DELAY: 125, // Stagger between enemy actions (reading order)
-  ENEMY_TURN_END: 300,    // After last enemy action
-  ACTION_COMPLETE: 500,   // After hero action completes
+  TURN_TRANSITION: 400,   // Hero turn → Enemy turn delay
+  PHASE_TRANSITION: 300,  // Between enemy phases (Alpha/Recruit/Normal)
+  ALPHA_PHASE_START: 500, // Enemy turn start → Alpha phase
+  ENEMY_ACTION_DELAY: 400, // Stagger between enemy actions (slower for readability)
+  ENEMY_TURN_END: 400,    // After last enemy action
+  ACTION_COMPLETE: 600,   // After hero action completes
 
   // Toast message timings
-  TOAST_SHORT: 1200,      // Short notification
-  TOAST_MEDIUM: 1800,     // Medium notification
-  TOAST_LONG: 2000,       // Long notification
-  TOAST_FADE: 300,        // Toast fade out duration
+  TOAST_SHORT: 1800,      // Short notification
+  TOAST_MEDIUM: 2400,     // Medium notification
+  TOAST_LONG: 3000,       // Long notification
+  TOAST_FADE: 400,        // Toast fade out duration
 
   // Tooltip timings
   TOOLTIP_DELAY: 500,     // Long-press delay for mobile tooltips
@@ -5821,6 +5905,11 @@ enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
 }
 return enemy;
 });
+// Shuffle enemies for variety within lanes (Fisher-Yates)
+for(let i = S.enemies.length - 1; i > 0; i--) {
+const j = Math.floor(Math.random() * (i + 1));
+[S.enemies[i], S.enemies[j]] = [S.enemies[j], S.enemies[i]];
+}
 if(S.ambushed) {
 toast('AMBUSHED! All heroes stunned Turn 1!', 1800);
 S.ambushed = false; // Clear flag after use
@@ -5936,7 +6025,8 @@ let repeats = 1;
 
 if(hasAsterisk && firstAction) {
 repeats = asteriskLevel + 1;
-h.firstActionUsed = true;
+// NOTE: firstActionUsed is set in finishAction(), not here
+// This allows players to cancel and still keep their Asterisk benefit
 toast(`Asterisk activated! ${sig} ×${repeats}!`, 1500);
 }
 
@@ -6100,7 +6190,7 @@ let html = '';
 if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
-html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Do Something Crazy</h3>';
+html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">✅ DC 10: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Deal this enemy's POW to all enemies</span>
@@ -6126,7 +6216,7 @@ return;
 } else {
 // Normal D20 menu (centered, blocks view)
 html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px">';
-html += '<h3 style="margin-bottom:1rem">D20: Do Something Crazy</h3>';
+html += '<h3 style="margin-bottom:1rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
 if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">✨ Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
@@ -6306,6 +6396,7 @@ if(!enemy) return;
 if(action === 'CONFUSE') {
 // Confused enemy deals its own POW damage to itself
 const dmg = enemy.p;
+toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
@@ -6976,6 +7067,9 @@ S.alphaCurrentAction = 0;
 }
 // Normal action finish
 S.acted.push(heroIdx);
+// Mark first action as used (for Asterisk) only when action commits
+const h = S.heroes[heroIdx];
+if(h && !h.firstActionUsed) h.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
@@ -6985,7 +7079,6 @@ S.activeIdx = -1;
 S.turnDamage = 0; // Reset damage counter for next hero's turn
 
 // RIBBLETON TUTORIAL: Check advancement after action using TutorialManager
-const h = S.heroes[heroIdx];
 TutorialManager.advanceStage({action: 'finish', hero: h.n, round: S.round});
 
 // Autosave after each hero action
@@ -7229,7 +7322,12 @@ setTimeout(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
-if(recruit.st > 0) { toast(`${recruit.n} (Recruit) is stunned!`); return; }
+if(recruit.st > 0) {
+toast(`${recruit.n} (Recruit) is stunned!`);
+// Clear drawn sigils even when stunned - they don't persist
+recruit.s = recruit.s.filter(s => s.perm);
+return;
+}
 if(recruit.h <= 0) return; // Dead recruit
 // Recruit attacks enemies (not heroes)
 executeRecruitBaseAttack(recruit);
@@ -7327,7 +7425,12 @@ setTimeout(() => endEnemyTurn(), delay + T(600));
 function executeEnemyTurn(enemy) {
 // FLYDRA: Dying Flydras don't act
 if(enemy.isFlydra && enemy.flydraState === 'dying') { return; }
-if(enemy.st > 0) { toast(`${getEnemyDisplayName(enemy)} is stunned!`); return; }
+if(enemy.st > 0) {
+toast(`${getEnemyDisplayName(enemy)} is stunned!`);
+// Clear drawn sigils even when stunned - they don't persist
+enemy.s = enemy.s.filter(s => s.perm);
+return;
+}
 if(enemy.alphaActed) {
 toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
@@ -7336,12 +7439,14 @@ return;
 // Filter out Attack sigil - the base attack mechanism handles it
 // Attack sigil is a marker indicating the enemy attacks, not an additional action
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Attack');
-executeEnemyBaseAttack(enemy);
 
 // Filter out suicidal grapples - enemies should never kill themselves
+// NOTE: We filter and execute sigils BEFORE base attack so Grapple works
+// (otherwise base attack might put hero in Last Stand, making Grapple fail)
 const safeSigils = drawnSigils.filter(sigil => {
 if(sigil.sig === 'Grapple') {
 const target = S.heroes[enemy.li];
+console.log(`[GRAPPLE DEBUG] ${enemy.n} has Grapple L${sigil.level}, lane=${enemy.li}, target=${target?.n}, targetHP=${target?.h}, enemyHP=${enemy.h}, targetPOW=${target?.p}`);
 if(target && target.h > 0) {
 const recoilDamage = target.p;
 // Skip grapple if it would kill the enemy
@@ -7349,12 +7454,19 @@ if(enemy.h <= recoilDamage) {
 toast(`${getEnemyDisplayName(enemy)} considered Grapple but chose to survive instead!`);
 return false;
 }
+console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple passed filter - will execute`);
+} else {
+console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple - no valid target (target null or dead)`);
 }
 }
 return true;
 });
 
+console.log(`[GRAPPLE DEBUG] ${enemy.n} safeSigils:`, safeSigils.map(s => s.sig));
+// Execute drawn sigils first (so Grapple stuns before attack)
 safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+// Then execute base attack
+executeEnemyBaseAttack(enemy);
 enemy.s = enemy.s.filter(s => s.perm);
 render();
 }
@@ -7457,10 +7569,13 @@ if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
 toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} for ${healAmt}!`);
 }
 } else if(sig === 'Grapple') {
+console.log(`[GRAPPLE EXECUTE] ${enemy.n} executing Grapple L${level}`);
 const target = S.heroes[enemy.li];
+console.log(`[GRAPPLE EXECUTE] target=${target?.n}, targetHP=${target?.h}, lane=${enemy.li}`);
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
 enemy.h -= dmgToEnemy;
+console.log(`[GRAPPLE EXECUTE] Applying stun ${level} to ${target.n}, enemy took ${dmgToEnemy} recoil`);
 toast(`${getEnemyDisplayName(enemy)} grappled ${target.n}!`);
 if(enemy.h <= 0) {
 enemy.h = 0;
@@ -7706,6 +7821,8 @@ if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)
 animateCounterPop('xp');
 upd();
 toast('Victory!');
+// Reset the level up warning flag for this new level up session
+S.levelUpWarningShown = false;
 setTimeout(levelUp, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 }, 500);
 return true;
@@ -8231,12 +8348,91 @@ return;
 
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+const spendStyle = canAfford
+  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.2rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5)'
+  : '';
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()">Spend XP</div>
-<button class="btn safe" onclick="nextFloor()">Next Floor</button>`;
+<div class="choice" onclick="levelUpMenu()" ${spendStyle ? `style="${spendStyle}"` : ''}>Spend XP${canAfford ? ' ✨' : ''}</div>
+<button class="btn secondary" onclick="viewHeroCards()">View Heroes</button>
+<button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
+}
+
+// Check if player should be warned about unspent XP before advancing
+function tryAdvanceFromLevelUp() {
+const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+
+// If player can afford an upgrade and hasn't been warned this floor, show confirmation
+if (canAfford && !S.levelUpWarningShown) {
+  S.levelUpWarningShown = true;
+  showConfirmModal(
+    `You have enough XP (${S.xp}) to spend on an upgrade (costs ${nextCost}). Continue anyway?`,
+    () => nextFloor(),
+    () => levelUp() // Go back to level up screen
+  );
+  return;
+}
+
+// Otherwise proceed normally
+nextFloor();
+}
+
+// View hero cards from level up screen
+function viewHeroCards() {
+const v = document.getElementById('gameView');
+let html = '<div style="display:flex;flex-direction:column;align-items:center;padding:1rem;gap:1rem">';
+html += '<h2 style="text-align:center;margin:0">Your Heroes</h2>';
+html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem">';
+
+S.heroes.forEach((h, idx) => {
+const heroImage = getHeroImage(h);
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(h.st > 0) extra.push(`💥${h.st}T`);
+
+let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';
+if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626';
+
+html += `<div class="card hero" style="${cardStyle}">`;
+// Power at top
+html += `<div style="text-align:center;font-size:1.1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚡</div>`;
+// Hero image
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
+// Name
+html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
+// HP
+if(h.ls) {
+  html += `<div style="text-align:center;font-size:0.85rem;color:#fca5a5">Last Stand (T${h.lst+1})</div>`;
+} else {
+  html += `<div style="text-align:center;font-size:0.85rem">${h.h}/${h.m}❤</div>`;
+}
+// Extra info (shield, ghost, stun)
+if(extra.length > 0) html += `<div style="text-align:center;font-size:0.75rem;margin-top:0.25rem">${extra.join(' ')}</div>`;
+html += '<div class="sigil-divider"></div>';
+// Sigils - combine base sigils + temp sigils
+const allSigils = [...(h.s || []), ...(h.ts || [])];
+const uniqueSigils = [...new Set(allSigils)];
+const totalSigils = uniqueSigils.length;
+const compactClass = totalSigils >= 5 ? 'compact' : '';
+html += `<div class="sigil-row ${compactClass}">`;
+uniqueSigils.forEach(sig => {
+  const level = getLevel(sig, idx);
+  const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
+  html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()">${sigilIconOnly(sig, level)}</span>`;
+});
+html += '</div>';
+html += '</div>';
+});
+
+html += '</div>'; // end flex container
+html += '<button class="btn secondary" onclick="levelUp()" style="margin-top:1rem">Return</button>';
+html += '</div>';
+v.innerHTML = html;
 }
 
 function nextFloor() {
@@ -8870,7 +9066,8 @@ S.neutralDeck.push(`${base}2`);
 // ===== D20 ROLLS FOR NEUTRALS =====
 function rollD20Neutral() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Active sigils are stored 0-indexed (L1 = 0), so add 1 for actual level
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
 showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
 return rollDice(d20Level, 20);
@@ -8962,12 +9159,6 @@ v.innerHTML = `
 <source media="(min-aspect-ratio: 1/1)" srcset="assets/froggle_title_wide.jpeg">
 <img src="assets/froggle_title.png" alt="FROGGLE" class="title-bg-image">
 </picture>
-
-<!-- FROGGLE Title -->
-<div style="position:absolute;top:8%;left:50%;transform:translateX(-50%);z-index:5;text-align:center">
-<h1 style="font-size:4.5rem;font-weight:bold;color:#22c55e;text-shadow:4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 30px rgba(34,197,94,0.8);margin:0;letter-spacing:0.1em">FROGGLE</h1>
-<p style="font-size:1.2rem;color:#fff;text-shadow:2px 2px 4px #000;margin-top:0.5rem;font-style:italic">A Froggy Roguelike</p>
-</div>
 
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
@@ -9319,29 +9510,29 @@ v.innerHTML = `
 <!-- Full-page background image -->
 <img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;${bgStyle}">
 
-<!-- Text bar at bottom with gradient fade -->
-<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(26,92,58,0.95) 0%, rgba(26,92,58,0.85) 40%, rgba(0,0,0,0.4) 75%, transparent 100%);padding:0.75rem 1rem 0.5rem 1rem">
-<div style="max-width:700px;margin:0 auto">
-${slide.html || `<div style="font-size:1.1rem;line-height:1.6;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.8)">${slide.text}</div>`}
-<div style="display:flex;gap:1rem;justify-content:center;margin-top:0.75rem;flex-wrap:wrap">
-<button class="btn" onclick="continueNarrative()" style="padding:0.6rem 1.5rem;font-size:1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<!-- Text bar at bottom with solid background for readability -->
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.85);padding:1rem 1.25rem 0.75rem 1.25rem;border-top:3px solid rgba(34,197,94,0.6)">
+<div style="max-width:800px;margin:0 auto">
+${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slide.text}</div>`}
+<div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
-<div style="text-align:center;margin-top:0.4rem;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+<div style="text-align:center;margin-top:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.6)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>
 </div>
 </div>`;
 } else {
-// Standard mode: fullscreen centered content (no scrolling allowed)
+// Standard mode: fullscreen centered content with backdrop for readability
 v.innerHTML = `
-<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
-<div style="max-width:600px;text-align:center">
-${slide.html || `<div style="font-size:1.15rem;line-height:1.7;margin-bottom:1.5rem">${slide.text}</div>`}
-<div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
-<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem">${slide.buttonText || 'Continue'}</button>
+<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;background:rgba(0,0,0,0.3)">
+<div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slide.text}</div>`}
+<div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
+<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
-<div style="margin-top:0.75rem;font-size:0.85rem;opacity:0.6">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+<div style="margin-top:1rem;font-size:0.9rem;opacity:0.6;color:#ccc">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>
 </div>`;
 }
@@ -11598,8 +11789,8 @@ buttons: `
 
 function playBetween20s(stage, wager) {
 const v = document.getElementById('gameView');
-// Include both permanent AND temporary upgrades
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Include both permanent AND temporary upgrades (active sigils stored 0-indexed)
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 
 // PHASE 1: Establish Range
 const boundsCount = stage === 1 ? (d20Level + 1) : 2; // Stage 1: level+1, Stage 2: always 2
@@ -11692,8 +11883,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function targetRollBetween20s() {
 const state = window.between20sState;
 const v = document.getElementById('gameView');
-// Include both permanent AND temporary upgrades
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Include both permanent AND temporary upgrades (active sigils stored 0-indexed)
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 
 // PHASE 3: Target Roll
 const targetRolls = [];
@@ -12475,6 +12666,20 @@ html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc262
 } else {
 html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#2c2416">Upgrade Sigilarium:</h3>`;
 
+// Sanity check: if goingRate is very low but sigUpgradeCounts is high, something is wrong
+// This can happen if save data gets corrupted or from old migration issues
+const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const totalUpgradeCounts = allSigils.reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
+const expectedMinGoingRate = 1 + (totalUpgradeCounts * 5);
+if (S.goingRate < expectedMinGoingRate && totalUpgradeCounts > 0) {
+  console.warn('[DEATH SCREEN] sigUpgradeCounts out of sync with goingRate. Resetting sigUpgradeCounts.');
+  console.warn('  goingRate:', S.goingRate, 'totalUpgradeCounts:', totalUpgradeCounts, 'expectedMin:', expectedMinGoingRate);
+  // Reset sigUpgradeCounts to match what goingRate implies
+  allSigils.forEach(sig => S.sigUpgradeCounts[sig] = 0);
+  savePermanent();
+  toast('Fixed corrupted upgrade data', 1500);
+}
+
 // Helper function to render sigil upgrade cards
 const renderSigilCards = (sigils) => {
 let cards = '';
@@ -12490,13 +12695,19 @@ if(currentLevel >= 5) return; // Max level (5 for display)
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
 const baseCost = S.goingRate;
 const escalationTable = [0, 25, 50, 100, 150];
-const escalation = escalationTable[upgradeCount] || 150;
+// Cap upgradeCount to valid table index to prevent undefined escalation
+const cappedCount = Math.min(upgradeCount, escalationTable.length - 1);
+const escalation = escalationTable[cappedCount];
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
 const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
+// Show cost breakdown if there's escalation
+const costDisplay = escalation > 0
+  ? `<span title="Base: ${baseCost}G + Escalation: ${escalation}G">${cost}G</span>`
+  : `${cost}G`;
 
 cards += `
 <div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
@@ -16251,11 +16462,21 @@ const GamepadController = {
       return;
     }
 
-    // If we have targets selected, confirm them directly
+    // If we have targets selected and are at max capacity, confirm them directly
     // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
     const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
     const hasInstanceTargets = typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0;
-    if (hasD20Targets || hasInstanceTargets) {
+
+    // Check if we're at max target capacity (for multi-target actions like Attack with Expand)
+    let atMaxCapacity = true;
+    if (hasInstanceTargets && typeof getTargetsPerInstance === 'function' && S.activeIdx >= 0) {
+      const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
+      atMaxCapacity = S.currentInstanceTargets.length >= targetsPerInstance;
+      console.log('[GAMEPAD] Target capacity check:', S.currentInstanceTargets.length, '/', targetsPerInstance, 'atMax:', atMaxCapacity);
+    }
+
+    // Only auto-confirm when at max capacity or D20 (single target)
+    if (hasD20Targets || (hasInstanceTargets && atMaxCapacity)) {
       if (typeof SoundFX !== 'undefined' && SoundFX.play) {
         SoundFX.play('click');
       }
@@ -16430,6 +16651,8 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
+    console.log('[GAMEPAD] toggleTooltip called, focusedElement:', this.focusedElement);
+
     // If tooltip is already visible, hide it
     if (this.tooltipVisible) {
       this.hideActiveTooltip();
@@ -16437,14 +16660,40 @@ const GamepadController = {
     }
 
     // Try to show tooltip for focused element
-    if (!this.focusedElement) return;
+    if (!this.focusedElement) {
+      console.log('[GAMEPAD] No focused element for tooltip');
+      return;
+    }
 
     // Check if focused element is a sigil
-    const sigilEl = this.focusedElement.classList.contains('sigil') ? this.focusedElement :
-                    this.focusedElement.querySelector('.sigil');
+    let sigilEl = null;
+    if (this.focusedElement.classList.contains('sigil')) {
+      sigilEl = this.focusedElement;
+    } else {
+      // Check if focused element is or contains a card with sigils
+      const card = this.focusedElement.classList.contains('card') ? this.focusedElement :
+                   this.focusedElement.closest('.card');
+      if (card) {
+        // Get all sigils in this card
+        const sigils = Array.from(card.querySelectorAll('.sigil'));
+        if (sigils.length > 0) {
+          // Use currentSigilIndex if valid, otherwise first sigil
+          const idx = (this.currentSigilIndex >= 0 && this.currentSigilIndex < sigils.length)
+                      ? this.currentSigilIndex : 0;
+          sigilEl = sigils[idx];
+          console.log('[GAMEPAD] Found sigil in card at index:', idx, 'of', sigils.length);
+        }
+      } else {
+        // Try direct querySelector as fallback
+        sigilEl = this.focusedElement.querySelector('.sigil');
+      }
+    }
 
     if (sigilEl) {
+      console.log('[GAMEPAD] Showing tooltip for sigil:', sigilEl);
       this.showSigilTooltip(sigilEl);
+    } else {
+      console.log('[GAMEPAD] No sigil found for tooltip');
     }
   },
 

@@ -995,11 +995,21 @@ const GamepadController = {
       return;
     }
 
-    // If we have targets selected, confirm them directly
+    // If we have targets selected and are at max capacity, confirm them directly
     // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
     const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
     const hasInstanceTargets = typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0;
-    if (hasD20Targets || hasInstanceTargets) {
+
+    // Check if we're at max target capacity (for multi-target actions like Attack with Expand)
+    let atMaxCapacity = true;
+    if (hasInstanceTargets && typeof getTargetsPerInstance === 'function' && S.activeIdx >= 0) {
+      const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
+      atMaxCapacity = S.currentInstanceTargets.length >= targetsPerInstance;
+      console.log('[GAMEPAD] Target capacity check:', S.currentInstanceTargets.length, '/', targetsPerInstance, 'atMax:', atMaxCapacity);
+    }
+
+    // Only auto-confirm when at max capacity or D20 (single target)
+    if (hasD20Targets || (hasInstanceTargets && atMaxCapacity)) {
       if (typeof SoundFX !== 'undefined' && SoundFX.play) {
         SoundFX.play('click');
       }
@@ -1174,6 +1184,8 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
+    console.log('[GAMEPAD] toggleTooltip called, focusedElement:', this.focusedElement);
+
     // If tooltip is already visible, hide it
     if (this.tooltipVisible) {
       this.hideActiveTooltip();
@@ -1181,14 +1193,40 @@ const GamepadController = {
     }
 
     // Try to show tooltip for focused element
-    if (!this.focusedElement) return;
+    if (!this.focusedElement) {
+      console.log('[GAMEPAD] No focused element for tooltip');
+      return;
+    }
 
     // Check if focused element is a sigil
-    const sigilEl = this.focusedElement.classList.contains('sigil') ? this.focusedElement :
-                    this.focusedElement.querySelector('.sigil');
+    let sigilEl = null;
+    if (this.focusedElement.classList.contains('sigil')) {
+      sigilEl = this.focusedElement;
+    } else {
+      // Check if focused element is or contains a card with sigils
+      const card = this.focusedElement.classList.contains('card') ? this.focusedElement :
+                   this.focusedElement.closest('.card');
+      if (card) {
+        // Get all sigils in this card
+        const sigils = Array.from(card.querySelectorAll('.sigil'));
+        if (sigils.length > 0) {
+          // Use currentSigilIndex if valid, otherwise first sigil
+          const idx = (this.currentSigilIndex >= 0 && this.currentSigilIndex < sigils.length)
+                      ? this.currentSigilIndex : 0;
+          sigilEl = sigils[idx];
+          console.log('[GAMEPAD] Found sigil in card at index:', idx, 'of', sigils.length);
+        }
+      } else {
+        // Try direct querySelector as fallback
+        sigilEl = this.focusedElement.querySelector('.sigil');
+      }
+    }
 
     if (sigilEl) {
+      console.log('[GAMEPAD] Showing tooltip for sigil:', sigilEl);
       this.showSigilTooltip(sigilEl);
+    } else {
+      console.log('[GAMEPAD] No sigil found for tooltip');
     }
   },
 

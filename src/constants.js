@@ -917,18 +917,18 @@ const ANIMATION_TIMINGS = {
   FLOOR_INTERSTITIAL: 2000, // Floor name display duration
 
   // Combat turn timings
-  TURN_TRANSITION: 250,   // Hero turn → Enemy turn delay
-  PHASE_TRANSITION: 200,  // Between enemy phases (Alpha/Recruit/Normal)
-  ALPHA_PHASE_START: 400, // Enemy turn start → Alpha phase
-  ENEMY_ACTION_DELAY: 125, // Stagger between enemy actions (reading order)
-  ENEMY_TURN_END: 300,    // After last enemy action
-  ACTION_COMPLETE: 500,   // After hero action completes
+  TURN_TRANSITION: 400,   // Hero turn → Enemy turn delay
+  PHASE_TRANSITION: 300,  // Between enemy phases (Alpha/Recruit/Normal)
+  ALPHA_PHASE_START: 500, // Enemy turn start → Alpha phase
+  ENEMY_ACTION_DELAY: 400, // Stagger between enemy actions (slower for readability)
+  ENEMY_TURN_END: 400,    // After last enemy action
+  ACTION_COMPLETE: 600,   // After hero action completes
 
   // Toast message timings
-  TOAST_SHORT: 1200,      // Short notification
-  TOAST_MEDIUM: 1800,     // Medium notification
-  TOAST_LONG: 2000,       // Long notification
-  TOAST_FADE: 300,        // Toast fade out duration
+  TOAST_SHORT: 1800,      // Short notification
+  TOAST_MEDIUM: 2400,     // Medium notification
+  TOAST_LONG: 3000,       // Long notification
+  TOAST_FADE: 400,        // Toast fade out duration
 
   // Tooltip timings
   TOOLTIP_DELAY: 500,     // Long-press delay for mobile tooltips

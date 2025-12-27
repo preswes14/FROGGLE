@@ -56,7 +56,8 @@ S.neutralDeck.push(`${base}2`);
 // ===== D20 ROLLS FOR NEUTRALS =====
 function rollD20Neutral() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Active sigils are stored 0-indexed (L1 = 0), so add 1 for actual level
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 // TUTORIAL: Explain D20 level affects neutral rolls
 showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
 return rollDice(d20Level, 20);
@@ -148,12 +149,6 @@ v.innerHTML = `
 <source media="(min-aspect-ratio: 1/1)" srcset="assets/froggle_title_wide.jpeg">
 <img src="assets/froggle_title.png" alt="FROGGLE" class="title-bg-image">
 </picture>
-
-<!-- FROGGLE Title -->
-<div style="position:absolute;top:8%;left:50%;transform:translateX(-50%);z-index:5;text-align:center">
-<h1 style="font-size:4.5rem;font-weight:bold;color:#22c55e;text-shadow:4px 4px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 0 0 30px rgba(34,197,94,0.8);margin:0;letter-spacing:0.1em">FROGGLE</h1>
-<p style="font-size:1.2rem;color:#fff;text-shadow:2px 2px 4px #000;margin-top:0.5rem;font-style:italic">A Froggy Roguelike</p>
-</div>
 
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
@@ -505,29 +500,29 @@ v.innerHTML = `
 <!-- Full-page background image -->
 <img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;${bgStyle}">
 
-<!-- Text bar at bottom with gradient fade -->
-<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:linear-gradient(to top, rgba(26,92,58,0.95) 0%, rgba(26,92,58,0.85) 40%, rgba(0,0,0,0.4) 75%, transparent 100%);padding:0.75rem 1rem 0.5rem 1rem">
-<div style="max-width:700px;margin:0 auto">
-${slide.html || `<div style="font-size:1.1rem;line-height:1.6;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.8)">${slide.text}</div>`}
-<div style="display:flex;gap:1rem;justify-content:center;margin-top:0.75rem;flex-wrap:wrap">
-<button class="btn" onclick="continueNarrative()" style="padding:0.6rem 1.5rem;font-size:1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<!-- Text bar at bottom with solid background for readability -->
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.85);padding:1rem 1.25rem 0.75rem 1.25rem;border-top:3px solid rgba(34,197,94,0.6)">
+<div style="max-width:800px;margin:0 auto">
+${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slide.text}</div>`}
+<div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
+<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
-<div style="text-align:center;margin-top:0.4rem;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+<div style="text-align:center;margin-top:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.6)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>
 </div>
 </div>`;
 } else {
-// Standard mode: fullscreen centered content (no scrolling allowed)
+// Standard mode: fullscreen centered content with backdrop for readability
 v.innerHTML = `
-<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
-<div style="max-width:600px;text-align:center">
-${slide.html || `<div style="font-size:1.15rem;line-height:1.7;margin-bottom:1.5rem">${slide.text}</div>`}
-<div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
-<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem">${slide.buttonText || 'Continue'}</button>
+<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;background:rgba(0,0,0,0.3)">
+<div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slide.text}</div>`}
+<div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
+<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
-<div style="margin-top:0.75rem;font-size:0.85rem;opacity:0.6">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
+<div style="margin-top:1rem;font-size:0.9rem;opacity:0.6;color:#ccc">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>
 </div>`;
 }
@@ -2784,8 +2779,8 @@ buttons: `
 
 function playBetween20s(stage, wager) {
 const v = document.getElementById('gameView');
-// Include both permanent AND temporary upgrades
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Include both permanent AND temporary upgrades (active sigils stored 0-indexed)
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 
 // PHASE 1: Establish Range
 const boundsCount = stage === 1 ? (d20Level + 1) : 2; // Stage 1: level+1, Stage 2: always 2
@@ -2878,8 +2873,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function targetRollBetween20s() {
 const state = window.between20sState;
 const v = document.getElementById('gameView');
-// Include both permanent AND temporary upgrades
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) || 1;
+// Include both permanent AND temporary upgrades (active sigils stored 0-indexed)
+const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 
 // PHASE 3: Target Roll
 const targetRolls = [];
