@@ -69,7 +69,7 @@ const diceHTML = rolls.map(r => {
 const isBest = r === best;
 return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
 }).join(' ');
-return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
+return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#4a4540">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
 }
 
 function formatD20Compact(rolls, best) {
@@ -2190,7 +2190,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: 'Trials of Arcane Power',
-description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#666">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
+description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#4a4540">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
 buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
 <button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
 });

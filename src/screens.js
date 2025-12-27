@@ -308,11 +308,11 @@ let html = `
 <div class="death-screen-container" style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
 <img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
-${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#666;font-style:italic">"${deathQuote}"</p>` : ''}
+${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#4a4540;font-style:italic">"${deathQuote}"</p>` : ''}
 <div class="going-rate-marquee">
-<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#d97706">${S.gold}</strong></p>
+<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#b45309">${S.gold}</strong></p>
 <p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
-<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#888;font-style:italic">(+5G per upgrade)</p>
+<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#5a5550;font-style:italic">(+5G per upgrade)</p>
 </div>`;
 
 if(S.gold === 0) {
@@ -369,7 +369,7 @@ cards += `
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
-<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${cost}G</div>
+<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#4a4540;font-weight:600">Cost: ${cost}G</div>
 <button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
@@ -1342,14 +1342,14 @@ const QUESTS = {
   survivor: {
     name: 'Survivor',
     desc: 'Reach Floor 3',
-    reward: 10,
+    reward: 5,
     category: 'learning',
     check: () => S.questProgress.highestFloor >= 3
   },
   battle_hardened: {
     name: 'Battle Hardened',
     desc: 'Reach Floor 5',
-    reward: 15,
+    reward: 10,
     category: 'learning',
     check: () => S.questProgress.highestFloor >= 5
   },
@@ -1358,7 +1358,7 @@ const QUESTS = {
   warrior_path: {
     name: "Warrior's Path",
     desc: 'Play a run with Warrior',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Warrior >= 1
@@ -1366,7 +1366,7 @@ const QUESTS = {
   tank_path: {
     name: "Tank's Path",
     desc: 'Play a run with Tank',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Tank >= 1
@@ -1374,7 +1374,7 @@ const QUESTS = {
   mage_path: {
     name: "Mage's Path",
     desc: 'Play a run with Mage',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Mage >= 1
@@ -1382,7 +1382,7 @@ const QUESTS = {
   healer_path: {
     name: "Healer's Path",
     desc: 'Play a run with Healer',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Healer >= 1
@@ -1390,7 +1390,7 @@ const QUESTS = {
   diverse_squad: {
     name: 'Diverse Squad',
     desc: 'Play with all 4 base heroes',
-    reward: 25,
+    reward: 10,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Warrior >= 1 && S.questProgress.heroesPlayed.Tank >= 1 && S.questProgress.heroesPlayed.Mage >= 1 && S.questProgress.heroesPlayed.Healer >= 1
@@ -1398,7 +1398,7 @@ const QUESTS = {
   champion_warrior: {
     name: 'Champion: Warrior',
     desc: 'Win a run with Warrior',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Warrior >= 1
@@ -1406,7 +1406,7 @@ const QUESTS = {
   champion_tank: {
     name: 'Champion: Tank',
     desc: 'Win a run with Tank',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Tank >= 1
@@ -1414,7 +1414,7 @@ const QUESTS = {
   champion_mage: {
     name: 'Champion: Mage',
     desc: 'Win a run with Mage',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Mage >= 1
@@ -1422,7 +1422,7 @@ const QUESTS = {
   champion_healer: {
     name: 'Champion: Healer',
     desc: 'Win a run with Healer',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Healer >= 1
@@ -1430,7 +1430,7 @@ const QUESTS = {
   army_of_frogs: {
     name: 'Army of Frogs',
     desc: 'Win with all 4 base heroes',
-    reward: 50,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.standardWins >= 1,
     check: () => S.questProgress.heroWins.Warrior >= 1 && S.questProgress.heroWins.Tank >= 1 && S.questProgress.heroWins.Mage >= 1 && S.questProgress.heroWins.Healer >= 1
@@ -1440,7 +1440,7 @@ const QUESTS = {
   neutral_shop: {
     name: 'The Shop',
     desc: 'Complete Shopkeeper encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.shopkeeper
@@ -1448,7 +1448,7 @@ const QUESTS = {
   neutral_well: {
     name: 'Make a Wish',
     desc: 'Complete Wishing Well encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.wishingwell
@@ -1456,7 +1456,7 @@ const QUESTS = {
   neutral_chest: {
     name: 'Treasure Hunter',
     desc: 'Complete Treasure Chest encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.treasurechest
@@ -1464,7 +1464,7 @@ const QUESTS = {
   neutral_wizard: {
     name: "Wizard's Test",
     desc: 'Complete Wizard encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.wizard
@@ -1472,7 +1472,7 @@ const QUESTS = {
   neutral_oracle: {
     name: "Oracle's Wisdom",
     desc: 'Complete Oracle encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.oracle
@@ -1480,7 +1480,7 @@ const QUESTS = {
   neutral_camp: {
     name: 'Camp Visitor',
     desc: 'Complete Encampment encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.encampment
@@ -1488,7 +1488,7 @@ const QUESTS = {
   neutral_gambling: {
     name: 'High Roller',
     desc: 'Complete Gambling Den encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.gambling
@@ -1496,7 +1496,7 @@ const QUESTS = {
   neutral_ghost: {
     name: 'Ghost Whisperer',
     desc: 'Complete Ghost Boys encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.ghost
@@ -1504,7 +1504,7 @@ const QUESTS = {
   neutral_royal: {
     name: 'Royal Audience',
     desc: 'Complete Royal Court encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.royal
@@ -1512,7 +1512,7 @@ const QUESTS = {
   neutral_explorer: {
     name: 'Neutral Explorer',
     desc: 'Complete all Stage 1 neutrals',
-    reward: 40,
+    reward: 20,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 4,
     check: () => Object.values(S.questProgress.neutralsCompleted).every(v => v)
@@ -1522,7 +1522,7 @@ const QUESTS = {
   dragon_slayer: {
     name: 'Dragon Slayer',
     desc: 'Defeat a Dragon',
-    reward: 20,
+    reward: 10,
     category: 'milestones',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.enemyTypesDefeated.Dragon
@@ -1530,7 +1530,7 @@ const QUESTS = {
   flydra_hunter: {
     name: 'Flydra Hunter',
     desc: 'Defeat a Flydra head',
-    reward: 25,
+    reward: 10,
     category: 'milestones',
     unlock: () => S.questProgress.highestFloor >= 15,
     check: () => S.questProgress.enemyTypesDefeated.Flydra
@@ -1538,14 +1538,14 @@ const QUESTS = {
   first_victory: {
     name: 'First Victory',
     desc: 'Complete Floor 20 (Standard)',
-    reward: 100,
+    reward: 20,
     category: 'milestones',
     check: () => S.questProgress.standardWins >= 1
   },
   eternal_power: {
     name: 'Eternal Power',
     desc: 'Purchase a permanent upgrade',
-    reward: 15,
+    reward: 10,
     category: 'milestones',
     unlock: () => S.runsAttempted >= 2,
     check: () => S.questProgress.purchasedUpgrade
@@ -1553,7 +1553,7 @@ const QUESTS = {
   spreading_wealth: {
     name: 'Spreading the Wealth',
     desc: 'Upgrade all sigils to L1',
-    reward: 50,
+    reward: 20,
     category: 'milestones',
     unlock: () => S.questProgress.purchasedUpgrade,
     check: () => Object.values(S.sig).every(v => v >= 1)
@@ -1563,7 +1563,7 @@ const QUESTS = {
   combo_striker: {
     name: 'Combo Striker',
     desc: 'Deal 10+ damage in one action',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.maxDamageOneAction >= 10
@@ -1571,7 +1571,7 @@ const QUESTS = {
   multi_target: {
     name: 'Multi-Target',
     desc: 'Hit 3+ targets with one action',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.maxTargetsOneAction >= 3
@@ -1579,7 +1579,7 @@ const QUESTS = {
   ghost_walk: {
     name: 'Ghost Walk',
     desc: 'Block damage with Ghost charges',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.ghostBlocked
@@ -1587,7 +1587,7 @@ const QUESTS = {
   grappler: {
     name: 'Grappler',
     desc: 'Stun an enemy with Grapple',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.grappleUsed
@@ -1595,7 +1595,7 @@ const QUESTS = {
   alpha_strike: {
     name: 'Alpha Strike',
     desc: 'Grant bonus actions with Alpha',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.alphaUsed
@@ -1603,7 +1603,7 @@ const QUESTS = {
   last_stand_hero: {
     name: 'Last Stand Hero',
     desc: 'Survive a round in Last Stand',
-    reward: 20,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.lastStandSurvived
@@ -1613,7 +1613,7 @@ const QUESTS = {
   slayer_1: {
     name: 'Slayer I',
     desc: 'Defeat 25 enemies',
-    reward: 25,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.highestFloor >= 5,
     check: () => S.questProgress.enemiesKilled >= 25 && S.questProgress.slayerTier === 0
@@ -1621,7 +1621,7 @@ const QUESTS = {
   slayer_2: {
     name: 'Slayer II',
     desc: 'Defeat 100 enemies',
-    reward: 50,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 1,
     check: () => S.questProgress.enemiesKilled >= 100 && S.questProgress.slayerTier === 1
@@ -1629,7 +1629,7 @@ const QUESTS = {
   slayer_3: {
     name: 'Slayer III',
     desc: 'Defeat 250 enemies',
-    reward: 75,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 2,
     check: () => S.questProgress.enemiesKilled >= 250 && S.questProgress.slayerTier === 2
@@ -1637,7 +1637,7 @@ const QUESTS = {
   slayer_4: {
     name: 'Slayer IV',
     desc: 'Defeat 500 enemies',
-    reward: 100,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 3,
     check: () => S.questProgress.enemiesKilled >= 500 && S.questProgress.slayerTier === 3
@@ -1645,7 +1645,7 @@ const QUESTS = {
   slayer_5: {
     name: 'Slayer V',
     desc: 'Defeat 1000 enemies',
-    reward: 150,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 4,
     check: () => S.questProgress.enemiesKilled >= 1000 && S.questProgress.slayerTier === 4
@@ -1653,7 +1653,7 @@ const QUESTS = {
   gold_digger_1: {
     name: 'Gold Digger I',
     desc: 'Earn 250G total',
-    reward: 25,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.highestFloor >= 5,
     check: () => S.questProgress.totalGoldEarned >= 250 && S.questProgress.goldDiggerTier === 0
@@ -1661,7 +1661,7 @@ const QUESTS = {
   gold_digger_2: {
     name: 'Gold Digger II',
     desc: 'Earn 1000G total',
-    reward: 50,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.goldDiggerTier >= 1,
     check: () => S.questProgress.totalGoldEarned >= 1000 && S.questProgress.goldDiggerTier === 1
@@ -1669,7 +1669,7 @@ const QUESTS = {
   gold_digger_3: {
     name: 'Gold Digger III',
     desc: 'Earn 2500G total',
-    reward: 75,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.goldDiggerTier >= 2,
     check: () => S.questProgress.totalGoldEarned >= 2500 && S.questProgress.goldDiggerTier === 2
@@ -1677,7 +1677,7 @@ const QUESTS = {
   veteran_1: {
     name: 'Veteran I',
     desc: 'Complete 5 runs',
-    reward: 25,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.totalRunsCompleted >= 5 && S.questProgress.veteranTier === 0
@@ -1685,7 +1685,7 @@ const QUESTS = {
   veteran_2: {
     name: 'Veteran II',
     desc: 'Complete 15 runs',
-    reward: 50,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.veteranTier >= 1,
     check: () => S.questProgress.totalRunsCompleted >= 15 && S.questProgress.veteranTier === 1
@@ -1693,7 +1693,7 @@ const QUESTS = {
   veteran_3: {
     name: 'Veteran III',
     desc: 'Complete 30 runs',
-    reward: 75,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.veteranTier >= 2,
     check: () => S.questProgress.totalRunsCompleted >= 30 && S.questProgress.veteranTier === 2
@@ -1703,7 +1703,7 @@ const QUESTS = {
   fu_taste: {
     name: 'This is Frogged Up',
     desc: 'Complete Floor 1 in FU mode',
-    reward: 25,
+    reward: 20,
     category: 'fu',
     unlock: () => S.fuUnlocked,
     check: () => S.questProgress.highestFloor >= 1 && S.gameMode === 'fu'
@@ -1711,7 +1711,7 @@ const QUESTS = {
   recruiter: {
     name: 'Recruiter',
     desc: 'Recruit an enemy',
-    reward: 25,
+    reward: 10,
     category: 'fu',
     unlock: () => S.fuUnlocked,
     check: () => S.questProgress.maxRecruitsHeld >= 1
@@ -1719,7 +1719,7 @@ const QUESTS = {
   squad_goals: {
     name: 'Squad Goals',
     desc: 'Have 3 recruits at once',
-    reward: 50,
+    reward: 20,
     category: 'fu',
     unlock: () => S.questProgress.maxRecruitsHeld >= 1,
     check: () => S.questProgress.maxRecruitsHeld >= 3
@@ -1727,7 +1727,7 @@ const QUESTS = {
   fu_champion: {
     name: 'FU Champion',
     desc: 'Complete FU mode',
-    reward: 150,
+    reward: 20,
     category: 'fu',
     unlock: () => S.fuUnlocked,
     check: () => S.questProgress.fuWins >= 1
@@ -1737,7 +1737,7 @@ const QUESTS = {
   tapos_hero: {
     name: "Tapo's Hero",
     desc: 'Unlock Tapo',
-    reward: 100,
+    reward: 20,
     category: 'secret',
     unlock: () => S.fuUnlocked,
     check: () => S.tapoUnlocked
@@ -1745,7 +1745,7 @@ const QUESTS = {
   bruce_willis: {
     name: 'Bruce & Willis',
     desc: 'Help the Ghost Boys realize something',
-    reward: 25,
+    reward: 10,
     category: 'secret',
     unlock: () => S.questProgress.neutralsCompleted.ghost,
     check: () => S.ghostBoysConverted
@@ -1753,7 +1753,7 @@ const QUESTS = {
   true_champion: {
     name: 'True Champion',
     desc: 'Win FU mode with Tapo',
-    reward: 200,
+    reward: 20,
     category: 'secret',
     unlock: () => S.tapoUnlocked,
     check: () => S.questProgress.heroWins.Tapo >= 1 && S.questProgress.fuWins >= 1
@@ -1965,7 +1965,7 @@ function showQuestBoard() {
     <div style="font-size:0.8rem;opacity:0.8">${quest.desc}</div>
   </div>
   <div style="display:flex;align-items:center;gap:0.5rem">
-    ${claimed ? `<span style="color:#888;font-size:0.85rem">${statusText}</span>` :
+    ${claimed ? `<span style="color:#5a5550;font-size:0.85rem">${statusText}</span>` :
       complete ? `<button class="quest-claim-btn" onclick="claimQuest('${quest.id}')">Claim ${quest.reward}G</button>` :
       `<span class="quest-reward">${quest.reward}G</span>`}
   </div>
