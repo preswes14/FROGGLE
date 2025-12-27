@@ -290,6 +290,12 @@ S.usedDeathQuotes.push(quoteIndex);
 savePermanent(); // Save the updated usedDeathQuotes
 }
 
+// Calculate next upgrade's rate increase (tiered: first 5 +5, next 5 +10, etc.)
+const currentTotalUpgrades = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha']
+  .reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
+const nextTier = Math.floor(currentTotalUpgrades / 5);
+const nextRateIncrease = 5 * (nextTier + 1);
+
 let html = `
 <style>
 @keyframes marquee-flash {
@@ -312,7 +318,7 @@ ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;co
 <div class="going-rate-marquee">
 <p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#b45309">${S.gold}</strong></p>
 <p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
-<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#5a5550;font-style:italic">(+5G per upgrade)</p>
+<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#5a5550;font-style:italic">(+${nextRateIncrease}G per upgrade)</p>
 </div>`;
 
 if(S.gold === 0) {
@@ -324,7 +330,19 @@ html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:
 // This can happen if save data gets corrupted or from old migration issues
 const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
 const totalUpgradeCounts = allSigils.reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
-const expectedMinGoingRate = 1 + (totalUpgradeCounts * 5);
+// Calculate expected going rate with tiered formula: first 5 upgrades +5 each, next 5 +10 each, etc.
+const calculateExpectedGoingRate = (n) => {
+  if(n <= 0) return 1;
+  const fullTiers = Math.floor(n / 5);
+  const partial = n % 5;
+  // Sum of full tiers: each tier i (0-indexed) adds 5*(i+1)*5 = 25*(i+1)
+  // Sum = 25 * (1+2+...+fullTiers) = 25 * fullTiers * (fullTiers+1) / 2
+  const fullTierSum = 25 * fullTiers * (fullTiers + 1) / 2;
+  // Partial tier adds: partial * 5 * (fullTiers+1)
+  const partialSum = partial * 5 * (fullTiers + 1);
+  return 1 + fullTierSum + partialSum;
+};
+const expectedMinGoingRate = calculateExpectedGoingRate(totalUpgradeCounts);
 if (S.goingRate < expectedMinGoingRate && totalUpgradeCounts > 0) {
   console.warn('[DEATH SCREEN] sigUpgradeCounts out of sync with goingRate. Resetting sigUpgradeCounts.');
   console.warn('  goingRate:', S.goingRate, 'totalUpgradeCounts:', totalUpgradeCounts, 'expectedMin:', expectedMinGoingRate);
@@ -408,7 +426,7 @@ html += `
 <!-- Boy 1: Sell Back -->
 <div style="background:rgba(34,197,94,0.1);padding:1.5rem;border-radius:8px;border:2px solid rgba(34,197,94,0.3)">
 <h3 style="color:#22c55e;margin-bottom:0.5rem">Death Boy 1: "Sell Back"</h3>
-<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no +5G increase)</p>
+<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no rate increase)</p>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
 
 // List all sigils that can be sold back
@@ -483,7 +501,11 @@ return;
 S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
-S.goingRate += 5;
+// Going Rate increase formula: first 5 upgrades +5 each, next 5 +10 each, next 5 +15 each, etc.
+const totalUpgradesBefore = Object.values(S.sigUpgradeCounts).reduce((a, b) => a + b, 0) - 1; // -1 because we just incremented
+const tier = Math.floor(totalUpgradesBefore / 5);
+const rateIncrease = 5 * (tier + 1);
+S.goingRate += rateIncrease;
 // QUEST TRACKING: Upgrade purchased
 trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
