@@ -1843,21 +1843,23 @@ body.controller-active .toast {
     padding: 1.25rem;
   }
 
+  /* Cards - keep reasonable touch targets but don't bloat */
   .card {
-    min-width: 170px;
-    min-height: 80px;
+    min-width: 120px;
+    min-height: 60px;
   }
 
+  /* Sigils - touchable but compact */
   .sigil {
-    min-width: 40px;
-    min-height: 40px;
-    font-size: 1.3rem;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 1rem;
   }
 
   .sigil.compact {
-    min-width: 32px;
-    min-height: 32px;
-    font-size: 1.1rem;
+    min-width: 22px;
+    min-height: 22px;
+    font-size: 0.85rem;
   }
 
   /* Header adjustments for Steam Deck */
@@ -1871,10 +1873,69 @@ body.controller-active .toast {
     font-size: 0.85rem !important;
   }
 
-  /* Combat layout optimizations */
+  /* Combat layout optimizations - FIT ON ONE SCREEN */
   .combat-lane {
-    padding: 0.75rem;
-    gap: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem !important;
+    gap: 0.5rem;
+  }
+
+  .combat-lane:not(:last-child)::after {
+    display: none; /* Remove bulky separators */
+  }
+
+  .combat-lane .lane-content {
+    gap: 1rem !important;
+  }
+
+  /* Compact hero cards for Steam Deck */
+  .card.hero {
+    width: 160px !important;
+    max-width: 160px !important;
+    padding: 0.4rem !important;
+    min-height: auto !important;
+  }
+
+  .card.hero .sigil-row {
+    gap: 1px !important;
+  }
+
+  .card.hero .sigil-row .sigil {
+    min-width: 24px !important;
+    min-height: 24px !important;
+    padding: 2px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Compact enemy cards */
+  .card.enemy {
+    width: 130px !important;
+    max-width: 130px !important;
+    padding: 0.35rem !important;
+    min-height: auto !important;
+  }
+
+  .card.enemy .sigil {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Compact card content */
+  .card .sigil-divider {
+    margin: 0.2rem 0 !important;
+  }
+
+  /* Smaller portraits */
+  .card.hero img, .card.enemy img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Reduce header height */
+  .combat-header, [style*="combat-header"] {
+    padding: 0.3rem 0.5rem !important;
+    margin-bottom: 0.3rem !important;
   }
 
   /* Modal adjustments */
@@ -2054,7 +2115,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.23';
+const GAME_VERSION = '12.24';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
