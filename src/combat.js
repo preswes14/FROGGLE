@@ -152,6 +152,8 @@ S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
+// Clear Alpha state from any previous combat
+S.alphaGrantedActions = null; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -164,6 +166,19 @@ h.firstActionUsed = false;
 // If ambushed, stun all heroes turn 1
 if(S.ambushed) h.st = 1;
 });
+
+// Save combat start snapshot for restart functionality
+S.combatStartSnapshot = {
+heroes: S.heroes.map(h => ({
+id: h.id, n: h.n, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
+st: h.st, ls: h.ls, lst: h.lst, s: [...h.s], ts: [...(h.ts || [])],
+firstActionUsed: h.firstActionUsed
+})),
+recruits: S.recruits ? S.recruits.map(r => ({...r, s: [...r.s]})) : [],
+floor: f,
+ambushed: S.ambushed
+};
+
 let comp = getEnemyComp(f);
 
 S.enemies = comp.map((t,i) => {
@@ -263,6 +278,46 @@ const isTouchDevice = 'ontouchstart' in window;
 const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
 showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
 }
+}
+
+// Restart combat from the beginning of the current floor
+function restartCombat() {
+if(!S.combatStartSnapshot) {
+toast('No restart point saved!');
+return;
+}
+
+// Confirm restart
+showConfirmModal(
+'Restart this battle from the beginning?',
+() => {
+// Restore hero state from snapshot
+S.heroes = S.combatStartSnapshot.heroes.map(h => ({
+  ...h,
+  s: [...h.s],
+  ts: [...(h.ts || [])]
+}));
+
+// Restore recruits from snapshot
+S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
+
+// Restore ambush state
+S.ambushed = S.combatStartSnapshot.ambushed;
+
+// Clear any pending actions
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.alphaGrantedActions = null;
+S.alphaCurrentAction = 0;
+
+toast('Restarting battle...', 800);
+setTimeout(() => {
+  combat(S.combatStartSnapshot.floor);
+}, 400);
+},
+() => {} // Cancel - do nothing
+);
 }
 
 function getLevel(sig, heroIdx) {
@@ -537,7 +592,7 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:15, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
@@ -570,7 +625,7 @@ html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Sta
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:15, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
@@ -796,13 +851,12 @@ checkCombatEnd();
 }
 
 function finishD20Asterisk(heroIdx) {
-S.acted.push(heroIdx);
 S.pending = null;
 S.targets = [];
 S.asteriskD20Repeats = 1;
 S.asteriskD20Count = 0;
-checkTurnEnd();
-render();
+// Use finishAction to properly handle Alpha-granted turns
+finishAction(heroIdx);
 }
 
 function cancelAction() {
@@ -831,6 +885,8 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
+// Guard against fast tapping causing negative instances
+if(S.instancesRemaining <= 0) return;
 
 // D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
 if(S.pending === 'D20_TARGET') {
@@ -851,7 +907,7 @@ const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
+S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
   setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -875,7 +931,7 @@ S.currentInstanceTargets = [];
 finishAction(heroIdx);
 } else if(S.pending === 'Shield' || S.pending === 'Heal') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
+S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
   setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -885,7 +941,8 @@ if(S.instancesRemaining <= 0) {
 } else if(S.pending === 'Alpha') {
 executeAlphaAction(heroIdx, [...S.currentInstanceTargets]);
 S.currentInstanceTargets = [];
-finishAction(heroIdx);
+// Note: Don't call finishAction here - executeAlphaAction handles everything
+// including marking the Alpha user as acted and setting up granted turns
 }
 }
 
@@ -1048,6 +1105,8 @@ const alphaUser = S.heroes[alphaUserIdx];
 const actionsToGrant = S.alphaLevel;
 // Mark Alpha user as acted (forfeits ALL actions)
 S.acted.push(alphaUserIdx);
+// Mark first action as used (for Asterisk) - prevents Asterisk from triggering on Round 2+
+if(alphaUser && !alphaUser.firstActionUsed) alphaUser.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
 toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
@@ -2226,8 +2285,9 @@ GamepadController.saveFocusState();
 const v = document.getElementById('gameView');
 // Combat screens are scrollable (no-scroll is for narrative/cutscene screens)
 v.classList.remove('no-scroll');
-// Toggle FU mode class for compact 3-hero layout
+// Toggle FU mode class for compact 3-hero layout and sinister background
 v.classList.toggle('fu-mode', S.gameMode === 'fu');
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
 v.innerHTML = renderEncampmentSelection();
@@ -2273,43 +2333,6 @@ html += '<div class="lane-content" style="display:flex;gap:2rem;justify-content:
 
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
-
-// Show recruit BEHIND (before) hero if exists
-if(S.recruits) {
-const heroRecruits = S.recruits.filter(r => r.recruitedBy === i);
-if(heroRecruits.length > 0) {
-// Sort by POW descending, then by current HP descending
-heroRecruits.sort((a, b) => {
-if(b.p !== a.p) return b.p - a.p;
-return b.h - a.h;
-});
-const recruit = heroRecruits[0];
-const extra = [];
-if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
-if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) extra.push(`💥${recruit.st}T`);
-html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
-// Power at top
-html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
-// Recruited label with emoji
-html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">🤝</div>`;
-// HP
-html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
-// Extra info
-if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
-html += '<div class="sigil-divider"></div>';
-// Sigils
-const recruitTotalSigils = recruit.s.length + 1;
-const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
-html += `<div class="sigil-row ${compactClass}">
-<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
-recruit.s.forEach(sigil => {
-const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
-});
-html += '</div></div>';
-}
-}
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
@@ -2545,6 +2568,45 @@ html += '</div>';
 }
 html += '</div>';
 } // End of else (normal hero card)
+
+// Show recruit BEHIND (after) hero if exists
+if(S.recruits) {
+const heroRecruits = S.recruits.filter(r => r.recruitedBy === i);
+if(heroRecruits.length > 0) {
+// Sort by POW descending, then by current HP descending
+heroRecruits.sort((a, b) => {
+if(b.p !== a.p) return b.p - a.p;
+return b.h - a.h;
+});
+const recruit = heroRecruits[0];
+const recruitExtra = [];
+if(recruit.sh > 0) recruitExtra.push(`${recruit.sh}🛡`);
+if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
+if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
+html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
+// Power at top
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
+// Enemy emoji (retain original enemy type)
+const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">${recruitEmoji}</div>`;
+// HP
+html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
+// Extra info
+if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
+html += '<div class="sigil-divider"></div>';
+// Sigils
+const recruitTotalSigils = recruit.s.length + 1;
+const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
+html += `<div class="sigil-row ${compactClass}">
+<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
+recruit.s.forEach(sigil => {
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
+});
+html += '</div></div>';
+}
+}
+
 html += '</div>'; // Close hero section
 
 // Divider between heroes and enemies
@@ -3212,7 +3274,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} ${sig} | L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -3269,7 +3331,7 @@ html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;bo
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
-const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → L${level + 1}`;
+const displayText = isNew ? `Add ${sig}` : `${sig} | L${level} → L${level + 1}`;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
 html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
 });

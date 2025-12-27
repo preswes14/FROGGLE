@@ -343,8 +343,8 @@ roundInfoEl.style.display = 'none';
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
-} else if(S.enemies && S.enemies.length > 0) {
-// In combat
+} else if((S.enemies && S.enemies.length > 0) || S.inCombat) {
+// In combat - show round indicator
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
@@ -369,6 +369,8 @@ if(debugBtn) debugBtn.style.display = S.debugMode ? 'block' : 'none';
 // Update background color based on floor
 const gameArea = document.getElementById('gameView');
 if(gameArea) gameArea.style.background = getFloorBackground(S.floor);
+// Toggle sinister FU mode background on body
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 }
 
 function triggerHitAnimation(targetId) {

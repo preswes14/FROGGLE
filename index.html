@@ -17,6 +17,7 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
+body.fu-mode { background: linear-gradient(135deg, #2a231c 0%, #1a1612 100%); color: #e8d5c0; }
 h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; }
 
 /* Landscape orientation enforcement for mobile */
@@ -239,11 +240,11 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   align-items: center;
   justify-content: center;
 }
-.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
+.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; color: #1c1b19; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
 .choice:hover { transform: translateY(-2px); background: #f9f9f9; box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.15); }
 .choice:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .choice:active { transform: translateY(4px) scale(0.98); background: #f0f0f0; box-shadow: 0 0 0 rgba(0,0,0,0.2), 0 2px 6px rgba(0,0,0,0.1); }
-.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 14px; background: white; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
+.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 14px; background: white; color: #1c1b19; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
 .neutral-btn:hover { transform: translateY(-1px); opacity: 0.95; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 10px rgba(0,0,0,0.2); }
 .neutral-btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15); }
@@ -359,7 +360,10 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .combat-lane.crowded-5 .card.enemy .sigil-row { gap: 1px; }
 .card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; overflow: hidden; word-wrap: break-word; }
 .card-stats { font-size: 0.8rem; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
-.card.hero { background: #2c63c7; color: white; width: 160px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.card.hero { background: #2c63c7; color: white; width: 200px; max-width: 200px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.card.hero .sigil-row { flex-wrap: nowrap; gap: 2px; }
+.card.hero .sigil-row .sigil { flex-shrink: 1; min-width: 28px; min-height: 28px; padding: 4px; font-size: 0.9rem; }
+.card.hero .sigil-row .sigil img { height: 1.3em; }
 .card.enemy { background: #b64141; color: white; width: 160px; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
@@ -631,7 +635,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     min-height: 85px;
     font-size: 0.95rem;
   }
-  .card.hero { width: 180px; }
+  .card.hero { width: 220px !important; max-width: 220px; }
   .card.enemy { width: 180px; }
 
   /* Combat grid spacing */
@@ -730,7 +734,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     font-size: 1.1rem;
     border-width: 4px;
   }
-  .card.hero { width: 220px; }
+  .card.hero { width: 260px !important; max-width: 260px; }
   .card.enemy { width: 220px; }
 
   /* Hero/enemy images larger */
@@ -952,7 +956,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     min-height: 120px;
     font-size: 1.15rem;
   }
-  .card.hero { width: 240px; }
+  .card.hero { width: 290px !important; max-width: 290px; }
   .card.enemy { width: 240px; }
 
   /* Images scale up */
@@ -1024,7 +1028,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     width: 260px !important;
     max-width: 260px;
   }
-  .card.hero { width: 260px; }
+  .card.hero { width: 320px !important; max-width: 320px; }
   .card.enemy { width: 260px; }
 
   .btn, .choice {
@@ -1840,21 +1844,23 @@ body.controller-active .toast {
     padding: 1.25rem;
   }
 
+  /* Cards - keep reasonable touch targets but don't bloat */
   .card {
-    min-width: 170px;
-    min-height: 80px;
+    min-width: 120px;
+    min-height: 60px;
   }
 
+  /* Sigils - touchable but compact */
   .sigil {
-    min-width: 40px;
-    min-height: 40px;
-    font-size: 1.3rem;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 1rem;
   }
 
   .sigil.compact {
-    min-width: 32px;
-    min-height: 32px;
-    font-size: 1.1rem;
+    min-width: 22px;
+    min-height: 22px;
+    font-size: 0.85rem;
   }
 
   /* Header adjustments for Steam Deck */
@@ -1868,10 +1874,69 @@ body.controller-active .toast {
     font-size: 0.85rem !important;
   }
 
-  /* Combat layout optimizations */
+  /* Combat layout optimizations - FIT ON ONE SCREEN */
   .combat-lane {
-    padding: 0.75rem;
-    gap: 1rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem !important;
+    gap: 0.5rem;
+  }
+
+  .combat-lane:not(:last-child)::after {
+    display: none; /* Remove bulky separators */
+  }
+
+  .combat-lane .lane-content {
+    gap: 1rem !important;
+  }
+
+  /* Compact hero cards for Steam Deck */
+  .card.hero {
+    width: 160px !important;
+    max-width: 160px !important;
+    padding: 0.4rem !important;
+    min-height: auto !important;
+  }
+
+  .card.hero .sigil-row {
+    gap: 1px !important;
+  }
+
+  .card.hero .sigil-row .sigil {
+    min-width: 24px !important;
+    min-height: 24px !important;
+    padding: 2px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Compact enemy cards */
+  .card.enemy {
+    width: 130px !important;
+    max-width: 130px !important;
+    padding: 0.35rem !important;
+    min-height: auto !important;
+  }
+
+  .card.enemy .sigil {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Compact card content */
+  .card .sigil-divider {
+    margin: 0.2rem 0 !important;
+  }
+
+  /* Smaller portraits */
+  .card.hero img, .card.enemy img {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Reduce header height */
+  .combat-header, [style*="combat-header"] {
+    padding: 0.3rem 0.5rem !important;
+    margin-bottom: 0.3rem !important;
   }
 
   /* Modal adjustments */
@@ -2051,7 +2116,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.20';
+const GAME_VERSION = '12.32';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2169,7 +2234,7 @@ warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Attack','Shield','D20']},
 mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
 healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']},
-tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alpha','Ghost','Expand','Star','Asterisk']}
+tapo: {n:'Tapo', p:1, h:1, m:1, s:['D20']}
 };
 
 // Enemy sigil pools and level restrictions:
@@ -2250,8 +2315,8 @@ const SIGIL_DESCRIPTIONS = {
 'Shield': 'Grant target <b class="sig-scale">+2×POW</b> shield. L2: +4×. L3: +6×. L4: +8×. Shields persist between battles (capped at max HP).',
 'Heal': 'Restore <b class="sig-scale">2×POW</b> HP to target. L2: 4×. L3: 6×. L4: 8×. Cannot exceed max HP.',
 'D20': 'Attempt a gambit! Roll <b class="sig-scale">ONE</b> d20. L2: 2 dice (take best). L3: 3 dice. L4: 4 dice.',
-'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to Attack/Shield/Heal. Mage/Healer get +1 built-in.',
-'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW.',
+'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in.',
+'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW. Stun stacks with existing stun!',
 'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
 'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
 'Star': 'PASSIVE (works automatically): Multiply combat XP by <b class="sig-scale">1.5×</b>. L2: 2×. L3: 2.5×. L4: 3×. Stacks across all heroes!',
@@ -2553,6 +2618,11 @@ if(h) {
 if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
 else html += `${h.n}'s Turn`;
 }
+}
+// Add restart button (only during player turn, not in tutorial)
+const isTutorial = typeof tutorialState !== 'undefined' && tutorialState && S.floor === 0;
+if(S.turn === 'player' && !isTutorial && S.combatStartSnapshot) {
+html += `<button class="btn secondary" onclick="restartCombat()" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);padding:0.3rem 0.6rem;font-size:0.75rem;opacity:0.7">↻ Restart</button>`;
 }
 html += '</div>';
 
@@ -2862,7 +2932,7 @@ const descriptions = {
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
 'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (enemy hurts itself), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
-'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
+'Expand': level === 0 ? 'PASSIVE: Add +1 target to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Stun target for ${boldNum(level)} turn${level > 1 ? 's' : ''}. You take damage equal to target's POW`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death (persists between combats, max 9)`,
 'Asterisk': level === 0 ? 'Not unlocked' : `PASSIVE: Next action triggers ${boldNum(level + 1)} times! Resets after each battle`,
@@ -4632,8 +4702,8 @@ roundInfoEl.style.display = 'none';
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
-} else if(S.enemies && S.enemies.length > 0) {
-// In combat
+} else if((S.enemies && S.enemies.length > 0) || S.inCombat) {
+// In combat - show round indicator
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
@@ -4658,6 +4728,8 @@ if(debugBtn) debugBtn.style.display = S.debugMode ? 'block' : 'none';
 // Update background color based on floor
 const gameArea = document.getElementById('gameView');
 if(gameArea) gameArea.style.background = getFloorBackground(S.floor);
+// Toggle sinister FU mode background on body
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 }
 
 function triggerHitAnimation(targetId) {
@@ -5828,6 +5900,8 @@ S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
+// Clear Alpha state from any previous combat
+S.alphaGrantedActions = null; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -5840,6 +5914,19 @@ h.firstActionUsed = false;
 // If ambushed, stun all heroes turn 1
 if(S.ambushed) h.st = 1;
 });
+
+// Save combat start snapshot for restart functionality
+S.combatStartSnapshot = {
+heroes: S.heroes.map(h => ({
+id: h.id, n: h.n, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
+st: h.st, ls: h.ls, lst: h.lst, s: [...h.s], ts: [...(h.ts || [])],
+firstActionUsed: h.firstActionUsed
+})),
+recruits: S.recruits ? S.recruits.map(r => ({...r, s: [...r.s]})) : [],
+floor: f,
+ambushed: S.ambushed
+};
+
 let comp = getEnemyComp(f);
 
 S.enemies = comp.map((t,i) => {
@@ -5939,6 +6026,46 @@ const isTouchDevice = 'ontouchstart' in window;
 const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
 showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
 }
+}
+
+// Restart combat from the beginning of the current floor
+function restartCombat() {
+if(!S.combatStartSnapshot) {
+toast('No restart point saved!');
+return;
+}
+
+// Confirm restart
+showConfirmModal(
+'Restart this battle from the beginning?',
+() => {
+// Restore hero state from snapshot
+S.heroes = S.combatStartSnapshot.heroes.map(h => ({
+  ...h,
+  s: [...h.s],
+  ts: [...(h.ts || [])]
+}));
+
+// Restore recruits from snapshot
+S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
+
+// Restore ambush state
+S.ambushed = S.combatStartSnapshot.ambushed;
+
+// Clear any pending actions
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.alphaGrantedActions = null;
+S.alphaCurrentAction = 0;
+
+toast('Restarting battle...', 800);
+setTimeout(() => {
+  combat(S.combatStartSnapshot.floor);
+}, 400);
+},
+() => {} // Cancel - do nothing
+);
 }
 
 function getLevel(sig, heroIdx) {
@@ -6213,7 +6340,7 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:15, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
@@ -6246,7 +6373,7 @@ html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Sta
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn'},
+{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:15, name:'MEND', desc:'Heal self for POW'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
@@ -6472,13 +6599,12 @@ checkCombatEnd();
 }
 
 function finishD20Asterisk(heroIdx) {
-S.acted.push(heroIdx);
 S.pending = null;
 S.targets = [];
 S.asteriskD20Repeats = 1;
 S.asteriskD20Count = 0;
-checkTurnEnd();
-render();
+// Use finishAction to properly handle Alpha-granted turns
+finishAction(heroIdx);
 }
 
 function cancelAction() {
@@ -6507,6 +6633,8 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
+// Guard against fast tapping causing negative instances
+if(S.instancesRemaining <= 0) return;
 
 // D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
 if(S.pending === 'D20_TARGET') {
@@ -6527,7 +6655,7 @@ const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
+S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
   setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -6551,7 +6679,7 @@ S.currentInstanceTargets = [];
 finishAction(heroIdx);
 } else if(S.pending === 'Shield' || S.pending === 'Heal') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
+S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
   setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -6561,7 +6689,8 @@ if(S.instancesRemaining <= 0) {
 } else if(S.pending === 'Alpha') {
 executeAlphaAction(heroIdx, [...S.currentInstanceTargets]);
 S.currentInstanceTargets = [];
-finishAction(heroIdx);
+// Note: Don't call finishAction here - executeAlphaAction handles everything
+// including marking the Alpha user as acted and setting up granted turns
 }
 }
 
@@ -6724,6 +6853,8 @@ const alphaUser = S.heroes[alphaUserIdx];
 const actionsToGrant = S.alphaLevel;
 // Mark Alpha user as acted (forfeits ALL actions)
 S.acted.push(alphaUserIdx);
+// Mark first action as used (for Asterisk) - prevents Asterisk from triggering on Round 2+
+if(alphaUser && !alphaUser.firstActionUsed) alphaUser.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
 toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
@@ -7902,8 +8033,9 @@ GamepadController.saveFocusState();
 const v = document.getElementById('gameView');
 // Combat screens are scrollable (no-scroll is for narrative/cutscene screens)
 v.classList.remove('no-scroll');
-// Toggle FU mode class for compact 3-hero layout
+// Toggle FU mode class for compact 3-hero layout and sinister background
 v.classList.toggle('fu-mode', S.gameMode === 'fu');
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
 v.innerHTML = renderEncampmentSelection();
@@ -7949,43 +8081,6 @@ html += '<div class="lane-content" style="display:flex;gap:2rem;justify-content:
 
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
-
-// Show recruit BEHIND (before) hero if exists
-if(S.recruits) {
-const heroRecruits = S.recruits.filter(r => r.recruitedBy === i);
-if(heroRecruits.length > 0) {
-// Sort by POW descending, then by current HP descending
-heroRecruits.sort((a, b) => {
-if(b.p !== a.p) return b.p - a.p;
-return b.h - a.h;
-});
-const recruit = heroRecruits[0];
-const extra = [];
-if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
-if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) extra.push(`💥${recruit.st}T`);
-html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
-// Power at top
-html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
-// Recruited label with emoji
-html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">🤝</div>`;
-// HP
-html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
-// Extra info
-if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
-html += '<div class="sigil-divider"></div>';
-// Sigils
-const recruitTotalSigils = recruit.s.length + 1;
-const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
-html += `<div class="sigil-row ${compactClass}">
-<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
-recruit.s.forEach(sigil => {
-const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
-});
-html += '</div></div>';
-}
-}
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
@@ -8221,6 +8316,45 @@ html += '</div>';
 }
 html += '</div>';
 } // End of else (normal hero card)
+
+// Show recruit BEHIND (after) hero if exists
+if(S.recruits) {
+const heroRecruits = S.recruits.filter(r => r.recruitedBy === i);
+if(heroRecruits.length > 0) {
+// Sort by POW descending, then by current HP descending
+heroRecruits.sort((a, b) => {
+if(b.p !== a.p) return b.p - a.p;
+return b.h - a.h;
+});
+const recruit = heroRecruits[0];
+const recruitExtra = [];
+if(recruit.sh > 0) recruitExtra.push(`${recruit.sh}🛡`);
+if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
+if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
+html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
+// Power at top
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
+// Enemy emoji (retain original enemy type)
+const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">${recruitEmoji}</div>`;
+// HP
+html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
+// Extra info
+if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
+html += '<div class="sigil-divider"></div>';
+// Sigils
+const recruitTotalSigils = recruit.s.length + 1;
+const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
+html += `<div class="sigil-row ${compactClass}">
+<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
+recruit.s.forEach(sigil => {
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
+});
+html += '</div></div>';
+}
+}
+
 html += '</div>'; // Close hero section
 
 // Divider between heroes and enemies
@@ -8888,7 +9022,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} ${sig} | L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -8945,7 +9079,7 @@ html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;bo
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
-const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → L${level + 1}`;
+const displayText = isNew ? `Add ${sig}` : `${sig} | L${level} → L${level + 1}`;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
 html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
 });
@@ -9099,7 +9233,7 @@ const diceHTML = rolls.map(r => {
 const isBest = r === best;
 return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
 }).join(' ');
-return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
+return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#4a4540">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
 }
 
 function formatD20Compact(rolls, best) {
@@ -9515,11 +9649,25 @@ return;
 
 const slide = slides[currentIndex];
 debugLog('[FROGGLE] Rendering slide', currentIndex);
+
+// Check if this slide has an action that should trigger immediately (no text to show)
+// Actions with real text (like statue_slotting) are triggered in continueNarrative after user reads
+const isPlaceholderText = slide.text && typeof slide.text === 'string' && slide.text.startsWith('INTERSTITIAL_');
+if(slide.action && isPlaceholderText && window.firstVictorySlideAction) {
+const handled = window.firstVictorySlideAction(slide.action, currentIndex, () => {
+// Action complete, continue to next slide
+showNarrativeSlide(slides, currentIndex + 1);
+});
+if(handled) return; // Action handler will call callback when done
+}
+
 const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
 const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:1rem">Skip</button>` : '';
+// Resolve text - may be a function for dynamic content
+const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 
 // Full-art mode: background image takes up screen, text in bottom bar
@@ -9533,7 +9681,7 @@ v.innerHTML = `
 <!-- Text bar at bottom with solid background for readability -->
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.85);padding:1rem 1.25rem 0.75rem 1.25rem;border-top:3px solid rgba(34,197,94,0.6)">
 <div style="max-width:800px;margin:0 auto">
-${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slide.text}</div>`}
+${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
 <button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
@@ -9547,7 +9695,7 @@ ${skipButton}
 v.innerHTML = `
 <div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;background:rgba(0,0,0,0.3)">
 <div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slide.text}</div>`}
+${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
 <button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
@@ -10403,6 +10551,7 @@ btn.style.opacity = sel.length === requiredHeroes ? '1' : '0.4';
 
 function toggleMode() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 savePermanent();
 title();
 }
@@ -10455,8 +10604,10 @@ hero.s.push(passive);
 });
 
 // Apply pedestal buffs
+// Standard mode statues apply to BOTH modes, FU statues only apply to FU mode
 S.pedestal.forEach(slot => {
-if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
+// Standard mode statues apply universally, FU statues only in FU mode
+if(slot.mode === 'fu' && S.gameMode !== 'fu') return;
 const hero = S.heroes.find(h => h.n === slot.hero);
 if(!hero) return;
 if(slot.stat === 'POW') {
@@ -11220,7 +11371,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: 'Trials of Arcane Power',
-description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#666">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
+description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#4a4540">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
 buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
 <button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
 });
@@ -12634,6 +12785,12 @@ S.usedDeathQuotes.push(quoteIndex);
 savePermanent(); // Save the updated usedDeathQuotes
 }
 
+// Calculate next upgrade's rate increase (tiered: first 5 +5, next 5 +10, etc.)
+const currentTotalUpgrades = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha']
+  .reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
+const nextTier = Math.floor(currentTotalUpgrades / 5);
+const nextRateIncrease = 5 * (nextTier + 1);
+
 let html = `
 <style>
 @keyframes marquee-flash {
@@ -12652,10 +12809,11 @@ let html = `
 <div class="death-screen-container" style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
 <img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
-${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#666;font-style:italic">"${deathQuote}"</p>` : ''}
+${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#4a4540;font-style:italic">"${deathQuote}"</p>` : ''}
 <div class="going-rate-marquee">
-<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#d97706">${S.gold}</strong></p>
+<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#b45309">${S.gold}</strong></p>
 <p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
+<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#5a5550;font-style:italic">(+${nextRateIncrease}G per upgrade)</p>
 </div>`;
 
 if(S.gold === 0) {
@@ -12667,7 +12825,19 @@ html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:
 // This can happen if save data gets corrupted or from old migration issues
 const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
 const totalUpgradeCounts = allSigils.reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
-const expectedMinGoingRate = 1 + (totalUpgradeCounts * 5);
+// Calculate expected going rate with tiered formula: first 5 upgrades +5 each, next 5 +10 each, etc.
+const calculateExpectedGoingRate = (n) => {
+  if(n <= 0) return 1;
+  const fullTiers = Math.floor(n / 5);
+  const partial = n % 5;
+  // Sum of full tiers: each tier i (0-indexed) adds 5*(i+1)*5 = 25*(i+1)
+  // Sum = 25 * (1+2+...+fullTiers) = 25 * fullTiers * (fullTiers+1) / 2
+  const fullTierSum = 25 * fullTiers * (fullTiers + 1) / 2;
+  // Partial tier adds: partial * 5 * (fullTiers+1)
+  const partialSum = partial * 5 * (fullTiers + 1);
+  return 1 + fullTierSum + partialSum;
+};
+const expectedMinGoingRate = calculateExpectedGoingRate(totalUpgradeCounts);
 if (S.goingRate < expectedMinGoingRate && totalUpgradeCounts > 0) {
   console.warn('[DEATH SCREEN] sigUpgradeCounts out of sync with goingRate. Resetting sigUpgradeCounts.');
   console.warn('  goingRate:', S.goingRate, 'totalUpgradeCounts:', totalUpgradeCounts, 'expectedMin:', expectedMinGoingRate);
@@ -12712,7 +12882,7 @@ cards += `
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
-<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${cost}G</div>
+<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#4a4540;font-weight:600">Cost: ${cost}G</div>
 <button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
@@ -12751,7 +12921,7 @@ html += `
 <!-- Boy 1: Sell Back -->
 <div style="background:rgba(34,197,94,0.1);padding:1.5rem;border-radius:8px;border:2px solid rgba(34,197,94,0.3)">
 <h3 style="color:#22c55e;margin-bottom:0.5rem">Death Boy 1: "Sell Back"</h3>
-<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no +5G increase)</p>
+<p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9">Remove one upgrade level from any sigil and get Gold equal to the current Going Rate (no rate increase)</p>
 <div style="font-size:0.8rem;margin-bottom:1rem;opacity:0.7">Going Rate: ${S.goingRate}G</div>`;
 
 // List all sigils that can be sold back
@@ -12826,7 +12996,11 @@ return;
 S.gold -= cost;
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 S.sigUpgradeCounts[sig] = (S.sigUpgradeCounts[sig] || 0) + 1;
-S.goingRate += 5;
+// Going Rate increase formula: first 5 upgrades +5 each, next 5 +10 each, next 5 +15 each, etc.
+const totalUpgradesBefore = Object.values(S.sigUpgradeCounts).reduce((a, b) => a + b, 0) - 1; // -1 because we just incremented
+const tier = Math.floor(totalUpgradesBefore / 5);
+const rateIncrease = 5 * (tier + 1);
+S.goingRate += rateIncrease;
 // QUEST TRACKING: Upgrade purchased
 trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
@@ -13048,6 +13222,7 @@ setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COM
 // This function will be used for a visual toggle button in the Champions menu
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 showChampionsMenu();
 }
 
@@ -13217,6 +13392,8 @@ S.heroes.forEach(hero => {
 });
 
 // Reset run state on victory (gold persists between runs)
+S.xp = 0; // Clear XP earned this run
+S.levelUpCount = 0; // Reset level up count
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}; // Clear temp upgrades
 S.recruits = []; // Clear recruits
 savePermanent();
@@ -13312,7 +13489,7 @@ const slides = [
 {bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awakens from his well-earned nap! Clutched in his budding appendages, he holds carvings of the heroes who saved him!"},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
 {bg: 'assets/victory-room.png', text: () => `As the statues click into place, a warm ripple of power surges through the heroes. <strong style='color:#fbbf24'>${getSlottedStatsText()}</strong>`, dynamic: true},
-{bg: 'assets/ribbleton.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
+{bg: 'assets/victory-room.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
 {bg: 'assets/ribbleton.png', text: "WHOOSH! One portal trip later, and the crew is back safe and sound in Ribbleton. Off to the Lilypad Pond for a well-earned night of sleep!"},
 {bg: 'assets/ribbleton.png', text: "INTERSTITIAL_HERO_CARDS", action: 'hero_cards_interstitial'},
 {bg: 'assets/ribbleton.png', text: "As the sun rises, the town of Ribbleton awakens, delighted to see their heroes home safe. There is only one problem... Where is Tapo? Our heroes gear up and take the portal back to the statue room where they found him last time."},
@@ -13354,8 +13531,14 @@ function showVictoryHeroCardsInterstitial(onComplete) {
 const v = document.getElementById('gameView');
 
 // Get pedestal bonuses for display
+// Standard mode statues apply in both modes, FU statues only in FU mode
 const getPedestalBonus = (heroName) => {
-const bonuses = S.pedestal.filter(p => p.hero === heroName && p.mode === 'Standard');
+const bonuses = S.pedestal.filter(p => {
+if(p.hero !== heroName) return false;
+// Standard mode bonuses always apply, FU bonuses only in FU mode
+if(p.mode === 'fu' && S.gameMode !== 'fu') return false;
+return true;
+});
 if(bonuses.length === 0) return '';
 return bonuses.map(b => b.stat === 'POW' ? '+1⚡' : '+5❤').join(' ');
 };
@@ -13685,14 +13868,14 @@ const QUESTS = {
   survivor: {
     name: 'Survivor',
     desc: 'Reach Floor 3',
-    reward: 10,
+    reward: 5,
     category: 'learning',
     check: () => S.questProgress.highestFloor >= 3
   },
   battle_hardened: {
     name: 'Battle Hardened',
     desc: 'Reach Floor 5',
-    reward: 15,
+    reward: 10,
     category: 'learning',
     check: () => S.questProgress.highestFloor >= 5
   },
@@ -13701,7 +13884,7 @@ const QUESTS = {
   warrior_path: {
     name: "Warrior's Path",
     desc: 'Play a run with Warrior',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Warrior >= 1
@@ -13709,7 +13892,7 @@ const QUESTS = {
   tank_path: {
     name: "Tank's Path",
     desc: 'Play a run with Tank',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Tank >= 1
@@ -13717,7 +13900,7 @@ const QUESTS = {
   mage_path: {
     name: "Mage's Path",
     desc: 'Play a run with Mage',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Mage >= 1
@@ -13725,7 +13908,7 @@ const QUESTS = {
   healer_path: {
     name: "Healer's Path",
     desc: 'Play a run with Healer',
-    reward: 10,
+    reward: 5,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Healer >= 1
@@ -13733,7 +13916,7 @@ const QUESTS = {
   diverse_squad: {
     name: 'Diverse Squad',
     desc: 'Play with all 4 base heroes',
-    reward: 25,
+    reward: 10,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1 || S.runsAttempted >= 2,
     check: () => S.questProgress.heroesPlayed.Warrior >= 1 && S.questProgress.heroesPlayed.Tank >= 1 && S.questProgress.heroesPlayed.Mage >= 1 && S.questProgress.heroesPlayed.Healer >= 1
@@ -13741,7 +13924,7 @@ const QUESTS = {
   champion_warrior: {
     name: 'Champion: Warrior',
     desc: 'Win a run with Warrior',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Warrior >= 1
@@ -13749,7 +13932,7 @@ const QUESTS = {
   champion_tank: {
     name: 'Champion: Tank',
     desc: 'Win a run with Tank',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Tank >= 1
@@ -13757,7 +13940,7 @@ const QUESTS = {
   champion_mage: {
     name: 'Champion: Mage',
     desc: 'Win a run with Mage',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Mage >= 1
@@ -13765,7 +13948,7 @@ const QUESTS = {
   champion_healer: {
     name: 'Champion: Healer',
     desc: 'Win a run with Healer',
-    reward: 25,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.heroWins.Healer >= 1
@@ -13773,7 +13956,7 @@ const QUESTS = {
   army_of_frogs: {
     name: 'Army of Frogs',
     desc: 'Win with all 4 base heroes',
-    reward: 50,
+    reward: 20,
     category: 'heroes',
     unlock: () => S.questProgress.standardWins >= 1,
     check: () => S.questProgress.heroWins.Warrior >= 1 && S.questProgress.heroWins.Tank >= 1 && S.questProgress.heroWins.Mage >= 1 && S.questProgress.heroWins.Healer >= 1
@@ -13783,7 +13966,7 @@ const QUESTS = {
   neutral_shop: {
     name: 'The Shop',
     desc: 'Complete Shopkeeper encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.shopkeeper
@@ -13791,7 +13974,7 @@ const QUESTS = {
   neutral_well: {
     name: 'Make a Wish',
     desc: 'Complete Wishing Well encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.wishingwell
@@ -13799,7 +13982,7 @@ const QUESTS = {
   neutral_chest: {
     name: 'Treasure Hunter',
     desc: 'Complete Treasure Chest encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.treasurechest
@@ -13807,7 +13990,7 @@ const QUESTS = {
   neutral_wizard: {
     name: "Wizard's Test",
     desc: 'Complete Wizard encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.wizard
@@ -13815,7 +13998,7 @@ const QUESTS = {
   neutral_oracle: {
     name: "Oracle's Wisdom",
     desc: 'Complete Oracle encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.oracle
@@ -13823,7 +14006,7 @@ const QUESTS = {
   neutral_camp: {
     name: 'Camp Visitor',
     desc: 'Complete Encampment encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.encampment
@@ -13831,7 +14014,7 @@ const QUESTS = {
   neutral_gambling: {
     name: 'High Roller',
     desc: 'Complete Gambling Den encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.gambling
@@ -13839,7 +14022,7 @@ const QUESTS = {
   neutral_ghost: {
     name: 'Ghost Whisperer',
     desc: 'Complete Ghost Boys encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.ghost
@@ -13847,7 +14030,7 @@ const QUESTS = {
   neutral_royal: {
     name: 'Royal Audience',
     desc: 'Complete Royal Court encounter',
-    reward: 10,
+    reward: 5,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 2,
     check: () => S.questProgress.neutralsCompleted.royal
@@ -13855,7 +14038,7 @@ const QUESTS = {
   neutral_explorer: {
     name: 'Neutral Explorer',
     desc: 'Complete all Stage 1 neutrals',
-    reward: 40,
+    reward: 20,
     category: 'neutrals',
     unlock: () => S.questProgress.highestFloor >= 4,
     check: () => Object.values(S.questProgress.neutralsCompleted).every(v => v)
@@ -13865,7 +14048,7 @@ const QUESTS = {
   dragon_slayer: {
     name: 'Dragon Slayer',
     desc: 'Defeat a Dragon',
-    reward: 20,
+    reward: 10,
     category: 'milestones',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.enemyTypesDefeated.Dragon
@@ -13873,7 +14056,7 @@ const QUESTS = {
   flydra_hunter: {
     name: 'Flydra Hunter',
     desc: 'Defeat a Flydra head',
-    reward: 25,
+    reward: 10,
     category: 'milestones',
     unlock: () => S.questProgress.highestFloor >= 15,
     check: () => S.questProgress.enemyTypesDefeated.Flydra
@@ -13881,14 +14064,14 @@ const QUESTS = {
   first_victory: {
     name: 'First Victory',
     desc: 'Complete Floor 20 (Standard)',
-    reward: 100,
+    reward: 20,
     category: 'milestones',
     check: () => S.questProgress.standardWins >= 1
   },
   eternal_power: {
     name: 'Eternal Power',
     desc: 'Purchase a permanent upgrade',
-    reward: 15,
+    reward: 10,
     category: 'milestones',
     unlock: () => S.runsAttempted >= 2,
     check: () => S.questProgress.purchasedUpgrade
@@ -13896,7 +14079,7 @@ const QUESTS = {
   spreading_wealth: {
     name: 'Spreading the Wealth',
     desc: 'Upgrade all sigils to L1',
-    reward: 50,
+    reward: 20,
     category: 'milestones',
     unlock: () => S.questProgress.purchasedUpgrade,
     check: () => Object.values(S.sig).every(v => v >= 1)
@@ -13906,7 +14089,7 @@ const QUESTS = {
   combo_striker: {
     name: 'Combo Striker',
     desc: 'Deal 10+ damage in one action',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.maxDamageOneAction >= 10
@@ -13914,7 +14097,7 @@ const QUESTS = {
   multi_target: {
     name: 'Multi-Target',
     desc: 'Hit 3+ targets with one action',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.maxTargetsOneAction >= 3
@@ -13922,7 +14105,7 @@ const QUESTS = {
   ghost_walk: {
     name: 'Ghost Walk',
     desc: 'Block damage with Ghost charges',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.ghostBlocked
@@ -13930,7 +14113,7 @@ const QUESTS = {
   grappler: {
     name: 'Grappler',
     desc: 'Stun an enemy with Grapple',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.grappleUsed
@@ -13938,7 +14121,7 @@ const QUESTS = {
   alpha_strike: {
     name: 'Alpha Strike',
     desc: 'Grant bonus actions with Alpha',
-    reward: 15,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.alphaUsed
@@ -13946,7 +14129,7 @@ const QUESTS = {
   last_stand_hero: {
     name: 'Last Stand Hero',
     desc: 'Survive a round in Last Stand',
-    reward: 20,
+    reward: 10,
     category: 'combat',
     unlock: () => S.questProgress.highestFloor >= 10,
     check: () => S.questProgress.lastStandSurvived
@@ -13956,7 +14139,7 @@ const QUESTS = {
   slayer_1: {
     name: 'Slayer I',
     desc: 'Defeat 25 enemies',
-    reward: 25,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.highestFloor >= 5,
     check: () => S.questProgress.enemiesKilled >= 25 && S.questProgress.slayerTier === 0
@@ -13964,7 +14147,7 @@ const QUESTS = {
   slayer_2: {
     name: 'Slayer II',
     desc: 'Defeat 100 enemies',
-    reward: 50,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 1,
     check: () => S.questProgress.enemiesKilled >= 100 && S.questProgress.slayerTier === 1
@@ -13972,7 +14155,7 @@ const QUESTS = {
   slayer_3: {
     name: 'Slayer III',
     desc: 'Defeat 250 enemies',
-    reward: 75,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 2,
     check: () => S.questProgress.enemiesKilled >= 250 && S.questProgress.slayerTier === 2
@@ -13980,7 +14163,7 @@ const QUESTS = {
   slayer_4: {
     name: 'Slayer IV',
     desc: 'Defeat 500 enemies',
-    reward: 100,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 3,
     check: () => S.questProgress.enemiesKilled >= 500 && S.questProgress.slayerTier === 3
@@ -13988,7 +14171,7 @@ const QUESTS = {
   slayer_5: {
     name: 'Slayer V',
     desc: 'Defeat 1000 enemies',
-    reward: 150,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.slayerTier >= 4,
     check: () => S.questProgress.enemiesKilled >= 1000 && S.questProgress.slayerTier === 4
@@ -13996,7 +14179,7 @@ const QUESTS = {
   gold_digger_1: {
     name: 'Gold Digger I',
     desc: 'Earn 250G total',
-    reward: 25,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.highestFloor >= 5,
     check: () => S.questProgress.totalGoldEarned >= 250 && S.questProgress.goldDiggerTier === 0
@@ -14004,7 +14187,7 @@ const QUESTS = {
   gold_digger_2: {
     name: 'Gold Digger II',
     desc: 'Earn 1000G total',
-    reward: 50,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.goldDiggerTier >= 1,
     check: () => S.questProgress.totalGoldEarned >= 1000 && S.questProgress.goldDiggerTier === 1
@@ -14012,7 +14195,7 @@ const QUESTS = {
   gold_digger_3: {
     name: 'Gold Digger III',
     desc: 'Earn 2500G total',
-    reward: 75,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.goldDiggerTier >= 2,
     check: () => S.questProgress.totalGoldEarned >= 2500 && S.questProgress.goldDiggerTier === 2
@@ -14020,7 +14203,7 @@ const QUESTS = {
   veteran_1: {
     name: 'Veteran I',
     desc: 'Complete 5 runs',
-    reward: 25,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.totalRunsCompleted >= 1,
     check: () => S.questProgress.totalRunsCompleted >= 5 && S.questProgress.veteranTier === 0
@@ -14028,7 +14211,7 @@ const QUESTS = {
   veteran_2: {
     name: 'Veteran II',
     desc: 'Complete 15 runs',
-    reward: 50,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.veteranTier >= 1,
     check: () => S.questProgress.totalRunsCompleted >= 15 && S.questProgress.veteranTier === 1
@@ -14036,7 +14219,7 @@ const QUESTS = {
   veteran_3: {
     name: 'Veteran III',
     desc: 'Complete 30 runs',
-    reward: 75,
+    reward: 20,
     category: 'repeatable',
     unlock: () => S.questProgress.veteranTier >= 2,
     check: () => S.questProgress.totalRunsCompleted >= 30 && S.questProgress.veteranTier === 2
@@ -14046,7 +14229,7 @@ const QUESTS = {
   fu_taste: {
     name: 'This is Frogged Up',
     desc: 'Complete Floor 1 in FU mode',
-    reward: 25,
+    reward: 20,
     category: 'fu',
     unlock: () => S.fuUnlocked,
     check: () => S.questProgress.highestFloor >= 1 && S.gameMode === 'fu'
@@ -14054,7 +14237,7 @@ const QUESTS = {
   recruiter: {
     name: 'Recruiter',
     desc: 'Recruit an enemy',
-    reward: 25,
+    reward: 10,
     category: 'fu',
     unlock: () => S.fuUnlocked,
     check: () => S.questProgress.maxRecruitsHeld >= 1
@@ -14062,7 +14245,7 @@ const QUESTS = {
   squad_goals: {
     name: 'Squad Goals',
     desc: 'Have 3 recruits at once',
-    reward: 50,
+    reward: 20,
     category: 'fu',
     unlock: () => S.questProgress.maxRecruitsHeld >= 1,
     check: () => S.questProgress.maxRecruitsHeld >= 3
@@ -14070,7 +14253,7 @@ const QUESTS = {
   fu_champion: {
     name: 'FU Champion',
     desc: 'Complete FU mode',
-    reward: 150,
+    reward: 20,
     category: 'fu',
     unlock: () => S.fuUnlocked,
     check: () => S.questProgress.fuWins >= 1
@@ -14080,7 +14263,7 @@ const QUESTS = {
   tapos_hero: {
     name: "Tapo's Hero",
     desc: 'Unlock Tapo',
-    reward: 100,
+    reward: 20,
     category: 'secret',
     unlock: () => S.fuUnlocked,
     check: () => S.tapoUnlocked
@@ -14088,7 +14271,7 @@ const QUESTS = {
   bruce_willis: {
     name: 'Bruce & Willis',
     desc: 'Help the Ghost Boys realize something',
-    reward: 25,
+    reward: 10,
     category: 'secret',
     unlock: () => S.questProgress.neutralsCompleted.ghost,
     check: () => S.ghostBoysConverted
@@ -14096,7 +14279,7 @@ const QUESTS = {
   true_champion: {
     name: 'True Champion',
     desc: 'Win FU mode with Tapo',
-    reward: 200,
+    reward: 20,
     category: 'secret',
     unlock: () => S.tapoUnlocked,
     check: () => S.questProgress.heroWins.Tapo >= 1 && S.questProgress.fuWins >= 1
@@ -14308,7 +14491,7 @@ function showQuestBoard() {
     <div style="font-size:0.8rem;opacity:0.8">${quest.desc}</div>
   </div>
   <div style="display:flex;align-items:center;gap:0.5rem">
-    ${claimed ? `<span style="color:#888;font-size:0.85rem">${statusText}</span>` :
+    ${claimed ? `<span style="color:#5a5550;font-size:0.85rem">${statusText}</span>` :
       complete ? `<button class="quest-claim-btn" onclick="claimQuest('${quest.id}')">Claim ${quest.reward}G</button>` :
       `<span class="quest-reward">${quest.reward}G</span>`}
   </div>

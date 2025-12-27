@@ -69,7 +69,7 @@ const diceHTML = rolls.map(r => {
 const isBest = r === best;
 return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
 }).join(' ');
-return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#666">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
+return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#4a4540">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
 }
 
 function formatD20Compact(rolls, best) {
@@ -485,11 +485,25 @@ return;
 
 const slide = slides[currentIndex];
 debugLog('[FROGGLE] Rendering slide', currentIndex);
+
+// Check if this slide has an action that should trigger immediately (no text to show)
+// Actions with real text (like statue_slotting) are triggered in continueNarrative after user reads
+const isPlaceholderText = slide.text && typeof slide.text === 'string' && slide.text.startsWith('INTERSTITIAL_');
+if(slide.action && isPlaceholderText && window.firstVictorySlideAction) {
+const handled = window.firstVictorySlideAction(slide.action, currentIndex, () => {
+// Action complete, continue to next slide
+showNarrativeSlide(slides, currentIndex + 1);
+});
+if(handled) return; // Action handler will call callback when done
+}
+
 const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
 const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:1rem">Skip</button>` : '';
+// Resolve text - may be a function for dynamic content
+const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 
 // Full-art mode: background image takes up screen, text in bottom bar
@@ -503,7 +517,7 @@ v.innerHTML = `
 <!-- Text bar at bottom with solid background for readability -->
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.85);padding:1rem 1.25rem 0.75rem 1.25rem;border-top:3px solid rgba(34,197,94,0.6)">
 <div style="max-width:800px;margin:0 auto">
-${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slide.text}</div>`}
+${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
 <button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
@@ -517,7 +531,7 @@ ${skipButton}
 v.innerHTML = `
 <div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;background:rgba(0,0,0,0.3)">
 <div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slide.text}</div>`}
+${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
 <button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
@@ -1373,6 +1387,7 @@ btn.style.opacity = sel.length === requiredHeroes ? '1' : '0.4';
 
 function toggleMode() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 savePermanent();
 title();
 }
@@ -1425,8 +1440,10 @@ hero.s.push(passive);
 });
 
 // Apply pedestal buffs
+// Standard mode statues apply to BOTH modes, FU statues only apply to FU mode
 S.pedestal.forEach(slot => {
-if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
+// Standard mode statues apply universally, FU statues only in FU mode
+if(slot.mode === 'fu' && S.gameMode !== 'fu') return;
 const hero = S.heroes.find(h => h.n === slot.hero);
 if(!hero) return;
 if(slot.stat === 'POW') {
@@ -2190,7 +2207,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: 'Trials of Arcane Power',
-description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#666">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
+description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#4a4540">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
 buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
 <button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
 });
