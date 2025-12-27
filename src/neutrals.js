@@ -1440,8 +1440,10 @@ hero.s.push(passive);
 });
 
 // Apply pedestal buffs
+// Standard mode statues apply to BOTH modes, FU statues only apply to FU mode
 S.pedestal.forEach(slot => {
-if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
+// Standard mode statues apply universally, FU statues only in FU mode
+if(slot.mode === 'fu' && S.gameMode !== 'fu') return;
 const hero = S.heroes.find(h => h.n === slot.hero);
 if(!hero) return;
 if(slot.stat === 'POW') {

@@ -1014,8 +1014,14 @@ function showVictoryHeroCardsInterstitial(onComplete) {
 const v = document.getElementById('gameView');
 
 // Get pedestal bonuses for display
+// Standard mode statues apply in both modes, FU statues only in FU mode
 const getPedestalBonus = (heroName) => {
-const bonuses = S.pedestal.filter(p => p.hero === heroName && p.mode === 'Standard');
+const bonuses = S.pedestal.filter(p => {
+if(p.hero !== heroName) return false;
+// Standard mode bonuses always apply, FU bonuses only in FU mode
+if(p.mode === 'fu' && S.gameMode !== 'fu') return false;
+return true;
+});
 if(bonuses.length === 0) return '';
 return bonuses.map(b => b.stat === 'POW' ? '+1⚡' : '+5❤').join(' ');
 };

@@ -2116,7 +2116,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.29';
+const GAME_VERSION = '12.31';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2234,7 +2234,7 @@ warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Attack','Shield','D20']},
 mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
 healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']},
-tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alpha','Ghost','Expand','Star','Asterisk']}
+tapo: {n:'Tapo', p:1, h:1, m:1, s:['D20']}
 };
 
 // Enemy sigil pools and level restrictions:
@@ -10604,8 +10604,10 @@ hero.s.push(passive);
 });
 
 // Apply pedestal buffs
+// Standard mode statues apply to BOTH modes, FU statues only apply to FU mode
 S.pedestal.forEach(slot => {
-if(slot.mode !== S.gameMode) return; // Only apply buffs for current mode
+// Standard mode statues apply universally, FU statues only in FU mode
+if(slot.mode === 'fu' && S.gameMode !== 'fu') return;
 const hero = S.heroes.find(h => h.n === slot.hero);
 if(!hero) return;
 if(slot.stat === 'POW') {
@@ -13507,8 +13509,14 @@ function showVictoryHeroCardsInterstitial(onComplete) {
 const v = document.getElementById('gameView');
 
 // Get pedestal bonuses for display
+// Standard mode statues apply in both modes, FU statues only in FU mode
 const getPedestalBonus = (heroName) => {
-const bonuses = S.pedestal.filter(p => p.hero === heroName && p.mode === 'Standard');
+const bonuses = S.pedestal.filter(p => {
+if(p.hero !== heroName) return false;
+// Standard mode bonuses always apply, FU bonuses only in FU mode
+if(p.mode === 'fu' && S.gameMode !== 'fu') return false;
+return true;
+});
 if(bonuses.length === 0) return '';
 return bonuses.map(b => b.stat === 'POW' ? '+1⚡' : '+5❤').join(' ');
 };

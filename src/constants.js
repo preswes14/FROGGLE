@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.29';
+const GAME_VERSION = '12.31';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -117,7 +117,7 @@ warrior: {n:'Warrior', p:2, h:5, m:5, s:['Attack','D20']},
 tank: {n:'Tank', p:1, h:10, m:10, s:['Attack','Shield','D20']},
 mage: {n:'Mage', p:1, h:5, m:5, s:['Attack','D20','Expand']},
 healer: {n:'Healer', p:1, h:5, m:5, s:['Heal','D20','Expand']},
-tapo: {n:'Tapo', p:1, h:1, m:1, s:['Attack','Shield','Heal','Grapple','D20','Alpha','Ghost','Expand','Star','Asterisk']}
+tapo: {n:'Tapo', p:1, h:1, m:1, s:['D20']}
 };
 
 // Enemy sigil pools and level restrictions:
