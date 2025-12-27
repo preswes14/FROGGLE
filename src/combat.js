@@ -1741,12 +1741,14 @@ return;
 // Filter out Attack sigil - the base attack mechanism handles it
 // Attack sigil is a marker indicating the enemy attacks, not an additional action
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Attack');
-executeEnemyBaseAttack(enemy);
 
 // Filter out suicidal grapples - enemies should never kill themselves
+// NOTE: We filter and execute sigils BEFORE base attack so Grapple works
+// (otherwise base attack might put hero in Last Stand, making Grapple fail)
 const safeSigils = drawnSigils.filter(sigil => {
 if(sigil.sig === 'Grapple') {
 const target = S.heroes[enemy.li];
+console.log(`[GRAPPLE DEBUG] ${enemy.n} has Grapple L${sigil.level}, lane=${enemy.li}, target=${target?.n}, targetHP=${target?.h}, enemyHP=${enemy.h}, targetPOW=${target?.p}`);
 if(target && target.h > 0) {
 const recoilDamage = target.p;
 // Skip grapple if it would kill the enemy
@@ -1754,12 +1756,19 @@ if(enemy.h <= recoilDamage) {
 toast(`${getEnemyDisplayName(enemy)} considered Grapple but chose to survive instead!`);
 return false;
 }
+console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple passed filter - will execute`);
+} else {
+console.log(`[GRAPPLE DEBUG] ${enemy.n} Grapple - no valid target (target null or dead)`);
 }
 }
 return true;
 });
 
+console.log(`[GRAPPLE DEBUG] ${enemy.n} safeSigils:`, safeSigils.map(s => s.sig));
+// Execute drawn sigils first (so Grapple stuns before attack)
 safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+// Then execute base attack
+executeEnemyBaseAttack(enemy);
 enemy.s = enemy.s.filter(s => s.perm);
 render();
 }
@@ -1862,10 +1871,13 @@ if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
 toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} for ${healAmt}!`);
 }
 } else if(sig === 'Grapple') {
+console.log(`[GRAPPLE EXECUTE] ${enemy.n} executing Grapple L${level}`);
 const target = S.heroes[enemy.li];
+console.log(`[GRAPPLE EXECUTE] target=${target?.n}, targetHP=${target?.h}, lane=${enemy.li}`);
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
 enemy.h -= dmgToEnemy;
+console.log(`[GRAPPLE EXECUTE] Applying stun ${level} to ${target.n}, enemy took ${dmgToEnemy} recoil`);
 toast(`${getEnemyDisplayName(enemy)} grappled ${target.n}!`);
 if(enemy.h <= 0) {
 enemy.h = 0;
