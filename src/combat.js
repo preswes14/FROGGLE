@@ -152,6 +152,8 @@ S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
+// Clear Alpha state from any previous combat
+S.alphaGrantedActions = null; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -849,13 +851,12 @@ checkCombatEnd();
 }
 
 function finishD20Asterisk(heroIdx) {
-S.acted.push(heroIdx);
 S.pending = null;
 S.targets = [];
 S.asteriskD20Repeats = 1;
 S.asteriskD20Count = 0;
-checkTurnEnd();
-render();
+// Use finishAction to properly handle Alpha-granted turns
+finishAction(heroIdx);
 }
 
 function cancelAction() {
@@ -940,7 +941,8 @@ if(S.instancesRemaining <= 0) {
 } else if(S.pending === 'Alpha') {
 executeAlphaAction(heroIdx, [...S.currentInstanceTargets]);
 S.currentInstanceTargets = [];
-finishAction(heroIdx);
+// Note: Don't call finishAction here - executeAlphaAction handles everything
+// including marking the Alpha user as acted and setting up granted turns
 }
 }
 
@@ -1103,6 +1105,8 @@ const alphaUser = S.heroes[alphaUserIdx];
 const actionsToGrant = S.alphaLevel;
 // Mark Alpha user as acted (forfeits ALL actions)
 S.acted.push(alphaUserIdx);
+// Mark first action as used (for Asterisk) - prevents Asterisk from triggering on Round 2+
+if(alphaUser && !alphaUser.firstActionUsed) alphaUser.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
 toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
@@ -2281,8 +2285,9 @@ GamepadController.saveFocusState();
 const v = document.getElementById('gameView');
 // Combat screens are scrollable (no-scroll is for narrative/cutscene screens)
 v.classList.remove('no-scroll');
-// Toggle FU mode class for compact 3-hero layout
+// Toggle FU mode class for compact 3-hero layout and sinister background
 v.classList.toggle('fu-mode', S.gameMode === 'fu');
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
 v.innerHTML = renderEncampmentSelection();
@@ -3269,7 +3274,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} ${sig} | L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -3326,7 +3331,7 @@ html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;bo
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
-const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → L${level + 1}`;
+const displayText = isNew ? `Add ${sig}` : `${sig} | L${level} → L${level + 1}`;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
 html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
 });

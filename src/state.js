@@ -369,6 +369,8 @@ if(debugBtn) debugBtn.style.display = S.debugMode ? 'block' : 'none';
 // Update background color based on floor
 const gameArea = document.getElementById('gameView');
 if(gameArea) gameArea.style.background = getFloorBackground(S.floor);
+// Toggle sinister FU mode background on body
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 }
 
 function triggerHitAnimation(targetId) {

@@ -17,6 +17,7 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
+body.fu-mode { background: linear-gradient(135deg, #2a231c 0%, #1a1612 100%); color: #e8d5c0; }
 h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; }
 
 /* Landscape orientation enforcement for mobile */
@@ -2115,7 +2116,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.24';
+const GAME_VERSION = '12.27';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2314,7 +2315,7 @@ const SIGIL_DESCRIPTIONS = {
 'Shield': 'Grant target <b class="sig-scale">+2×POW</b> shield. L2: +4×. L3: +6×. L4: +8×. Shields persist between battles (capped at max HP).',
 'Heal': 'Restore <b class="sig-scale">2×POW</b> HP to target. L2: 4×. L3: 6×. L4: 8×. Cannot exceed max HP.',
 'D20': 'Attempt a gambit! Roll <b class="sig-scale">ONE</b> d20. L2: 2 dice (take best). L3: 3 dice. L4: 4 dice.',
-'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to Attack/Shield/Heal. Mage/Healer get +1 built-in.',
+'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in.',
 'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW.',
 'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
 'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
@@ -2931,7 +2932,7 @@ const descriptions = {
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
 'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (enemy hurts itself), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
-'Expand': level === 0 ? 'PASSIVE: Add +1 target to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to Attack/Shield/Heal. Works automatically. Mage/Healer get +1 built-in`,
+'Expand': level === 0 ? 'PASSIVE: Add +1 target to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in' : `PASSIVE: Permanently add ${boldNum(level)} extra target${level > 1 ? 's' : ''} to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in`,
 'Grapple': level === 0 ? 'Not unlocked' : `Stun target for ${boldNum(level)} turn${level > 1 ? 's' : ''}. You take damage equal to target's POW`,
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death (persists between combats, max 9)`,
 'Asterisk': level === 0 ? 'Not unlocked' : `PASSIVE: Next action triggers ${boldNum(level + 1)} times! Resets after each battle`,
@@ -4727,6 +4728,8 @@ if(debugBtn) debugBtn.style.display = S.debugMode ? 'block' : 'none';
 // Update background color based on floor
 const gameArea = document.getElementById('gameView');
 if(gameArea) gameArea.style.background = getFloorBackground(S.floor);
+// Toggle sinister FU mode background on body
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 }
 
 function triggerHitAnimation(targetId) {
@@ -5897,6 +5900,8 @@ S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
+// Clear Alpha state from any previous combat
+S.alphaGrantedActions = null; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -6594,13 +6599,12 @@ checkCombatEnd();
 }
 
 function finishD20Asterisk(heroIdx) {
-S.acted.push(heroIdx);
 S.pending = null;
 S.targets = [];
 S.asteriskD20Repeats = 1;
 S.asteriskD20Count = 0;
-checkTurnEnd();
-render();
+// Use finishAction to properly handle Alpha-granted turns
+finishAction(heroIdx);
 }
 
 function cancelAction() {
@@ -6685,7 +6689,8 @@ if(S.instancesRemaining <= 0) {
 } else if(S.pending === 'Alpha') {
 executeAlphaAction(heroIdx, [...S.currentInstanceTargets]);
 S.currentInstanceTargets = [];
-finishAction(heroIdx);
+// Note: Don't call finishAction here - executeAlphaAction handles everything
+// including marking the Alpha user as acted and setting up granted turns
 }
 }
 
@@ -6848,6 +6853,8 @@ const alphaUser = S.heroes[alphaUserIdx];
 const actionsToGrant = S.alphaLevel;
 // Mark Alpha user as acted (forfeits ALL actions)
 S.acted.push(alphaUserIdx);
+// Mark first action as used (for Asterisk) - prevents Asterisk from triggering on Round 2+
+if(alphaUser && !alphaUser.firstActionUsed) alphaUser.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
 toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
@@ -8026,8 +8033,9 @@ GamepadController.saveFocusState();
 const v = document.getElementById('gameView');
 // Combat screens are scrollable (no-scroll is for narrative/cutscene screens)
 v.classList.remove('no-scroll');
-// Toggle FU mode class for compact 3-hero layout
+// Toggle FU mode class for compact 3-hero layout and sinister background
 v.classList.toggle('fu-mode', S.gameMode === 'fu');
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 // Special state: Encampment enemy selection
 if(S.selectingEncampmentTargets) {
 v.innerHTML = renderEncampmentSelection();
@@ -9014,7 +9022,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} ${sig} | L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -9071,7 +9079,7 @@ html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;bo
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
-const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → L${level + 1}`;
+const displayText = isNew ? `Add ${sig}` : `${sig} | L${level} → L${level + 1}`;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
 html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
 });
@@ -9641,11 +9649,25 @@ return;
 
 const slide = slides[currentIndex];
 debugLog('[FROGGLE] Rendering slide', currentIndex);
+
+// Check if this slide has an action that should trigger immediately (no text to show)
+// Actions with real text (like statue_slotting) are triggered in continueNarrative after user reads
+const isPlaceholderText = slide.text && typeof slide.text === 'string' && slide.text.startsWith('INTERSTITIAL_');
+if(slide.action && isPlaceholderText && window.firstVictorySlideAction) {
+const handled = window.firstVictorySlideAction(slide.action, currentIndex, () => {
+// Action complete, continue to next slide
+showNarrativeSlide(slides, currentIndex + 1);
+});
+if(handled) return; // Action handler will call callback when done
+}
+
 const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
 const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:1rem">Skip</button>` : '';
+// Resolve text - may be a function for dynamic content
+const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 
 // Full-art mode: background image takes up screen, text in bottom bar
@@ -9659,7 +9681,7 @@ v.innerHTML = `
 <!-- Text bar at bottom with solid background for readability -->
 <div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.85);padding:1rem 1.25rem 0.75rem 1.25rem;border-top:3px solid rgba(34,197,94,0.6)">
 <div style="max-width:800px;margin:0 auto">
-${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slide.text}</div>`}
+${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
 <button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
@@ -9673,7 +9695,7 @@ ${skipButton}
 v.innerHTML = `
 <div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;background:rgba(0,0,0,0.3)">
 <div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slide.text}</div>`}
+${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
 <button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
@@ -10529,6 +10551,7 @@ btn.style.opacity = sel.length === requiredHeroes ? '1' : '0.4';
 
 function toggleMode() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 savePermanent();
 title();
 }
@@ -13175,6 +13198,7 @@ setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COM
 // This function will be used for a visual toggle button in the Champions menu
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 showChampionsMenu();
 }
 
@@ -13344,6 +13368,8 @@ S.heroes.forEach(hero => {
 });
 
 // Reset run state on victory (gold persists between runs)
+S.xp = 0; // Clear XP earned this run
+S.levelUpCount = 0; // Reset level up count
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}; // Clear temp upgrades
 S.recruits = []; // Clear recruits
 savePermanent();
@@ -13439,7 +13465,7 @@ const slides = [
 {bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awakens from his well-earned nap! Clutched in his budding appendages, he holds carvings of the heroes who saved him!"},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
 {bg: 'assets/victory-room.png', text: () => `As the statues click into place, a warm ripple of power surges through the heroes. <strong style='color:#fbbf24'>${getSlottedStatsText()}</strong>`, dynamic: true},
-{bg: 'assets/ribbleton.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
+{bg: 'assets/victory-room.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
 {bg: 'assets/ribbleton.png', text: "WHOOSH! One portal trip later, and the crew is back safe and sound in Ribbleton. Off to the Lilypad Pond for a well-earned night of sleep!"},
 {bg: 'assets/ribbleton.png', text: "INTERSTITIAL_HERO_CARDS", action: 'hero_cards_interstitial'},
 {bg: 'assets/ribbleton.png', text: "As the sun rises, the town of Ribbleton awakens, delighted to see their heroes home safe. There is only one problem... Where is Tapo? Our heroes gear up and take the portal back to the statue room where they found him last time."},

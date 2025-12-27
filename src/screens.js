@@ -705,6 +705,7 @@ setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COM
 // This function will be used for a visual toggle button in the Champions menu
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
+document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 showChampionsMenu();
 }
 
@@ -874,6 +875,8 @@ S.heroes.forEach(hero => {
 });
 
 // Reset run state on victory (gold persists between runs)
+S.xp = 0; // Clear XP earned this run
+S.levelUpCount = 0; // Reset level up count
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0}; // Clear temp upgrades
 S.recruits = []; // Clear recruits
 savePermanent();
@@ -969,7 +972,7 @@ const slides = [
 {bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awakens from his well-earned nap! Clutched in his budding appendages, he holds carvings of the heroes who saved him!"},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
 {bg: 'assets/victory-room.png', text: () => `As the statues click into place, a warm ripple of power surges through the heroes. <strong style='color:#fbbf24'>${getSlottedStatsText()}</strong>`, dynamic: true},
-{bg: 'assets/ribbleton.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
+{bg: 'assets/victory-room.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
 {bg: 'assets/ribbleton.png', text: "WHOOSH! One portal trip later, and the crew is back safe and sound in Ribbleton. Off to the Lilypad Pond for a well-earned night of sleep!"},
 {bg: 'assets/ribbleton.png', text: "INTERSTITIAL_HERO_CARDS", action: 'hero_cards_interstitial'},
 {bg: 'assets/ribbleton.png', text: "As the sun rises, the town of Ribbleton awakens, delighted to see their heroes home safe. There is only one problem... Where is Tapo? Our heroes gear up and take the portal back to the statue room where they found him last time."},
