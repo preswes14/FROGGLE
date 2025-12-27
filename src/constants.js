@@ -337,11 +337,13 @@ const dmg = enemy.p;
 targets.forEach(target => {
 if(target.h > 0) {
 const hpBefore = target.h;
+const shBefore = target.sh || 0;
 damagedIds.push(target.id);
 // Apply damage silently (we'll show one toast for all targets)
-applyDamageToTarget(target, dmg, {isHero: true, silent: true});
+const result = applyDamageToTarget(target, dmg, {isHero: true, silent: true});
 const hpAfter = target.h;
-targetDetails.push({name: target.n, before: hpBefore, after: hpAfter, dmg: dmg});
+const shAfter = target.sh || 0;
+targetDetails.push({name: target.n, hpBefore, hpAfter, shBefore, shAfter, shieldLost: result.shieldLost, hpLost: result.hpLost, dmg: dmg});
 }
 });
 
@@ -364,7 +366,12 @@ triggerScreenShake(dmg >= 5); // Heavy shake for big hits
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 
 if(targetDetails.length > 0) {
-const targetStrings = targetDetails.map(t => `${t.name} (❤${t.before}→❤${t.after})`);
+const targetStrings = targetDetails.map(t => {
+let str = `${t.name} (`;
+if(t.shieldLost > 0) str += `🛡${t.shBefore}→🛡${t.shAfter} `;
+str += `❤${t.hpBefore}→❤${t.hpAfter})`;
+return str;
+});
 toast(`${getEnemyDisplayName(enemy)}'s ${attackName} hit ${targetStrings.join(', ')}!`);
 }
 

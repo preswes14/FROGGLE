@@ -299,8 +299,9 @@ function isMultiInstance(action) { return ['Attack', 'Shield', 'Heal'].includes(
 function getD20DC(baseDC, heroIdx, gambitName) {
 const h = S.heroes[heroIdx];
 if(!h || !h.ls) return baseDC;
-// Last Stand: +2 immediately, then +2 each turn (h.lst counts turns in Last Stand)
-const lastStandBonus = (h.lst + 1) * 2;
+// Last Stand: No penalty on first turn, then +2 each turn after
+// h.lst is incremented at end of player turn, so first action has lst=0
+const lastStandBonus = h.lst * 2;
 // Confuse caps at DC 20, all other gambits continue increasing
 if(gambitName === 'CONFUSE') {
 return Math.min(baseDC + lastStandBonus, 20);
@@ -419,10 +420,12 @@ showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
-S.alphaLevel = level;
+// Apply Asterisk multiplier: total actions = level × repeats
+S.alphaLevel = level * repeats;
 S.alphaTargetsNeeded = targetsNeeded;
 S.targets = [];
-toast(`Alpha: Grant ${level} action${level>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
+const totalActions = level * repeats;
+toast(`Alpha: Grant ${totalActions} action${totalActions>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
 render();
 autoFocusTargetForController(heroIdx, 'hero');
 }
@@ -561,8 +564,8 @@ if(S.asteriskD20Repeats > 1) {
 html += `<p style="margin-bottom:0.5rem;color:#f97316">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
 html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
 }
-if(h.ls && h.lst >= 0) {
-const lsBonus = (h.lst + 1) * 2;
+if(h.ls && h.lst > 0) {
+const lsBonus = h.lst * 2;
 html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
@@ -1872,7 +1875,12 @@ return targets;
 function executeEnemyBaseAttack(enemy) {
 const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
-executeEnemyAttackOnHeroes(enemy, targetCount, 'Base Attack');
+// Check for Attack sigil level (permanent or drawn) to determine attack count
+const attackSigil = enemy.s.find(s => s.sig === 'Attack');
+const attackLevel = attackSigil ? attackSigil.level : 1;
+for(let i = 0; i < attackLevel; i++) {
+executeEnemyAttackOnHeroes(enemy, targetCount, attackLevel > 1 ? `Attack ${i+1}/${attackLevel}` : 'Attack');
+}
 }
 
 function executeEnemySigil(enemy, sigil) {
@@ -2364,6 +2372,11 @@ const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 if(h.st > 0) extra.push(`💥${h.st}T`);
+// Show alpha-granted bonus turns remaining for this hero
+if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
+const alphaRemaining = S.alphaGrantedActions.slice(S.alphaCurrentAction || 0).filter(idx => idx === i).length;
+if(alphaRemaining > 0) extra.push(`⚡${alphaRemaining}`);
+}
 if(hasActed) extra.push('✓');
 let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
