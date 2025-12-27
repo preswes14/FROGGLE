@@ -327,7 +327,8 @@ let repeats = 1;
 
 if(hasAsterisk && firstAction) {
 repeats = asteriskLevel + 1;
-h.firstActionUsed = true;
+// NOTE: firstActionUsed is set in finishAction(), not here
+// This allows players to cancel and still keep their Asterisk benefit
 toast(`Asterisk activated! ${sig} ×${repeats}!`, 1500);
 }
 
@@ -1368,6 +1369,9 @@ S.alphaCurrentAction = 0;
 }
 // Normal action finish
 S.acted.push(heroIdx);
+// Mark first action as used (for Asterisk) only when action commits
+const h = S.heroes[heroIdx];
+if(h && !h.firstActionUsed) h.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
@@ -1377,7 +1381,6 @@ S.activeIdx = -1;
 S.turnDamage = 0; // Reset damage counter for next hero's turn
 
 // RIBBLETON TUTORIAL: Check advancement after action using TutorialManager
-const h = S.heroes[heroIdx];
 TutorialManager.advanceStage({action: 'finish', hero: h.n, round: S.round});
 
 // Autosave after each hero action
