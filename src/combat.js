@@ -884,6 +884,8 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
+// Guard against fast tapping causing negative instances
+if(S.instancesRemaining <= 0) return;
 
 // D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
 if(S.pending === 'D20_TARGET') {
@@ -904,7 +906,7 @@ const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
+S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
   setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
@@ -928,7 +930,7 @@ S.currentInstanceTargets = [];
 finishAction(heroIdx);
 } else if(S.pending === 'Shield' || S.pending === 'Heal') {
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
-S.instancesRemaining--;
+S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
   setTimeout(() => finishAction(heroIdx), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
