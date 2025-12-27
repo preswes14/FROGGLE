@@ -2116,7 +2116,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.27';
+const GAME_VERSION = '12.28';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4702,8 +4702,8 @@ roundInfoEl.style.display = 'none';
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
-} else if(S.enemies && S.enemies.length > 0) {
-// In combat
+} else if((S.enemies && S.enemies.length > 0) || S.inCombat) {
+// In combat - show round indicator
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';

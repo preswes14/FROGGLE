@@ -343,8 +343,8 @@ roundInfoEl.style.display = 'none';
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
-} else if(S.enemies && S.enemies.length > 0) {
-// In combat
+} else if((S.enemies && S.enemies.length > 0) || S.inCombat) {
+// In combat - show round indicator
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
