@@ -2098,6 +2098,8 @@ if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)
 animateCounterPop('xp');
 upd();
 toast('Victory!');
+// Reset the level up warning flag for this new level up session
+S.levelUpWarningShown = false;
 setTimeout(levelUp, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 }, 500);
 return true;
@@ -2500,12 +2502,36 @@ return;
 
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+const spendStyle = canAfford
+  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.2rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5)'
+  : '';
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()">Spend XP</div>
-<button class="btn safe" onclick="nextFloor()">Next Floor</button>`;
+<div class="choice" onclick="levelUpMenu()" ${spendStyle ? `style="${spendStyle}"` : ''}>Spend XP${canAfford ? ' ✨' : ''}</div>
+<button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
+}
+
+// Check if player should be warned about unspent XP before advancing
+function tryAdvanceFromLevelUp() {
+const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+
+// If player can afford an upgrade and hasn't been warned this floor, show confirmation
+if (canAfford && !S.levelUpWarningShown) {
+  S.levelUpWarningShown = true;
+  showConfirmModal(
+    `You have enough XP (${S.xp}) to spend on an upgrade (costs ${nextCost}). Continue anyway?`,
+    () => nextFloor(),
+    () => levelUp() // Go back to level up screen
+  );
+  return;
+}
+
+// Otherwise proceed normally
+nextFloor();
 }
 
 function nextFloor() {
