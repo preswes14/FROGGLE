@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.14';
+const GAME_VERSION = '12.20';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -146,6 +146,15 @@ const ENEMY_EMOJI = {
 'Cave Troll': '👹',
 'Dragon': '🐉',
 'Flydra': '🐲'
+};
+
+// Flydra head images and names (for multi-headed boss)
+// Standard mode (2 heroes): uses 'left' and 'right' heads (A, B)
+// FU mode (3 heroes): uses all three heads (A, B, C)
+const FLYDRA_HEADS = {
+left: { name: 'Flydra A', image: 'assets/flydra_venomwing.png' },
+center: { name: 'Flydra B', image: 'assets/flydra_dreadmaw.png' },
+right: { name: 'Flydra C', image: 'assets/flydra_blightfang.png' }
 };
 
 // Sigil icons - now using extracted PNG images with transparent backgrounds
@@ -831,10 +840,25 @@ const tooltipRect = tooltip.getBoundingClientRect();
 let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
 let top = rect.top - tooltipRect.height - 10;
 
-// Keep tooltip on screen
+// Keep tooltip on screen horizontally
 if(left < 10) left = 10;
 if(left + tooltipRect.width > window.innerWidth - 10) left = window.innerWidth - tooltipRect.width - 10;
-if(top < 10) top = rect.bottom + 10;
+
+// Keep tooltip on screen vertically - prefer above, fallback to below
+if(top < 10) {
+top = rect.bottom + 10;
+}
+// If tooltip would go off bottom of screen, try above again or clamp
+if(top + tooltipRect.height > window.innerHeight - 10) {
+// Try putting it above
+const aboveTop = rect.top - tooltipRect.height - 10;
+if(aboveTop >= 10) {
+top = aboveTop;
+} else {
+// Clamp to bottom of screen
+top = window.innerHeight - tooltipRect.height - 10;
+}
+}
 
 tooltip.style.left = left + 'px';
 tooltip.style.top = top + 'px';

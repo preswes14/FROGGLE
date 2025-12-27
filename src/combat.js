@@ -24,6 +24,33 @@ return;
 // JUICE: Floor enter sound
 SoundFX.play('floorEnter');
 const v = document.getElementById('gameView');
+
+// Special boss intro for Floor 19 (Flydra)
+if(f === 19) {
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.8s ease">
+<div style="font-size:2rem;font-weight:bold;margin-bottom:0.5rem;color:#e94560">Floor ${f}</div>
+<div style="font-size:1.5rem;font-style:italic;margin-bottom:1rem;color:#fbbf24">${floorName}</div>
+<img src="assets/Flydra Boss.png" alt="The Flydra" style="max-width:90vw;max-height:60vh;object-fit:contain;border-radius:8px;box-shadow:0 0 40px rgba(233,69,96,0.6);animation:flydraReveal 1.2s ease">
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes flydraReveal {
+  0% { opacity: 0; transform: scale(0.8); filter: brightness(0); }
+  50% { opacity: 1; filter: brightness(1.3); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+</style>`;
+// Longer display time for boss intro
+setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL * 2));
+return;
+}
+
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
@@ -159,6 +186,15 @@ enemy.isFlydra = true;
 enemy.flydraState = 'alive'; // 'alive', 'dying', 'reviving'
 enemy.flydraReviveTimer = 0;
 enemy.flydraLevel = S.heroes.length; // L2 normal, L3 in Frogged Up
+// Assign head position based on hero count:
+// 2 heroes (Standard): left, right
+// 3 heroes (FU): left, center, right
+const headOrder = S.heroes.length === 2 ? ['left', 'right'] : ['left', 'center', 'right'];
+const headPosition = headOrder[i % headOrder.length];
+const headData = FLYDRA_HEADS[headPosition];
+enemy.flydraHead = headPosition;
+enemy.flydraHeadImage = headData.image;
+enemy.n = headData.name; // Override name with head-specific name
 }
 // Add permanent sigils (Flydra uses hero count for level)
 if(base.permSigils) {
@@ -236,17 +272,13 @@ const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 // Star, Asterisk, and Expand are global passives - all heroes get them when upgraded
 if(sig === 'Star' || sig === 'Asterisk' || sig === 'Expand') {
 // Special case: Mage and Healer get +1 to Expand
-if(sig === 'Expand') {
-console.log('[EXPAND] Check - heroIdx:', heroIdx, 'h:', h, 'h?.n:', h?.n, 'isMageOrHealer:', h?.n === 'Mage' || h?.n === 'Healer', 'totalLevel:', totalLevel);
-}
-if(sig === 'Expand' && (h.n === 'Mage' || h.n === 'Healer')) {
-console.log('[EXPAND] Mage/Healer bonus applied! Returning:', totalLevel + 1);
+if(sig === 'Expand' && h && (h.n === 'Mage' || h.n === 'Healer')) {
 return totalLevel + 1;
 }
-if(sig === 'Expand') console.log('[EXPAND] No bonus applied, returning:', totalLevel);
 return totalLevel;
 }
 // For other sigils, check if hero has it
+if(!h) return 0;
 const hasSigil = h.s.includes(sig) || (h.ts && h.ts.includes(sig));
 if(!hasSigil) return 0;
 // Actives always display +1 higher (perm 0 = L1, perm 1 = L2, etc.)
@@ -257,8 +289,6 @@ return totalLevel;
 
 function getTargetsPerInstance(action, heroIdx) {
 const expandLevel = getLevel('Expand', heroIdx);
-const hero = S.heroes[heroIdx];
-console.log('[TARGETING] getTargetsPerInstance:', action, 'heroIdx:', heroIdx, 'hero.n:', hero?.n, 'expandLevel:', expandLevel, 'totalTargets:', 1 + expandLevel);
 return 1 + expandLevel;
 }
 
@@ -412,7 +442,7 @@ if (!hero) return;
 
 // Calculate targets needed
 const expandLevel = getLevel('Expand', heroIdx);
-const hasBuiltInExpand = (hero.c === 'Mage' || hero.c === 'Healer');
+const hasBuiltInExpand = (hero.n === 'Mage' || hero.n === 'Healer');
 const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
 const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
@@ -850,7 +880,7 @@ if(S.instancesRemaining <= 0) {
   setTimeout(() => render(), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 } else if(S.pending === 'Alpha') {
-executeAlpha(heroIdx, [...S.currentInstanceTargets]);
+executeAlphaAction(heroIdx, [...S.currentInstanceTargets]);
 S.currentInstanceTargets = [];
 finishAction(heroIdx);
 }
@@ -2308,7 +2338,7 @@ html += `</div>`;
 const d20Level = getLevel('D20', i);
 const d20Cl = d20Level===0?'l0':d20Level===1?'l1':d20Level===2?'l2':d20Level===3?'l3':d20Level===4?'l4':'l5';
 const canUseD20 = !hasActed && h.st === 0 && !S.pending;
-const isD20Active = (S.pending === 'D20' && S.activeIdx === i);
+const isD20Active = ((S.pending === 'D20' || S.pending === 'D20_TARGET') && S.activeIdx === i) || (S.pending === 'D20_TARGET' && S.d20HeroIdx === i);
 html += `<div class="sigil-row" style="justify-content:center;margin:0.3rem 0">`;
 html += `<span class="sigil ${d20Cl} ${isD20Active?'active-action':''} ${canUseD20?'clickable':''}" ${canUseD20?`onclick="act('D20', ${i})"`:''}
 style="font-size:1.5rem" onmouseenter="showTooltip('D20', this, ${d20Level})" onmouseleave="hideTooltip()"
@@ -2389,10 +2419,99 @@ const renderCombatSigil = (s) => {
 const lvl = getLevel(s, i);
 // Calculate visual level for roll-down effect
 let visualLvl = lvl;
+let isInEffect = false;
+
+// Check if this hero is the active one with a pending action
+const isActiveHero = S.activeIdx === i || (S.pending === 'D20_TARGET' && S.d20HeroIdx === i);
+const pendingAction = S.pending;
+const hasActiveAction = isActiveHero && pendingAction;
+
+// === ACTIVE SIGILS ===
+
+// Attack/Shield/Heal (multi-instance): Roll down based on instances used within current repeat cycle
 if(S.activeIdx === i && S.pending === s && isMultiInstance(s) && S.totalInstances) {
+const baseLevel = lvl; // Level of the action (e.g., Attack L3 = 3)
+const totalRepeats = S.totalInstances / baseLevel; // How many repeat cycles (from Asterisk)
 const usedInstances = S.totalInstances - S.instancesRemaining;
-visualLvl = Math.max(0, lvl - usedInstances);
+// Calculate position within current repeat cycle
+const instancesInCurrentCycle = usedInstances % baseLevel;
+visualLvl = Math.max(0, baseLevel - instancesInCurrentCycle);
+isInEffect = true;
 }
+
+// Grapple: Level = stun turns, doesn't roll down. Expand applies to targeting.
+if(s === 'Grapple' && S.activeIdx === i && S.pending === 'Grapple') {
+isInEffect = true;
+// Grapple level stays constant (stun duration), no roll-down
+}
+
+// Alpha: Level = actions granted, doesn't roll down. Expand applies to targeting.
+if(s === 'Alpha' && S.activeIdx === i && S.pending === 'Alpha') {
+isInEffect = true;
+// Alpha level stays constant, no roll-down
+}
+
+// D20: Pulse when D20 menu is active or targeting
+if(s === 'D20' && isActiveHero && (pendingAction === 'D20' || pendingAction === 'D20_TARGET')) {
+isInEffect = true;
+// D20 level determines dice rolled, no roll-down
+}
+
+// Ghost: Instant action, no roll-down (charges granted immediately)
+if(s === 'Ghost' && S.activeIdx === i && S.pending === 'Ghost') {
+isInEffect = true;
+}
+
+// === PASSIVE SIGILS ===
+
+// Expand: Roll down based on targets selected for current instance/action
+// Applies to: Attack, Shield, Heal, Grapple, Alpha, D20_TARGET
+if(s === 'Expand' && hasActiveAction && lvl > 0) {
+const expandActions = ['Attack', 'Shield', 'Heal', 'Grapple', 'Alpha', 'D20_TARGET'];
+if(expandActions.includes(pendingAction)) {
+// For D20_TARGET, targets are in S.targets; for others, S.currentInstanceTargets
+const currentTargets = pendingAction === 'D20_TARGET'
+  ? (S.targets || []).length
+  : (S.currentInstanceTargets || []).length;
+// Visual = Expand level - targets already selected (shows remaining expand capacity)
+visualLvl = Math.max(0, lvl - currentTargets);
+isInEffect = true;
+}
+}
+
+// Asterisk: Roll down based on repeats completed
+// Only active during first action of combat (before h.firstActionUsed is set)
+if(s === 'Asterisk' && lvl > 0) {
+// Check if this is the first action and we're currently using it
+const isFirstActionActive = hasActiveAction && !h.firstActionUsed;
+// OR if we're mid-action and Asterisk was activated (repeats > 1)
+const isMidAsteriskAction = hasActiveAction && (
+  (isMultiInstance(pendingAction) && S.totalInstances > getLevel(pendingAction, i)) ||
+  (pendingAction === 'D20_TARGET' && S.asteriskD20Repeats > 1) ||
+  (pendingAction === 'D20' && S.asteriskD20Repeats > 1)
+);
+
+if(isFirstActionActive || isMidAsteriskAction) {
+  isInEffect = true;
+
+  if(isMultiInstance(pendingAction) && S.totalInstances) {
+    // Calculate completed repeat cycles
+    const baseLevel = getLevel(pendingAction, i);
+    const usedInstances = S.totalInstances - S.instancesRemaining;
+    const completedRepeats = Math.floor(usedInstances / baseLevel);
+    visualLvl = Math.max(0, lvl - completedRepeats);
+  } else if(pendingAction === 'D20' || pendingAction === 'D20_TARGET') {
+    // D20 uses separate asterisk tracking
+    visualLvl = Math.max(0, lvl - (S.asteriskD20Count || 0));
+  }
+  // For other actions (Grapple, Alpha, Ghost), all repeats execute at once
+  // so visual stays at full level until action completes
+}
+}
+
+// Star: XP multiplier, no roll-down needed
+// (Star doesn't pulse during combat, it's always passive)
+
 const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
 // Allow clicking sigils if: hero hasn't acted, not stunned, and either (no pending action OR pending but no instances committed yet)
 const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances);
@@ -2403,7 +2522,7 @@ const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
 const asteriskExpended = (s === 'Asterisk' && h.firstActionUsed);
 const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem;color:#dc2626;text-shadow:0 0 3px #000;pointer-events:none">❌</span>' : '';
 const sigilStyle = asteriskExpended ? 'position:relative;opacity:0.5' : '';
-return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
+return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
 ${sigilStyle ? `style="${sigilStyle}"` : ''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}${asteriskOverlay}</span>`;
@@ -2435,7 +2554,12 @@ laneEnemies.forEach(e => {
 if(e.isFlydra && e.flydraState === 'dying') {
 html += `<div id="${e.id}" class="card enemy flydra-dying" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:3px solid #e94560;opacity:0.9">`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">⚠️ ${e.n} ⚠️</div>`;
+// Show greyed-out head image if available
+if(e.flydraHeadImage) {
+html += `<div style="text-align:center;margin:0.5rem 0"><img src="${e.flydraHeadImage}" alt="${e.n}" style="width:50px;height:50px;object-fit:contain;filter:grayscale(80%) brightness(0.5);border-radius:4px"></div>`;
+} else {
 html += `<div style="text-align:center;font-size:2.5rem;margin:0.5rem 0;filter:grayscale(50%)">💀</div>`;
+}
 html += `<div style="text-align:center;font-size:0.75rem;color:#f1f5f9;line-height:1.4;padding:0.5rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24;margin-bottom:0.3rem">REGENERATING...</div>`;
 html += `<div>Revives at ${Math.ceil(e.m/2)} HP next turn unless ALL heads are defeated!</div>`;
@@ -2458,10 +2582,15 @@ const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
-// POW - emoji - HP row (horizontal)
+// POW - image/emoji - HP row (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${e.p}</div>`;
+// FLYDRA: Show head image instead of emoji
+if(e.isFlydra && e.flydraHeadImage) {
+html += `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+} else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
+}
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${e.h}/${e.m}</div>`;
 html += `</div>`;
 // Extra info
@@ -2486,6 +2615,30 @@ html += '</div>'; // Close enemy section
 html += '</div>'; // Close flex container
 html += '</div>'; // Close combat-lane
 });
+
+// D20_TARGET: Add targeting overlay with Roll/Cancel buttons
+if(S.pending === 'D20_TARGET') {
+const heroIdx = S.d20HeroIdx;
+const h = S.heroes[heroIdx];
+const expandLevel = getLevel('Expand', heroIdx);
+const maxTargets = 1 + expandLevel;
+const currentTargets = S.targets ? S.targets.length : 0;
+const canRoll = currentTargets >= 1;
+const actionName = S.d20Action || 'D20';
+const adjustedDC = S.d20DC || 10;
+
+html += `<div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(30,30,30,0.98),rgba(30,30,30,0.9));border-top:3px solid #3b82f6;padding:1rem;z-index:1000;text-align:center">`;
+html += `<div style="margin-bottom:0.5rem;color:#fff;font-weight:bold;font-size:1.1rem">${h.n}: ${actionName} (DC ${adjustedDC})</div>`;
+if(expandLevel > 0) {
+html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">✨ Expand: Select up to ${maxTargets} targets</div>`;
+}
+html += `<div style="margin-bottom:0.75rem;color:#fbbf24;font-size:1rem">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
+html += `<div style="display:flex;gap:1rem;justify-content:center">`;
+html += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">Cancel</button>`;
+html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">🎲 Roll D20!</button>`;
+html += `</div></div>`;
+}
+
 v.innerHTML = html;
 
 // Apply bonus turn stacks after DOM is updated
@@ -2988,7 +3141,7 @@ availableInCategory.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const displayLevel = level + 1;  // Internal 0 = display L1, etc.
 categoryHtml += `<div class="choice" onclick="confirmAddActiveSigil(${heroIdx}, '${sig}')">
-<strong>${sigilWithTooltip(sig, displayLevel)}</strong> <span style="opacity:0.7">(L${displayLevel})</span>
+<strong>${sigilIconWithTooltip(sig, displayLevel)}</strong> <span style="opacity:0.7">(L${displayLevel})</span>
 </div>`;
 });
 return categoryHtml;
@@ -3052,7 +3205,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilWithTooltip(sig, displayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -3111,7 +3264,7 @@ const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
 const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → L${level + 1}`;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
-html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
+html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
 });
 }
 }

@@ -300,6 +300,56 @@ newGameInSlot(slot);
 function createNewSlot(slot) {
 S.currentSlot = slot;
 localStorage.setItem('froggle8_current_slot', slot.toString());
+// Reset ALL permanent state for a fresh slot
+S.gold = 0;
+S.goingRate = 1;
+S.startingXP = 0;
+S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.sigUpgradeCounts = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.pedestal = [];
+S.hasReachedFloor20 = false;
+S.fuUnlocked = false;
+S.forcedFUEntry = false;
+S.tapoUnlocked = false;
+S.pondHistory = [];
+S.questsCompleted = [];
+S.questsClaimed = [];
+S.questProgress = {
+  // Combat stats
+  enemiesKilled: 0,
+  totalDamageDealt: 0,
+  maxDamageOneAction: 0,
+  maxTargetsOneAction: 0,
+  lastStandSurvived: false,
+  // Action usage
+  d20Used: false,
+  shieldApplied: false,
+  healUsed: false,
+  grappleUsed: false,
+  alphaUsed: false,
+  ghostBlocked: false,
+  // Per-hero tracking
+  heroesPlayed: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+  heroWins: { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 },
+  // Neutral encounters
+  neutralsCompleted: { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false },
+  // Enemy types
+  enemyTypesDefeated: { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false },
+  // Milestones
+  highestFloor: 0,
+  totalGoldEarned: 0,
+  totalRunsCompleted: 0,
+  standardWins: 0,
+  fuWins: 0,
+  maxRecruitsHeld: 0,
+  purchasedUpgrade: false,
+  // Repeatable quest tiers
+  slayerTier: 0,
+  goldDiggerTier: 0,
+  veteranTier: 0
+};
+S.tutorialFlags = {};
+S.usedDeathQuotes = [];
 S.runsAttempted = 1;
 S.runNumber = 1;
 newGame();
@@ -1095,21 +1145,62 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
+console.log('[TITLECARD] showTitleCard called');
+try {
 const v = document.getElementById('gameView');
+if(!v) {
+console.error('[TITLECARD] No gameView element!');
+showRibbleton();
+return;
+}
 v.classList.add('no-scroll');
 v.innerHTML = `
-<div style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center">
-<div style="text-align:center;color:#fff">
+<div id="titleCardScreen" style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer">
+<div style="text-align:center;color:#fff;pointer-events:none">
 <div style="font-size:3.5rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
 <div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
+<div style="font-size:0.9rem;margin-top:2rem;opacity:0.6">Tap to continue</div>
 </div>
 </div>`;
+console.log('[TITLECARD] HTML set, setting up proceed');
 
-setTimeout(() => {
+let proceeded = false;
+const proceed = () => {
+console.log('[TITLECARD] proceed called, proceeded=', proceeded);
+if(proceeded) return;
+proceeded = true;
+try {
 tutorialState = null;
 v.classList.remove('no-scroll');
-showRibbleton(); // Go to Ribbleton hub
-}, 3000); // Reduced from 5500ms to 3000ms for faster flow
+console.log('[TITLECARD] About to call showRibbleton');
+showRibbleton();
+console.log('[TITLECARD] showRibbleton completed');
+} catch(e) {
+console.error('[TITLECARD] Error in proceed:', e);
+alert('Error: ' + e.message);
+}
+};
+
+// Multiple ways to trigger - belt and suspenders
+const screen = document.getElementById('titleCardScreen');
+if(screen) {
+screen.onclick = proceed;
+screen.ontouchend = (e) => { e.preventDefault(); proceed(); };
+console.log('[TITLECARD] Click handlers attached');
+}
+
+// Auto-advance
+const timerId = setTimeout(() => {
+console.log('[TITLECARD] setTimeout fired');
+proceed();
+}, 2500);
+console.log('[TITLECARD] Timer set:', timerId);
+
+} catch(e) {
+console.error('[TITLECARD] Fatal error:', e);
+alert('Title card error: ' + e.message);
+showRibbleton();
+}
 }
 
 // ===== TITLE & HERO SELECT =====
@@ -1120,8 +1211,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for title/hero select
-ProceduralMusic.startAmbient();
+// JUICE: Froggy beat for title/hero select
+ProceduralMusic.startFroggyBeat();
 upd();
 // Reset selection first
 sel = [];
@@ -1537,12 +1628,12 @@ let buttons = '';
 if(!shopSmallBought) {
 buttons += `<button class="neutral-btn safe" onclick="buySmallPotion()">Small Potion (3G) - Restore 3 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Small Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Small Potion - SOLD</button>`;
 }
 if(!shopLargeBought) {
 buttons += `<button class="neutral-btn safe" onclick="buyLargePotion()">Large Potion (5G) - Restore 8 HP</button>`;
 } else {
-buttons += `<button class="neutral-btn" disabled style="opacity:0.5">Large Potion - SOLD</button>`;
+buttons += `<button class="neutral-btn" disabled>Large Potion - SOLD</button>`;
 }
 buttons += `<button class="neutral-btn secondary" onclick="declineShopkeeper()">Leave Shop</button>`;
 
