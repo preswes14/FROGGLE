@@ -1753,32 +1753,47 @@ const QUEST_CATEGORIES = {
 
 // Check if a quest is unlocked (visible)
 function isQuestUnlocked(questId) {
-  const quest = QUESTS[questId];
-  if(!quest) return false;
-  // Learning quests always visible
-  if(quest.category === 'learning') return true;
-  // Check unlock condition if exists
-  if(quest.unlock && !quest.unlock()) return false;
-  return true;
+  try {
+    const quest = QUESTS[questId];
+    if(!quest) return false;
+    // Learning quests always visible
+    if(quest.category === 'learning') return true;
+    // Check unlock condition if exists
+    if(quest.unlock && !quest.unlock()) return false;
+    return true;
+  } catch(e) {
+    console.warn('[QUEST] Error checking unlock for', questId, e);
+    return false;
+  }
 }
 
 // Check if a quest is complete (can be claimed)
 function isQuestComplete(questId) {
-  const quest = QUESTS[questId];
-  if(!quest) return false;
-  if(S.questsClaimed[questId]) return false; // Already claimed
-  return quest.check();
+  try {
+    const quest = QUESTS[questId];
+    if(!quest) return false;
+    if(S.questsClaimed[questId]) return false; // Already claimed
+    return quest.check();
+  } catch(e) {
+    console.warn('[QUEST] Error checking completion for', questId, e);
+    return false;
+  }
 }
 
 // Get count of claimable quests
 function getClaimableQuestCount() {
-  let count = 0;
-  for(const questId in QUESTS) {
-    if(isQuestUnlocked(questId) && isQuestComplete(questId) && !S.questsClaimed[questId]) {
-      count++;
+  try {
+    let count = 0;
+    for(const questId in QUESTS) {
+      if(isQuestUnlocked(questId) && isQuestComplete(questId) && !S.questsClaimed[questId]) {
+        count++;
+      }
     }
+    return count;
+  } catch(e) {
+    console.warn('[QUEST] Error getting claimable count', e);
+    return 0;
   }
-  return count;
 }
 
 // Claim a quest reward

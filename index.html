@@ -1961,7 +1961,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.20';
+const GAME_VERSION = '12.21';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4376,6 +4376,36 @@ combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
 };
 
 let sel = [];
+
+// ===== STATE VALIDATION =====
+// Ensures all required state properties exist with safe defaults
+// Call this after loading saves or creating new slots to prevent crashes
+function validateState() {
+  // Ensure questProgress exists with all nested objects
+  if(!S.questProgress) S.questProgress = {};
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+  // Ensure numeric fields default to 0
+  if(typeof S.questProgress.highestFloor !== 'number') S.questProgress.highestFloor = 0;
+  if(typeof S.questProgress.enemiesKilled !== 'number') S.questProgress.enemiesKilled = 0;
+  if(typeof S.questProgress.totalDamageDealt !== 'number') S.questProgress.totalDamageDealt = 0;
+  if(typeof S.questProgress.fuWins !== 'number') S.questProgress.fuWins = 0;
+  if(typeof S.questProgress.standardWins !== 'number') S.questProgress.standardWins = 0;
+
+  // Ensure other critical objects exist
+  if(!S.questsCompleted) S.questsCompleted = {};
+  if(!S.questsClaimed) S.questsClaimed = {};
+  if(!S.tutorialFlags) S.tutorialFlags = {};
+  if(!S.sig) S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+  if(!S.tempSigUpgrades) S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+  if(!S.pedestal) S.pedestal = [];
+  if(!S.pondHistory) S.pondHistory = [];
+  if(!S.heroes) S.heroes = [];
+
+  console.log('[STATE] validateState completed');
+}
 
 // ===== QUEST PROGRESS TRACKING =====
 // Helper function to track quest progress
@@ -9171,6 +9201,7 @@ S.tutorialFlags = {};
 S.usedDeathQuotes = [];
 S.runsAttempted = 1;
 S.runNumber = 1;
+validateState(); // Ensure all state is properly initialized
 newGame();
 }
 
@@ -13909,32 +13940,47 @@ const QUEST_CATEGORIES = {
 
 // Check if a quest is unlocked (visible)
 function isQuestUnlocked(questId) {
-  const quest = QUESTS[questId];
-  if(!quest) return false;
-  // Learning quests always visible
-  if(quest.category === 'learning') return true;
-  // Check unlock condition if exists
-  if(quest.unlock && !quest.unlock()) return false;
-  return true;
+  try {
+    const quest = QUESTS[questId];
+    if(!quest) return false;
+    // Learning quests always visible
+    if(quest.category === 'learning') return true;
+    // Check unlock condition if exists
+    if(quest.unlock && !quest.unlock()) return false;
+    return true;
+  } catch(e) {
+    console.warn('[QUEST] Error checking unlock for', questId, e);
+    return false;
+  }
 }
 
 // Check if a quest is complete (can be claimed)
 function isQuestComplete(questId) {
-  const quest = QUESTS[questId];
-  if(!quest) return false;
-  if(S.questsClaimed[questId]) return false; // Already claimed
-  return quest.check();
+  try {
+    const quest = QUESTS[questId];
+    if(!quest) return false;
+    if(S.questsClaimed[questId]) return false; // Already claimed
+    return quest.check();
+  } catch(e) {
+    console.warn('[QUEST] Error checking completion for', questId, e);
+    return false;
+  }
 }
 
 // Get count of claimable quests
 function getClaimableQuestCount() {
-  let count = 0;
-  for(const questId in QUESTS) {
-    if(isQuestUnlocked(questId) && isQuestComplete(questId) && !S.questsClaimed[questId]) {
-      count++;
+  try {
+    let count = 0;
+    for(const questId in QUESTS) {
+      if(isQuestUnlocked(questId) && isQuestComplete(questId) && !S.questsClaimed[questId]) {
+        count++;
+      }
     }
+    return count;
+  } catch(e) {
+    console.warn('[QUEST] Error getting claimable count', e);
+    return 0;
   }
-  return count;
 }
 
 // Claim a quest reward
@@ -17235,6 +17281,7 @@ loadPermanent(); // No slot data, use old format
 loadPermanent(); // No last slot, use old format
 }
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
+validateState(); // Ensure all required state properties exist
 initToastLog(); // Initialize toast log UI
 initSuspendSystem(); // Initialize autosave and suspend/resume system
 GamepadController.init(); // Initialize Steam Deck / controller support

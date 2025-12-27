@@ -357,6 +357,7 @@ S.tutorialFlags = {};
 S.usedDeathQuotes = [];
 S.runsAttempted = 1;
 S.runNumber = 1;
+validateState(); // Ensure all state is properly initialized
 newGame();
 }
 

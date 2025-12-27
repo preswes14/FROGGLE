@@ -185,6 +185,36 @@ combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
 
 let sel = [];
 
+// ===== STATE VALIDATION =====
+// Ensures all required state properties exist with safe defaults
+// Call this after loading saves or creating new slots to prevent crashes
+function validateState() {
+  // Ensure questProgress exists with all nested objects
+  if(!S.questProgress) S.questProgress = {};
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+  // Ensure numeric fields default to 0
+  if(typeof S.questProgress.highestFloor !== 'number') S.questProgress.highestFloor = 0;
+  if(typeof S.questProgress.enemiesKilled !== 'number') S.questProgress.enemiesKilled = 0;
+  if(typeof S.questProgress.totalDamageDealt !== 'number') S.questProgress.totalDamageDealt = 0;
+  if(typeof S.questProgress.fuWins !== 'number') S.questProgress.fuWins = 0;
+  if(typeof S.questProgress.standardWins !== 'number') S.questProgress.standardWins = 0;
+
+  // Ensure other critical objects exist
+  if(!S.questsCompleted) S.questsCompleted = {};
+  if(!S.questsClaimed) S.questsClaimed = {};
+  if(!S.tutorialFlags) S.tutorialFlags = {};
+  if(!S.sig) S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+  if(!S.tempSigUpgrades) S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+  if(!S.pedestal) S.pedestal = [];
+  if(!S.pondHistory) S.pondHistory = [];
+  if(!S.heroes) S.heroes = [];
+
+  console.log('[STATE] validateState completed');
+}
+
 // ===== QUEST PROGRESS TRACKING =====
 // Helper function to track quest progress
 function trackQuestProgress(type, value) {
