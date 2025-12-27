@@ -1,0 +1,19 @@
+{
+  "name": "froggle",
+  "version": "12.20.0",
+  "description": "A tactical turn-based roguelike PWA",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "build": "./build.sh"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0",
+    "jsdom": "^25.0.0"
+  },
+  "keywords": ["roguelike", "pwa", "game"],
+  "author": "Preston Wesley Evans",
+  "license": "UNLICENSED",
+  "private": true
+}

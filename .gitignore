@@ -5,3 +5,6 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Node modules (for testing)
+node_modules/
