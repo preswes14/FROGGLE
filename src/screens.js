@@ -319,6 +319,20 @@ html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc262
 } else {
 html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#2c2416">Upgrade Sigilarium:</h3>`;
 
+// Sanity check: if goingRate is very low but sigUpgradeCounts is high, something is wrong
+// This can happen if save data gets corrupted or from old migration issues
+const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const totalUpgradeCounts = allSigils.reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
+const expectedMinGoingRate = 1 + (totalUpgradeCounts * 5);
+if (S.goingRate < expectedMinGoingRate && totalUpgradeCounts > 0) {
+  console.warn('[DEATH SCREEN] sigUpgradeCounts out of sync with goingRate. Resetting sigUpgradeCounts.');
+  console.warn('  goingRate:', S.goingRate, 'totalUpgradeCounts:', totalUpgradeCounts, 'expectedMin:', expectedMinGoingRate);
+  // Reset sigUpgradeCounts to match what goingRate implies
+  allSigils.forEach(sig => S.sigUpgradeCounts[sig] = 0);
+  savePermanent();
+  toast('Fixed corrupted upgrade data', 1500);
+}
+
 // Helper function to render sigil upgrade cards
 const renderSigilCards = (sigils) => {
 let cards = '';
@@ -334,13 +348,19 @@ if(currentLevel >= 5) return; // Max level (5 for display)
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
 const baseCost = S.goingRate;
 const escalationTable = [0, 25, 50, 100, 150];
-const escalation = escalationTable[upgradeCount] || 150;
+// Cap upgradeCount to valid table index to prevent undefined escalation
+const cappedCount = Math.min(upgradeCount, escalationTable.length - 1);
+const escalation = escalationTable[cappedCount];
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
 const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
+// Show cost breakdown if there's escalation
+const costDisplay = escalation > 0
+  ? `<span title="Base: ${baseCost}G + Escalation: ${escalation}G">${cost}G</span>`
+  : `${cost}G`;
 
 cards += `
 <div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
@@ -348,7 +368,7 @@ cards += `
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
-<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${cost}G</div>
+<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#666;font-weight:600">Cost: ${costDisplay}</div>
 <button class="btn" ${!canAfford ? 'disabled style="opacity:0.4"' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
