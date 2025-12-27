@@ -2042,7 +2042,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.12';
+const GAME_VERSION = '12.13';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -5705,6 +5705,11 @@ enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
 }
 return enemy;
 });
+// Shuffle enemies for variety within lanes (Fisher-Yates)
+for(let i = S.enemies.length - 1; i > 0; i--) {
+const j = Math.floor(Math.random() * (i + 1));
+[S.enemies[i], S.enemies[j]] = [S.enemies[j], S.enemies[i]];
+}
 if(S.ambushed) {
 toast('AMBUSHED! All heroes stunned Turn 1!', 1800);
 S.ambushed = false; // Clear flag after use

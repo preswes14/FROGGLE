@@ -206,6 +206,11 @@ enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
 }
 return enemy;
 });
+// Shuffle enemies for variety within lanes (Fisher-Yates)
+for(let i = S.enemies.length - 1; i > 0; i--) {
+const j = Math.floor(Math.random() * (i + 1));
+[S.enemies[i], S.enemies[j]] = [S.enemies[j], S.enemies[i]];
+}
 if(S.ambushed) {
 toast('AMBUSHED! All heroes stunned Turn 1!', 1800);
 S.ambushed = false; // Clear flag after use
