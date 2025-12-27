@@ -312,6 +312,7 @@ ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;co
 <div class="going-rate-marquee">
 <p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#d97706">${S.gold}</strong></p>
 <p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
+<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#888;font-style:italic">(+5G per upgrade)</p>
 </div>`;
 
 if(S.gold === 0) {

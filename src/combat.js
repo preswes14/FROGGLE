@@ -164,6 +164,19 @@ h.firstActionUsed = false;
 // If ambushed, stun all heroes turn 1
 if(S.ambushed) h.st = 1;
 });
+
+// Save combat start snapshot for restart functionality
+S.combatStartSnapshot = {
+heroes: S.heroes.map(h => ({
+id: h.id, n: h.n, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
+st: h.st, ls: h.ls, lst: h.lst, s: [...h.s], ts: [...(h.ts || [])],
+firstActionUsed: h.firstActionUsed
+})),
+recruits: S.recruits ? S.recruits.map(r => ({...r, s: [...r.s]})) : [],
+floor: f,
+ambushed: S.ambushed
+};
+
 let comp = getEnemyComp(f);
 
 S.enemies = comp.map((t,i) => {
@@ -263,6 +276,46 @@ const isTouchDevice = 'ontouchstart' in window;
 const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
 showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
 }
+}
+
+// Restart combat from the beginning of the current floor
+function restartCombat() {
+if(!S.combatStartSnapshot) {
+toast('No restart point saved!');
+return;
+}
+
+// Confirm restart
+showConfirmModal(
+'Restart this battle from the beginning?',
+() => {
+// Restore hero state from snapshot
+S.heroes = S.combatStartSnapshot.heroes.map(h => ({
+  ...h,
+  s: [...h.s],
+  ts: [...(h.ts || [])]
+}));
+
+// Restore recruits from snapshot
+S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
+
+// Restore ambush state
+S.ambushed = S.combatStartSnapshot.ambushed;
+
+// Clear any pending actions
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.alphaGrantedActions = null;
+S.alphaCurrentAction = 0;
+
+toast('Restarting battle...', 800);
+setTimeout(() => {
+  combat(S.combatStartSnapshot.floor);
+}, 400);
+},
+() => {} // Cancel - do nothing
+);
 }
 
 function getLevel(sig, heroIdx) {

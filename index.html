@@ -359,7 +359,10 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .combat-lane.crowded-5 .card.enemy .sigil-row { gap: 1px; }
 .card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; overflow: hidden; word-wrap: break-word; }
 .card-stats { font-size: 0.8rem; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
-.card.hero { background: #2c63c7; color: white; width: 160px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.card.hero { background: #2c63c7; color: white; width: 200px; max-width: 200px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.card.hero .sigil-row { flex-wrap: nowrap; gap: 2px; }
+.card.hero .sigil-row .sigil { flex-shrink: 1; min-width: 28px; min-height: 28px; padding: 4px; font-size: 0.9rem; }
+.card.hero .sigil-row .sigil img { height: 1.3em; }
 .card.enemy { background: #b64141; color: white; width: 160px; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
@@ -631,7 +634,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     min-height: 85px;
     font-size: 0.95rem;
   }
-  .card.hero { width: 180px; }
+  .card.hero { width: 220px !important; max-width: 220px; }
   .card.enemy { width: 180px; }
 
   /* Combat grid spacing */
@@ -730,7 +733,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     font-size: 1.1rem;
     border-width: 4px;
   }
-  .card.hero { width: 220px; }
+  .card.hero { width: 260px !important; max-width: 260px; }
   .card.enemy { width: 220px; }
 
   /* Hero/enemy images larger */
@@ -952,7 +955,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     min-height: 120px;
     font-size: 1.15rem;
   }
-  .card.hero { width: 240px; }
+  .card.hero { width: 290px !important; max-width: 290px; }
   .card.enemy { width: 240px; }
 
   /* Images scale up */
@@ -1024,7 +1027,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
     width: 260px !important;
     max-width: 260px;
   }
-  .card.hero { width: 260px; }
+  .card.hero { width: 320px !important; max-width: 320px; }
   .card.enemy { width: 260px; }
 
   .btn, .choice {
@@ -2553,6 +2556,11 @@ if(h) {
 if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
 else html += `${h.n}'s Turn`;
 }
+}
+// Add restart button (only during player turn, not in tutorial)
+const isTutorial = typeof tutorialState !== 'undefined' && tutorialState && S.floor === 0;
+if(S.turn === 'player' && !isTutorial && S.combatStartSnapshot) {
+html += `<button class="btn secondary" onclick="restartCombat()" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);padding:0.3rem 0.6rem;font-size:0.75rem;opacity:0.7">↻ Restart</button>`;
 }
 html += '</div>';
 
@@ -5840,6 +5848,19 @@ h.firstActionUsed = false;
 // If ambushed, stun all heroes turn 1
 if(S.ambushed) h.st = 1;
 });
+
+// Save combat start snapshot for restart functionality
+S.combatStartSnapshot = {
+heroes: S.heroes.map(h => ({
+id: h.id, n: h.n, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
+st: h.st, ls: h.ls, lst: h.lst, s: [...h.s], ts: [...(h.ts || [])],
+firstActionUsed: h.firstActionUsed
+})),
+recruits: S.recruits ? S.recruits.map(r => ({...r, s: [...r.s]})) : [],
+floor: f,
+ambushed: S.ambushed
+};
+
 let comp = getEnemyComp(f);
 
 S.enemies = comp.map((t,i) => {
@@ -5939,6 +5960,46 @@ const isTouchDevice = 'ontouchstart' in window;
 const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
 showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
 }
+}
+
+// Restart combat from the beginning of the current floor
+function restartCombat() {
+if(!S.combatStartSnapshot) {
+toast('No restart point saved!');
+return;
+}
+
+// Confirm restart
+showConfirmModal(
+'Restart this battle from the beginning?',
+() => {
+// Restore hero state from snapshot
+S.heroes = S.combatStartSnapshot.heroes.map(h => ({
+  ...h,
+  s: [...h.s],
+  ts: [...(h.ts || [])]
+}));
+
+// Restore recruits from snapshot
+S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
+
+// Restore ambush state
+S.ambushed = S.combatStartSnapshot.ambushed;
+
+// Clear any pending actions
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.alphaGrantedActions = null;
+S.alphaCurrentAction = 0;
+
+toast('Restarting battle...', 800);
+setTimeout(() => {
+  combat(S.combatStartSnapshot.floor);
+}, 400);
+},
+() => {} // Cancel - do nothing
+);
 }
 
 function getLevel(sig, heroIdx) {
@@ -12656,6 +12717,7 @@ ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;co
 <div class="going-rate-marquee">
 <p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#d97706">${S.gold}</strong></p>
 <p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
+<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#888;font-style:italic">(+5G per upgrade)</p>
 </div>`;
 
 if(S.gold === 0) {

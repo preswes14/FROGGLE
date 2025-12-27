@@ -502,6 +502,11 @@ if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
 else html += `${h.n}'s Turn`;
 }
 }
+// Add restart button (only during player turn, not in tutorial)
+const isTutorial = typeof tutorialState !== 'undefined' && tutorialState && S.floor === 0;
+if(S.turn === 'player' && !isTutorial && S.combatStartSnapshot) {
+html += `<button class="btn secondary" onclick="restartCombat()" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);padding:0.3rem 0.6rem;font-size:0.75rem;opacity:0.7">↻ Restart</button>`;
+}
 html += '</div>';
 
 // Add action bar when we have targets selected - simplified for controller flow
