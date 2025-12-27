@@ -2042,7 +2042,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.09';
+const GAME_VERSION = '12.10';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8023,6 +8023,7 @@ v.innerHTML = `
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
 <div class="choice" onclick="levelUpMenu()" ${spendStyle ? `style="${spendStyle}"` : ''}>Spend XP${canAfford ? ' ✨' : ''}</div>
+<button class="btn secondary" onclick="viewHeroCards()">View Heroes</button>
 <button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
 }
 
@@ -8044,6 +8045,60 @@ if (canAfford && !S.levelUpWarningShown) {
 
 // Otherwise proceed normally
 nextFloor();
+}
+
+// View hero cards from level up screen
+function viewHeroCards() {
+const v = document.getElementById('gameView');
+let html = '<div style="display:flex;flex-direction:column;align-items:center;padding:1rem;gap:1rem">';
+html += '<h2 style="text-align:center;margin:0">Your Heroes</h2>';
+html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem">';
+
+S.heroes.forEach((h, idx) => {
+const heroImage = getHeroImage(h);
+const extra = [];
+if(h.sh > 0) extra.push(`${h.sh}🛡`);
+if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(h.st > 0) extra.push(`💥${h.st}T`);
+
+let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';
+if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626';
+
+html += `<div class="card hero" style="${cardStyle}">`;
+// Power at top
+html += `<div style="text-align:center;font-size:1.1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚡</div>`;
+// Hero image
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
+// Name
+html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
+// HP
+if(h.ls) {
+  html += `<div style="text-align:center;font-size:0.85rem;color:#fca5a5">Last Stand (T${h.lst+1})</div>`;
+} else {
+  html += `<div style="text-align:center;font-size:0.85rem">${h.h}/${h.m}❤</div>`;
+}
+// Extra info (shield, ghost, stun)
+if(extra.length > 0) html += `<div style="text-align:center;font-size:0.75rem;margin-top:0.25rem">${extra.join(' ')}</div>`;
+html += '<div class="sigil-divider"></div>';
+// Sigils - combine base sigils + temp sigils
+const allSigils = [...(h.s || []), ...(h.ts || [])];
+const uniqueSigils = [...new Set(allSigils)];
+const totalSigils = uniqueSigils.length;
+const compactClass = totalSigils >= 5 ? 'compact' : '';
+html += `<div class="sigil-row ${compactClass}">`;
+uniqueSigils.forEach(sig => {
+  const level = getLevel(sig, idx);
+  const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
+  html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()">${sigilIconOnly(sig, level)}</span>`;
+});
+html += '</div>';
+html += '</div>';
+});
+
+html += '</div>'; // end flex container
+html += '<button class="btn secondary" onclick="levelUp()" style="margin-top:1rem">Return</button>';
+html += '</div>';
+v.innerHTML = html;
 }
 
 function nextFloor() {
