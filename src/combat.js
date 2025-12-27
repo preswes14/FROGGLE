@@ -2327,43 +2327,6 @@ html += '<div class="lane-content" style="display:flex;gap:2rem;justify-content:
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
 
-// Show recruit BEHIND (before) hero if exists
-if(S.recruits) {
-const heroRecruits = S.recruits.filter(r => r.recruitedBy === i);
-if(heroRecruits.length > 0) {
-// Sort by POW descending, then by current HP descending
-heroRecruits.sort((a, b) => {
-if(b.p !== a.p) return b.p - a.p;
-return b.h - a.h;
-});
-const recruit = heroRecruits[0];
-const extra = [];
-if(recruit.sh > 0) extra.push(`${recruit.sh}🛡`);
-if(recruit.g > 0) extra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) extra.push(`💥${recruit.st}T`);
-html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
-// Power at top
-html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
-// Recruited label with emoji
-html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">🤝</div>`;
-// HP
-html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
-// Extra info
-if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
-html += '<div class="sigil-divider"></div>';
-// Sigils
-const recruitTotalSigils = recruit.s.length + 1;
-const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
-html += `<div class="sigil-row ${compactClass}">
-<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
-recruit.s.forEach(sigil => {
-const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
-});
-html += '</div></div>';
-}
-}
-
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
 const isTargetable = S.pending && needsHeroTarget(S.pending);
@@ -2598,6 +2561,45 @@ html += '</div>';
 }
 html += '</div>';
 } // End of else (normal hero card)
+
+// Show recruit BEHIND (after) hero if exists
+if(S.recruits) {
+const heroRecruits = S.recruits.filter(r => r.recruitedBy === i);
+if(heroRecruits.length > 0) {
+// Sort by POW descending, then by current HP descending
+heroRecruits.sort((a, b) => {
+if(b.p !== a.p) return b.p - a.p;
+return b.h - a.h;
+});
+const recruit = heroRecruits[0];
+const recruitExtra = [];
+if(recruit.sh > 0) recruitExtra.push(`${recruit.sh}🛡`);
+if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
+if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
+html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
+// Power at top
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
+// Enemy emoji (retain original enemy type)
+const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">${recruitEmoji}</div>`;
+// HP
+html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
+// Extra info
+if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
+html += '<div class="sigil-divider"></div>';
+// Sigils
+const recruitTotalSigils = recruit.s.length + 1;
+const compactClass = recruitTotalSigils >= 4 ? 'compact' : '';
+html += `<div class="sigil-row ${compactClass}">
+<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
+recruit.s.forEach(sigil => {
+const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
+html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigil.sig}', this), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
+});
+html += '</div></div>';
+}
+}
+
 html += '</div>'; // Close hero section
 
 // Divider between heroes and enemies
