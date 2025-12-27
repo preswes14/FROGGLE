@@ -1624,7 +1624,12 @@ setTimeout(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
-if(recruit.st > 0) { toast(`${recruit.n} (Recruit) is stunned!`); return; }
+if(recruit.st > 0) {
+toast(`${recruit.n} (Recruit) is stunned!`);
+// Clear drawn sigils even when stunned - they don't persist
+recruit.s = recruit.s.filter(s => s.perm);
+return;
+}
 if(recruit.h <= 0) return; // Dead recruit
 // Recruit attacks enemies (not heroes)
 executeRecruitBaseAttack(recruit);
@@ -1722,7 +1727,12 @@ setTimeout(() => endEnemyTurn(), delay + T(600));
 function executeEnemyTurn(enemy) {
 // FLYDRA: Dying Flydras don't act
 if(enemy.isFlydra && enemy.flydraState === 'dying') { return; }
-if(enemy.st > 0) { toast(`${getEnemyDisplayName(enemy)} is stunned!`); return; }
+if(enemy.st > 0) {
+toast(`${getEnemyDisplayName(enemy)} is stunned!`);
+// Clear drawn sigils even when stunned - they don't persist
+enemy.s = enemy.s.filter(s => s.perm);
+return;
+}
 if(enemy.alphaActed) {
 toast(`${getEnemyDisplayName(enemy)} used Alpha (skipping normal turn)`);
 enemy.s = enemy.s.filter(s => s.perm);
