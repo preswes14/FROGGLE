@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.32';
+const GAME_VERSION = '12.33';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -888,6 +888,84 @@ tooltipTimeout = null;
 if(currentTooltip) {
 currentTooltip.remove();
 currentTooltip = null;
+}
+}
+
+// Damage preview calculation - shows expected damage breakdown on hover
+function calcDamagePreview(heroIdx, targetId) {
+const h = S.heroes[heroIdx];
+const target = S.enemies.find(e => e.id === targetId);
+if(!h || !target) return null;
+
+const attackLevel = getLevel('Attack', heroIdx);
+const damagePerHit = h.p; // POW damage per hit
+const hitsRemaining = S.instancesRemaining || attackLevel; // Instances left
+const totalDamage = damagePerHit; // Single instance damage
+
+// Calculate shield absorption
+let shieldDmg = 0;
+let hpDmg = 0;
+if(target.sh > 0) {
+if(target.sh >= totalDamage) {
+shieldDmg = totalDamage;
+hpDmg = 0;
+} else {
+shieldDmg = target.sh;
+hpDmg = totalDamage - target.sh;
+}
+} else {
+hpDmg = totalDamage;
+}
+
+return { totalDamage, shieldDmg, hpDmg, hitsRemaining, targetHp: target.h, targetSh: target.sh };
+}
+
+// Show damage preview tooltip on enemy hover during targeting
+let currentDmgPreview = null;
+function showDamagePreview(targetId, element) {
+if(!S.pending || S.pending !== 'Attack' || S.activeIdx < 0) return;
+hideDamagePreview();
+
+const preview = calcDamagePreview(S.activeIdx, targetId);
+if(!preview) return;
+
+const tooltip = document.createElement('div');
+tooltip.className = 'damage-preview';
+
+let content = `<div class="dmg-total">-${preview.totalDamage}</div>`;
+if(preview.shieldDmg > 0) {
+content += `<div class="dmg-shield">-${preview.shieldDmg} shield</div>`;
+}
+if(preview.hpDmg > 0) {
+content += `<div class="dmg-hp">-${preview.hpDmg} HP</div>`;
+} else if(preview.shieldDmg > 0) {
+content += `<div class="dmg-blocked">Blocked!</div>`;
+}
+
+tooltip.innerHTML = content;
+document.body.appendChild(tooltip);
+currentDmgPreview = tooltip;
+
+// Position near element
+const rect = element.getBoundingClientRect();
+const tooltipRect = tooltip.getBoundingClientRect();
+let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+let top = rect.top - tooltipRect.height - 8;
+
+// Keep on screen
+if(left < 5) left = 5;
+if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
+if(top < 5) top = rect.bottom + 8;
+
+tooltip.style.left = left + 'px';
+tooltip.style.top = top + 'px';
+setTimeout(() => tooltip.classList.add('show'), 10);
+}
+
+function hideDamagePreview() {
+if(currentDmgPreview) {
+currentDmgPreview.remove();
+currentDmgPreview = null;
 }
 }
 
