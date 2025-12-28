@@ -2329,7 +2329,7 @@ S.heroes.forEach((h,i) => {
 const laneEnemyCount = (enemyLanes[i] || []).length;
 const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
 html += `<div class="combat-lane ${crowdedClass}">`;
-html += '<div class="lane-content" style="display:flex;gap:2rem;justify-content:center;align-items:stretch">';
+html += '<div class="lane-content" style="display:flex;gap:1rem;justify-content:center;align-items:stretch">';
 
 // Hero section (left side of lane)
 html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
@@ -2369,9 +2369,15 @@ html += `<span class="sigil ${d20Cl} ${isD20Active?'active-action':''} ${canUseD
 style="font-size:1.5rem" onmouseenter="showTooltip('D20', this, ${d20Level})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('D20', this, ${d20Level}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly('D20', d20Level)}</span>`;
 html += `</div>`;
-// Show shield/ghost if any
+// Shield bar (if shielded) in Last Stand
+if(h.sh > 0) {
+const shieldPct = Math.min(100, (h.sh / h.m) * 100);
+const fullShield = h.sh >= h.m;
+html += `<div class="shield-bar-container" style="margin-top:4px"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
+html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
+}
+// Show ghost/acted if any
 const lsExtra = [];
-if(h.sh > 0) lsExtra.push(`${h.sh}🛡`);
 if(h.g > 0) lsExtra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 if(hasActed) lsExtra.push('✓');
 if(lsExtra.length > 0) html += `<div style="text-align:center;font-size:0.7rem;color:#f1f5f9">${lsExtra.join(' ')}</div>`;
@@ -2389,10 +2395,10 @@ if(isActive) cardClasses += ' active';
 if(isTargetable) cardClasses += ' targetable';
 if(hasActed) cardClasses += ' acted';
 if(isStunned) cardClasses += ' stunned';
+if(h.sh > 0) cardClasses += ' has-shield';
 const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
-if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 if(h.st > 0) extra.push(`💥${h.st}T`);
 // Show alpha-granted bonus turns remaining for this hero
@@ -2420,7 +2426,14 @@ html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:c
 if(heroImage) html += `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
 html += `</div>`;
-// Extra info
+// Shield bar (if shielded) - placed below HP, above sigils
+if(h.sh > 0) {
+const shieldPct = Math.min(100, (h.sh / h.m) * 100);
+const fullShield = h.sh >= h.m;
+html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
+html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
+}
+// Extra info (ghost, stun, alpha, acted)
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils with proper 2-row formation
@@ -2580,10 +2593,10 @@ return b.h - a.h;
 });
 const recruit = heroRecruits[0];
 const recruitExtra = [];
-if(recruit.sh > 0) recruitExtra.push(`${recruit.sh}🛡`);
 if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
-html += `<div id="${recruit.id}" class="card hero" style="opacity:0.85;border:2px dashed #22c55e">`;
+const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
+html += `<div id="${recruit.id}" class="card hero${recruitShieldClass}" style="opacity:0.85;border:2px dashed #22c55e">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
 // Enemy emoji (retain original enemy type)
@@ -2591,7 +2604,14 @@ const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
 html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">${recruitEmoji}</div>`;
 // HP
 html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
-// Extra info
+// Shield bar (if shielded)
+if(recruit.sh > 0) {
+const shieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
+const fullShield = recruit.sh >= recruit.m;
+html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
+html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${recruit.sh}🛡</div>`;
+}
+// Extra info (ghost, stun)
 if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils
@@ -2610,13 +2630,13 @@ html += '</div></div>';
 html += '</div>'; // Close hero section
 
 // Divider between heroes and enemies
-html += '<div style="width:3px;background:linear-gradient(to bottom,transparent,rgba(0,0,0,0.3) 20%,rgba(0,0,0,0.3) 80%,transparent);flex-shrink:0"></div>';
+html += '<div style="width:2px;background:linear-gradient(to bottom,transparent,rgba(0,0,0,0.25) 15%,rgba(0,0,0,0.25) 85%,transparent);flex-shrink:0"></div>';
 
 // Enemy section (right side of lane)
-html += '<div style="flex:0 0 auto;display:flex;flex-wrap:wrap;gap:0.3rem;justify-content:flex-start;align-items:flex-start;align-content:flex-start;min-height:80px">';
+html += '<div style="flex:0 0 auto;display:flex;flex-wrap:wrap;gap:0.25rem;justify-content:flex-start;align-items:flex-start;align-content:flex-start;min-height:60px">';
 const laneEnemies = enemyLanes[i] || [];
 if(laneEnemies.length === 0) {
-html += `<div style="flex:1;text-align:center;font-size:1.2rem;padding:1.5rem;background:rgba(0,0,0,0.1);border:3px dashed rgba(0,0,0,0.3);border-radius:8px;color:rgba(0,0,0,0.4);font-style:italic;display:flex;align-items:center;justify-content:center">No Enemies</div>`;
+html += `<div style="flex:1;text-align:center;font-size:1rem;padding:0.8rem;background:rgba(0,0,0,0.08);border:2px dashed rgba(0,0,0,0.25);border-radius:6px;color:rgba(0,0,0,0.35);font-style:italic;display:flex;align-items:center;justify-content:center">Clear</div>`;
 } else {
 laneEnemies.forEach(e => {
 // FLYDRA: Check if this is a dying Flydra - render flipped card
@@ -2636,19 +2656,22 @@ html += `</div></div>`;
 return;
 }
 const isTargetable = (S.pending && needsEnemyTarget(S.pending)) || S.pending === 'D20_TARGET';
+const isAttackTargetable = S.pending === 'Attack' && isTargetable;
 const selectCount = S.targets.filter(t => t === e.id).length;
 let cardClasses = 'card enemy';
 if(e.isFlydra) cardClasses += ' flydra';
 if(isTargetable) cardClasses += ' targetable';
 if(selectCount > 0) cardClasses += ' targeted';
+if(e.sh > 0) cardClasses += ' has-shield';
 const extra = [];
-if(e.sh > 0) extra.push(`${e.sh}🛡`);
 // Show ghost charges if enemy has them
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`💥${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''}">`;
+// Add damage preview hover for Attack targeting
+const hoverEvents = isAttackTargetable ? `onmouseenter="showDamagePreview('${e.id}', this)" onmouseleave="hideDamagePreview()"` : '';
+html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} ${hoverEvents}>`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
 // POW - image/emoji - HP row (horizontal)
@@ -2662,7 +2685,14 @@ html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${e.h}/${e.m}</div>`;
 html += `</div>`;
-// Extra info
+// Shield bar (if shielded)
+if(e.sh > 0) {
+const shieldPct = Math.min(100, (e.sh / e.m) * 100);
+const fullShield = e.sh >= e.m;
+html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
+html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${e.sh}🛡</div>`;
+}
+// Extra info (ghost, stun, target count)
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils with smart wrapping
