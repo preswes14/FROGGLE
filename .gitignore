@@ -5,3 +5,9 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Test coverage
+coverage/

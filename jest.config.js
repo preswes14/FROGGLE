@@ -1,0 +1,17 @@
+module.exports = {
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+  testMatch: ['<rootDir>/tests/**/*.test.js'],
+  collectCoverageFrom: [
+    'src/**/*.js',
+    '!src/main.js',
+    '!src/controller.js'
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  verbose: true,
+  testTimeout: 10000,
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1'
+  }
+};
