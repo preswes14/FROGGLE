@@ -20,7 +20,7 @@ const GamepadController = {
   lastMouseY: null, // For tracking mouse movement delta
   pollCount: 0, // Debug: count poll cycles
   lastPollLog: 0, // Debug: timestamp of last poll log
-  mouseMovementThreshold: 15, // Minimum pixels to move before switching to mouse mode
+  mouseMovementThreshold: 150, // Minimum pixels to move before switching to mouse mode (high to prevent Steam Deck touchpad issues)
 
   // Button indices (standard gamepad mapping)
   BUTTONS: {
@@ -165,20 +165,35 @@ const GamepadController = {
     // Switch to mouse mode on significant sustained mouse movement
     // NOTE: Don't deactivate on click - Steam Deck touchscreen generates clicks
     // and we want controller mode to persist even when occasionally tapping screen
+    // STEAM DECK FIX: Track consecutive large movements to avoid touchpad false positives
+    this.mouseMoveCount = 0;
     document.addEventListener('mousemove', (e) => {
       // Only deactivate on significant mouse movement (not just hover or small jitter)
       if (this.lastMouseX === null) {
         this.lastMouseX = e.clientX;
         this.lastMouseY = e.clientY;
+        this.mouseMoveCount = 0;
         return;
       }
       const dx = Math.abs(e.clientX - this.lastMouseX);
       const dy = Math.abs(e.clientY - this.lastMouseY);
-      // Require more significant movement (50px) before switching to mouse mode
-      if (dx > 50 || dy > 50) {
+
+      // Require MULTIPLE consecutive large movements (150px+) before switching to mouse mode
+      // This prevents Steam Deck touchpad from accidentally deactivating controller mode
+      if (dx > this.mouseMovementThreshold || dy > this.mouseMovementThreshold) {
+        this.mouseMoveCount++;
         this.lastMouseX = e.clientX;
         this.lastMouseY = e.clientY;
-        this.deactivateControllerMode();
+        // Need 3 consecutive large movements to switch to mouse mode
+        if (this.mouseMoveCount >= 3) {
+          this.deactivateControllerMode();
+          this.mouseMoveCount = 0;
+        }
+      } else {
+        // Reset counter on small movement
+        this.mouseMoveCount = 0;
+        this.lastMouseX = e.clientX;
+        this.lastMouseY = e.clientY;
       }
     });
     // Don't deactivate on click - let controller mode persist
@@ -372,15 +387,40 @@ const GamepadController = {
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (let i = 0; i < gamepads.length; i++) {
       const gp = gamepads[i];
-      if (gp && gp.connected) {
+      // STEAM DECK FIX: Accept gamepad even if gp.connected is undefined
+      // Some browsers/devices don't properly set the connected property
+      if (gp && (gp.connected || gp.connected === undefined)) {
         console.log('[GAMEPAD] Found gamepad via polling at index', i, ':', gp.id);
         console.log('[GAMEPAD] Buttons:', gp.buttons.length, 'Axes:', gp.axes.length);
+        console.log('[GAMEPAD] Connected property:', gp.connected);
+
+        // Detect Steam Deck specifically
+        const isSteamDeck = this.detectSteamDeck(gp);
+        if (isSteamDeck) {
+          console.log('[GAMEPAD] *** STEAM DECK DETECTED! ***');
+          this.isSteamDeck = true;
+        }
+
         this.gamepadIndex = i;
         this.activateControllerMode();
-        toast('🎮 Controller detected! Use D-pad to navigate.', 2500);
+
+        const deviceName = isSteamDeck ? 'Steam Deck' : 'Controller';
+        toast(`🎮 ${deviceName} detected! Use D-pad to navigate.`, 2500);
         return;
       }
     }
+  },
+
+  // Detect if we're running on Steam Deck
+  detectSteamDeck(gp) {
+    if (!gp) return false;
+    const id = (gp.id || '').toLowerCase();
+    // Steam Deck controller IDs
+    return id.includes('steam') ||
+           id.includes('valve') ||
+           id.includes('deck') ||
+           // Generic XInput that might be Steam Deck
+           (id.includes('xinput') && navigator.userAgent.toLowerCase().includes('linux'));
   },
 
   onGamepadConnected(e) {
@@ -490,9 +530,9 @@ const GamepadController = {
   poll() {
     this.pollCount++;
     let now = Date.now();
-    // Log every 5 seconds
-    if (now - this.lastPollLog > 5000) {
-      console.log('[GAMEPAD] Poll status - count:', this.pollCount, 'active:', this.active, 'gamepadIndex:', this.gamepadIndex);
+    // Log every 10 seconds (reduced frequency)
+    if (now - this.lastPollLog > 10000) {
+      console.log('[GAMEPAD] Poll status - count:', this.pollCount, 'active:', this.active, 'gamepadIndex:', this.gamepadIndex, 'focusedEl:', this.focusedElement?.tagName);
       this.lastPollLog = now;
     }
 
@@ -525,13 +565,18 @@ const GamepadController = {
       return;
     }
 
+    // STEAM DECK FIX: Always try to get gamepads fresh each poll
+    // Some devices need repeated polling to properly initialize
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+
     // Try to find a gamepad if we don't have one
     if (this.gamepadIndex === null) {
-      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
       for (let i = 0; i < gamepads.length; i++) {
-        if (gamepads[i] && gamepads[i].connected) {
+        const gp = gamepads[i];
+        // Accept gamepad even if connected is undefined (Steam Deck fix)
+        if (gp && (gp.connected || gp.connected === undefined) && gp.buttons && gp.buttons.length > 0) {
           this.gamepadIndex = i;
-          console.log('[GAMEPAD] Poll found gamepad at index', i);
+          console.log('[GAMEPAD] Poll found gamepad at index', i, ':', gp.id);
           this.activateControllerMode();
           break;
         }
@@ -539,13 +584,19 @@ const GamepadController = {
       if (this.gamepadIndex === null) return;
     }
 
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     const gp = gamepads[this.gamepadIndex];
-    if (!gp) {
-      // Gamepad disconnected
-      this.gamepadIndex = null;
+    if (!gp || !gp.buttons) {
+      // Gamepad temporarily unavailable - don't immediately disconnect
+      // STEAM DECK FIX: Wait for a few poll cycles before declaring disconnected
+      this.gamepadMissingCount = (this.gamepadMissingCount || 0) + 1;
+      if (this.gamepadMissingCount > 30) { // About 0.5 seconds at 60fps
+        console.log('[GAMEPAD] Gamepad lost after multiple missing polls');
+        this.gamepadIndex = null;
+        this.gamepadMissingCount = 0;
+      }
       return;
     }
+    this.gamepadMissingCount = 0;
 
     // Refresh timestamp for input timing
     now = Date.now();
@@ -699,7 +750,10 @@ const GamepadController = {
 
     switch (buttonIndex) {
       case this.BUTTONS.A:
-        this.confirmSelection();
+        // STEAM DECK FIX: Try direct screen-aware actions first
+        if (!this.tryDirectAction()) {
+          this.confirmSelection();
+        }
         break;
       case this.BUTTONS.START:
         // START always opens settings menu
@@ -973,29 +1027,152 @@ const GamepadController = {
       }
     }
 
+    // STEAM DECK FIX: Try direct action invocation based on focused element's onclick
+    // This is more reliable than click() for dynamically generated elements
+    if (this.focusedElement) {
+      const onclick = this.focusedElement.getAttribute('onclick');
+      if (onclick) {
+        try {
+          // Execute the onclick handler directly
+          const fn = new Function(onclick);
+          fn.call(this.focusedElement);
+          this.refreshFocusAfterAction();
+          return;
+        } catch (e) {
+          console.log('[GAMEPAD] Direct onclick execution failed, falling back to click():', e);
+        }
+      }
+    }
+
     // Ensure we have a valid focus target
     if (!this.focusedElement || !document.body.contains(this.focusedElement)) {
       this.updateFocusableElements();
       const best = this.findBestDefaultFocus() || this.findPrimaryAction() || this.focusableElements[0];
       if (best) {
         this.setFocus(best);
-        best.click();
+        this.executeElementAction(best);
       }
       return;
     }
 
-    // Click the focused element
-    this.focusedElement.click();
+    // Try to execute the action on the focused element
+    this.executeElementAction(this.focusedElement);
+  },
 
-    // Refresh focus after DOM update
+  // Execute action on an element - tries onclick first, then click()
+  executeElementAction(el) {
+    if (!el) return;
+
+    const onclick = el.getAttribute('onclick');
+    if (onclick) {
+      try {
+        const fn = new Function(onclick);
+        fn.call(el);
+        this.refreshFocusAfterAction();
+        return;
+      } catch (e) {
+        console.log('[GAMEPAD] onclick execution failed:', e);
+      }
+    }
+
+    // Fallback to native click
+    el.click();
+    this.refreshFocusAfterAction();
+  },
+
+  // Refresh focus after an action completes
+  refreshFocusAfterAction() {
     setTimeout(() => {
       this.updateFocusableElements();
-      if (!document.body.contains(this.focusedElement)) {
+      if (!this.focusedElement || !document.body.contains(this.focusedElement)) {
         const best = this.findBestDefaultFocus();
         this.setFocus(best || this.focusableElements[0]);
       }
       this.updatePrompts();
     }, 100);
+  },
+
+  // STEAM DECK FIX: Direct action invocation for common screens
+  // This bypasses focus entirely and directly calls game functions
+  // Returns true if a direct action was taken
+  tryDirectAction() {
+    if (typeof SoundFX !== 'undefined' && SoundFX.play) {
+      SoundFX.play('click');
+    }
+
+    // Check for focused element first - if we have one with onclick, use it
+    if (this.focusedElement && document.body.contains(this.focusedElement)) {
+      return false; // Let normal confirmSelection handle it
+    }
+
+    // Title screen - click PLAY button
+    const playBtn = document.querySelector('.title-play-btn');
+    if (playBtn && playBtn.offsetParent !== null) {
+      console.log('[GAMEPAD] Direct action: Title screen PLAY');
+      this.executeElementAction(playBtn);
+      return true;
+    }
+
+    // Save slots - click visible slot or new game button
+    const continueBtn = document.querySelector('[onclick*="continueSlot"]');
+    if (continueBtn && continueBtn.offsetParent !== null) {
+      console.log('[GAMEPAD] Direct action: Continue from slot');
+      this.executeElementAction(continueBtn);
+      return true;
+    }
+
+    // Hero selection - click Start button
+    const startBtn = document.getElementById('start');
+    if (startBtn && startBtn.offsetParent !== null && !startBtn.classList.contains('disabled')) {
+      console.log('[GAMEPAD] Direct action: Start game from hero select');
+      this.executeElementAction(startBtn);
+      return true;
+    }
+
+    // Narrative continue buttons
+    const narrativeBtn = document.querySelector('[onclick*="continueNarrative"]');
+    if (narrativeBtn && narrativeBtn.offsetParent !== null) {
+      console.log('[GAMEPAD] Direct action: Continue narrative');
+      this.executeElementAction(narrativeBtn);
+      return true;
+    }
+
+    // Level up / next floor buttons
+    const nextFloorBtn = document.querySelector('[onclick*="nextFloor"]');
+    if (nextFloorBtn && nextFloorBtn.offsetParent !== null) {
+      console.log('[GAMEPAD] Direct action: Next floor');
+      this.executeElementAction(nextFloorBtn);
+      return true;
+    }
+
+    // Ribbleton portal
+    const portalBtn = document.querySelector('[onclick*="startFloor"]');
+    if (portalBtn && portalBtn.offsetParent !== null) {
+      console.log('[GAMEPAD] Direct action: Enter portal');
+      this.executeElementAction(portalBtn);
+      return true;
+    }
+
+    // Death screen - back to hub
+    const returnBtn = document.querySelector('[onclick*="showRibbleton"]');
+    if (returnBtn && returnBtn.offsetParent !== null) {
+      console.log('[GAMEPAD] Direct action: Return to hub');
+      this.executeElementAction(returnBtn);
+      return true;
+    }
+
+    // Combat: If targeting mode and we have focused element, try to target it
+    if (typeof S !== 'undefined' && S.pending && this.focusedElement) {
+      const card = this.focusedElement.closest('.card');
+      if (card && card.onclick) {
+        console.log('[GAMEPAD] Direct action: Target card');
+        card.onclick();
+        return true;
+      }
+    }
+
+    // No direct action available
+    return false;
   },
 
   goBack() {
@@ -1453,8 +1630,9 @@ const GamepadController = {
   updateFocusableElements() {
     // Find all focusable elements in order of appearance
     const selectors = [
-      // Buttons
+      // Buttons - most common interactive elements
       '.btn:not(.disabled)',
+      'button:not(.disabled):not([disabled])',
       // Choice options
       '.choice',
       // Clickable cards (heroes, enemies)
@@ -1469,8 +1647,15 @@ const GamepadController = {
       '.modal-checkbox-label',
       // Header buttons
       '.header button',
+      // Title screen elements
+      '.title-play-btn',
+      '.title-credits-btn',
+      '.save-slot',
+      // Hero selection
+      '.hero-select-btn',
+      '#start',
       // Generic clickable elements
-      '[onclick]:not(script)',
+      '[onclick]:not(script):not(.disabled)',
       // Links
       'a[href]'
     ];
@@ -1478,15 +1663,28 @@ const GamepadController = {
     const elements = new Set();
 
     for (const selector of selectors) {
-      document.querySelectorAll(selector).forEach(el => {
-        // Check if element is visible and not in rotate prompt or modal overlay
-        if (el.offsetParent !== null &&
-            !el.closest('#rotatePrompt') &&
-            !el.classList.contains('disabled') &&
-            !el.classList.contains('modal-overlay') &&
-            !el.classList.contains('confirm-modal-overlay') &&
-            el.style.display !== 'none' &&
-            el.style.visibility !== 'hidden') {
+      try {
+        document.querySelectorAll(selector).forEach(el => {
+          // Check if element is visible and not in rotate prompt or modal overlay
+          if (el.offsetParent !== null &&
+              !el.closest('#rotatePrompt') &&
+              !el.classList.contains('disabled') &&
+              !el.classList.contains('modal-overlay') &&
+              !el.classList.contains('confirm-modal-overlay') &&
+              el.style.display !== 'none' &&
+              el.style.visibility !== 'hidden') {
+            elements.add(el);
+          }
+        });
+      } catch (e) {
+        // Invalid selector - skip
+      }
+    }
+
+    // STEAM DECK FIX: If we found nothing, try a more aggressive search
+    if (elements.size === 0) {
+      document.querySelectorAll('[onclick]').forEach(el => {
+        if (el.offsetParent !== null && !el.closest('#rotatePrompt')) {
           elements.add(el);
         }
       });
@@ -1504,6 +1702,11 @@ const GamepadController = {
       }
       return rectA.left - rectB.left;
     });
+
+    // Debug: Log when we have issues finding focusable elements
+    if (this.focusableElements.length === 0 && this.active) {
+      console.log('[GAMEPAD] Warning: No focusable elements found on screen');
+    }
   },
 
   // Find the best element to focus by default based on context
@@ -1828,48 +2031,83 @@ const GamepadController = {
   showSteamControllerSetupHelp() {
     // Check if this looks like it might be Steam Deck or similar (touch events available)
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isLinux = navigator.userAgent.toLowerCase().includes('linux');
+    const isSteamDeckLikely = isTouchDevice && isLinux;
 
-    if (!isTouchDevice) {
-      console.log('[GAMEPAD] Not showing setup help - not a touch device');
+    if (!isTouchDevice && !isSteamDeckLikely) {
+      console.log('[GAMEPAD] Not showing setup help - not a touch device or Steam Deck');
       return;
     }
 
     const overlay = document.createElement('div');
     overlay.className = 'tutorial-modal-backdrop';
     overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:450px">
+<div class="tutorial-modal" style="max-width:480px">
 <h2 style="font-size:1.4rem;margin-bottom:1rem;text-align:center;color:#f59e0b">🎮 Controller Ready!</h2>
 <p style="font-size:0.95rem;line-height:1.5;margin-bottom:0.75rem;text-align:center">
 Controller support is enabled! Quick reference:
 </p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1rem;font-size:0.85rem">
 <div style="padding:0.5rem;background:rgba(34,197,94,0.15);border-radius:6px;text-align:center">
-<strong style="color:#86efac">🕹️ Right Stick</strong><br/>
-<span style="color:#e5e7eb">Cycle Characters</span>
+<strong style="color:#86efac">D-Pad / Sticks</strong><br/>
+<span style="color:#e5e7eb">Navigate</span>
 </div>
 <div style="padding:0.5rem;background:rgba(34,197,94,0.15);border-radius:6px;text-align:center">
-<strong style="color:#86efac">🕹️ Left Stick</strong><br/>
-<span style="color:#e5e7eb">Cycle Sigils</span>
+<strong style="color:#86efac">A Button</strong><br/>
+<span style="color:#e5e7eb">Confirm / Select</span>
 </div>
 <div style="padding:0.5rem;background:rgba(96,165,250,0.15);border-radius:6px;text-align:center">
-<strong style="color:#93c5fd">LB/RB</strong><br/>
-<span style="color:#e5e7eb">= Right Stick</span>
+<strong style="color:#93c5fd">B Button</strong><br/>
+<span style="color:#e5e7eb">Back / Cancel</span>
 </div>
 <div style="padding:0.5rem;background:rgba(96,165,250,0.15);border-radius:6px;text-align:center">
-<strong style="color:#93c5fd">LT/RT</strong><br/>
-<span style="color:#e5e7eb">= Left Stick</span>
+<strong style="color:#93c5fd">START (☰)</strong><br/>
+<span style="color:#e5e7eb">Menu</span>
 </div>
 </div>
+${isSteamDeckLikely ? `
+<div style="background:rgba(96,165,250,0.1);border:1px solid rgba(96,165,250,0.3);border-radius:6px;padding:0.75rem;margin-bottom:1rem">
+<p style="font-size:0.85rem;color:#93c5fd;margin-bottom:0.5rem"><strong>🎮 Steam Deck Tip:</strong></p>
+<p style="font-size:0.8rem;color:#e5e7eb;line-height:1.4">
+If buttons aren't responding, try pressing any button a few times - Steam Deck's browser sometimes needs a moment to detect the controller. You can also use the <strong>touchscreen</strong> or <strong>keyboard fallback</strong> (Arrow keys + Enter).
+</p>
+</div>
+` : ''}
 <p style="font-size:0.8rem;text-align:center;opacity:0.7;margin-bottom:1rem">
-Press <strong>START (☰)</strong> anytime → Controller → Controls Guide for full mappings
+Press <strong>START (☰)</strong> anytime for settings and controls guide
 </p>
 <div style="display:flex;gap:0.75rem;justify-content:center">
 <button class="btn" onclick="dismissSteamSetupHelp()" style="background:#22c55e;padding:0.6rem 1.2rem">Got it!</button>
+<button class="btn" onclick="forceActivateController()" style="background:#3b82f6;padding:0.6rem 1.2rem">Force Enable</button>
 </div>
 </div>`;
     document.body.appendChild(overlay);
   }
 };
+
+// Global function to force activate controller mode (for Steam Deck troubleshooting)
+function forceActivateController() {
+  const overlay = document.querySelector('.tutorial-modal-backdrop');
+  if (overlay) overlay.remove();
+
+  // Force activate controller mode even without detected gamepad
+  GamepadController.active = true;
+  document.body.classList.add('controller-active');
+  GamepadController.updateFocusableElements();
+  if (GamepadController.focusableElements.length > 0) {
+    const bestFocus = GamepadController.findBestDefaultFocus();
+    GamepadController.setFocus(bestFocus || GamepadController.focusableElements[0]);
+  }
+  GamepadController.updatePrompts();
+
+  toast('🎮 Controller mode force-enabled! Use D-pad/sticks to navigate.', 2500);
+
+  // Mark as shown
+  if (typeof S !== 'undefined') {
+    S.tutorialFlags.steam_controller_setup = true;
+    if (typeof savePermanent === 'function') savePermanent();
+  }
+}
 
 // Global function to dismiss the Steam setup help
 function dismissSteamSetupHelp() {
