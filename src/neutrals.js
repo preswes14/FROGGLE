@@ -157,6 +157,7 @@ v.innerHTML = `
 <div class="title-button-container">
 <button class="btn title-secondary-btn" onclick="showCredits()">Credits</button>
 <button class="btn title-secondary-btn" onclick="showSettingsMenu()">Settings</button>
+<button class="btn title-secondary-btn" onclick="quitGame()" style="background:#dc2626;border-color:#b91c1c">Quit</button>
 </div>
 <!-- Play button on the right -->
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
@@ -175,6 +176,28 @@ if (playBtn) {
   }
 }
 }, 50);
+}
+
+// Quit game - works in Electron/PWA standalone, shows message in browser
+function quitGame() {
+showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
+  // Try to close the window (works in Electron, PWA standalone, or script-opened windows)
+  window.close();
+
+  // If window.close() didn't work (browser security), show a message
+  setTimeout(() => {
+    // Still here? Show instructions
+    const v = document.getElementById('gameView');
+    v.innerHTML = `
+    <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:2rem">
+    <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:400px;text-align:center">
+    <h2 style="margin:0 0 1rem 0">🐸 Thanks for playing!</h2>
+    <p style="margin:0 0 1.5rem 0;opacity:0.9">Close this tab or window to exit completely.</p>
+    <button class="btn" onclick="mainTitlePage()" style="background:#6366f1">Return to Title</button>
+    </div>
+    </div>`;
+  }, 100);
+});
 }
 
 // Show credits screen
