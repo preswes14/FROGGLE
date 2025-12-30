@@ -2234,7 +2234,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.36';
+const GAME_VERSION = '12.37';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -15555,43 +15555,61 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 const controls = [
-{ section: 'Navigation', items: [
-  { btn: 'D-Pad / Left Stick', desc: 'Navigate menus and UI elements' },
-  { btn: 'Right Stick', desc: 'Cycle through characters (up/down)' },
-  { btn: 'A', desc: 'Confirm / Select' },
+{ section: '🕹️ Sticks (Combat)', items: [
+  { btn: 'Right Stick', desc: 'Cycle between characters (heroes ↔ enemies)', highlight: true },
+  { btn: 'Left Stick', desc: 'Cycle sigils on current character', highlight: true }
+]},
+{ section: '🎮 Bumpers & Triggers (Combat)', items: [
+  { btn: 'LB / RB', desc: 'Previous / Next character (same as right stick)' },
+  { btn: 'LT / RT', desc: 'Previous / Next sigil with tooltip (same as left stick)' }
+]},
+{ section: '✚ D-Pad', items: [
+  { btn: 'In Menus', desc: 'Navigate between buttons and options' },
+  { btn: 'Up / Down', desc: 'In combat: cycle characters' },
+  { btn: 'Left / Right', desc: 'In combat: cycle sigils' }
+]},
+{ section: '🔘 Face Buttons', items: [
+  { btn: 'A', desc: 'Confirm / Select / Click focused element' },
   { btn: 'B', desc: 'Back / Cancel action' },
-  { btn: 'START (☰)', desc: 'Open Settings menu' }
+  { btn: 'X', desc: 'Switch sides (jump to enemy across from you)' },
+  { btn: 'Y', desc: 'Toggle sigil tooltip' }
 ]},
-{ section: 'Combat', items: [
-  { btn: 'D-Pad Up/Down', desc: 'Cycle through heroes and enemies' },
-  { btn: 'D-Pad Left/Right', desc: 'Cycle through sigils on focused unit' },
-  { btn: 'LB / RB', desc: 'Previous / Next character' },
-  { btn: 'LT / RT', desc: 'Previous / Next sigil (with tooltip)' },
-  { btn: 'Y', desc: 'Toggle sigil tooltip' },
-  { btn: 'X', desc: 'Switch sides (jump to opposite side of board)' },
-  { btn: 'SELECT', desc: 'Auto-target (smart targeting for current action)' }
+{ section: '⚙️ Menu Buttons', items: [
+  { btn: 'START (☰)', desc: 'Open Settings menu (works anywhere)' },
+  { btn: 'SELECT (⊡)', desc: 'Auto-target: smart targeting for current action' }
 ]},
-{ section: 'Keyboard Fallback', items: [
-  { btn: 'Arrow Keys / WASD', desc: 'Navigate' },
-  { btn: 'Enter / Space', desc: 'Confirm / Select' },
-  { btn: 'Escape / Backspace', desc: 'Back / Cancel' },
-  { btn: 'Tab', desc: 'Cycle through elements' }
+{ section: '⌨️ Keyboard Fallback', items: [
+  { btn: 'Arrow Keys / WASD', desc: 'Navigate (D-pad equivalent)' },
+  { btn: 'Q / E', desc: 'Previous / Next character (LB / RB)' },
+  { btn: 'Z / C', desc: 'Previous / Next sigil (LT / RT)' },
+  { btn: 'Enter / Space', desc: 'Confirm (A button)' },
+  { btn: 'Escape', desc: 'Back / Cancel (B button)' },
+  { btn: 'X / T', desc: 'Switch sides / Toggle tooltip' },
+  { btn: 'R', desc: 'Auto-target (SELECT)' }
 ]}
 ];
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" style="max-height:85vh;overflow-y:auto">
 <h2 class="modal-title blue" style="margin-bottom:1rem">🎮 CONTROLS GUIDE 🎮</h2>
+
+<div style="margin-bottom:1rem;padding:0.75rem;background:rgba(34,197,94,0.15);border:2px solid #22c55e;border-radius:8px">
+<p style="margin:0;color:#86efac;font-size:0.9rem;text-align:center">
+<strong>Quick Reference:</strong> Right Stick = Characters • Left Stick = Sigils • Bumpers & Triggers work the same way!
+</p>
+</div>
 `;
 
 controls.forEach(section => {
-html += `<h3 class="modal-section-title green" style="margin-top:1rem">${section.section}</h3>`;
-html += `<div style="display:flex;flex-direction:column;gap:0.4rem">`;
+html += `<h3 class="modal-section-title green" style="margin-top:1rem;font-size:0.95rem">${section.section}</h3>`;
+html += `<div style="display:flex;flex-direction:column;gap:0.3rem">`;
 section.items.forEach(item => {
+const bgColor = item.highlight ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)';
+const borderStyle = item.highlight ? 'border:1px solid rgba(34,197,94,0.3);' : '';
 html += `
-<div style="display:flex;align-items:center;gap:0.75rem;padding:0.4rem 0.5rem;background:rgba(255,255,255,0.05);border-radius:6px">
-<span style="min-width:140px;font-weight:bold;color:#60a5fa;font-size:0.9rem">${item.btn}</span>
-<span style="color:#e5e7eb;font-size:0.85rem">${item.desc}</span>
+<div style="display:flex;align-items:center;gap:0.75rem;padding:0.4rem 0.5rem;background:${bgColor};${borderStyle}border-radius:6px">
+<span style="min-width:120px;font-weight:bold;color:#60a5fa;font-size:0.85rem">${item.btn}</span>
+<span style="color:#e5e7eb;font-size:0.8rem">${item.desc}</span>
 </div>`;
 });
 html += `</div>`;
@@ -15601,13 +15619,17 @@ html += `
 <div style="margin-top:1.5rem;padding:1rem;background:rgba(99,102,241,0.15);border:2px solid #6366f1;border-radius:8px">
 <h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">💡 Pro Tips</h4>
 <ul style="margin:0;padding-left:1.25rem;color:#c7d2fe;font-size:0.85rem;line-height:1.5">
-<li><strong>Auto-Target (SELECT)</strong> picks the smartest targets: lowest HP enemies for attacks, most damaged heroes for heals</li>
-<li><strong>Switch Sides (X)</strong> is great for quickly jumping between your hero and the enemy across from them</li>
-<li><strong>Sigil cycling (LT/RT)</strong> automatically shows tooltips as you browse</li>
+<li><strong>Auto-Target (SELECT)</strong> picks smart targets: lowest HP enemies for attacks, most damaged heroes for heals</li>
+<li><strong>Switch Sides (X)</strong> quickly jumps between your hero and the enemy across from them</li>
+<li><strong>Sigil cycling (LT/RT/Left Stick)</strong> automatically shows tooltips as you browse</li>
+<li><strong>Bumpers (LB/RB)</strong> also scroll through long lists in menus</li>
 </ul>
 </div>
 
-<button class="btn" onclick="closeControlsGuide()" style="margin-top:1.5rem;background:#888">Close</button>
+<button class="btn" onclick="showSteamInputGuide()" style="margin-top:1rem;background:#1b2838">
+<span style="margin-right:0.5rem">🎮</span> Steam Input Setup Guide
+</button>
+<button class="btn" onclick="closeControlsGuide()" style="margin-top:0.5rem;background:#888">Close</button>
 </div>
 <div class="modal-overlay" onclick="closeControlsGuide()"></div>
 `;
@@ -15618,6 +15640,117 @@ v.insertAdjacentHTML('beforeend', html);
 function closeControlsGuide() {
 const menus = document.querySelectorAll('.modal-container, .modal-overlay');
 menus.forEach(m => m.remove());
+}
+
+function showSteamInputGuide() {
+// Remove existing modal first
+const menus = document.querySelectorAll('.modal-container, .modal-overlay');
+menus.forEach(m => m.remove());
+
+const v = document.getElementById('gameView');
+
+let html = `
+<div class="modal-container dark" style="max-height:85vh;overflow-y:auto">
+<h2 class="modal-title" style="margin-bottom:1rem;color:#1b2838">
+<span style="background:linear-gradient(135deg,#1b2838,#2a475e);padding:0.3rem 0.6rem;border-radius:4px">🎮 Steam Input Setup</span>
+</h2>
+
+<div style="margin-bottom:1rem;padding:0.75rem;background:rgba(27,40,56,0.3);border:2px solid #2a475e;border-radius:8px">
+<p style="margin:0;color:#c7d5e0;font-size:0.9rem;text-align:center">
+FROGGLE uses <strong>Gamepad with Joystick Trackpad</strong> template as a base. Here's how to set it up in Steam.
+</p>
+</div>
+
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">📋 Quick Setup (Recommended)</h3>
+<div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
+<ol style="margin:0;padding-left:1.25rem;color:#e5e7eb;font-size:0.85rem;line-height:1.8">
+<li>Open Steam and navigate to your game in the Library</li>
+<li>Click the <strong>controller icon</strong> or go to <strong>Properties → Controller</strong></li>
+<li>Select <strong>"Gamepad with Joystick Trackpad"</strong> as the template</li>
+<li>The default mappings should work perfectly!</li>
+</ol>
+</div>
+
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🔧 Custom Configuration</h3>
+<div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
+<p style="margin:0 0 0.75rem 0;color:#c7d5e0;font-size:0.85rem">
+If you want to customize, here's the expected mapping:
+</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.8rem">
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">Left Stick</strong><br/>
+<span style="color:#e5e7eb">Joystick Move (axes 0,1)</span>
+</div>
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">Right Stick</strong><br/>
+<span style="color:#e5e7eb">Joystick Move (axes 2,3)</span>
+</div>
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">D-Pad</strong><br/>
+<span style="color:#e5e7eb">D-Pad buttons (12-15)</span>
+</div>
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">Face Buttons</strong><br/>
+<span style="color:#e5e7eb">A(0) B(1) X(2) Y(3)</span>
+</div>
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">Bumpers</strong><br/>
+<span style="color:#e5e7eb">LB(4) RB(5)</span>
+</div>
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">Triggers</strong><br/>
+<span style="color:#e5e7eb">LT(6) RT(7)</span>
+</div>
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">Select/Back</strong><br/>
+<span style="color:#e5e7eb">Button 8</span>
+</div>
+<div style="padding:0.4rem;background:rgba(102,192,244,0.1);border-radius:4px">
+<strong style="color:#66c0f4">Start/Menu</strong><br/>
+<span style="color:#e5e7eb">Button 9</span>
+</div>
+</div>
+</div>
+
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🎮 Steam Deck Gaming Mode</h3>
+<div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
+<p style="margin:0;color:#e5e7eb;font-size:0.85rem;line-height:1.6">
+On Steam Deck, the built-in controls should work automatically. If not:
+</p>
+<ol style="margin:0.5rem 0 0 0;padding-left:1.25rem;color:#c7d5e0;font-size:0.85rem;line-height:1.8">
+<li>Press the <strong>Steam button</strong> while in-game</li>
+<li>Select <strong>Controller Settings</strong></li>
+<li>Choose <strong>Gamepad with Joystick Trackpad</strong></li>
+<li>Optionally map L4/R4 paddles to SELECT for quick auto-targeting!</li>
+</ol>
+</div>
+
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🖥️ Electron / Desktop App</h3>
+<div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
+<p style="margin:0;color:#e5e7eb;font-size:0.85rem;line-height:1.6">
+When packaging with Electron for Steam:
+</p>
+<ol style="margin:0.5rem 0 0 0;padding-left:1.25rem;color:#c7d5e0;font-size:0.85rem;line-height:1.8">
+<li>Add the game to Steam as a <strong>Non-Steam Game</strong></li>
+<li>Enable <strong>Steam Input</strong> in the controller settings</li>
+<li>Select <strong>Gamepad with Joystick Trackpad</strong> template</li>
+<li>For Steamworks integration, use the <a href="https://partner.steamgames.com/doc/features/steam_controller" style="color:#66c0f4" target="_blank">Steam Input API</a></li>
+</ol>
+</div>
+
+<div style="margin-top:1rem;padding:0.75rem;background:rgba(245,158,11,0.15);border:2px solid #f59e0b;border-radius:8px">
+<p style="margin:0;color:#fcd34d;font-size:0.85rem">
+<strong>💡 Tip:</strong> The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!
+</p>
+</div>
+
+<button class="btn" onclick="showControlsGuide()" style="margin-top:1rem;background:#6366f1">← Back to Controls</button>
+<button class="btn" onclick="closeControlsGuide()" style="margin-top:0.5rem;background:#888">Close</button>
+</div>
+<div class="modal-overlay" onclick="closeControlsGuide()"></div>
+`;
+
+v.insertAdjacentHTML('beforeend', html);
 }
 
 function showFAQ() {
@@ -16651,7 +16784,8 @@ const GamepadController = {
     }
   },
 
-  // Right stick handler
+  // Right stick handler - DEDICATED CHARACTER CYCLING
+  // Any right stick movement cycles through heroes and enemies
   onRightStick(x, y) {
     const context = this.getNavigationContext();
 
@@ -16664,9 +16798,10 @@ const GamepadController = {
     const isHorizontal = Math.abs(x) > Math.abs(y);
 
     if (context === 'combat' || context === 'targeting') {
-      // In combat: up/down cycles units, left/right cycles sigils
+      // In combat: right stick ALWAYS cycles characters
+      // Right/Down = next character, Left/Up = previous character
       if (isHorizontal) {
-        this.cycleSigil(x > 0 ? 'next' : 'prev');
+        this.cycleUnit(x > 0 ? 'next' : 'prev');
       } else {
         this.cycleUnit(y > 0 ? 'next' : 'prev');
       }
@@ -16680,7 +16815,8 @@ const GamepadController = {
     }
   },
 
-  // Left stick handler (context-aware)
+  // Left stick handler - DEDICATED SIGIL CYCLING IN COMBAT
+  // Any left stick movement cycles through sigils on the current character
   onLeftStick(dir) {
     const context = this.getNavigationContext();
 
@@ -16693,11 +16829,12 @@ const GamepadController = {
       // In targeting mode: cycle through valid targets
       this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
     } else if (context === 'combat') {
-      // In combat: up/down cycles units, left/right cycles sigils
-      if (dir === 'up' || dir === 'down') {
-        this.cycleUnit(dir === 'down' ? 'next' : 'prev');
+      // In combat: left stick ALWAYS cycles sigils
+      // Right/Down = next sigil, Left/Up = previous sigil
+      if (dir === 'right' || dir === 'down') {
+        this.cycleSigil('next');
       } else {
-        this.cycleSigil(dir === 'right' ? 'next' : 'prev');
+        this.cycleSigil('prev');
       }
     } else {
       // In menus: standard spatial navigation
@@ -17895,12 +18032,12 @@ const GamepadController = {
         ];
       } else {
         prompts = [
-          { btn: 'dpad', label: 'Navigate' },
+          { btn: 'rs', label: 'Char' },
+          { btn: 'ls', label: 'Sigil' },
           { btn: 'a', label: 'Select' },
-          { btn: 'lb', label: '↑Hero' },
-          { btn: 'rb', label: 'Hero↓' },
           { btn: 'x', label: 'Switch' },
-          { btn: 'y', label: 'Info' }
+          { btn: 'y', label: 'Info' },
+          { btn: 'start', label: 'Menu' }
         ];
       }
     }
@@ -17956,6 +18093,8 @@ const GamepadController = {
     promptsEl.innerHTML = prompts.map(p => {
       const displayLabel = {
         'dpad': '✚',
+        'ls': '🕹L',
+        'rs': '🕹R',
         'lb': 'LB',
         'rb': 'RB',
         'lt': 'LT',
@@ -17986,12 +18125,30 @@ const GamepadController = {
     overlay.className = 'tutorial-modal-backdrop';
     overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:450px">
-<h2 style="font-size:1.4rem;margin-bottom:1rem;text-align:center;color:#f59e0b">🎮 Controller Detected</h2>
-<p style="font-size:0.95rem;line-height:1.5;margin-bottom:1rem;text-align:center">
-Controller support is enabled! Use your gamepad to navigate menus and play.
+<h2 style="font-size:1.4rem;margin-bottom:1rem;text-align:center;color:#f59e0b">🎮 Controller Ready!</h2>
+<p style="font-size:0.95rem;line-height:1.5;margin-bottom:0.75rem;text-align:center">
+Controller support is enabled! Quick reference:
 </p>
-<p style="font-size:0.85rem;text-align:center;opacity:0.8;margin-bottom:1rem">
-Check <strong>Gameplay Settings → Controls Guide</strong> for button mappings.
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1rem;font-size:0.85rem">
+<div style="padding:0.5rem;background:rgba(34,197,94,0.15);border-radius:6px;text-align:center">
+<strong style="color:#86efac">🕹️ Right Stick</strong><br/>
+<span style="color:#e5e7eb">Cycle Characters</span>
+</div>
+<div style="padding:0.5rem;background:rgba(34,197,94,0.15);border-radius:6px;text-align:center">
+<strong style="color:#86efac">🕹️ Left Stick</strong><br/>
+<span style="color:#e5e7eb">Cycle Sigils</span>
+</div>
+<div style="padding:0.5rem;background:rgba(96,165,250,0.15);border-radius:6px;text-align:center">
+<strong style="color:#93c5fd">LB/RB</strong><br/>
+<span style="color:#e5e7eb">= Right Stick</span>
+</div>
+<div style="padding:0.5rem;background:rgba(96,165,250,0.15);border-radius:6px;text-align:center">
+<strong style="color:#93c5fd">LT/RT</strong><br/>
+<span style="color:#e5e7eb">= Left Stick</span>
+</div>
+</div>
+<p style="font-size:0.8rem;text-align:center;opacity:0.7;margin-bottom:1rem">
+Press <strong>START (☰)</strong> anytime → Controller → Controls Guide for full mappings
 </p>
 <div style="display:flex;gap:0.75rem;justify-content:center">
 <button class="btn" onclick="dismissSteamSetupHelp()" style="background:#22c55e;padding:0.6rem 1.2rem">Got it!</button>
