@@ -2077,7 +2077,10 @@ const v = document.getElementById('gameView');
 let description = 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters to himself, but stops when you walk in. "Do you see it? CAN you see it? Look closely!" He pulls you toward the wall.<br><br>Choose which hero will approach the wizard:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
-buttons += `<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})">${h.n}</button>`;
+const heroSigils = [...h.s];
+if(h.ts) heroSigils.push(...h.ts);
+const sigilList = heroSigils.map(s => sigilIconOnly(s)).join(' ');
+buttons += `<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})">${h.n} <span style="font-size:0.8rem;opacity:0.8">${sigilList}</span></button>`;
 });
 buttons += `<button class="btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 
@@ -2278,7 +2281,8 @@ let description = `${h.n} passed the trial! Choose a sigil to upgrade temporaril
 let buttons = '';
 availableSigils.forEach(sig => {
 const currentLevel = getLevel(sig, heroIdx);
-buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIcon(sig)} ${sig} - L${currentLevel} → L${currentLevel + 1}</button>`;
+const nextLevel = currentLevel + 1;
+buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIconWithTooltip(sig, nextLevel)} ${sig} - L${currentLevel} → L${nextLevel}</button>`;
 });
 
 v.innerHTML = buildNeutralHTML({
@@ -2347,8 +2351,8 @@ const v = document.getElementById('gameView');
 let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?" Choose a hero and their desired fortune:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
-buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (+1⚡)</button>`;
-buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (+5❤ max)</button>`;
+buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (${h.p}⚡ → ${h.p+1}⚡)</button>`;
+buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (${h.m}❤ max → ${h.m+5}❤ max)</button>`;
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
