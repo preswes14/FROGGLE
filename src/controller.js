@@ -601,7 +601,8 @@ const GamepadController = {
     }
   },
 
-  // Right stick handler
+  // Right stick handler - DEDICATED CHARACTER CYCLING
+  // Any right stick movement cycles through heroes and enemies
   onRightStick(x, y) {
     const context = this.getNavigationContext();
 
@@ -614,9 +615,10 @@ const GamepadController = {
     const isHorizontal = Math.abs(x) > Math.abs(y);
 
     if (context === 'combat' || context === 'targeting') {
-      // In combat: up/down cycles units, left/right cycles sigils
+      // In combat: right stick ALWAYS cycles characters
+      // Right/Down = next character, Left/Up = previous character
       if (isHorizontal) {
-        this.cycleSigil(x > 0 ? 'next' : 'prev');
+        this.cycleUnit(x > 0 ? 'next' : 'prev');
       } else {
         this.cycleUnit(y > 0 ? 'next' : 'prev');
       }
@@ -630,7 +632,8 @@ const GamepadController = {
     }
   },
 
-  // Left stick handler (context-aware)
+  // Left stick handler - DEDICATED SIGIL CYCLING IN COMBAT
+  // Any left stick movement cycles through sigils on the current character
   onLeftStick(dir) {
     const context = this.getNavigationContext();
 
@@ -643,11 +646,12 @@ const GamepadController = {
       // In targeting mode: cycle through valid targets
       this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
     } else if (context === 'combat') {
-      // In combat: up/down cycles units, left/right cycles sigils
-      if (dir === 'up' || dir === 'down') {
-        this.cycleUnit(dir === 'down' ? 'next' : 'prev');
+      // In combat: left stick ALWAYS cycles sigils
+      // Right/Down = next sigil, Left/Up = previous sigil
+      if (dir === 'right' || dir === 'down') {
+        this.cycleSigil('next');
       } else {
-        this.cycleSigil(dir === 'right' ? 'next' : 'prev');
+        this.cycleSigil('prev');
       }
     } else {
       // In menus: standard spatial navigation
@@ -1845,12 +1849,12 @@ const GamepadController = {
         ];
       } else {
         prompts = [
-          { btn: 'dpad', label: 'Navigate' },
+          { btn: 'rs', label: 'Char' },
+          { btn: 'ls', label: 'Sigil' },
           { btn: 'a', label: 'Select' },
-          { btn: 'lb', label: '↑Hero' },
-          { btn: 'rb', label: 'Hero↓' },
           { btn: 'x', label: 'Switch' },
-          { btn: 'y', label: 'Info' }
+          { btn: 'y', label: 'Info' },
+          { btn: 'start', label: 'Menu' }
         ];
       }
     }
@@ -1906,6 +1910,8 @@ const GamepadController = {
     promptsEl.innerHTML = prompts.map(p => {
       const displayLabel = {
         'dpad': '✚',
+        'ls': '🕹L',
+        'rs': '🕹R',
         'lb': 'LB',
         'rb': 'RB',
         'lt': 'LT',
@@ -1936,12 +1942,30 @@ const GamepadController = {
     overlay.className = 'tutorial-modal-backdrop';
     overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:450px">
-<h2 style="font-size:1.4rem;margin-bottom:1rem;text-align:center;color:#f59e0b">🎮 Controller Detected</h2>
-<p style="font-size:0.95rem;line-height:1.5;margin-bottom:1rem;text-align:center">
-Controller support is enabled! Use your gamepad to navigate menus and play.
+<h2 style="font-size:1.4rem;margin-bottom:1rem;text-align:center;color:#f59e0b">🎮 Controller Ready!</h2>
+<p style="font-size:0.95rem;line-height:1.5;margin-bottom:0.75rem;text-align:center">
+Controller support is enabled! Quick reference:
 </p>
-<p style="font-size:0.85rem;text-align:center;opacity:0.8;margin-bottom:1rem">
-Check <strong>Gameplay Settings → Controls Guide</strong> for button mappings.
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1rem;font-size:0.85rem">
+<div style="padding:0.5rem;background:rgba(34,197,94,0.15);border-radius:6px;text-align:center">
+<strong style="color:#86efac">🕹️ Right Stick</strong><br/>
+<span style="color:#e5e7eb">Cycle Characters</span>
+</div>
+<div style="padding:0.5rem;background:rgba(34,197,94,0.15);border-radius:6px;text-align:center">
+<strong style="color:#86efac">🕹️ Left Stick</strong><br/>
+<span style="color:#e5e7eb">Cycle Sigils</span>
+</div>
+<div style="padding:0.5rem;background:rgba(96,165,250,0.15);border-radius:6px;text-align:center">
+<strong style="color:#93c5fd">LB/RB</strong><br/>
+<span style="color:#e5e7eb">= Right Stick</span>
+</div>
+<div style="padding:0.5rem;background:rgba(96,165,250,0.15);border-radius:6px;text-align:center">
+<strong style="color:#93c5fd">LT/RT</strong><br/>
+<span style="color:#e5e7eb">= Left Stick</span>
+</div>
+</div>
+<p style="font-size:0.8rem;text-align:center;opacity:0.7;margin-bottom:1rem">
+Press <strong>START (☰)</strong> anytime → Controller → Controls Guide for full mappings
 </p>
 <div style="display:flex;gap:0.75rem;justify-content:center">
 <button class="btn" onclick="dismissSteamSetupHelp()" style="background:#22c55e;padding:0.6rem 1.2rem">Got it!</button>
