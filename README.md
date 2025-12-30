@@ -6,11 +6,11 @@ A Froggy Roguelike
 
 **Live Game:** [Play FROGGLE](https://preswes14.github.io/FROGGLE/)
 
-Works on desktop and mobile browsers!
+Works on Steam Deck, desktop and mobile browsers!
 
 ## About
 
-FROGGLE is a weirdly empowering (f)roguelike dungeon crawler featuring:
+FROGGLE is a weirdly empowering, delightfully breakable (f)roguelike dungeon crawler featuring:
 - An adorable Tadpole named Tapo who you MUST SAVE!
 - 4 unique hero classes (can you unlock the secret 5th hero!?)
 - 9 encounters, each with a hidden unlockable second stage (find them all!)
@@ -22,7 +22,7 @@ FROGGLE is a weirdly empowering (f)roguelike dungeon crawler featuring:
 - A hidden game mode - FROGGED UP mode - (once you clear standard)
 - Rich, strategic turn-based combat
 - All kinds of secrets and easter eggs!
-
+-_Inspired by Slay the Spire, Balatro, and Inscrytpion - if you like any of these, you'll probably like FROGGLE!_
 
 ## For Beta Testers
 
