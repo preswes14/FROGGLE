@@ -3050,7 +3050,7 @@ const displayLevel = (isActive && level === 0) ? 1 : level;
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const newSigilNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="startingUpSigil('${sig}')"><strong>${sigilIcon(sig)} L${displayLevel} → L${nextDisplayLevel}</strong>${newSigilNote}</div>`;
+categoryHtml += `<div class="choice" onclick="startingUpSigil('${sig}')"><strong>${sigilIconWithTooltip(sig, nextDisplayLevel)} L${displayLevel} → L${nextDisplayLevel}</strong>${newSigilNote}</div>`;
 });
 return categoryHtml;
 };
@@ -3124,7 +3124,7 @@ const levelText = (level === 0 && !isActive) ? `L${displayLevel} (Passive only)`
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const newSigilNote = !anyHeroHasSigil ? `<span style="color:#dc2626;font-size:0.85rem"> *No hero has this yet!</span>` : '';
 categoryHtml += `<div class="choice" onclick="startingAddSigilConfirm(${heroIdx}, '${sig}')">
-<strong>${sigilIcon(sig)}</strong> <span style="opacity:0.7">(${levelText})</span>${newSigilNote}
+<strong>${sigilIconWithTooltip(sig, displayLevel)}</strong> <span style="opacity:0.7">(${levelText})</span>${newSigilNote}
 </div>`;
 });
 return categoryHtml;
