@@ -2234,7 +2234,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.37';
+const GAME_VERSION = '12.39';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -6358,7 +6358,7 @@ render();
 // Auto-target tutorial: show on second+ run, floor 1
 if(S.runNumber >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
 const isTouchDevice = 'ontouchstart' in window;
-const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
+const inputHint = isTouchDevice ? "Press Ⓧ on controller" : "Right-click any sigil (or Ⓧ on controller)";
 showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
 }
 }
@@ -15721,7 +15721,7 @@ On Steam Deck, the built-in controls should work automatically. If not:
 <li>Press the <strong>Steam button</strong> while in-game</li>
 <li>Select <strong>Controller Settings</strong></li>
 <li>Choose <strong>Gamepad with Joystick Trackpad</strong></li>
-<li>Optionally map L4/R4 paddles to SELECT for quick auto-targeting!</li>
+<li>Optionally map L4/R4 paddles to X for quick auto-targeting!</li>
 </ol>
 </div>
 
@@ -16189,7 +16189,7 @@ const GamepadController = {
   focusedElement: null,
   focusableElements: [],
   lastInputTime: 0,
-  inputCooldown: 150, // ms between inputs to prevent rapid-fire
+  inputCooldown: 80, // ms between inputs - lower = more responsive
   axisDeadzone: 0.5,
   pollInterval: null,
   buttonStates: {},
@@ -16373,8 +16373,6 @@ const GamepadController = {
 
     // Use capture phase to catch events before they're stopped
     document.addEventListener('keydown', (e) => {
-      console.log('[KEYBOARD] Key event:', e.key, 'code:', e.code, 'target:', e.target.tagName);
-
       // Skip if controller support is disabled
       if (typeof S !== 'undefined' && S.controllerDisabled) {
         console.log('[KEYBOARD] Skipped - controller disabled');
@@ -16460,12 +16458,12 @@ const GamepadController = {
           this.goBack();
           handled = true;
           break;
-        // X button - switch sides
+        // X button - auto-target
         case 'x':
         case 'X':
-          action = 'switch sides (X)';
+          action = 'auto-target (X)';
           this.activateControllerMode();
-          this.switchSides();
+          this.autoTarget();
           handled = true;
           break;
         // Y button - toggle tooltip
@@ -16508,13 +16506,13 @@ const GamepadController = {
           this.onButtonPress(this.BUTTONS.RT);
           handled = true;
           break;
-        // SELECT - auto-target
+        // SELECT - switch sides
         case 'r':
         case 'R':
         case '`':
-          action = 'auto-target (SELECT)';
+          action = 'switch sides (SELECT)';
           this.activateControllerMode();
-          this.autoTarget();
+          this.switchSides();
           handled = true;
           break;
         case 'Tab':
@@ -16534,7 +16532,6 @@ const GamepadController = {
       }
 
       if (handled) {
-        console.log('[KEYBOARD] Handled action:', action, 'active:', this.active, 'focused:', this.focusedElement?.textContent?.substring(0,20));
         e.preventDefault();
         e.stopPropagation();
       }
@@ -16544,11 +16541,11 @@ const GamepadController = {
     console.log('[GAMEPAD]   Navigation: Arrow keys / WASD');
     console.log('[GAMEPAD]   A (confirm): Enter / Space');
     console.log('[GAMEPAD]   B (back): Escape / Backspace');
-    console.log('[GAMEPAD]   X (switch sides): X key');
+    console.log('[GAMEPAD]   X (auto-target): X key');
     console.log('[GAMEPAD]   Y (tooltip): T key');
     console.log('[GAMEPAD]   LB/RB (prev/next char): Q / E');
     console.log('[GAMEPAD]   LT/RT (prev/next sigil): Z / C');
-    console.log('[GAMEPAD]   SELECT (auto-target): R key');
+    console.log('[GAMEPAD]   SELECT (switch sides): R key');
   },
 
   // Continuously check for gamepads (Steam Deck fix)
@@ -16657,24 +16654,18 @@ const GamepadController = {
     return null;
   },
 
-  // Determine current navigation context
+  // Determine current navigation context - simplified to reduce edge cases
   getNavigationContext() {
-    // First check for blocking overlays
+    // Blocking overlays take priority
     const blocking = this.isBlockingOverlayVisible();
     if (blocking) return blocking;
 
-    // Check if we're in targeting mode
-    if (typeof S !== 'undefined' && S.pending) {
-      return 'targeting';
+    // Check game state for combat context
+    if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0) {
+      return S.pending ? 'targeting' : 'combat';
     }
-    // Check if we're in combat (heroes and enemies present)
-    if (typeof S !== 'undefined' && S.heroes && S.heroes.length > 0 && S.enemies && S.enemies.length > 0) {
-      return 'combat';
-    }
-    // Check if there's a modal
-    if (document.querySelector('.modal-container')) {
-      return 'modal';
-    }
+
+    // Everything else is menu navigation
     return 'menu';
   },
 
@@ -16686,6 +16677,15 @@ const GamepadController = {
     if (now - this.lastPollLog > 5000) {
       console.log('[GAMEPAD] Poll status - count:', this.pollCount, 'active:', this.active, 'gamepadIndex:', this.gamepadIndex);
       this.lastPollLog = now;
+    }
+
+    // Ensure focus is valid if controller is active (prevents stale focus issues)
+    if (this.active && (!this.focusedElement || !document.body.contains(this.focusedElement))) {
+      this.updateFocusableElements();
+      if (this.focusableElements.length > 0) {
+        const best = this.findBestDefaultFocus();
+        this.setFocus(best || this.focusableElements[0]);
+      }
     }
 
     // Skip if game is suspended (but still allow button to resume)
@@ -16784,30 +16784,18 @@ const GamepadController = {
     }
   },
 
-  // Right stick handler - DEDICATED CHARACTER CYCLING
-  // Any right stick movement cycles through heroes and enemies
+  // Right stick: cycle characters in combat, spatial nav in menus
   onRightStick(x, y) {
     const context = this.getNavigationContext();
+    if (context === 'tutorial' || context === 'suspend') return;
 
-    // Block input during blocking overlays
-    if (context === 'tutorial' || context === 'suspend') {
-      return;
-    }
-
-    // Determine primary direction
-    const isHorizontal = Math.abs(x) > Math.abs(y);
+    const forward = (Math.abs(x) > Math.abs(y)) ? (x > 0) : (y > 0);
 
     if (context === 'combat' || context === 'targeting') {
-      // In combat: right stick ALWAYS cycles characters
-      // Right/Down = next character, Left/Up = previous character
-      if (isHorizontal) {
-        this.cycleUnit(x > 0 ? 'next' : 'prev');
-      } else {
-        this.cycleUnit(y > 0 ? 'next' : 'prev');
-      }
+      this.cycleUnit(forward ? 'next' : 'prev');
     } else {
-      // In menus: same as d-pad navigation
-      if (isHorizontal) {
+      // Menus: spatial navigation
+      if (Math.abs(x) > Math.abs(y)) {
         this.onDirection(x > 0 ? 'right' : 'left');
       } else {
         this.onDirection(y > 0 ? 'down' : 'up');
@@ -16815,44 +16803,25 @@ const GamepadController = {
     }
   },
 
-  // Left stick handler - DEDICATED SIGIL CYCLING IN COMBAT
-  // Any left stick movement cycles through sigils on the current character
+  // Left stick: cycle sigils in combat, spatial nav in menus
   onLeftStick(dir) {
     const context = this.getNavigationContext();
+    if (context === 'tutorial' || context === 'suspend') return;
 
-    // Block input during blocking overlays
-    if (context === 'tutorial' || context === 'suspend') {
-      return;
-    }
-
-    if (context === 'targeting') {
-      // In targeting mode: cycle through valid targets
-      this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
-    } else if (context === 'combat') {
-      // In combat: left stick ALWAYS cycles sigils
-      // Right/Down = next sigil, Left/Up = previous sigil
-      if (dir === 'right' || dir === 'down') {
-        this.cycleSigil('next');
-      } else {
-        this.cycleSigil('prev');
-      }
+    if (context === 'combat' || context === 'targeting') {
+      this.cycleSigil((dir === 'right' || dir === 'down') ? 'next' : 'prev');
     } else {
-      // In menus: standard spatial navigation
       this.onDirection(dir);
     }
   },
 
   onButtonPress(buttonIndex) {
-    console.log('[GAMEPAD] Button pressed:', buttonIndex, '- Name:', Object.keys(this.BUTTONS).find(k => this.BUTTONS[k] === buttonIndex) || 'unknown');
-
     // Activate controller mode on any button press
     if (!this.active) {
-      console.log('[GAMEPAD] Activating controller mode from button press');
       this.activateControllerMode();
     }
 
     const context = this.getNavigationContext();
-    console.log('[GAMEPAD] Context:', context);
 
     // Handle blocking overlays - only allow specific actions
     // START button should ALWAYS open menu (except during suspend)
@@ -16929,54 +16898,45 @@ const GamepadController = {
       case this.BUTTONS.DPAD_DOWN:
       case this.BUTTONS.DPAD_LEFT:
       case this.BUTTONS.DPAD_RIGHT:
-        // D-pad behavior depends on context
+        // D-pad: spatial navigation everywhere (simple and predictable)
         const dir = buttonIndex === this.BUTTONS.DPAD_UP ? 'up' :
                     buttonIndex === this.BUTTONS.DPAD_DOWN ? 'down' :
                     buttonIndex === this.BUTTONS.DPAD_LEFT ? 'left' : 'right';
-        if (context === 'targeting') {
-          this.cycleTargets(dir === 'right' || dir === 'down' ? 'next' : 'prev');
-        } else if (context === 'combat') {
-          // D-pad up/down cycles characters, left/right cycles sigils
-          if (dir === 'up' || dir === 'down') {
-            this.cycleUnit(dir === 'down' ? 'next' : 'prev');
-          } else {
-            this.cycleSigil(dir === 'right' ? 'next' : 'prev');
-          }
-        } else {
-          this.onDirection(dir);
-        }
+        this.onDirection(dir);
         break;
       case this.BUTTONS.LB:
-        if (context === 'targeting') {
-          this.cycleTargets('prev');
-        } else if (context === 'combat') {
+        // LB: cycle characters in combat, page up in menus
+        if (context === 'combat' || context === 'targeting') {
           this.cycleUnit('prev');
         } else {
-          // Page scroll up in modals/scrollable areas
           this.pageScroll('up');
         }
         break;
       case this.BUTTONS.RB:
-        if (context === 'targeting') {
-          this.cycleTargets('next');
-        } else if (context === 'combat') {
+        // RB: cycle characters in combat, page down in menus
+        if (context === 'combat' || context === 'targeting') {
           this.cycleUnit('next');
         } else {
-          // Page scroll down in modals/scrollable areas
           this.pageScroll('down');
         }
         break;
       case this.BUTTONS.LT:
-        this.cycleSigil('prev');
+        // LT: cycle sigils in combat only
+        if (context === 'combat' || context === 'targeting') {
+          this.cycleSigil('prev');
+        }
         break;
       case this.BUTTONS.RT:
-        this.cycleSigil('next');
+        // RT: cycle sigils in combat only
+        if (context === 'combat' || context === 'targeting') {
+          this.cycleSigil('next');
+        }
         break;
       case this.BUTTONS.X:
-        this.switchSides();
+        this.autoTarget();
         break;
       case this.BUTTONS.SELECT:
-        this.autoTarget();
+        this.switchSides();
         break;
       case this.BUTTONS.L3:
         // Left stick click: Toggle tooltip on current unit/element
@@ -17178,50 +17138,6 @@ const GamepadController = {
   confirmSelection() {
     // Cooldown after tutorial popup dismissal to prevent click-through
     if (window.tutorialDismissTime && Date.now() - window.tutorialDismissTime < 200) {
-      console.log('[GAMEPAD] Ignoring confirm - tutorial popup just dismissed');
-      return;
-    }
-
-    // If we have targets selected and are at max capacity, confirm them directly
-    // D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
-    const hasD20Targets = typeof S !== 'undefined' && S.pending === 'D20_TARGET' && S.targets && S.targets.length > 0;
-    const hasInstanceTargets = typeof S !== 'undefined' && S.pending && S.currentInstanceTargets && S.currentInstanceTargets.length > 0;
-
-    // Check if we're at max target capacity (for multi-target actions like Attack with Expand)
-    let atMaxCapacity = true;
-    if (hasInstanceTargets && typeof getTargetsPerInstance === 'function' && S.activeIdx >= 0) {
-      const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
-      atMaxCapacity = S.currentInstanceTargets.length >= targetsPerInstance;
-      console.log('[GAMEPAD] Target capacity check:', S.currentInstanceTargets.length, '/', targetsPerInstance, 'atMax:', atMaxCapacity);
-    }
-
-    // Only auto-confirm when at max capacity or D20 (single target)
-    if (hasD20Targets || (hasInstanceTargets && atMaxCapacity)) {
-      if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-        SoundFX.play('click');
-      }
-      if (typeof confirmTargets === 'function') {
-        confirmTargets();
-      }
-      return;
-    }
-
-    // If no focused element, try to find and click an obvious primary action
-    if (!this.focusedElement) {
-      const primaryBtn = this.findPrimaryAction();
-      if (primaryBtn) {
-        if (typeof SoundFX !== 'undefined' && SoundFX.play) {
-          SoundFX.play('click');
-        }
-        primaryBtn.click();
-        setTimeout(() => this.updateFocusableElements(), 100);
-        return;
-      }
-      // No primary action found, just focus first element
-      this.updateFocusableElements();
-      if (this.focusableElements.length > 0) {
-        this.setFocus(this.focusableElements[0]);
-      }
       return;
     }
 
@@ -17230,91 +17146,71 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
-    // Trigger click on focused element
+    // If we have targets selected, try to confirm them
+    if (typeof S !== 'undefined' && S.pending) {
+      const hasTargets = (S.pending === 'D20_TARGET' && S.targets?.length > 0) ||
+                         (S.currentInstanceTargets?.length > 0);
+      if (hasTargets && typeof confirmTargets === 'function') {
+        confirmTargets();
+        return;
+      }
+    }
+
+    // Ensure we have a valid focus target
+    if (!this.focusedElement || !document.body.contains(this.focusedElement)) {
+      this.updateFocusableElements();
+      const best = this.findBestDefaultFocus() || this.findPrimaryAction() || this.focusableElements[0];
+      if (best) {
+        this.setFocus(best);
+        best.click();
+      }
+      return;
+    }
+
+    // Click the focused element
     this.focusedElement.click();
 
-    // Update focus after action (DOM might have changed)
+    // Refresh focus after DOM update
     setTimeout(() => {
       this.updateFocusableElements();
-      if (this.focusableElements.length > 0 && !document.body.contains(this.focusedElement)) {
-        // Use smart default focus instead of just the first element
-        const bestFocus = this.findBestDefaultFocus();
-        this.setFocus(bestFocus || this.focusableElements[0]);
+      if (!document.body.contains(this.focusedElement)) {
+        const best = this.findBestDefaultFocus();
+        this.setFocus(best || this.focusableElements[0]);
       }
       this.updatePrompts();
     }, 100);
   },
 
   goBack() {
-    // Play back sound
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
     }
 
-    // Check for confirm modal (B button cancels)
-    if (typeof confirmModalCallback === 'function') {
-      confirmModalCallback();
-      return;
-    }
-
-    // Check for modal/menu close buttons
-    const closeBtn = document.querySelector('.modal-container .btn[onclick*="close"]') ||
-                     document.querySelector('.modal-container .btn[onclick*="Close"]') ||
-                     document.querySelector('[onclick*="closeSettingsMenu"]') ||
-                     document.querySelector('[onclick*="closeDebugMenu"]') ||
-                     document.querySelector('[onclick*="closeFAQ"]') ||
-                     document.querySelector('[onclick*="closeSigilarium"]');
-
-    if (closeBtn) {
-      closeBtn.click();
-      setTimeout(() => this.updateFocusableElements(), 100);
-      return;
-    }
-
-    // Check for any visible "Back" or "Close" button
-    const backBtn = document.querySelector('.btn[onclick*="Back"]') ||
-                    document.querySelector('.btn[onclick*="back"]') ||
-                    document.querySelector('.btn.secondary[onclick]') ||
-                    document.querySelector('[onclick*="mainTitlePage"]') ||
-                    document.querySelector('[onclick*="showRibbleton"]');
-
-    if (backBtn && backBtn.offsetParent !== null) {
-      backBtn.click();
-      setTimeout(() => this.updateFocusableElements(), 100);
-      return;
-    }
-
-    // Hero selection - go back to Ribbleton
-    if (document.getElementById('hero-select-container')) {
-      if (typeof showRibbleton === 'function') {
-        showRibbleton();
-        return;
-      }
-    }
-
-    // Death screen - go to Ribbleton (with confirmation if gold remaining)
-    const deathScreen = document.querySelector('[onclick*="purchaseSigilUpgrade"]');
-    if (deathScreen) {
-      const ribbletonBtn = document.querySelector('[onclick*="showRibbleton"]');
-      if (ribbletonBtn) {
-        ribbletonBtn.click();
-        return;
-      }
-    }
-
-    // If in combat with pending action, call cancelAction
+    // Cancel pending combat action first
     if (typeof S !== 'undefined' && S.pending && typeof cancelAction === 'function') {
       cancelAction();
-      setTimeout(() => this.updateFocusableElements(), 100);
       return;
     }
 
-    // Neutral encounter - look for continue or skip button
-    const neutralContinue = document.querySelector('.neutral-content .btn:not(.secondary)');
-    if (neutralContinue && neutralContinue.offsetParent !== null) {
-      // Don't auto-click continue on neutral, just focus it
-      this.setFocus(neutralContinue);
-      return;
+    // Try to find and click a close/back button (in priority order)
+    const closeSelectors = [
+      '.modal-container [onclick*="close"]',
+      '.modal-container [onclick*="Close"]',
+      '[onclick*="closeSettingsMenu"]',
+      '[onclick*="closeFAQ"]',
+      '[onclick*="closeSigilarium"]',
+      '.btn[onclick*="Back"]',
+      '.btn[onclick*="back"]',
+      '[onclick*="showRibbleton"]'
+    ];
+
+    for (const selector of closeSelectors) {
+      const btn = document.querySelector(selector);
+      if (btn && btn.offsetParent !== null) {
+        btn.click();
+        setTimeout(() => this.updateFocusableElements(), 100);
+        return;
+      }
     }
   },
 
@@ -17557,7 +17453,7 @@ const GamepadController = {
     }
   },
 
-  // Auto target: automatically select targets using AI logic (SELECT button)
+  // Auto target: automatically select targets using AI logic (X button)
   // Press once to auto-select, press again to confirm
   autoTarget() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
@@ -17582,7 +17478,7 @@ const GamepadController = {
     if (typeof showTutorialPop === 'function' && typeof S !== 'undefined' && !S.tutorialFlags.auto_target_intro) {
       S.tutorialFlags.auto_target_intro = true;
       if (typeof savePermanent === 'function') savePermanent();
-      toast('Press SELECT again to confirm, or Ⓑ to cancel', 2500);
+      toast('Press Ⓧ again to confirm, or Ⓑ to cancel', 2500);
     }
 
     const pending = S.pending;
@@ -18028,14 +17924,14 @@ const GamepadController = {
           { btn: 'dpad', label: 'Target' },
           { btn: 'a', label: 'Confirm' },
           { btn: 'b', label: 'Cancel' },
-          { btn: 'select', label: 'Auto' }
+          { btn: 'x', label: 'Auto' }
         ];
       } else {
         prompts = [
           { btn: 'rs', label: 'Char' },
           { btn: 'ls', label: 'Sigil' },
           { btn: 'a', label: 'Select' },
-          { btn: 'x', label: 'Switch' },
+          { btn: 'select', label: 'Switch' },
           { btn: 'y', label: 'Info' },
           { btn: 'start', label: 'Menu' }
         ];

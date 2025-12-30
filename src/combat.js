@@ -291,7 +291,7 @@ render();
 // Auto-target tutorial: show on second+ run, floor 1
 if(S.runNumber >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
 const isTouchDevice = 'ontouchstart' in window;
-const inputHint = isTouchDevice ? "Press SELECT on controller" : "Right-click any sigil (or SELECT on controller)";
+const inputHint = isTouchDevice ? "Press Ⓧ on controller" : "Right-click any sigil (or Ⓧ on controller)";
 showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
 }
 }
