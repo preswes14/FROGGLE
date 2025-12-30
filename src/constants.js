@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.33';
+const GAME_VERSION = '12.34';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -966,6 +966,129 @@ function hideDamagePreview() {
 if(currentDmgPreview) {
 currentDmgPreview.remove();
 currentDmgPreview = null;
+}
+}
+
+// Heal preview calculation - shows expected heal breakdown on hover
+function calcHealPreview(heroIdx, targetId) {
+const h = S.heroes[heroIdx];
+const target = S.heroes.find(hero => hero.id === targetId);
+if(!h || !target) return null;
+
+const healPerInstance = h.p * 2; // Heal is 2×POW
+const currentHp = target.h;
+const maxHp = target.m;
+const actualHeal = Math.min(healPerInstance, maxHp - currentHp);
+const overHeal = healPerInstance - actualHeal;
+
+return { totalHeal: healPerInstance, actualHeal, overHeal, targetHp: currentHp, targetMaxHp: maxHp };
+}
+
+// Show heal preview tooltip on hero hover during targeting
+let currentHealPreview = null;
+function showHealPreview(targetId, element) {
+if(!S.pending || S.pending !== 'Heal' || S.activeIdx < 0) return;
+hideHealPreview();
+
+const preview = calcHealPreview(S.activeIdx, targetId);
+if(!preview) return;
+
+const tooltip = document.createElement('div');
+tooltip.className = 'heal-preview';
+
+let content = `<div class="heal-total">+${preview.actualHeal}</div>`;
+if(preview.overHeal > 0) {
+content += `<div class="heal-wasted">+${preview.overHeal} wasted</div>`;
+} else if(preview.targetHp === preview.targetMaxHp) {
+content += `<div class="heal-full">Already full!</div>`;
+}
+
+tooltip.innerHTML = content;
+document.body.appendChild(tooltip);
+currentHealPreview = tooltip;
+
+// Position near element
+const rect = element.getBoundingClientRect();
+const tooltipRect = tooltip.getBoundingClientRect();
+let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+let top = rect.top - tooltipRect.height - 8;
+
+// Keep on screen
+if(left < 5) left = 5;
+if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
+if(top < 5) top = rect.bottom + 8;
+
+tooltip.style.left = left + 'px';
+tooltip.style.top = top + 'px';
+setTimeout(() => tooltip.classList.add('show'), 10);
+}
+
+function hideHealPreview() {
+if(currentHealPreview) {
+currentHealPreview.remove();
+currentHealPreview = null;
+}
+}
+
+// Shield preview calculation - shows expected shield breakdown on hover
+function calcShieldPreview(heroIdx, targetId) {
+const h = S.heroes[heroIdx];
+const target = S.heroes.find(hero => hero.id === targetId);
+if(!h || !target) return null;
+
+const shieldPerInstance = h.p * 2; // Shield is 2×POW
+const currentShield = target.sh || 0;
+const maxHp = target.m;
+const maxShieldSpace = Math.max(0, maxHp - currentShield);
+const actualShield = Math.min(shieldPerInstance, maxShieldSpace);
+const overShield = shieldPerInstance - actualShield;
+
+return { totalShield: shieldPerInstance, actualShield, overShield, currentShield, targetMaxHp: maxHp };
+}
+
+// Show shield preview tooltip on hero hover during targeting
+let currentShieldPreview = null;
+function showShieldPreview(targetId, element) {
+if(!S.pending || S.pending !== 'Shield' || S.activeIdx < 0) return;
+hideShieldPreview();
+
+const preview = calcShieldPreview(S.activeIdx, targetId);
+if(!preview) return;
+
+const tooltip = document.createElement('div');
+tooltip.className = 'shield-preview';
+
+let content = `<div class="shield-total">+${preview.actualShield}🛡</div>`;
+if(preview.overShield > 0) {
+content += `<div class="shield-capped">+${preview.overShield} capped</div>`;
+} else if(preview.currentShield >= preview.targetMaxHp) {
+content += `<div class="shield-full">Shield maxed!</div>`;
+}
+
+tooltip.innerHTML = content;
+document.body.appendChild(tooltip);
+currentShieldPreview = tooltip;
+
+// Position near element
+const rect = element.getBoundingClientRect();
+const tooltipRect = tooltip.getBoundingClientRect();
+let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+let top = rect.top - tooltipRect.height - 8;
+
+// Keep on screen
+if(left < 5) left = 5;
+if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
+if(top < 5) top = rect.bottom + 8;
+
+tooltip.style.left = left + 'px';
+tooltip.style.top = top + 'px';
+setTimeout(() => tooltip.classList.add('show'), 10);
+}
+
+function hideShieldPreview() {
+if(currentShieldPreview) {
+currentShieldPreview.remove();
+currentShieldPreview = null;
 }
 }
 

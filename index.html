@@ -626,6 +626,83 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .damage-preview .dmg-hp { font-size: 0.75rem; color: #fca5a5; margin-top: 2px; }
 .damage-preview .dmg-blocked { font-size: 0.75rem; color: #60a5fa; margin-top: 2px; font-style: italic; }
 
+/* Heal Preview Tooltip */
+.heal-preview {
+  position: fixed;
+  z-index: 25000;
+  background: rgba(0,0,0,0.92);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 2px solid #22c55e;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  text-align: center;
+  min-width: 60px;
+  box-shadow: 0 4px 12px rgba(34,197,94,0.4);
+}
+.heal-preview.show { opacity: 1; }
+.heal-preview .heal-total { font-size: 1.3rem; font-weight: bold; color: #86efac; }
+.heal-preview .heal-wasted { font-size: 0.75rem; color: #fbbf24; margin-top: 2px; font-style: italic; }
+.heal-preview .heal-full { font-size: 0.75rem; color: #60a5fa; margin-top: 2px; font-style: italic; }
+
+/* Shield Preview Tooltip */
+.shield-preview {
+  position: fixed;
+  z-index: 25000;
+  background: rgba(0,0,0,0.92);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 2px solid #60a5fa;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  text-align: center;
+  min-width: 60px;
+  box-shadow: 0 4px 12px rgba(96,165,250,0.4);
+}
+.shield-preview.show { opacity: 1; }
+.shield-preview .shield-total { font-size: 1.3rem; font-weight: bold; color: #93c5fd; }
+.shield-preview .shield-capped { font-size: 0.75rem; color: #fbbf24; margin-top: 2px; font-style: italic; }
+.shield-preview .shield-full { font-size: 0.75rem; color: #60a5fa; margin-top: 2px; font-style: italic; }
+
+/* Long-press indicator for mobile tooltips */
+.long-press-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: #22c55e;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 100;
+}
+.long-press-indicator.active {
+  opacity: 1;
+  animation: long-press-spin 0.5s linear forwards;
+}
+@keyframes long-press-spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); border-top-color: #22c55e; }
+  25% { border-right-color: #22c55e; }
+  50% { border-bottom-color: #22c55e; }
+  75% { border-left-color: #22c55e; }
+  100% { transform: translate(-50%, -50%) rotate(360deg); border-color: #22c55e; }
+}
+
+/* Larger touch targets for mobile sigils */
+@media (max-width: 767px) {
+  .sigil { min-width: 48px; min-height: 48px; padding: 10px; }
+  .sigil img { height: 1.8em; }
+  .sigil-row.compact .sigil { min-width: 44px; min-height: 44px; padding: 8px; }
+  .card.hero .sigil-row .sigil { min-width: 36px; min-height: 36px; padding: 6px; }
+}
+
 /* Shield Bar - visual indicator for shield amount */
 .shield-bar-container {
   width: 100%;
@@ -2157,7 +2234,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.33';
+const GAME_VERSION = '12.34';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3124,6 +3201,129 @@ function hideDamagePreview() {
 if(currentDmgPreview) {
 currentDmgPreview.remove();
 currentDmgPreview = null;
+}
+}
+
+// Heal preview calculation - shows expected heal breakdown on hover
+function calcHealPreview(heroIdx, targetId) {
+const h = S.heroes[heroIdx];
+const target = S.heroes.find(hero => hero.id === targetId);
+if(!h || !target) return null;
+
+const healPerInstance = h.p * 2; // Heal is 2×POW
+const currentHp = target.h;
+const maxHp = target.m;
+const actualHeal = Math.min(healPerInstance, maxHp - currentHp);
+const overHeal = healPerInstance - actualHeal;
+
+return { totalHeal: healPerInstance, actualHeal, overHeal, targetHp: currentHp, targetMaxHp: maxHp };
+}
+
+// Show heal preview tooltip on hero hover during targeting
+let currentHealPreview = null;
+function showHealPreview(targetId, element) {
+if(!S.pending || S.pending !== 'Heal' || S.activeIdx < 0) return;
+hideHealPreview();
+
+const preview = calcHealPreview(S.activeIdx, targetId);
+if(!preview) return;
+
+const tooltip = document.createElement('div');
+tooltip.className = 'heal-preview';
+
+let content = `<div class="heal-total">+${preview.actualHeal}</div>`;
+if(preview.overHeal > 0) {
+content += `<div class="heal-wasted">+${preview.overHeal} wasted</div>`;
+} else if(preview.targetHp === preview.targetMaxHp) {
+content += `<div class="heal-full">Already full!</div>`;
+}
+
+tooltip.innerHTML = content;
+document.body.appendChild(tooltip);
+currentHealPreview = tooltip;
+
+// Position near element
+const rect = element.getBoundingClientRect();
+const tooltipRect = tooltip.getBoundingClientRect();
+let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+let top = rect.top - tooltipRect.height - 8;
+
+// Keep on screen
+if(left < 5) left = 5;
+if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
+if(top < 5) top = rect.bottom + 8;
+
+tooltip.style.left = left + 'px';
+tooltip.style.top = top + 'px';
+setTimeout(() => tooltip.classList.add('show'), 10);
+}
+
+function hideHealPreview() {
+if(currentHealPreview) {
+currentHealPreview.remove();
+currentHealPreview = null;
+}
+}
+
+// Shield preview calculation - shows expected shield breakdown on hover
+function calcShieldPreview(heroIdx, targetId) {
+const h = S.heroes[heroIdx];
+const target = S.heroes.find(hero => hero.id === targetId);
+if(!h || !target) return null;
+
+const shieldPerInstance = h.p * 2; // Shield is 2×POW
+const currentShield = target.sh || 0;
+const maxHp = target.m;
+const maxShieldSpace = Math.max(0, maxHp - currentShield);
+const actualShield = Math.min(shieldPerInstance, maxShieldSpace);
+const overShield = shieldPerInstance - actualShield;
+
+return { totalShield: shieldPerInstance, actualShield, overShield, currentShield, targetMaxHp: maxHp };
+}
+
+// Show shield preview tooltip on hero hover during targeting
+let currentShieldPreview = null;
+function showShieldPreview(targetId, element) {
+if(!S.pending || S.pending !== 'Shield' || S.activeIdx < 0) return;
+hideShieldPreview();
+
+const preview = calcShieldPreview(S.activeIdx, targetId);
+if(!preview) return;
+
+const tooltip = document.createElement('div');
+tooltip.className = 'shield-preview';
+
+let content = `<div class="shield-total">+${preview.actualShield}🛡</div>`;
+if(preview.overShield > 0) {
+content += `<div class="shield-capped">+${preview.overShield} capped</div>`;
+} else if(preview.currentShield >= preview.targetMaxHp) {
+content += `<div class="shield-full">Shield maxed!</div>`;
+}
+
+tooltip.innerHTML = content;
+document.body.appendChild(tooltip);
+currentShieldPreview = tooltip;
+
+// Position near element
+const rect = element.getBoundingClientRect();
+const tooltipRect = tooltip.getBoundingClientRect();
+let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+let top = rect.top - tooltipRect.height - 8;
+
+// Keep on screen
+if(left < 5) left = 5;
+if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
+if(top < 5) top = rect.bottom + 8;
+
+tooltip.style.left = left + 'px';
+tooltip.style.top = top + 'px';
+setTimeout(() => tooltip.classList.add('show'), 10);
+}
+
+function hideShieldPreview() {
+if(currentShieldPreview) {
+currentShieldPreview.remove();
+currentShieldPreview = null;
 }
 }
 
@@ -5918,11 +6118,21 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL * 2));
 return;
 }
 
+// Floor 11 ambush warning
+const isAmbush = f === 11;
+const ambushWarning = isAmbush ? `
+<div style="margin-top:1.5rem;padding:0.75rem 1.5rem;background:rgba(239,68,68,0.3);border:2px solid #ef4444;border-radius:8px;animation:pulseWarning 1s ease infinite">
+<div style="font-size:1.2rem;font-weight:bold;color:#fca5a5">⚠️ AMBUSH! ⚠️</div>
+<div style="font-size:0.95rem;color:#fca5a5;margin-top:0.25rem">All heroes stunned Turn 1!</div>
+</div>
+` : '';
+
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
 <div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem">Floor ${f}</div>
 <div style="font-size:1.8rem;font-style:italic">${floorName}</div>
+${ambushWarning}
 </div>
 </div>
 <style>
@@ -5930,8 +6140,14 @@ v.innerHTML = `
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes pulseWarning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
 </style>`;
-setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
+// Extend duration for ambush floors so players can read the warning
+const interstitialDuration = isAmbush ? ANIMATION_TIMINGS.FLOOR_INTERSTITIAL * 1.5 : ANIMATION_TIMINGS.FLOOR_INTERSTITIAL;
+setTimeout(callback, T(interstitialDuration));
 }
 
 function startFloor(f) {
@@ -8278,7 +8494,12 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
-html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
+// Heal/Shield preview on hover during targeting
+const isHealTargetable = S.pending === 'Heal' && isTargetable;
+const isShieldTargetable = S.pending === 'Shield' && isTargetable;
+const healHoverEvents = isHealTargetable ? `onmouseenter="showHealPreview('${h.id}', this)" onmouseleave="hideHealPreview()"` : '';
+const shieldHoverEvents = isShieldTargetable ? `onmouseenter="showShieldPreview('${h.id}', this)" onmouseleave="hideShieldPreview()"` : '';
+html += `<div id="${h.id}" class="${cardClasses}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
@@ -12865,6 +13086,18 @@ const html = `
 <span style="color:#94a3b8">Heroes:</span>
 <span style="color:#f1f5f9">${run.heroes.join(' + ')}</span>
 </div>
+${run.xpEarned !== undefined ? `
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">XP Earned:</span>
+<span style="color:#a78bfa;font-weight:bold">${run.xpEarned}</span>
+</div>
+` : ''}
+${run.goldEarned !== undefined ? `
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">Gold Earned:</span>
+<span style="color:#fbbf24;font-weight:bold">${run.goldEarned}G</span>
+</div>
+` : ''}
 ${!isVictory && run.killedBy ? `
 <div style="display:flex;justify-content:space-between">
 <span style="color:#94a3b8">Fell to:</span>
@@ -13006,7 +13239,22 @@ const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha']
 const isActive = actives.includes(sig);
 const currentLevel = isActive ? permLevel + 1 : permLevel;
 const nextLevel = currentLevel + 1;
-if(currentLevel >= 5) return; // Max level (5 for display)
+const maxLevel = isActive ? 4 : 5; // Actives max at perm 4 (display 5), passives at perm 5
+
+// Show SOLD OUT card for maxed sigils instead of hiding
+if(currentLevel >= 5) {
+const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const maxColor = colors[5];
+cards += `
+<div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,255,0.3)">
+<div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
+<div style="font-size:1.2rem;margin-bottom:0.75rem;font-weight:bold">
+<span style="color:${maxColor}">L${currentLevel}</span>
+</div>
+<div style="font-size:1rem;color:${maxColor};font-weight:bold;text-transform:uppercase;letter-spacing:1px">SOLD OUT</div>
+</div>`;
+return;
+}
 
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
 const baseCost = S.goingRate;
@@ -13025,14 +13273,16 @@ const costDisplay = escalation > 0
   ? `<span title="Base: ${baseCost}G + Escalation: ${escalation}G">${cost}G</span>`
   : `${cost}G`;
 
+// Use color-coded borders based on next level
+const borderColor = nextColorClass;
 cards += `
-<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid ${borderColor};box-shadow:0 2px 4px rgba(0,0,0,0.1)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
 <div style="font-size:0.9rem;margin-bottom:0.75rem;color:#4a4540;font-weight:600">Cost: ${cost}G</div>
-<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%;${canAfford ? `border-color:${nextColorClass}` : ''}">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
 </div>`;
