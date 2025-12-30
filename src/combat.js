@@ -51,11 +51,21 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL * 2));
 return;
 }
 
+// Floor 11 ambush warning
+const isAmbush = f === 11;
+const ambushWarning = isAmbush ? `
+<div style="margin-top:1.5rem;padding:0.75rem 1.5rem;background:rgba(239,68,68,0.3);border:2px solid #ef4444;border-radius:8px;animation:pulseWarning 1s ease infinite">
+<div style="font-size:1.2rem;font-weight:bold;color:#fca5a5">⚠️ AMBUSH! ⚠️</div>
+<div style="font-size:0.95rem;color:#fca5a5;margin-top:0.25rem">All heroes stunned Turn 1!</div>
+</div>
+` : '';
+
 v.innerHTML = `
 <div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
 <div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
 <div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem">Floor ${f}</div>
 <div style="font-size:1.8rem;font-style:italic">${floorName}</div>
+${ambushWarning}
 </div>
 </div>
 <style>
@@ -63,8 +73,14 @@ v.innerHTML = `
   from { opacity: 0; transform: translateY(-20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes pulseWarning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
 </style>`;
-setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
+// Extend duration for ambush floors so players can read the warning
+const interstitialDuration = isAmbush ? ANIMATION_TIMINGS.FLOOR_INTERSTITIAL * 1.5 : ANIMATION_TIMINGS.FLOOR_INTERSTITIAL;
+setTimeout(callback, T(interstitialDuration));
 }
 
 function startFloor(f) {
@@ -2411,7 +2427,12 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
-html += `<div id="${h.id}" class="${cardClasses}" ${onclick}>`;
+// Heal/Shield preview on hover during targeting
+const isHealTargetable = S.pending === 'Heal' && isTargetable;
+const isShieldTargetable = S.pending === 'Shield' && isTargetable;
+const healHoverEvents = isHealTargetable ? `onmouseenter="showHealPreview('${h.id}', this)" onmouseleave="hideHealPreview()"` : '';
+const shieldHoverEvents = isShieldTargetable ? `onmouseenter="showShieldPreview('${h.id}', this)" onmouseleave="hideShieldPreview()"` : '';
+html += `<div id="${h.id}" class="${cardClasses}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;

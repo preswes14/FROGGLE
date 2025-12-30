@@ -221,6 +221,18 @@ const html = `
 <span style="color:#94a3b8">Heroes:</span>
 <span style="color:#f1f5f9">${run.heroes.join(' + ')}</span>
 </div>
+${run.xpEarned !== undefined ? `
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">XP Earned:</span>
+<span style="color:#a78bfa;font-weight:bold">${run.xpEarned}</span>
+</div>
+` : ''}
+${run.goldEarned !== undefined ? `
+<div style="display:flex;justify-content:space-between">
+<span style="color:#94a3b8">Gold Earned:</span>
+<span style="color:#fbbf24;font-weight:bold">${run.goldEarned}G</span>
+</div>
+` : ''}
 ${!isVictory && run.killedBy ? `
 <div style="display:flex;justify-content:space-between">
 <span style="color:#94a3b8">Fell to:</span>
@@ -362,7 +374,22 @@ const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha']
 const isActive = actives.includes(sig);
 const currentLevel = isActive ? permLevel + 1 : permLevel;
 const nextLevel = currentLevel + 1;
-if(currentLevel >= 5) return; // Max level (5 for display)
+const maxLevel = isActive ? 4 : 5; // Actives max at perm 4 (display 5), passives at perm 5
+
+// Show SOLD OUT card for maxed sigils instead of hiding
+if(currentLevel >= 5) {
+const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const maxColor = colors[5];
+cards += `
+<div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,255,0.3)">
+<div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
+<div style="font-size:1.2rem;margin-bottom:0.75rem;font-weight:bold">
+<span style="color:${maxColor}">L${currentLevel}</span>
+</div>
+<div style="font-size:1rem;color:${maxColor};font-weight:bold;text-transform:uppercase;letter-spacing:1px">SOLD OUT</div>
+</div>`;
+return;
+}
 
 const upgradeCount = S.sigUpgradeCounts[sig] || 0;
 const baseCost = S.goingRate;
@@ -381,14 +408,16 @@ const costDisplay = escalation > 0
   ? `<span title="Base: ${baseCost}G + Escalation: ${escalation}G">${cost}G</span>`
   : `${cost}G`;
 
+// Use color-coded borders based on next level
+const borderColor = nextColorClass;
 cards += `
-<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid #2c2416;box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid ${borderColor};box-shadow:0 2px 4px rgba(0,0,0,0.1)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
 <div style="font-size:0.9rem;margin-bottom:0.75rem;color:#4a4540;font-weight:600">Cost: ${cost}G</div>
-<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%">
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%;${canAfford ? `border-color:${nextColorClass}` : ''}">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
 </div>`;
