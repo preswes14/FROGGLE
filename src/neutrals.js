@@ -156,7 +156,7 @@ v.innerHTML = `
 <!-- Left side buttons stacked -->
 <div class="title-button-container">
 <button class="btn title-secondary-btn" onclick="showCredits()">Credits</button>
-<button class="btn title-secondary-btn" onclick="openSettingsMenu()">Settings</button>
+<button class="btn title-secondary-btn" onclick="showSettingsMenu()">Settings</button>
 </div>
 <!-- Play button on the right -->
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
