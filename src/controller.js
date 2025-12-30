@@ -275,12 +275,12 @@ const GamepadController = {
           this.goBack();
           handled = true;
           break;
-        // X button - switch sides
+        // X button - auto-target
         case 'x':
         case 'X':
-          action = 'switch sides (X)';
+          action = 'auto-target (X)';
           this.activateControllerMode();
-          this.switchSides();
+          this.autoTarget();
           handled = true;
           break;
         // Y button - toggle tooltip
@@ -323,13 +323,13 @@ const GamepadController = {
           this.onButtonPress(this.BUTTONS.RT);
           handled = true;
           break;
-        // SELECT - auto-target
+        // SELECT - switch sides
         case 'r':
         case 'R':
         case '`':
-          action = 'auto-target (SELECT)';
+          action = 'switch sides (SELECT)';
           this.activateControllerMode();
-          this.autoTarget();
+          this.switchSides();
           handled = true;
           break;
         case 'Tab':
@@ -358,11 +358,11 @@ const GamepadController = {
     console.log('[GAMEPAD]   Navigation: Arrow keys / WASD');
     console.log('[GAMEPAD]   A (confirm): Enter / Space');
     console.log('[GAMEPAD]   B (back): Escape / Backspace');
-    console.log('[GAMEPAD]   X (switch sides): X key');
+    console.log('[GAMEPAD]   X (auto-target): X key');
     console.log('[GAMEPAD]   Y (tooltip): T key');
     console.log('[GAMEPAD]   LB/RB (prev/next char): Q / E');
     console.log('[GAMEPAD]   LT/RT (prev/next sigil): Z / C');
-    console.log('[GAMEPAD]   SELECT (auto-target): R key');
+    console.log('[GAMEPAD]   SELECT (switch sides): R key');
   },
 
   // Continuously check for gamepads (Steam Deck fix)
@@ -750,10 +750,10 @@ const GamepadController = {
         }
         break;
       case this.BUTTONS.X:
-        this.switchSides();
+        this.autoTarget();
         break;
       case this.BUTTONS.SELECT:
-        this.autoTarget();
+        this.switchSides();
         break;
       case this.BUTTONS.L3:
         // Left stick click: Toggle tooltip on current unit/element
@@ -1270,7 +1270,7 @@ const GamepadController = {
     }
   },
 
-  // Auto target: automatically select targets using AI logic (SELECT button)
+  // Auto target: automatically select targets using AI logic (X button)
   // Press once to auto-select, press again to confirm
   autoTarget() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
@@ -1295,7 +1295,7 @@ const GamepadController = {
     if (typeof showTutorialPop === 'function' && typeof S !== 'undefined' && !S.tutorialFlags.auto_target_intro) {
       S.tutorialFlags.auto_target_intro = true;
       if (typeof savePermanent === 'function') savePermanent();
-      toast('Press SELECT again to confirm, or Ⓑ to cancel', 2500);
+      toast('Press Ⓧ again to confirm, or Ⓑ to cancel', 2500);
     }
 
     const pending = S.pending;
@@ -1741,14 +1741,14 @@ const GamepadController = {
           { btn: 'dpad', label: 'Target' },
           { btn: 'a', label: 'Confirm' },
           { btn: 'b', label: 'Cancel' },
-          { btn: 'select', label: 'Auto' }
+          { btn: 'x', label: 'Auto' }
         ];
       } else {
         prompts = [
           { btn: 'rs', label: 'Char' },
           { btn: 'ls', label: 'Sigil' },
           { btn: 'a', label: 'Select' },
-          { btn: 'x', label: 'Switch' },
+          { btn: 'select', label: 'Switch' },
           { btn: 'y', label: 'Info' },
           { btn: 'start', label: 'Menu' }
         ];

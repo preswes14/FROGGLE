@@ -692,7 +692,7 @@ On Steam Deck, the built-in controls should work automatically. If not:
 <li>Press the <strong>Steam button</strong> while in-game</li>
 <li>Select <strong>Controller Settings</strong></li>
 <li>Choose <strong>Gamepad with Joystick Trackpad</strong></li>
-<li>Optionally map L4/R4 paddles to SELECT for quick auto-targeting!</li>
+<li>Optionally map L4/R4 paddles to X for quick auto-targeting!</li>
 </ol>
 </div>
 
