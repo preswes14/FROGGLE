@@ -1169,7 +1169,7 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe.... wait..."},
+{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe..."},
 {bg: 'assets/ribbleton-tadpole.png', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>"},
 {bg: 'assets/ribbleton.png', text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
 ];

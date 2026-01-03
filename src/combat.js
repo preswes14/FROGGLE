@@ -2206,7 +2206,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));

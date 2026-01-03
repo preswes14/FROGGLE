@@ -2239,7 +2239,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.44';
+const GAME_VERSION = '12.46';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8280,7 +8280,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -10706,7 +10706,7 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe.... wait..."},
+{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe..."},
 {bg: 'assets/ribbleton-tadpole.png', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>"},
 {bg: 'assets/ribbleton.png', text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
 ];
