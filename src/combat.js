@@ -284,6 +284,7 @@ if(S.encampmentEarlyKills && S.encampmentEarlyKills > 0) {
 S.selectingEncampmentTargets = true;
 S.encampmentSelectedTargets = [];
 }
+upd(); // Ensure background color is set before first render
 render();
 // Auto-target tutorial: show on second+ run, floor 1
 if(S.runNumber >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
@@ -356,6 +357,14 @@ return totalLevel;
 }
 
 function getTargetsPerInstance(action, heroIdx) {
+// Safeguard: if heroIdx is invalid, check if we're in tutorial with single Mage
+if(heroIdx < 0 || heroIdx >= S.heroes.length) {
+  // Tutorial Phase 1: Mage should always have 2 targets
+  if(tutorialState && tutorialState.phase === 1 && S.heroes.length === 1 && S.heroes[0].n === 'Mage') {
+    return 2;
+  }
+  return 1; // Default fallback
+}
 const expandLevel = getLevel('Expand', heroIdx);
 return 1 + expandLevel;
 }
@@ -666,8 +675,10 @@ S.d20HeroIdx = heroIdx;
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
 showTutorialPop('healer_expand_explain', "Healer has Expand, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!", () => {
+// Allow free targeting after popup - stage stays 'd20_menu' for fudged roll but targeting is unrestricted
 S.pending = 'D20_TARGET';
 S.targets = [];
+S.locked = false; // Ensure game is not locked after popup
 render();
 });
 return;
@@ -2346,8 +2357,8 @@ const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? '
 html += `<div class="combat-lane ${crowdedClass}">`;
 html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 
-// Hero section (left side of lane, 40% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
-html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start;justify-content:flex-end">';
+// Hero section (right side of their zone, 38% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
+html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start;justify-content:flex-start">';
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
@@ -2444,7 +2455,7 @@ html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
-html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
+html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
 // Shield bar (if shielded) - placed below HP, above sigils
 if(h.sh > 0) {
@@ -2703,7 +2714,7 @@ html += `<div style="width:50px;height:50px;display:flex;align-items:center;just
 } else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
-html += `<div style="font-size:0.8rem;min-width:55px;text-align:center;white-space:nowrap">${e.h}/${e.m}❤</div>`;
+html += `<div style="min-width:55px;text-align:center"><div style="font-size:0.8rem">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
 // Shield bar (if shielded)
 if(e.sh > 0) {
