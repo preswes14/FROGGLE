@@ -2241,7 +2241,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.51';
+const GAME_VERSION = '12.52';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -6587,10 +6587,9 @@ if (!S.pending) return; // Action didn't set pending (e.g., Ghost completes inst
 const hero = S.heroes[heroIdx];
 if (!hero) return;
 
-// Calculate targets needed
+// Calculate targets needed (getLevel already includes Mage/Healer +1 bonus)
 const expandLevel = getLevel('Expand', heroIdx);
-const hasBuiltInExpand = (hero.n === 'Mage' || hero.n === 'Healer');
-const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
+const totalTargets = 1 + expandLevel;
 const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
 if (['Attack', 'Grapple'].includes(S.pending)) {

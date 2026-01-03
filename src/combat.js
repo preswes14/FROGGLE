@@ -511,10 +511,9 @@ if (!S.pending) return; // Action didn't set pending (e.g., Ghost completes inst
 const hero = S.heroes[heroIdx];
 if (!hero) return;
 
-// Calculate targets needed
+// Calculate targets needed (getLevel already includes Mage/Healer +1 bonus)
 const expandLevel = getLevel('Expand', heroIdx);
-const hasBuiltInExpand = (hero.n === 'Mage' || hero.n === 'Healer');
-const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
+const totalTargets = 1 + expandLevel;
 const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
 if (['Attack', 'Grapple'].includes(S.pending)) {
