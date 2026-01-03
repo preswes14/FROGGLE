@@ -752,7 +752,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage has <strong>Attack</strong> and <strong>D20</strong> (active sigils that cost your turn), plus <strong>Expand</strong> (a passive sigil with automatic effects). Use Attack to hit 2 flies at once!", () => {
+showTutorialPop('tapo_first_attack', "Mage has <strong>Attack</strong> (an active sigil that costs your turn) and <strong>Expand</strong> (a passive sigil with automatic effects). Use Attack to hit 2 flies at once!", () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
@@ -762,7 +762,7 @@ render();
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 3 Flies - Mage has Attack and D20 (no Expand - not explained yet)
+// Phase 1: Mage vs 3 Flies - Mage has Attack + Expand (no D20 - explained later)
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
