@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.53';
+const GAME_VERSION = '12.55';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -402,7 +402,7 @@ ${heroImage ? `<img src="${heroImage}" alt="${h.n}" class="card-image">` : ''}
 <div class="sigil-divider"></div>`;
 const activeSigils = [...h.s, ...(h.ts || [])];
 html += renderSigilRows(activeSigils, i);
-html += `<div class="card-stats">${h.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
+html += `<div class="card-stats">${h.p}💥 | ${hp}${extra.length>0?' | '+extra.join(' '):''}</div>`;
 html += '</div>';
 });
 html += '</div>';
@@ -428,7 +428,7 @@ const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
 <div class="card-emoji">${enemyEmoji}</div>
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${getEnemyDisplayName(e)}</div>
-<div class="card-stats">${e.p}⚡ | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
+<div class="card-stats">${e.p}💥 | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
 const hasAttackSigil = e.s.some(s => s.sig === 'Attack');

@@ -255,44 +255,44 @@ const slot2 = getSlotMetadata(2);
 v.innerHTML = `
 <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow:hidden;box-sizing:border-box">
 <div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1rem;max-width:500px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
-<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem">Select Save Slot</h2>
+<h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem;color:#000">Select Save Slot</h2>
 
 <!-- Slot 1 -->
-<div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
-<h3 style="font-size:1.1rem;margin:0">Slot 1</h3>
+<h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 1</h3>
 </div>
 ${slot1.exists ? `
-<div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
+<div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
 <div>📊 Runs: <strong>${slot1.runsAttempted}</strong> | 💰 Rate: <strong>${slot1.goingRate}G</strong></div>
-${slot1.hasActiveRun ? `<div style="color:#22c55e;font-weight:bold">🎮 Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
+${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
 <button class="btn secondary icon" onclick="confirmDeleteSlot(1)" style="padding:0.5rem">🗑️</button>
 </div>
 ` : `
-<p style="opacity:0.6;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
+<p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
 <button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
 `}
 </div>
 
 <!-- Slot 2 -->
-<div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
-<h3 style="font-size:1.1rem;margin:0">Slot 2</h3>
+<h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 2</h3>
 </div>
 ${slot2.exists ? `
-<div style="font-size:0.85rem;opacity:0.8;margin-bottom:0.5rem">
+<div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
 <div>📊 Runs: <strong>${slot2.runsAttempted}</strong> | 💰 Rate: <strong>${slot2.goingRate}G</strong></div>
-${slot2.hasActiveRun ? `<div style="color:#22c55e;font-weight:bold">🎮 Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
+${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
 <button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
 <button class="btn secondary icon" onclick="confirmDeleteSlot(2)" style="padding:0.5rem">🗑️</button>
 </div>
 ` : `
-<p style="opacity:0.6;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
+<p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
 <button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
 `}
 </div>
@@ -1329,15 +1329,15 @@ const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : ''
 return `<span class="sigil l1 ${passiveClass}" style="font-size:0.7rem;padding:3px 5px;margin:1px;display:inline-block" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
 cardEl.innerHTML = `
-<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer"
+<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer;color:#1a1a1a"
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
-<div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
+<div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem;color:#1a1a1a">${hData.name}</div>
 ${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
-<div style="font-size:0.7rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
+<div style="font-size:0.7rem;color:#374151">${hData.pow}💥 | ${hData.hp}❤</div>
 <div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
-<div style="font-size:0.65rem;color:#22c55e;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
-<div style="font-size:0.55rem;opacity:0.7;margin-top:0.15rem">✓ SELECTED</div>
+<div style="font-size:0.65rem;color:#16a34a;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
+<div style="font-size:0.55rem;color:#6b7280;margin-top:0.15rem">✓ SELECTED</div>
 </div>
 </div>`;
 cardEl.style.display = 'block';
@@ -2367,7 +2367,7 @@ const v = document.getElementById('gameView');
 let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?" Choose a hero and their desired fortune:';
 let buttons = '';
 S.heroes.forEach((h, idx) => {
-buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (${h.p}⚡ → ${h.p+1}⚡)</button>`;
+buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (${h.p}💥 → ${h.p+1}💥)</button>`;
 buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (${h.m}❤ max → ${h.m+5}❤ max)</button>`;
 });
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
@@ -2516,7 +2516,7 @@ const v = document.getElementById('gameView');
 let buttons = '';
 S.heroes.forEach((h, i) => {
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-buttons += `<button class="neutral-btn ${action === 'sneak' ? '' : 'risky'}" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">${h.n} - ${h.p}⚡ | ${hp}</button>`;
+buttons += `<button class="neutral-btn ${action === 'sneak' ? '' : 'risky'}" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">${h.n} - ${h.p}💥 | ${hp}</button>`;
 });
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
@@ -2573,7 +2573,7 @@ const v = document.getElementById('gameView');
 let heroButtons = '';
 S.heroes.forEach((h, i) => {
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-heroButtons += `<button class="neutral-btn safe" onclick="assignRecruitToHero(${i})">${h.n} - ${h.p}⚡ | ${hp}</button>`;
+heroButtons += `<button class="neutral-btn safe" onclick="assignRecruitToHero(${i})">${h.n} - ${h.p}💥 | ${hp}</button>`;
 });
 
 v.innerHTML = buildNeutralHTML({

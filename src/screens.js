@@ -1074,7 +1074,7 @@ if(p.mode === 'fu' && S.gameMode !== 'fu') return false;
 return true;
 });
 if(bonuses.length === 0) return '';
-return bonuses.map(b => b.stat === 'POW' ? '+1⚡' : '+5❤').join(' ');
+return bonuses.map(b => b.stat === 'POW' ? '+1💥' : '+5❤').join(' ');
 };
 
 // Build hero cards
@@ -1089,7 +1089,7 @@ return `<span style="background:#1e293b;padding:2px 6px;border-radius:4px;font-s
 heroCardsHTML += `
 <div style="background:linear-gradient(135deg,#1e3a5f,#0f172a);border:3px solid #22c55e;border-radius:12px;padding:1rem;min-width:140px;text-align:center">
 <div style="font-size:1.2rem;font-weight:bold;color:#22c55e;margin-bottom:0.5rem">${hero.n}</div>
-<div style="font-size:0.9rem;margin-bottom:0.5rem">${hero.p}⚡ | ${hero.m}❤</div>
+<div style="font-size:0.9rem;margin-bottom:0.5rem">${hero.p}💥 | ${hero.m}❤</div>
 ${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5rem">🗿 ${pedestalBonus}</div>` : ''}
 <div style="font-size:0.7rem">${sigilsHTML}</div>
 </div>`;
