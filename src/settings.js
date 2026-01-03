@@ -94,8 +94,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeDebugMenu() {
-// Remove debug menu elements
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+// Remove debug menu elements - only target settings/debug modals
+const menus = document.querySelectorAll('.settings-modal-container, .settings-modal-overlay, .modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
@@ -226,7 +226,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSettingsMenu() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+// Only remove settings-specific modals to avoid interfering with game screens
+const menus = document.querySelectorAll('.settings-modal-container, .settings-modal-overlay, .modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
@@ -914,7 +915,7 @@ arrow.textContent = '▼';
 }
 
 function closeFAQ() {
-const overlays = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const overlays = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 overlays.forEach(el => el.remove());
 }
 
@@ -1032,7 +1033,7 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSigilarium() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
