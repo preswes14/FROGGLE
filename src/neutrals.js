@@ -533,7 +533,7 @@ debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 if(slide.bg) {
 const bgStyle = slide.bgStyle || '';
 v.innerHTML = `
-<div style="position:relative;width:100%;height:calc(100vh - 44px);overflow:hidden;background:#1a5c3a">
+<div class="full-screen-content" style="position:relative;width:100%;overflow:hidden;background:#1a5c3a">
 <!-- Full-page background image -->
 <img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;${bgStyle}">
 
@@ -552,7 +552,7 @@ ${skipButton}
 } else {
 // Standard mode: fullscreen centered content with backdrop for readability
 v.innerHTML = `
-<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;background:rgba(0,0,0,0.3)">
+<div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;background:rgba(0,0,0,0.3)">
 <div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 ${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
@@ -904,7 +904,7 @@ function finishTaposBirthdayPhase() {
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
-<div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
+<div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
 <div style="max-width:600px;text-align:center">
 <h2 style="font-size:2rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
 <p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
@@ -1183,7 +1183,7 @@ return;
 }
 v.classList.add('no-scroll');
 v.innerHTML = `
-<div id="titleCardScreen" style="width:100%;height:calc(100vh - 44px);background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer">
+<div id="titleCardScreen" class="full-screen-content" style="width:100%;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer">
 <div style="text-align:center;color:#fff;pointer-events:none">
 <div style="font-size:3.5rem;font-weight:bold;margin-bottom:1rem">FROGGLE</div>
 <div style="font-size:1.5rem;font-style:italic">A Froggy Roguelike</div>
@@ -2407,9 +2407,16 @@ fortune = 'The Oracle gives a kind wink. "Your desired future just may come to p
 stage2Effect = 'DESIRED';
 replaceStage1WithStage2('oracle');
 } else {
-fortune = `"Incredible.. Could it be... Now? Before my very eyes?!" A strange light emanates from the orb, infusing the room. ${h.n} feels ${stat === 'POW' ? 'stronger' : 'healthier'} already!`;
+// Nat 20 - IMMEDIATE effect! Grant reward now, no stage 2 needed
+if(stat === 'HP') {
+h.m += 10;
+h.h += 10;
+} else {
+h.p += 2;
+}
+fortune = `"Incredible.. Could it be... Now? Before my very eyes?!" A strange light emanates from the orb, infusing the room. ${h.n} feels ${stat === 'POW' ? 'stronger' : 'healthier'} already! ${stat === 'POW' ? 'POW +2!' : 'Maximum HP +10!'}`;
 stage2Effect = 'IMMEDIATE DOUBLE';
-replaceStage1WithStage2('oracle');
+removeNeutralFromDeck('oracle'); // Remove oracle entirely - effect already granted
 }
 
 const v = document.getElementById('gameView');

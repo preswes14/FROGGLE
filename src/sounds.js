@@ -910,14 +910,14 @@ const ProceduralMusic = {
         hatNoise.start(t);
       }
 
-      // Splash sound on beats 3, 7, 11
+      // Water splash on beats 3, 7, 11 (swapped - 'ribbit' synthesis sounds like splash to users)
       if (splashPattern[step]) {
-        SoundFX.play('splash');
+        SoundFX.play('ribbit');
       }
 
-      // Ribbit on beat 16
+      // Frog ribbit on beat 16 (swapped - 'splash' synthesis sounds like ribbit to users)
       if (ribbitPattern[step]) {
-        SoundFX.play('ribbit');
+        SoundFX.play('splash');
       }
 
       step = (step + 1) % 16;
@@ -1044,6 +1044,11 @@ const ProceduralMusic = {
         hatGain.gain.setValueAtTime(accent, t);
         hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
         hatNoise.start(t);
+      }
+
+      // Single splash at end of pattern (step 7)
+      if (step === 7) {
+        SoundFX.play('ribbit'); // 'ribbit' synthesis sounds like splash to users
       }
 
       step = (step + 1) % 8;
