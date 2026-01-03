@@ -1909,6 +1909,14 @@ function showQuestBoard() {
     (QUEST_CATEGORIES[a]?.order || 99) - (QUEST_CATEGORIES[b]?.order || 99)
   );
 
+  // Calculate pending gold from unclaimed completed quests
+  let pendingGold = 0;
+  for(const questId in QUESTS) {
+    if(isQuestComplete(questId) && !S.questsClaimed[questId]) {
+      pendingGold += QUESTS[questId].reward;
+    }
+  }
+
   let html = `
 <style>
 .quest-item {
@@ -1977,7 +1985,7 @@ function showQuestBoard() {
 <div style="max-width:600px;margin:0 auto;padding:1rem">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
   <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">📋 Quest Board</h1>
-  <div style="font-size:1rem;color:#22c55e">💰 ${S.gold}G</div>
+  <div style="font-size:1rem;color:#22c55e">💰 ${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>
 </div>
 
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.8">Complete quests to earn gold rewards!</p>

@@ -94,8 +94,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeDebugMenu() {
-// Remove debug menu elements
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+// Remove debug menu elements - only target settings/debug modals
+const menus = document.querySelectorAll('.settings-modal-container, .settings-modal-overlay, .modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
@@ -126,7 +126,8 @@ ${inGame ? `
 <button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">🚪 Quit Game</button>
 ` : ''}
 
-<button class="settings-back-btn" onclick="closeSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
+<button class="settings-back-btn" onclick="closeSettingsMenu()">Return</button>
+<div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.5;text-align:center">Press Ⓑ to close menu</div>
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu()"></div>
 `;
@@ -225,7 +226,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSettingsMenu() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+// Only remove settings-specific modals to avoid interfering with game screens
+const menus = document.querySelectorAll('.settings-modal-container, .settings-modal-overlay, .modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
@@ -707,7 +709,7 @@ When packaging with Electron for Steam:
 
 <div style="margin-top:1rem;padding:0.75rem;background:rgba(245,158,11,0.15);border:2px solid #f59e0b;border-radius:8px">
 <p style="margin:0;color:#fcd34d;font-size:0.85rem">
-<strong>💡 Tip:</strong> The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!
+The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!<br><br><em style="font-size:0.85em;opacity:0.9">(💡 Tip: This works great for Steam Deck users who prefer touch controls!)</em>
 </p>
 </div>
 
@@ -786,7 +788,7 @@ a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<
 q: "Do shields carry over between battles?",
 a: `<strong>Yes!</strong> Shields persist between battles and cap at max HP.<br><br>
 This means you can "shield farm" by using Shield sigils on the last enemy of a floor to enter the next floor with full shields. Combined with Asterisk or Alpha, this can make you nearly invincible!<br><br>
-<strong>Strategy tip:</strong> Before finishing a floor, use any remaining actions to shield up your team. The shields will carry over!`
+<br><em style="font-size:0.9em;opacity:0.9">(Strategy tip: Before finishing a floor, use any remaining actions to shield up your team!)</em>`
 },
 {
 q: "What's the difference between XP upgrades and Gold upgrades?",
@@ -913,7 +915,7 @@ arrow.textContent = '▼';
 }
 
 function closeFAQ() {
-const overlays = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const overlays = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 overlays.forEach(el => el.remove());
 }
 
@@ -1031,7 +1033,7 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSigilarium() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 

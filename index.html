@@ -16,7 +16,7 @@
 <title>FROGGLE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, sans-serif; background: #d9cab1; color: #1c1b19; position: fixed; width: 100%; height: 100%; overflow: hidden; }
+body { font-family: -apple-system, sans-serif; background: #1a1a1a; color: #f0f0f0; position: fixed; width: 100%; height: 100%; overflow: hidden; }
 body.fu-mode { background: linear-gradient(135deg, #2a231c 0%, #1a1612 100%); color: #e8d5c0; }
 h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; }
 
@@ -132,17 +132,19 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   overflow-y: auto;
 }
 .modal-container.dark {
-  background: rgba(0,0,0,0.95);
-  border: 3px solid #3b82f6;
+  background: rgba(17,24,39,0.98);
+  border: 3px solid #22c55e;
   color: white;
 }
 .modal-container.light {
-  background: linear-gradient(#fff, #f7f1e3);
-  border: 3px solid #9333ea;
+  background: linear-gradient(#1f2937, #111827);
+  border: 3px solid #22c55e;
+  color: #f0f0f0;
 }
 .modal-container.faq {
-  background: linear-gradient(#fff, #f7f1e3);
-  border: 3px solid #f97316;
+  background: linear-gradient(#1f2937, #111827);
+  border: 3px solid #22c55e;
+  color: #f0f0f0;
   max-height: 90vh;
   max-width: 600px;
 }
@@ -151,9 +153,9 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   margin-bottom: 1rem;
   font-size: 1.3rem;
 }
-.modal-title.blue { color: #3b82f6; }
-.modal-title.purple { color: #9333ea; }
-.modal-title.orange { color: #f97316; }
+.modal-title.blue { color: #22c55e; }
+.modal-title.purple { color: #a855f7; }
+.modal-title.orange { color: #fbbf24; }
 .modal-section-title {
   margin: 1rem 0 0.5rem 0;
 }
@@ -195,18 +197,18 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 /* Sigil description scaling indicator - shows level-dependent values */
 .sig-scale { color: #f97316; text-decoration: underline; font-weight: bold; }
 
-.header { padding: 0.5rem; background: linear-gradient(#fff, #f7f1e3); border-bottom: 2px solid #bda; display: flex; justify-content: space-between; font-size: 0.8rem; }
+.header { padding: 0.5rem; background: linear-gradient(#1f2937, #111827); border-bottom: 2px solid #22c55e; display: flex; justify-content: space-between; font-size: 0.8rem; color: #f0f0f0; }
 .game-area { height: calc(100vh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
 .game-area.no-scroll { overflow: hidden; padding: 0; }
 .game-area.fade-out { animation: fadeOut 0.2s ease forwards; }
 .game-area.fade-in { animation: fadeIn 0.2s ease forwards; }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #2c63c7; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
+.btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #16a34a; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.2); }
 .btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
-.btn:active { transform: translateY(4px) scale(0.98); opacity: 0.9; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
-.btn.primary { background: #2c63c7; } /* Default blue */
+.btn:active { transform: translateY(4px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15); }
+.btn.primary { background: #16a34a; } /* Green */
 .btn.safe { background: #22c55e; }
 .btn.risky { background: #f97316; }
 .btn.danger { background: #dc2626; }
@@ -240,14 +242,14 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   align-items: center;
   justify-content: center;
 }
-.choice { border: 3px solid #000; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: white; color: #1c1b19; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.1); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
-.choice:hover { transform: translateY(-2px); background: #f9f9f9; box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.15); }
-.choice:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
-.choice:active { transform: translateY(4px) scale(0.98); background: #f0f0f0; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #000; border-radius: 14px; background: white; color: #1c1b19; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
+.choice { border: 3px solid #22c55e; padding: 1rem; margin-bottom: 0.75rem; border-radius: 16px; background: #1f2937; color: #f0f0f0; min-height: 60px; width: 100%; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.2); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
+.choice:hover { transform: translateY(-2px); background: #374151; box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.25); }
+.choice:focus-visible { outline: 3px solid #22c55e; outline-offset: 2px; }
+.choice:active { transform: translateY(4px) scale(0.98); background: #111827; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.2); }
+.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #22c55e; border-radius: 14px; background: #1f2937; color: #f0f0f0; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.25); transition: all 0.15s ease; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word; line-height: 1.3; }
 .neutral-btn:hover { transform: translateY(-1px); opacity: 0.95; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 10px rgba(0,0,0,0.2); }
 .neutral-btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
-.neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+.neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15); }
 .neutral-btn.safe { background: #22c55e; color: white; }
 .neutral-btn.risky { background: #f97316; color: white; }
 .neutral-btn.danger { background: #dc2626; color: white; }
@@ -350,7 +352,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .combat-lane.crowded-5 .card.enemy .sigil-row { gap: 1px; }
 .card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; overflow: hidden; word-wrap: break-word; }
 .card-stats { font-size: 0.8rem; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
-.card.hero { background: #2c63c7; color: white; width: 200px; max-width: 200px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.card.hero { background: #15803d; color: white; width: 200px; max-width: 200px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
 .card.hero .sigil-row { flex-wrap: nowrap; gap: 2px; }
 .card.hero .sigil-row .sigil { flex-shrink: 1; min-width: 28px; min-height: 28px; padding: 4px; font-size: 0.9rem; }
 .card.hero .sigil-row .sigil img { height: 1.3em; }
@@ -376,7 +378,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .card.selectable:active { transform: scale(0.98); }
 .card.targetable { cursor: pointer; }
 .card.targetable:active { transform: scale(0.98); }
-.card.targeted { box-shadow: 0 0 0 4px #22c55e; }
+.card.targeted { box-shadow: 0 0 0 4px lime; }
 .card.acted { opacity: 0.6; }
 .card.stunned { opacity: 0.7; border-color: #ef4444 !important; }
 .card.last-stand {
@@ -579,9 +581,9 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   font-size: 0.7rem;
 }
 
-.toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#fff, #f7f1e3); border: 2px solid #bda; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: linear-gradient(#1f2937, #111827); border: 2px solid #22c55e; border-radius: 6px; padding: 1rem 1.5rem; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.4); opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 10000; max-width: 80%; color: #f0f0f0; }
 .toast.show { opacity: 1; transform: translateY(0); }
-.toast-log { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: linear-gradient(#fff, #f7f1e3); border: 3px solid #22c55e; border-radius: 8px; padding: 0.75rem; max-width: 400px; width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 9999; display: none; }
+.toast-log { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: linear-gradient(#1f2937, #111827); color: #f0f0f0; border: 3px solid #22c55e; border-radius: 8px; padding: 0.75rem; max-width: 400px; width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 9999; display: none; }
 .toast-log.show { display: block; }
 .toast-log-header { font-weight: bold; font-size: 0.85rem; margin-bottom: 0.25rem; padding: 0.25rem 0.5rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
 .toast-log-toggle { font-size: 1rem; }
@@ -591,9 +593,9 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
-.tutorial-modal { background: linear-gradient(#fff, #e8f5e9); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); text-align: center; }
-.tutorial-modal h2 { margin-top: 0; color: #6b4423; }
-.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; background: rgba(255,255,255,0.9); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.3); }
+.tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
+.tutorial-modal h2 { margin-top: 0; color: #22c55e; }
+.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; background: rgba(34,197,94,0.15); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.4); color: #f0f0f0; }
 .tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
 .tutorial-modal button:hover { background: #15803d; }
 .tutorial-modal button:active { transform: scale(0.98); }
@@ -2239,7 +2241,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.41';
+const GAME_VERSION = '12.53';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2742,9 +2744,9 @@ if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
 else html += `${h.n}'s Turn`;
 }
 }
-// Add restart button (only during player turn, not in tutorial)
+// Add restart button (only during player turn, not in tutorial, and after round 1)
 const isTutorial = typeof tutorialState !== 'undefined' && tutorialState && S.floor === 0;
-if(S.turn === 'player' && !isTutorial && S.combatStartSnapshot) {
+if(S.turn === 'player' && !isTutorial && S.combatStartSnapshot && S.round > 1) {
 html += `<button class="btn secondary" onclick="restartCombat()" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);padding:0.3rem 0.6rem;font-size:0.75rem;opacity:0.7">↻ Restart</button>`;
 }
 html += '</div>';
@@ -2935,7 +2937,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Nice hit! Before we heal, let's learn about gambits - powerful actions that aren't guaranteed to succeed. Click the Healer's D20!", () => {
+showTutorialPop('ribbleton_healer_d20', "Healer doesn't start with the Attack Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's D20!", () => {
 S.activeIdx = 1;
 render();
 });
@@ -2969,17 +2971,18 @@ return;
 
 // PHASE 2 (Ribbleton): Round 2: Healer Heal prompt (NOW BATCHED WITH EXPAND)
 if(round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
-debugLog('[TUTORIAL] Triggering PROMPT 4 - Healer Heal + Expand (batched) (stage:', tutorialState.stage, ')');
+debugLog('[TUTORIAL] Triggering PROMPT 4 - Healer Heal (stage:', tutorialState.stage, ')');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
-render();
-// Popup now appears when Heal is pending (see render() section) - it includes Expand explanation
+// Show healing prompt popup
+showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
 S.activeIdx = 1;
 render();
+});
 } else if(round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
 debugLog('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
 S.turn = 'player';
@@ -2988,10 +2991,11 @@ S.acted = [];
 S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
-render();
-// Popup now appears when Heal is pending (see render() section) - it includes Expand explanation
+// Show healing prompt popup
+showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
 S.activeIdx = 1;
 render();
+});
 }
 // Round 3: Force Goblin to draw Shield, then PROMPT 5 (Enemy Sigils batched) + PROMPT 6 (Tooltip + Handoff batched)
 else if(round === 3 && tutorialState.stage === 'finish_wolf') {
@@ -3017,16 +3021,19 @@ render();
 }
 },
 
-// Handle enemy turn during tutorial
-onEnemyTurnStart() {
-if(!tutorialState || S.floor !== 0) return;
+// Handle enemy turn during tutorial - returns true if we're blocking for a popup
+onEnemyTurnStart(onContinue) {
+if(!tutorialState || S.floor !== 0) return false;
 if(tutorialState.stage === 'enemy_turn_wait') {
 S.locked = true;
 tutorialState.stage = 'enemy_turn_explained';
-showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack EVERY turn, and they usually attack straight across from them!", () => {
+showTutorialPop('ribbleton_enemy_turn', "Nice gambit! Both enemies hurt themselves! But the enemies are about to attack back...", () => {
 S.locked = false;
+if(onContinue) onContinue(); // Continue to enemy turn after popup
 });
+return true; // Blocking - don't start enemy turn yet
 }
+return false;
 }
 };
 
@@ -3235,9 +3242,7 @@ const tooltip = document.createElement('div');
 tooltip.className = 'heal-preview';
 
 let content = `<div class="heal-total">+${preview.actualHeal}</div>`;
-if(preview.overHeal > 0) {
-content += `<div class="heal-wasted">+${preview.overHeal} wasted</div>`;
-} else if(preview.targetHp === preview.targetMaxHp) {
+if(preview.targetHp === preview.targetMaxHp) {
 content += `<div class="heal-full">Already full!</div>`;
 }
 
@@ -4821,6 +4826,7 @@ ribbleton_d20_menu: false,
 healer_expand_explain: false,
 ribbleton_enemy_turn: false,
 ribbleton_healer_heal: false,
+stun_intro: false,
 ribbleton_expand: false,
 ribbleton_finish_wolf: false,
 enemies_get_sigils: false,
@@ -6359,7 +6365,7 @@ render();
 if(S.runNumber >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
 const isTouchDevice = 'ontouchstart' in window;
 const inputHint = isTouchDevice ? "Press Ⓧ on controller" : "Right-click any sigil (or Ⓧ on controller)";
-showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
+showTutorialPop('auto_target_intro', `Right-click any sigil (or press Ⓧ on controller) to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.<br><br><em style="font-size:0.85em;opacity:0.9">(Pro tip: Use this to speed through easy fights!)</em>`);
 }
 }
 
@@ -6581,10 +6587,9 @@ if (!S.pending) return; // Action didn't set pending (e.g., Ghost completes inst
 const hero = S.heroes[heroIdx];
 if (!hero) return;
 
-// Calculate targets needed
+// Calculate targets needed (getLevel already includes Mage/Healer +1 bonus)
 const expandLevel = getLevel('Expand', heroIdx);
-const hasBuiltInExpand = (hero.n === 'Mage' || hero.n === 'Healer');
-const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
+const totalTargets = 1 + expandLevel;
 const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
 if (['Attack', 'Grapple'].includes(S.pending)) {
@@ -6675,8 +6680,8 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
-{dc:15, name:'MEND', desc:'Heal self for POW'},
+{dc:12, name:'MEND', desc:'Heal self for POW'},
+{dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
@@ -6708,8 +6713,8 @@ html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Sta
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
-{dc:15, name:'MEND', desc:'Heal self for POW'},
+{dc:12, name:'MEND', desc:'Heal self for POW'},
+{dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
@@ -6878,6 +6883,8 @@ toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
+// Show stun tutorial popup first time
+showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
@@ -7421,6 +7428,8 @@ if(!e) return;
 totalDmg += e.p;
 e.st += stunDuration;
 targetNames.push(e.n);
+// Show stun tutorial popup first time
+showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
@@ -7597,8 +7606,13 @@ if(allActedIncludingLS) {
 S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
-TutorialManager.onEnemyTurnStart();
+// If tutorial is showing a popup, delay enemy turn until popup is dismissed
+const tutorialBlocking = TutorialManager.onEnemyTurnStart(() => {
 setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+});
+if(!tutorialBlocking) {
+setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+}
 }
 }
 
@@ -8267,7 +8281,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -8382,19 +8396,14 @@ return;
 
 // RIBBLETON TUTORIAL: Show targeting prompts
 if(tutorialState && S.floor === 0 && S.pending) {
-// Auto-advance stage when Attack is pending
+// Auto-advance stage when Attack is pending (targeting info now in earlier popup)
 if(tutorialState.stage === 'warrior_attack' && S.pending === 'Attack' && S.targets.length === 0) {
 tutorialState.stage = 'targeting_wolf';
-// Popup explaining heroes can target any enemy
-showTutorialPop('ribbleton_targeting', "Heroes can attack ANY enemy, not just the one across from them! The Wolf is about to hit your Healer hard - take it out first to protect her!", () => {
-render();
-});
-return;
 }
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Use Healer's Expand to heal both wounded heroes!", () => {
+showTutorialPop('ribbleton_expand', "Remember how Healer was able to target 2 earlier? She can do that with her Heal, too! Try it out!", () => {
 render();
 });
 return;
@@ -8413,8 +8422,8 @@ const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? '
 html += `<div class="combat-lane ${crowdedClass}">`;
 html += '<div class="lane-content" style="display:flex;gap:1rem;justify-content:center;align-items:stretch">';
 
-// Hero section (left side of lane)
-html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
+// Hero section (left side of lane) - row-reverse so recruits (rendered after) appear to the LEFT of hero
+html += '<div style="flex:0 0 auto;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start">';
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
@@ -8509,7 +8518,7 @@ html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
-html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
+html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}⚔</div>`;
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
 html += `</div>`;
@@ -8683,7 +8692,7 @@ const recruitExtra = [];
 if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
 const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
-html += `<div id="${recruit.id}" class="card hero${recruitShieldClass}" style="opacity:0.85;border:2px dashed #22c55e">`;
+html += `<div id="${recruit.id}" class="card hero recruit${recruitShieldClass}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
 // Enemy emoji (retain original enemy type)
@@ -8873,13 +8882,13 @@ const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
 const canAfford = S.xp >= nextCost;
 const spendStyle = canAfford
-  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.2rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5)'
-  : '';
+  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
+  : 'opacity:0.5;text-align:center';
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()" ${spendStyle ? `style="${spendStyle}"` : ''}>Spend XP${canAfford ? ' ✨' : ''}</div>
+<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
 <button class="btn secondary" onclick="viewHeroCards()">View Heroes</button>
 <button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
 }
@@ -8923,7 +8932,7 @@ if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:
 
 html += `<div class="card hero" style="${cardStyle}">`;
 // Power at top
-html += `<div style="text-align:center;font-size:1.1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚡</div>`;
+html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚔</div>`;
 // Hero image
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
 // Name
@@ -8988,11 +8997,15 @@ startFloor(S.floor + 1);
 function showStartingXPScreen() {
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+const spendStyle = canAfford
+  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
+  : 'opacity:0.5;text-align:center';
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem;color:#a855f7">Starting XP Bonus!</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;opacity:0.8">Spend it now or bank it for later. Remaining XP: <strong>${S.xp}</strong> | Next Level Cost: <strong>${nextCost}XP</strong></p>
-<div class="choice" onclick="startingXPMenu()">Spend XP</div>
+<div class="choice" onclick="startingXPMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
 <button class="btn safe" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
 }
 
@@ -9356,7 +9369,7 @@ levelUpMenu();
 
 // NEW: Upgrade Active Sigil (All Heroes)
 function upgradeActiveSigil() {
-showTutorialPop('levelup_upgrade_active', "Upgrading an active sigil makes it MORE POWERFUL for every hero who has it! For example, Attack L2 = hit twice, Shield L2 = 4×POW shields!");
+showTutorialPop('levelup_upgrade_active', "Upgrading an active sigil makes it MORE POWERFUL <em>for every hero who has or gains that sigil!</em> For example, Attack L2 = hit twice, Shield L2 = 4×POW shields!");
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Active Sigil</h2>
@@ -10281,7 +10294,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage starts with two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
+showTutorialPop('tapo_first_attack', "Mage has <strong>Attack</strong> (an active sigil that costs your turn) and <strong>Expand</strong> (a passive sigil with automatic effects). Use Attack to hit 2 flies at once!", () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
@@ -10291,9 +10304,7 @@ render();
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 3 Flies - Mage starts with Attack and Expand (no D20, too confusing)
-// NOTE: Permanent sigils (Asterisk/Star) are NOT added to Phase 1 tutorial
-// to ensure consistent tutorial experience for all players
+// Phase 1: Mage vs 3 Flies - Mage has Attack + Expand (no D20 - explained later)
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
@@ -10512,7 +10523,7 @@ overlay.innerHTML = `
 <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:1rem">
 <div style="background:rgba(0,0,0,0.85);border-radius:16px;padding:1.5rem;max-width:550px;border:3px solid #dc2626;box-shadow:0 0 30px rgba(220,38,38,0.5)">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem;color:#fff;text-align:center">
-Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
+Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>.<br><br>Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -10546,9 +10557,6 @@ Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal
 <div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
 </div>
 </div>
-<p style="font-size:1rem;line-height:1.6;text-align:center;font-style:italic;color:rgba(255,255,255,0.9);margin-top:1rem">
-Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the portal!
-</p>
 <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
 <button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
 <button onclick="skipTutorialFromOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#666;color:#fff;border:2px solid #444;border-radius:8px;cursor:pointer">Skip Tutorial</button>
@@ -10623,7 +10631,7 @@ remaining.forEach(r => r.remove());
 // Wait for DOM to fully update before showing popup
 requestAnimationFrame(() => {
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior hits harder than Mage! Click the Warrior's Attack sigil.", () => {
+showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior doesn't start with Expand, but he does have 2 POW! Take out that Wolf before it chomps on your Healer!<br><br>(Enemies will usually attack whoever is closest to them, but you can be more strategic) Click the Warrior's Attack sigil.", () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -10701,7 +10709,7 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe.... wait..."},
+{bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe..."},
 {bg: 'assets/ribbleton-tadpole.png', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>"},
 {bg: 'assets/ribbleton.png', text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
 ];
@@ -14794,6 +14802,14 @@ function showQuestBoard() {
     (QUEST_CATEGORIES[a]?.order || 99) - (QUEST_CATEGORIES[b]?.order || 99)
   );
 
+  // Calculate pending gold from unclaimed completed quests
+  let pendingGold = 0;
+  for(const questId in QUESTS) {
+    if(isQuestComplete(questId) && !S.questsClaimed[questId]) {
+      pendingGold += QUESTS[questId].reward;
+    }
+  }
+
   let html = `
 <style>
 .quest-item {
@@ -14862,7 +14878,7 @@ function showQuestBoard() {
 <div style="max-width:600px;margin:0 auto;padding:1rem">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
   <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">📋 Quest Board</h1>
-  <div style="font-size:1rem;color:#22c55e">💰 ${S.gold}G</div>
+  <div style="font-size:1rem;color:#22c55e">💰 ${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>
 </div>
 
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.8">Complete quests to earn gold rewards!</p>
@@ -15139,8 +15155,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeDebugMenu() {
-// Remove debug menu elements
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+// Remove debug menu elements - only target settings/debug modals
+const menus = document.querySelectorAll('.settings-modal-container, .settings-modal-overlay, .modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
@@ -15171,7 +15187,8 @@ ${inGame ? `
 <button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">🚪 Quit Game</button>
 ` : ''}
 
-<button class="settings-back-btn" onclick="closeSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
+<button class="settings-back-btn" onclick="closeSettingsMenu()">Return</button>
+<div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.5;text-align:center">Press Ⓑ to close menu</div>
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu()"></div>
 `;
@@ -15270,7 +15287,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSettingsMenu() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+// Only remove settings-specific modals to avoid interfering with game screens
+const menus = document.querySelectorAll('.settings-modal-container, .settings-modal-overlay, .modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
@@ -15752,7 +15770,7 @@ When packaging with Electron for Steam:
 
 <div style="margin-top:1rem;padding:0.75rem;background:rgba(245,158,11,0.15);border:2px solid #f59e0b;border-radius:8px">
 <p style="margin:0;color:#fcd34d;font-size:0.85rem">
-<strong>💡 Tip:</strong> The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!
+The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!<br><br><em style="font-size:0.85em;opacity:0.9">(💡 Tip: This works great for Steam Deck users who prefer touch controls!)</em>
 </p>
 </div>
 
@@ -15831,7 +15849,7 @@ a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<
 q: "Do shields carry over between battles?",
 a: `<strong>Yes!</strong> Shields persist between battles and cap at max HP.<br><br>
 This means you can "shield farm" by using Shield sigils on the last enemy of a floor to enter the next floor with full shields. Combined with Asterisk or Alpha, this can make you nearly invincible!<br><br>
-<strong>Strategy tip:</strong> Before finishing a floor, use any remaining actions to shield up your team. The shields will carry over!`
+<br><em style="font-size:0.9em;opacity:0.9">(Strategy tip: Before finishing a floor, use any remaining actions to shield up your team!)</em>`
 },
 {
 q: "What's the difference between XP upgrades and Gold upgrades?",
@@ -15958,7 +15976,7 @@ arrow.textContent = '▼';
 }
 
 function closeFAQ() {
-const overlays = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const overlays = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 overlays.forEach(el => el.remove());
 }
 
@@ -16076,7 +16094,7 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSigilarium() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay, [style*="z-index:30000"], [style*="z-index:29999"]');
+const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 

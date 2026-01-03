@@ -289,7 +289,7 @@ render();
 if(S.runNumber >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
 const isTouchDevice = 'ontouchstart' in window;
 const inputHint = isTouchDevice ? "Press Ⓧ on controller" : "Right-click any sigil (or Ⓧ on controller)";
-showTutorialPop('auto_target_intro', `Pro tip: ${inputHint} to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.`);
+showTutorialPop('auto_target_intro', `Right-click any sigil (or press Ⓧ on controller) to auto-target the best enemy! This quickly attacks the lowest-HP target without manual selection.<br><br><em style="font-size:0.85em;opacity:0.9">(Pro tip: Use this to speed through easy fights!)</em>`);
 }
 }
 
@@ -511,10 +511,9 @@ if (!S.pending) return; // Action didn't set pending (e.g., Ghost completes inst
 const hero = S.heroes[heroIdx];
 if (!hero) return;
 
-// Calculate targets needed
+// Calculate targets needed (getLevel already includes Mage/Healer +1 bonus)
 const expandLevel = getLevel('Expand', heroIdx);
-const hasBuiltInExpand = (hero.n === 'Mage' || hero.n === 'Healer');
-const totalTargets = 1 + expandLevel + (hasBuiltInExpand ? 1 : 0);
+const totalTargets = 1 + expandLevel;
 const targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
 
 if (['Attack', 'Grapple'].includes(S.pending)) {
@@ -605,8 +604,8 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
-{dc:15, name:'MEND', desc:'Heal self for POW'},
+{dc:12, name:'MEND', desc:'Heal self for POW'},
+{dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
@@ -638,8 +637,8 @@ html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Sta
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
-{dc:15, name:'MEND', desc:'Heal self for POW'},
+{dc:12, name:'MEND', desc:'Heal self for POW'},
+{dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
@@ -808,6 +807,8 @@ toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
+// Show stun tutorial popup first time
+showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
@@ -1351,6 +1352,8 @@ if(!e) return;
 totalDmg += e.p;
 e.st += stunDuration;
 targetNames.push(e.n);
+// Show stun tutorial popup first time
+showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
@@ -1527,8 +1530,13 @@ if(allActedIncludingLS) {
 S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
-TutorialManager.onEnemyTurnStart();
+// If tutorial is showing a popup, delay enemy turn until popup is dismissed
+const tutorialBlocking = TutorialManager.onEnemyTurnStart(() => {
 setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+});
+if(!tutorialBlocking) {
+setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+}
 }
 }
 
@@ -2197,7 +2205,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own now - good luck!", () => {
+showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -2312,19 +2320,14 @@ return;
 
 // RIBBLETON TUTORIAL: Show targeting prompts
 if(tutorialState && S.floor === 0 && S.pending) {
-// Auto-advance stage when Attack is pending
+// Auto-advance stage when Attack is pending (targeting info now in earlier popup)
 if(tutorialState.stage === 'warrior_attack' && S.pending === 'Attack' && S.targets.length === 0) {
 tutorialState.stage = 'targeting_wolf';
-// Popup explaining heroes can target any enemy
-showTutorialPop('ribbleton_targeting', "Heroes can attack ANY enemy, not just the one across from them! The Wolf is about to hit your Healer hard - take it out first to protect her!", () => {
-render();
-});
-return;
 }
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Use Healer's Expand to heal both wounded heroes!", () => {
+showTutorialPop('ribbleton_expand', "Remember how Healer was able to target 2 earlier? She can do that with her Heal, too! Try it out!", () => {
 render();
 });
 return;
@@ -2343,8 +2346,8 @@ const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? '
 html += `<div class="combat-lane ${crowdedClass}">`;
 html += '<div class="lane-content" style="display:flex;gap:1rem;justify-content:center;align-items:stretch">';
 
-// Hero section (left side of lane)
-html += '<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.3rem">';
+// Hero section (left side of lane) - row-reverse so recruits (rendered after) appear to the LEFT of hero
+html += '<div style="flex:0 0 auto;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start">';
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
@@ -2439,7 +2442,7 @@ html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
-html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
+html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}⚔</div>`;
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
 html += `</div>`;
@@ -2613,7 +2616,7 @@ const recruitExtra = [];
 if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
 const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
-html += `<div id="${recruit.id}" class="card hero${recruitShieldClass}" style="opacity:0.85;border:2px dashed #22c55e">`;
+html += `<div id="${recruit.id}" class="card hero recruit${recruitShieldClass}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
 // Enemy emoji (retain original enemy type)
@@ -2803,13 +2806,13 @@ const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
 const canAfford = S.xp >= nextCost;
 const spendStyle = canAfford
-  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.2rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5)'
-  : '';
+  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
+  : 'opacity:0.5;text-align:center';
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()" ${spendStyle ? `style="${spendStyle}"` : ''}>Spend XP${canAfford ? ' ✨' : ''}</div>
+<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
 <button class="btn secondary" onclick="viewHeroCards()">View Heroes</button>
 <button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
 }
@@ -2853,7 +2856,7 @@ if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:
 
 html += `<div class="card hero" style="${cardStyle}">`;
 // Power at top
-html += `<div style="text-align:center;font-size:1.1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚡</div>`;
+html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚔</div>`;
 // Hero image
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
 // Name
@@ -2918,11 +2921,15 @@ startFloor(S.floor + 1);
 function showStartingXPScreen() {
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
+const canAfford = S.xp >= nextCost;
+const spendStyle = canAfford
+  ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
+  : 'opacity:0.5;text-align:center';
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem;color:#a855f7">Starting XP Bonus!</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;opacity:0.8">Spend it now or bank it for later. Remaining XP: <strong>${S.xp}</strong> | Next Level Cost: <strong>${nextCost}XP</strong></p>
-<div class="choice" onclick="startingXPMenu()">Spend XP</div>
+<div class="choice" onclick="startingXPMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
 <button class="btn safe" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
 }
 
@@ -3286,7 +3293,7 @@ levelUpMenu();
 
 // NEW: Upgrade Active Sigil (All Heroes)
 function upgradeActiveSigil() {
-showTutorialPop('levelup_upgrade_active', "Upgrading an active sigil makes it MORE POWERFUL for every hero who has it! For example, Attack L2 = hit twice, Shield L2 = 4×POW shields!");
+showTutorialPop('levelup_upgrade_active', "Upgrading an active sigil makes it MORE POWERFUL <em>for every hero who has or gains that sigil!</em> For example, Attack L2 = hit twice, Shield L2 = 4×POW shields!");
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Active Sigil</h2>
