@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.59';
+const GAME_VERSION = '12.60';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -924,8 +924,10 @@ return { totalDamage, shieldDmg, hpDmg, hitsRemaining, targetHp: target.h, targe
 }
 
 // Show damage preview tooltip on enemy hover during targeting
+// DISABLED: Players can do the math themselves
 let currentDmgPreview = null;
 function showDamagePreview(targetId, element) {
+return; // Disabled per user request
 if(!S.pending || S.pending !== 'Attack' || S.activeIdx < 0) return;
 hideDamagePreview();
 
@@ -988,8 +990,10 @@ return { totalHeal: healPerInstance, actualHeal, overHeal, targetHp: currentHp, 
 }
 
 // Show heal preview tooltip on hero hover during targeting
+// DISABLED: Players can do the math themselves
 let currentHealPreview = null;
 function showHealPreview(targetId, element) {
+return; // Disabled per user request
 if(!S.pending || S.pending !== 'Heal' || S.activeIdx < 0) return;
 hideHealPreview();
 
@@ -1048,8 +1052,10 @@ return { totalShield: shieldPerInstance, actualShield, overShield, currentShield
 }
 
 // Show shield preview tooltip on hero hover during targeting
+// DISABLED: Players can do the math themselves
 let currentShieldPreview = null;
 function showShieldPreview(targetId, element) {
+return; // Disabled per user request
 if(!S.pending || S.pending !== 'Shield' || S.activeIdx < 0) return;
 hideShieldPreview();
 

@@ -2249,7 +2249,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.59';
+const GAME_VERSION = '12.60';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3174,8 +3174,10 @@ return { totalDamage, shieldDmg, hpDmg, hitsRemaining, targetHp: target.h, targe
 }
 
 // Show damage preview tooltip on enemy hover during targeting
+// DISABLED: Players can do the math themselves
 let currentDmgPreview = null;
 function showDamagePreview(targetId, element) {
+return; // Disabled per user request
 if(!S.pending || S.pending !== 'Attack' || S.activeIdx < 0) return;
 hideDamagePreview();
 
@@ -3238,8 +3240,10 @@ return { totalHeal: healPerInstance, actualHeal, overHeal, targetHp: currentHp, 
 }
 
 // Show heal preview tooltip on hero hover during targeting
+// DISABLED: Players can do the math themselves
 let currentHealPreview = null;
 function showHealPreview(targetId, element) {
+return; // Disabled per user request
 if(!S.pending || S.pending !== 'Heal' || S.activeIdx < 0) return;
 hideHealPreview();
 
@@ -3298,8 +3302,10 @@ return { totalShield: shieldPerInstance, actualShield, overShield, currentShield
 }
 
 // Show shield preview tooltip on hero hover during targeting
+// DISABLED: Players can do the math themselves
 let currentShieldPreview = null;
 function showShieldPreview(targetId, element) {
+return; // Disabled per user request
 if(!S.pending || S.pending !== 'Shield' || S.activeIdx < 0) return;
 hideShieldPreview();
 
@@ -6373,6 +6379,7 @@ if(S.encampmentEarlyKills && S.encampmentEarlyKills > 0) {
 S.selectingEncampmentTargets = true;
 S.encampmentSelectedTargets = [];
 }
+upd(); // Ensure background color is set before first render
 render();
 // Auto-target tutorial: show on second+ run, floor 1
 if(S.runNumber >= 2 && f === 1 && !S.tutorialFlags.auto_target_intro) {
@@ -6445,6 +6452,14 @@ return totalLevel;
 }
 
 function getTargetsPerInstance(action, heroIdx) {
+// Safeguard: if heroIdx is invalid, check if we're in tutorial with single Mage
+if(heroIdx < 0 || heroIdx >= S.heroes.length) {
+  // Tutorial Phase 1: Mage should always have 2 targets
+  if(tutorialState && tutorialState.phase === 1 && S.heroes.length === 1 && S.heroes[0].n === 'Mage') {
+    return 2;
+  }
+  return 1; // Default fallback
+}
 const expandLevel = getLevel('Expand', heroIdx);
 return 1 + expandLevel;
 }
@@ -6755,8 +6770,10 @@ S.d20HeroIdx = heroIdx;
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
 showTutorialPop('healer_expand_explain', "Healer has Expand, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!", () => {
+// Allow free targeting after popup - stage stays 'd20_menu' for fudged roll but targeting is unrestricted
 S.pending = 'D20_TARGET';
 S.targets = [];
+S.locked = false; // Ensure game is not locked after popup
 render();
 });
 return;
@@ -8435,8 +8452,8 @@ const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? '
 html += `<div class="combat-lane ${crowdedClass}">`;
 html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 
-// Hero section (left side of lane, 40% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
-html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start;justify-content:flex-end">';
+// Hero section (right side of their zone, 38% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
+html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start;justify-content:flex-start">';
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
@@ -8533,7 +8550,7 @@ html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
-html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
+html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
 // Shield bar (if shielded) - placed below HP, above sigils
 if(h.sh > 0) {
@@ -8792,7 +8809,7 @@ html += `<div style="width:50px;height:50px;display:flex;align-items:center;just
 } else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
-html += `<div style="font-size:0.8rem;min-width:55px;text-align:center;white-space:nowrap">${e.h}/${e.m}❤</div>`;
+html += `<div style="min-width:55px;text-align:center"><div style="font-size:0.8rem">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
 // Shield bar (if shielded)
 if(e.sh > 0) {
@@ -10459,10 +10476,21 @@ function finishTaposBirthdayPhase() {
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
+<style>
+@keyframes danceTapo {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(-5deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-10px) rotate(5deg); }
+}
+</style>
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
 <div style="max-width:600px;text-align:center">
-<h2 style="font-size:2rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
-<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
+<h2 style="font-size:2.5rem;margin-bottom:0.5rem;color:#22c55e">Success!!</h2>
+<div style="animation:danceTapo 0.5s ease-in-out infinite;margin:1rem 0">
+<img src="assets/tapo-nobg.png" alt="Tapo" style="width:100px;height:auto">
+</div>
+<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight as you knock the flies out of the air!<br>
 Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton. 🎉
 </p>
@@ -10536,7 +10564,7 @@ overlay.innerHTML = `
 <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:1rem">
 <div style="background:rgba(0,0,0,0.85);border-radius:16px;padding:1.5rem;max-width:550px;border:3px solid #dc2626;box-shadow:0 0 30px rgba(220,38,38,0.5)">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem;color:#fff;text-align:center">
-Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>.<br><br>Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
+Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -10723,8 +10751,10 @@ function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
 {bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe..."},
-{bg: 'assets/ribbleton-tadpole.png', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>"},
-{bg: 'assets/ribbleton.png', text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
+{bg: 'assets/ribbleton-tadpole.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
+html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong></div>`},
+{text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
+html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px">But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);

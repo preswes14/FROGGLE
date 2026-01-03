@@ -904,10 +904,21 @@ function finishTaposBirthdayPhase() {
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
+<style>
+@keyframes danceTapo {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(-5deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-10px) rotate(5deg); }
+}
+</style>
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
 <div style="max-width:600px;text-align:center">
-<h2 style="font-size:2rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
-<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
+<h2 style="font-size:2.5rem;margin-bottom:0.5rem;color:#22c55e">Success!!</h2>
+<div style="animation:danceTapo 0.5s ease-in-out infinite;margin:1rem 0">
+<img src="assets/tapo-nobg.png" alt="Tapo" style="width:100px;height:auto">
+</div>
+<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight as you knock the flies out of the air!<br>
 Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton. 🎉
 </p>
@@ -981,7 +992,7 @@ overlay.innerHTML = `
 <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:1rem">
 <div style="background:rgba(0,0,0,0.85);border-radius:16px;padding:1.5rem;max-width:550px;border:3px solid #dc2626;box-shadow:0 0 30px rgba(220,38,38,0.5)">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem;color:#fff;text-align:center">
-Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>.<br><br>Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
+Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -1168,8 +1179,10 @@ function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
 {bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe..."},
-{bg: 'assets/ribbleton-tadpole.png', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>"},
-{bg: 'assets/ribbleton.png', text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!"}
+{bg: 'assets/ribbleton-tadpole.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
+html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong></div>`},
+{text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
+html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px">But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
