@@ -1,6 +1,8 @@
 # Build artifacts
 build/
+dist/
 *.backup
+*.AppImage
 
 # OS files
 .DS_Store
