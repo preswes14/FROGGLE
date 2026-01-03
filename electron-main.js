@@ -5,20 +5,22 @@ const path = require('path');
 let mainWindow;
 
 function createWindow() {
-  // Create the browser window - fullscreen for Steam Deck
+  // Create the browser window - let Steam handle fullscreen
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    fullscreen: true,
+    fullscreen: false,
+    fullscreenable: true,
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true
     },
-    // Steam Deck optimizations
-    frame: false,
     backgroundColor: '#1a1a2e'
   });
+
+  // Maximize window on start (works better with Steam than fullscreen)
+  mainWindow.maximize();
 
   // Load the game
   mainWindow.loadFile('index.html');
