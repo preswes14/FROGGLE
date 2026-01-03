@@ -910,7 +910,7 @@ v.innerHTML = `
 <div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
 <div style="max-width:600px;text-align:center">
 <h2 style="font-size:2rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
-<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0">
+<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 Tapo squeals with delight as you knock the flies out of the air!<br>
 Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton. 🎉
 </p>
@@ -929,7 +929,7 @@ html: `
 <div style="width:160px;height:160px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite">🌀</div>
 </div>
-<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0">
+<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 As Mage and Tapo enter Ribbleton, something seems off..<br>
 Whoa! <strong>A dark portal</strong> is open in the center of square!
 </p>
