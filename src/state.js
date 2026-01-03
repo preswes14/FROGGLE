@@ -307,7 +307,7 @@ if(hero.sh > 0) extra.push(`${hero.sh}🛡`);
 if(hero.g > 0) extra.push(`${hero.g}${sigilIconOnly('Ghost')}`);
 return `<div class="card hero hero-selectable" onclick="${onclickHandler}" style="cursor:pointer;margin-bottom:0.75rem">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${hero.n}</div>
-<div class="card-stats">${hero.p}⚡ | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
+<div class="card-stats">${hero.p}💥 | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
 </div>`;
 }
 

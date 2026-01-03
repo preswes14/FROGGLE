@@ -825,7 +825,7 @@ let html = `
 <h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">🐸 FROGGLE</h3>
 <p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Advance through the dungeon and save Tapo the tadpole! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
-<div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem">
+<div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem;color:#1a1a1a">
 <h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">⚔️ HOW LEVEL-UPS WORK</h4>
 <p style="font-size:0.9rem;margin:0 0 0.5rem 0">After combat, you can spend XP in 3 ways:</p>
 
@@ -882,7 +882,7 @@ html += `
 <strong style="font-size:0.95rem;color:#1e40af">${item.q}</strong>
 <span id="faq-arrow-${index}" style="font-size:1.2rem;transition:transform 0.3s;color:#1e40af">▼</span>
 </div>
-<div id="faq-answer-${index}" style="display:none;padding:1rem;font-size:0.9rem;line-height:1.6;border-top:2px solid #ddd;background:rgba(0,0,0,0.02)">
+<div id="faq-answer-${index}" style="display:none;padding:1rem;font-size:0.9rem;line-height:1.6;border-top:2px solid #ddd;background:rgba(0,0,0,0.02);color:#1a1a1a">
 ${item.a}
 </div>
 </div>
