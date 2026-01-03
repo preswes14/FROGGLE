@@ -347,6 +347,14 @@ const GamepadController = {
           this.switchSides();
           handled = true;
           break;
+        // START - open menu
+        case 'm':
+        case 'M':
+          action = 'open menu (START)';
+          this.activateControllerMode();
+          this.openMenu();
+          handled = true;
+          break;
         case 'Tab':
           action = 'tab';
           // Tab cycles through focusable elements
@@ -378,6 +386,7 @@ const GamepadController = {
     console.log('[GAMEPAD]   LB/RB (prev/next char): Q / E');
     console.log('[GAMEPAD]   LT/RT (prev/next sigil): Z / C');
     console.log('[GAMEPAD]   SELECT (switch sides): R key');
+    console.log('[GAMEPAD]   START (menu): M key');
   },
 
   // Continuously check for gamepads (Steam Deck fix)

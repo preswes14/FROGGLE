@@ -658,11 +658,11 @@ text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">
 {
 // Tapo with birthday vibes - signature double jump + flip animation
 html: `
-<h2 style="font-size:1.8rem;margin-bottom:1rem">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#f5f5f5">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite;display:inline-block;margin:1.5rem 0">
 <img src="assets/tapo-nobg.png" style="width:170px;height:auto">
 </div>
-<p style="font-size:1.15rem;line-height:1.7;margin-top:1rem">The whole town is celebrating the little tadpole's special day!</p>
+<p style="font-size:1.15rem;line-height:1.7;margin-top:1rem;color:#f5f5f5">The whole town is celebrating the little tadpole's special day!</p>
 <style>
 @keyframes tapoSignature {
   /* Quick hop 1 */
@@ -699,7 +699,7 @@ html: `
 <div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:1.5rem 0">
 <div>
 <img src="assets/reactions/mage-happy.jpeg" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
-<div style="margin-top:0.5rem;font-weight:bold;font-size:1rem">Mage</div>
+<div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Mage</div>
 </div>
 <div style="font-size:2.5rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem">
 <span>🪰</span>
@@ -707,10 +707,10 @@ html: `
 </div>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite">
 <img src="assets/tapo-nobg.png" style="width:110px;height:auto">
-<div style="margin-top:0.5rem;font-weight:bold;font-size:1rem">Tapo</div>
+<div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Tapo</div>
 </div>
 </div>
-<p style="font-size:1.15rem;line-height:1.7;margin-top:1rem">
+<p style="font-size:1.15rem;line-height:1.7;margin-top:1rem;color:#f5f5f5">
 As a birthday gift, <strong>Mage</strong> promised to teach Tapo how to catch flies.
 </p>
 `
@@ -910,7 +910,7 @@ v.innerHTML = `
 <div style="width:100%;height:calc(100vh - 44px);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
 <div style="max-width:600px;text-align:center">
 <h2 style="font-size:2rem;margin-bottom:1rem;color:#22c55e">Success!</h2>
-<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0">
+<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 Tapo squeals with delight as you knock the flies out of the air!<br>
 Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton. 🎉
 </p>
@@ -929,7 +929,7 @@ html: `
 <div style="width:160px;height:160px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite">🌀</div>
 </div>
-<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0">
+<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 As Mage and Tapo enter Ribbleton, something seems off..<br>
 Whoa! <strong>A dark portal</strong> is open in the center of square!
 </p>
