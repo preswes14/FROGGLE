@@ -752,7 +752,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage starts with Attack, an <strong>ACTIVE SIGIL</strong> (costs your turn to use) and Expand, a <strong>PASSIVE SIGIL</strong> (bonus or automatic effect). Try to hit 2 flies!", () => {
+showTutorialPop('tapo_first_attack', "Mage has <strong>Attack</strong> and <strong>D20</strong> (active sigils that cost your turn), plus <strong>Expand</strong> (a passive sigil with automatic effects). Use Attack to hit 2 flies at once!", () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
@@ -762,9 +762,8 @@ render();
 }
 
 function startTaposBirthdayTutorial() {
-// Phase 1: Mage vs 3 Flies - Mage starts with Attack and Expand (no D20, too confusing)
-// NOTE: Permanent sigils (Asterisk/Star) are NOT added to Phase 1 tutorial
-// to ensure consistent tutorial experience for all players
+// Phase 1: Mage vs 3 Flies - Mage has full sigil set (Attack, D20, Expand)
+// This ensures the tutorial feels like the real game from the start
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
@@ -776,7 +775,7 @@ S.tutorialFlags.tapo_first_attack = false;
 // Force help tips enabled for tutorial (critical popups must show)
 S.helpTipsDisabled = false;
 S.heroes = [
-{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
+{id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'D20', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
 
 // Initialize Phase 1 tutorial state
