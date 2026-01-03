@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.41';
+const GAME_VERSION = '12.44';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -695,7 +695,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Nice hit! Before we heal, let's learn about gambits - powerful actions that aren't guaranteed to succeed. Click the Healer's D20!", () => {
+showTutorialPop('ribbleton_healer_d20', "Healer doesn't start with the Attack Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's D20!", () => {
 S.activeIdx = 1;
 render();
 });
@@ -729,17 +729,18 @@ return;
 
 // PHASE 2 (Ribbleton): Round 2: Healer Heal prompt (NOW BATCHED WITH EXPAND)
 if(round === 2 && (tutorialState.stage === 'enemy_turn_explained' || tutorialState.stage === 'finish_wolf') && !S.tutorialFlags.ribbleton_healer_heal) {
-debugLog('[TUTORIAL] Triggering PROMPT 4 - Healer Heal + Expand (batched) (stage:', tutorialState.stage, ')');
+debugLog('[TUTORIAL] Triggering PROMPT 4 - Healer Heal (stage:', tutorialState.stage, ')');
 S.turn = 'player';
 S.activeIdx = -1;
 S.acted = [];
 S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
-render();
-// Popup now appears when Heal is pending (see render() section) - it includes Expand explanation
+// Show healing prompt popup
+showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
 S.activeIdx = 1;
 render();
+});
 } else if(round === 2 && !S.tutorialFlags.ribbleton_healer_heal) {
 debugLog('[TUTORIAL] Round 2 but stage is:', tutorialState.stage, '(expected: enemy_turn_explained or finish_wolf) - forcing healer_heal anyway');
 S.turn = 'player';
@@ -748,10 +749,11 @@ S.acted = [];
 S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
-render();
-// Popup now appears when Heal is pending (see render() section) - it includes Expand explanation
+// Show healing prompt popup
+showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
 S.activeIdx = 1;
 render();
+});
 }
 // Round 3: Force Goblin to draw Shield, then PROMPT 5 (Enemy Sigils batched) + PROMPT 6 (Tooltip + Handoff batched)
 else if(round === 3 && tutorialState.stage === 'finish_wolf') {
@@ -777,16 +779,19 @@ render();
 }
 },
 
-// Handle enemy turn during tutorial
-onEnemyTurnStart() {
-if(!tutorialState || S.floor !== 0) return;
+// Handle enemy turn during tutorial - returns true if we're blocking for a popup
+onEnemyTurnStart(onContinue) {
+if(!tutorialState || S.floor !== 0) return false;
 if(tutorialState.stage === 'enemy_turn_wait') {
 S.locked = true;
 tutorialState.stage = 'enemy_turn_explained';
-showTutorialPop('ribbleton_enemy_turn', "Uh oh! Enemies attack EVERY turn, and they usually attack straight across from them!", () => {
+showTutorialPop('ribbleton_enemy_turn', "Nice gambit! Both enemies hurt themselves! But the enemies are about to attack back...", () => {
 S.locked = false;
+if(onContinue) onContinue(); // Continue to enemy turn after popup
 });
+return true; // Blocking - don't start enemy turn yet
 }
+return false;
 }
 };
 
@@ -995,9 +1000,7 @@ const tooltip = document.createElement('div');
 tooltip.className = 'heal-preview';
 
 let content = `<div class="heal-total">+${preview.actualHeal}</div>`;
-if(preview.overHeal > 0) {
-content += `<div class="heal-wasted">+${preview.overHeal} wasted</div>`;
-} else if(preview.targetHp === preview.targetMaxHp) {
+if(preview.targetHp === preview.targetMaxHp) {
 content += `<div class="heal-full">Already full!</div>`;
 }
 

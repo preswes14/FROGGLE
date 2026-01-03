@@ -605,8 +605,8 @@ html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
-{dc:15, name:'MEND', desc:'Heal self for POW'},
+{dc:12, name:'MEND', desc:'Heal self for POW'},
+{dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
@@ -638,8 +638,8 @@ html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Sta
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
-{dc:12, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
-{dc:15, name:'MEND', desc:'Heal self for POW'},
+{dc:12, name:'MEND', desc:'Heal self for POW'},
+{dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
@@ -808,6 +808,8 @@ toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = 1;
+// Show stun tutorial popup first time
+showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
@@ -1351,6 +1353,8 @@ if(!e) return;
 totalDmg += e.p;
 e.st += stunDuration;
 targetNames.push(e.n);
+// Show stun tutorial popup first time
+showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
 if(S.royalQuestActive && S.round === 1 && !S.royalQuestCompleted) {
 S.royalQuestCompleted = true;
@@ -1527,8 +1531,13 @@ if(allActedIncludingLS) {
 S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
-TutorialManager.onEnemyTurnStart();
+// If tutorial is showing a popup, delay enemy turn until popup is dismissed
+const tutorialBlocking = TutorialManager.onEnemyTurnStart(() => {
 setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+});
+if(!tutorialBlocking) {
+setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+}
 }
 }
 
@@ -2312,19 +2321,14 @@ return;
 
 // RIBBLETON TUTORIAL: Show targeting prompts
 if(tutorialState && S.floor === 0 && S.pending) {
-// Auto-advance stage when Attack is pending
+// Auto-advance stage when Attack is pending (targeting info now in earlier popup)
 if(tutorialState.stage === 'warrior_attack' && S.pending === 'Attack' && S.targets.length === 0) {
 tutorialState.stage = 'targeting_wolf';
-// Popup explaining heroes can target any enemy
-showTutorialPop('ribbleton_targeting', "Heroes can attack ANY enemy, not just the one across from them! The Wolf is about to hit your Healer hard - take it out first to protect her!", () => {
-render();
-});
-return;
 }
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Use Healer's Expand to heal both wounded heroes!", () => {
+showTutorialPop('ribbleton_expand', "Remember how Healer was able to target 2 earlier? She can do that with her Heal, too! Try it out!", () => {
 render();
 });
 return;
@@ -2439,7 +2443,7 @@ html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
-html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
+html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}⚔</div>`;
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
 html += `</div>`;
@@ -2613,7 +2617,7 @@ const recruitExtra = [];
 if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
 if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
 const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
-html += `<div id="${recruit.id}" class="card hero${recruitShieldClass}" style="opacity:0.85;border:2px dashed #22c55e">`;
+html += `<div id="${recruit.id}" class="card hero recruit${recruitShieldClass}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
 // Enemy emoji (retain original enemy type)
@@ -2853,7 +2857,7 @@ if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:
 
 html += `<div class="card hero" style="${cardStyle}">`;
 // Power at top
-html += `<div style="text-align:center;font-size:1.1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚡</div>`;
+html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚔</div>`;
 // Hero image
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
 // Name

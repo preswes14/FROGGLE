@@ -752,7 +752,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage starts with two sigils: <strong>Attack</strong> (active) and <strong>Expand</strong> (passive). Active sigils require a click to use - you get one action per turn. Passive sigils work automatically! Expand gives +1 target to your actions. Click Attack and try hitting multiple flies!", () => {
+showTutorialPop('tapo_first_attack', "Mage starts with Attack, an <strong>ACTIVE SIGIL</strong> (costs your turn to use) and Expand, a <strong>PASSIVE SIGIL</strong> (bonus or automatic effect). Try to hit 2 flies!", () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
@@ -983,7 +983,7 @@ overlay.innerHTML = `
 <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:1rem">
 <div style="background:rgba(0,0,0,0.85);border-radius:16px;padding:1.5rem;max-width:550px;border:3px solid #dc2626;box-shadow:0 0 30px rgba(220,38,38,0.5)">
 <p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem;color:#fff;text-align:center">
-Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>. Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
+Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal</strong>.<br><br>Tank rushes over to help protect Tapo. Take control of Warrior and Healer to fend them off!
 </p>
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
@@ -1017,9 +1017,6 @@ Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal
 <div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
 </div>
 </div>
-<p style="font-size:1rem;line-height:1.6;text-align:center;font-style:italic;color:rgba(255,255,255,0.9);margin-top:1rem">
-Tank and Mage stand guard around Tapo while Warrior and Healer charge toward the portal!
-</p>
 <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
 <button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
 <button onclick="skipTutorialFromOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#666;color:#fff;border:2px solid #444;border-radius:8px;cursor:pointer">Skip Tutorial</button>
@@ -1094,7 +1091,7 @@ remaining.forEach(r => r.remove());
 // Wait for DOM to fully update before showing popup
 requestAnimationFrame(() => {
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior hits harder than Mage! Click the Warrior's Attack sigil.", () => {
+showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior doesn't start with Expand, but he does have 2 POW! Take out that Wolf before it chomps on your Healer!<br><br>(Enemies will usually attack whoever is closest to them, but you can be more strategic) Click the Warrior's Attack sigil.", () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
