@@ -660,7 +660,7 @@ text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">
 html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#f5f5f5">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong> 🎂</h2>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite;display:inline-block;margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" style="width:170px;height:auto">
+<img src="assets/tapo-nobg.png" alt="Tapo the tadpole" style="width:170px;height:auto">
 </div>
 <p style="font-size:1.15rem;line-height:1.7;margin-top:1rem;color:#f5f5f5">The whole town is celebrating the little tadpole's special day!</p>
 <style>
@@ -698,7 +698,7 @@ html: `
 <h2 style="font-size:1.7rem;margin-bottom:1rem;color:#2c63c7">A Special Gift</h2>
 <div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:1.5rem 0">
 <div>
-<img src="assets/reactions/mage-happy.jpeg" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<img src="assets/reactions/mage-happy.jpeg" alt="Mage smiling" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Mage</div>
 </div>
 <div style="font-size:2.5rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem">
@@ -706,7 +706,7 @@ html: `
 <span>🎁</span>
 </div>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite">
-<img src="assets/tapo-nobg.png" style="width:110px;height:auto">
+<img src="assets/tapo-nobg.png" alt="Tapo" style="width:110px;height:auto">
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Tapo</div>
 </div>
 </div>
@@ -775,7 +775,6 @@ S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Gho
 S.tutorialFlags.tapo_first_attack = false;
 // Force help tips enabled for tutorial (critical popups must show)
 S.helpTipsDisabled = false;
-console.log('[TUTORIAL] Phase 1 init - S.sig.Expand:', S.sig.Expand, 'helpTipsDisabled:', S.helpTipsDisabled);
 S.heroes = [
 {id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
@@ -807,7 +806,7 @@ overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:600px">
 <div style="text-align:center">
 <div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:1rem">
-<img src="assets/tapo-nobg.png" style="width:120px;height:auto">
+<img src="assets/tapo-nobg.png" alt="Tapo" style="width:120px;height:auto">
 </div>
 <h2 style="color:#22c55e;margin-bottom:1rem">Tapo to the Rescue!</h2>
 <p style="font-size:1.1rem;line-height:1.7;margin-bottom:1.5rem">
@@ -978,7 +977,7 @@ overlay.style.cssText = 'background:none;';
 overlay.innerHTML = `
 <div style="position:relative;width:100%;height:100%;overflow:hidden">
 <!-- Full-page Ribbleton background -->
-<img src="assets/ribbleton.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.7)">
+<img src="assets/ribbleton.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.7)">
 
 <!-- Content overlay -->
 <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:1rem">
@@ -989,27 +988,27 @@ Strange, hostile creatures spill out of the <strong style="color:#dc2626">portal
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
-<img src="assets/characters/tankfull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
+<img src="assets/characters/tankfull.png" alt="Tank" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">🛡 On Guard!</div>
 </div>
 <div style="text-align:center">
 <div style="animation:tapoSignatureSmall 3s ease-in-out infinite;display:inline-block">
-<img src="assets/tapo-nobg.png" style="width:60px;height:auto">
+<img src="assets/tapo-nobg.png" alt="Tapo" style="width:60px;height:auto">
 </div>
 <div style="font-size:0.65rem;color:#22c55e;margin-top:0.25rem">Protected!</div>
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
-<img src="assets/characters/magefull.png" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
+<img src="assets/characters/magefull.png" alt="Mage" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">📖 On Guard!</div>
 </div>
 </div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
-<img src="assets/characters/warriorfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
+<img src="assets/characters/warriorfull.png" alt="Warrior" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">⚔️ Attacking!</div>
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
-<img src="assets/characters/healerfull.png" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
+<img src="assets/characters/healerfull.png" alt="Healer" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">✚ Attacking!</div>
 </div>
 </div>
@@ -1244,7 +1243,7 @@ v.innerHTML = `
 <div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
-<img src="assets/hero-select.png" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
+<img src="assets/hero-select.png" alt="Hero selection" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
 <!-- Controller-friendly hero selection buttons -->
 <button type="button" class="hero-select-btn" data-hero="warrior" onclick="event.stopPropagation();toggleHeroSelection('warrior')" aria-label="Select Warrior"></button>
 <button type="button" class="hero-select-btn" data-hero="tank" onclick="event.stopPropagation();toggleHeroSelection('tank')" aria-label="Select Tank"></button>
@@ -1339,7 +1338,7 @@ cardEl.innerHTML = `
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
 <div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
+${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
 <div style="font-size:0.7rem;opacity:0.8">${hData.pow}⚡ | ${hData.hp}❤</div>
 <div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
 <div style="font-size:0.65rem;color:#22c55e;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
@@ -1577,7 +1576,6 @@ setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
 }
 
 function neutral(f) {
-console.log(`[FLOOR] neutral(${f}) called for neutral encounter`);
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
@@ -3241,7 +3239,7 @@ function showOldTapo() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<img src="assets/old-tapo.png" alt="Old Tapo, Master of Space and Time" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
 "Tapo, you say? Yes... I was called Tapo once, wasn't I? That was 'Before'... Before I mastered the speculae of space, the tesseracts of time... before I became one with the universe. You would save me? Why, I need no saving... In a universe of infinite and terrifying possibility, there need be no fear, no hate, no pain."
@@ -3254,7 +3252,7 @@ function oldTapoSlide2() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<img src="assets/old-tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<img src="assets/old-tapo.png" alt="Old Tapo" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
 "Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, but that Flydra sure looked yummy..."
@@ -3271,7 +3269,7 @@ v.innerHTML = `
 "Ah! I know!" <em>*Poof*</em>
 </div>
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo-nobg.png" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
+<img src="assets/tapo-nobg.png" alt="Baby Tapo" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;margin:1rem 0">
 <em>Squeals.</em> The heroes know this sound well - Baby Tapo is hungry for flies!
 </div>
@@ -3309,7 +3307,7 @@ function showDeathIntroDialogue() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
-<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/neutrals/shopkeeper2.png" alt="The mysterious shopkeeper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
@@ -3334,7 +3332,7 @@ const responseText = fromRibbleton
 
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
-<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/neutrals/shopkeeper2.png" alt="The mysterious shopkeeper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
 "${responseText}"

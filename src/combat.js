@@ -84,7 +84,7 @@ setTimeout(callback, T(interstitialDuration));
 }
 
 function startFloor(f) {
-console.log(`[FLOOR] startFloor(${f}) called, type=${typeof f}, isOdd=${f % 2 === 1}`);
+debugLog(`[FLOOR] startFloor(${f}) called, isOdd=${f % 2 === 1}`);
 S.floor=f;
 // QUEST TRACKING: Floor reached
 trackQuestProgress('floor', f);
@@ -101,10 +101,8 @@ S.ambushed = true;
 }
 // Show interstitial for combat floors
 if(f % 2 === 1) {
-console.log(`[FLOOR] Floor ${f} is odd, starting combat`);
 showFloorInterstitial(f, () => combat(f));
 } else {
-console.log(`[FLOOR] Floor ${f} is even, starting neutral`);
 neutral(f);
 }
 }
@@ -156,7 +154,6 @@ return ['goblin'];
  * @param {number} f - Floor number (1-19, or 0 for tutorial)
  */
 function combat(f) {
-console.log(`[FLOOR] combat(${f}) called, enemies will be created for floor ${f}`);
 // Show header during combat
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
@@ -384,7 +381,7 @@ function selectHero(idx) {
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(S.pending) return;
 const h = S.heroes[idx];
-if(!h) { console.error('Invalid hero index:', idx); return; }
+if(!h) return;
 if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 S.activeIdx = idx;
@@ -400,7 +397,7 @@ hideTooltip();
 
 // RIBBLETON TUTORIAL: Check for scripted actions using TutorialManager
 const h = S.heroes[heroIdx];
-if(!h) { console.error('Invalid hero index in act():', heroIdx); return; }
+if(!h) return;
 if(!TutorialManager.canPerformAction(h, sig)) {
 toast(TutorialManager.getInstructionMessage());
 return;
@@ -992,7 +989,6 @@ return;
 if(!S.pending || !needsEnemyTarget(S.pending)) return;
 const heroIdx = S.activeIdx;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
-console.log('[SELECTENEMY] heroIdx:', heroIdx, 'hero:', S.heroes[heroIdx]?.n, 'targetsPerInstance:', targetsPerInstance, 'S.sig.Expand:', S.sig?.Expand);
 if(S.pending === 'Attack') {
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
@@ -2369,7 +2365,7 @@ const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
-if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
 html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
@@ -2444,7 +2440,7 @@ html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${h.p}</div>`;
-if(heroImage) html += `<img src="${heroImage}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
+if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
 html += `</div>`;
 // Shield bar (if shielded) - placed below HP, above sigils
@@ -2859,7 +2855,7 @@ html += `<div class="card hero" style="${cardStyle}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1.1rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚡</div>`;
 // Hero image
-if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
 // Name
 html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
 // HP
@@ -2893,7 +2889,6 @@ v.innerHTML = html;
 }
 
 function nextFloor() {
-console.log(`[FLOOR] nextFloor() called, S.floor=${S.floor}`);
 // QUEST TRACKING: Neutral encounter completed (even floors are neutrals)
 if(S.floor % 2 === 0 && S.lastNeutral) {
   // Extract base neutral type from encounter name (e.g., 'shopkeeper1' -> 'shopkeeper')
@@ -2911,15 +2906,12 @@ S.pendingOldRecruitId = null;
 saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
-console.log(`[FLOOR] Floor 2 complete, showing faq_intro tutorial`);
 S.tutorialFlags.faq_intro = true;
 showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br>🌀 <strong>Sigilarium</strong> - View all sigils and their effects<br>🪵 <strong>Log</strong> - See combat message history<br>❓ <strong>FAQ</strong> - Frequently asked questions about game mechanics<br>⚙️ <strong>Settings</strong> - Adjust game options and preferences", () => {
-console.log(`[FLOOR] faq_intro callback, calling startFloor(${S.floor + 1})`);
 startFloor(S.floor + 1);
 });
 return;
 }
-console.log(`[FLOOR] Calling startFloor(${S.floor + 1})`);
 startFloor(S.floor + 1);
 }
 

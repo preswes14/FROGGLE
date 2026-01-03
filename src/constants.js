@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.40';
+const GAME_VERSION = '12.41';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -398,7 +398,7 @@ if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
 const heroImage = getHeroImage(h);
 html += `<div class="card hero">
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${h.n}</div>
-${heroImage ? `<img src="${heroImage}" class="card-image">` : ''}
+${heroImage ? `<img src="${heroImage}" alt="${h.n}" class="card-image">` : ''}
 <div class="sigil-divider"></div>`;
 const activeSigils = [...h.s, ...(h.ts || [])];
 html += renderSigilRows(activeSigils, i);
@@ -583,9 +583,7 @@ target.h = 0;
 if(options.isHero) {
 // TUTORIAL PHASE 1: Override Last Stand with Tapo rescue
 // IMPORTANT: Only trigger during ENEMY turn, not player turn (e.g., Grapple recoil)
-console.log('[TAPO] Phase 1 death check - S.turn:', S.turn, 'target:', target.n, 'HP was:', target.h);
 if(tutorialState && S.floor === 0 && tutorialState.phase === 1 && S.turn === 'enemy') {
-console.log('[TAPO] Rescue triggered! Starting rescue sequence.');
 // Tapo saves the day! Prevent actual death
 target.h = 1;
 // Show the full Tapo rescue sequence with narrative and animated fly deaths

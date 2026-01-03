@@ -324,7 +324,7 @@ let html = `
 }
 </style>
 <div class="death-screen-container" style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
-<img src="assets/neutrals/shopkeeper2.png" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/neutrals/shopkeeper2.png" alt="The mysterious shopkeeper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 ${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#4a4540;font-style:italic">"${deathQuote}"</p>` : ''}
 <div class="going-rate-marquee">
@@ -695,7 +695,7 @@ let html = `
 </h1>
 
 <div style="position:relative;width:100%;margin:0 auto">
-<img src="assets/champions-hall.png" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
+<img src="assets/champions-hall.png" alt="The Champions Hall" style="width:100%;display:block;border-radius:8px;border:3px solid #000">
 
 <!-- Clickable pedestal hotspot (center) -->
 <div onclick="showPedestal()" style="position:absolute;left:35%;top:30%;width:30%;height:50%;cursor:pointer" title="View Pedestal"></div>
@@ -1240,7 +1240,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 
 <div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #22c55e">
 <h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
-<img src="assets/tapo.png" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
+<img src="assets/tapo.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Has access to ALL sigils in the Sigilarium</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.6;margin-top:0.5rem;font-style:italic">(Glass cannon mode activated)</p>
@@ -1282,7 +1282,7 @@ v.innerHTML = `
 
 <div style="text-align:center;margin:2rem 0">
 <div style="display:inline-block;animation:tapoSignatureVictory 4.8s ease-in-out infinite">
-<img src="assets/tapo-nobg.png" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto">
+<img src="assets/tapo-nobg.png" alt="Tapo celebrating" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto">
 </div>
 </div>
 
@@ -1329,7 +1329,7 @@ let html = `
 if(S.gameMode === 'fu') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
 } else {
-html += `<img src="assets/tapo.png" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
+html += `<img src="assets/tapo.png" alt="Tapo saved!" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:1.2rem;font-weight:bold">You saved Tapo the Tadpole!</p>`;
 
 // Check if they've explored FU mode and show conditional text
@@ -2078,7 +2078,7 @@ let html = `
 </style>
 <div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
 <!-- Full-page background image -->
-<img src="assets/ribbleton.png" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
+<img src="assets/ribbleton.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
 <!-- Title overlay at top -->
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:1rem;background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, transparent 100%)">
