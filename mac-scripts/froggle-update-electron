@@ -10,7 +10,7 @@
 # 4. Run it: ~/froggle-update
 
 # ========== CONFIGURE THIS ==========
-STEAMDECK_HOST="deck@steamdeck.local"  # or "deck@192.168.1.XXX"
+STEAMDECK_HOST="deck@192.168.1.120"
 # ====================================
 
 REPO="preswes14/FROGGLE"
