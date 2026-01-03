@@ -356,12 +356,10 @@ toast('🎮 Controller support enabled! Connect a gamepad to use.', 2000);
 // Restart polling interval if it was stopped
 if(!GamepadController.pollInterval) {
 GamepadController.pollInterval = setInterval(() => GamepadController.poll(), 16);
-console.log('[GAMEPAD] Restarted polling loop after re-enable');
 }
 // Restart gamepad check interval if it was stopped
 if(!GamepadController.gamepadCheckInterval) {
 GamepadController.gamepadCheckInterval = setInterval(() => GamepadController.checkForGamepads(), 500);
-console.log('[GAMEPAD] Restarted gamepad check interval after re-enable');
 }
 // Re-initialize controller if a gamepad is connected
 if(navigator.getGamepads) {
@@ -391,7 +389,6 @@ savePermanent();
 }
 
 function forceReinitController() {
-console.log('[GAMEPAD] Force re-initializing controller...');
 // Clear any existing state
 S.controllerDisabled = false;
 GamepadController.gamepadIndex = null;
@@ -415,7 +412,6 @@ const gamepads = navigator.getGamepads();
 for(let i = 0; i < gamepads.length; i++) {
 const gp = gamepads[i];
 if(gp) {
-console.log('[GAMEPAD] Found gamepad at index', i, ':', gp.id);
 GamepadController.gamepadIndex = i;
 GamepadController.activateControllerMode();
 toast(`🎮 Controller found: ${gp.id.substring(0,30)}...`, 2500);
