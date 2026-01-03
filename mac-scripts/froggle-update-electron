@@ -1,0 +1,48 @@
+#!/bin/bash
+# FROGGLE Electron Update Script (run from Mac)
+# This downloads the latest Electron AppImage to your Steam Deck
+#
+# FIRST TIME SETUP:
+# 1. Edit STEAMDECK_HOST below with your Steam Deck's IP or hostname
+# 2. Copy this script to somewhere convenient, e.g.:
+#    cp mac-scripts/froggle-update-electron ~/froggle-update
+# 3. Make it executable: chmod +x ~/froggle-update
+# 4. Run it: ~/froggle-update
+
+# ========== CONFIGURE THIS ==========
+STEAMDECK_HOST="deck@steamdeck.local"  # or "deck@192.168.1.XXX"
+# ====================================
+
+REPO="preswes14/FROGGLE"
+INSTALL_DIR="\$HOME/Games/FROGGLE"
+
+echo "=== FROGGLE Steam Deck Updater ==="
+echo "Connecting to Steam Deck..."
+
+ssh $STEAMDECK_HOST "
+  set -e
+  mkdir -p $INSTALL_DIR
+  cd $INSTALL_DIR
+
+  echo 'Checking for latest version...'
+  DOWNLOAD_URL=\$(curl -s 'https://api.github.com/repos/$REPO/releases/tags/latest' | grep 'browser_download_url.*AppImage' | head -1 | cut -d '\"' -f 4)
+
+  if [ -z \"\$DOWNLOAD_URL\" ]; then
+    echo 'Error: No AppImage found. GitHub Actions may still be building.'
+    echo 'Check: https://github.com/$REPO/actions'
+    exit 1
+  fi
+
+  echo 'Downloading latest FROGGLE...'
+  curl -L --progress-bar -o 'FROGGLE.AppImage.tmp' \"\$DOWNLOAD_URL\"
+  mv 'FROGGLE.AppImage.tmp' 'FROGGLE.AppImage'
+  chmod +x 'FROGGLE.AppImage'
+
+  echo ''
+  echo '=== Update complete! ==='
+  echo 'FROGGLE is ready at: $INSTALL_DIR/FROGGLE.AppImage'
+"
+
+echo ""
+echo "Done! Your Steam Deck now has the latest FROGGLE."
+echo "Add it to Steam as a non-Steam game to play with controller!"
