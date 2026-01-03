@@ -2344,10 +2344,10 @@ S.heroes.forEach((h,i) => {
 const laneEnemyCount = (enemyLanes[i] || []).length;
 const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
 html += `<div class="combat-lane ${crowdedClass}">`;
-html += '<div class="lane-content" style="display:flex;gap:1rem;justify-content:center;align-items:stretch">';
+html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 
-// Hero section (left side of lane) - row-reverse so recruits (rendered after) appear to the LEFT of hero
-html += '<div style="flex:0 0 auto;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start">';
+// Hero section (left side of lane, 40% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
+html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start;justify-content:flex-end">';
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
@@ -2442,7 +2442,7 @@ html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
-html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}⚔</div>`;
+html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${hp}</div>`;
 html += `</div>`;
@@ -2652,8 +2652,8 @@ html += '</div>'; // Close hero section
 // Divider between heroes and enemies
 html += '<div style="width:2px;background:linear-gradient(to bottom,transparent,rgba(0,0,0,0.25) 15%,rgba(0,0,0,0.25) 85%,transparent);flex-shrink:0"></div>';
 
-// Enemy section (right side of lane)
-html += '<div style="flex:0 0 auto;display:flex;flex-wrap:wrap;gap:0.25rem;justify-content:flex-start;align-items:flex-start;align-content:flex-start;min-height:60px">';
+// Enemy section (right side of lane, 60% width)
+html += '<div style="flex:1 1 60%;display:flex;flex-wrap:wrap;gap:0.25rem;justify-content:flex-start;align-items:flex-start;align-content:flex-start;min-height:60px">';
 const laneEnemies = enemyLanes[i] || [];
 if(laneEnemies.length === 0) {
 html += `<div style="flex:1;text-align:center;font-size:1rem;padding:0.8rem;background:rgba(0,0,0,0.08);border:2px dashed rgba(0,0,0,0.25);border-radius:6px;color:rgba(0,0,0,0.35);font-style:italic;display:flex;align-items:center;justify-content:center">Clear</div>`;
@@ -2699,11 +2699,11 @@ html += `<div style="display:flex;align-items:center;justify-content:space-betwe
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${e.p}</div>`;
 // FLYDRA: Show head image instead of emoji
 if(e.isFlydra && e.flydraHeadImage) {
-html += `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+html += `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" class="flydra-head-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
-html += `<div style="font-size:0.85rem;min-width:50px;text-align:center">${e.h}/${e.m}</div>`;
+html += `<div style="font-size:0.8rem;min-width:55px;text-align:center;white-space:nowrap">${e.h}/${e.m}❤</div>`;
 html += `</div>`;
 // Shield bar (if shielded)
 if(e.sh > 0) {
@@ -2856,7 +2856,7 @@ if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:
 
 html += `<div class="card hero" style="${cardStyle}">`;
 // Power at top
-html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}⚔</div>`;
+html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}💥</div>`;
 // Hero image
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
 // Name

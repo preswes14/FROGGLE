@@ -469,6 +469,10 @@ const GamepadController = {
     const blocking = this.isBlockingOverlayVisible();
     if (blocking) return blocking;
 
+    // Check for modals (FAQ, Sigilarium, Settings, etc.)
+    const modal = document.querySelector('.modal-container');
+    if (modal && modal.offsetParent !== null) return 'modal';
+
     // Check game state for combat context
     if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0) {
       return S.pending ? 'targeting' : 'combat';
@@ -1683,16 +1687,27 @@ const GamepadController = {
     if (context === 'modal') {
       const modal = document.querySelector('.modal-container');
       if (modal) {
-        // Look for primary action buttons first (not emoji, not header)
+        // Priority 1: Choice buttons (neutral encounters, D20 gambits)
+        const choice = modal.querySelector('.choice');
+        if (choice) return choice;
+
+        // Priority 2: Upgrade buttons (level up, sigil upgrades)
+        const upgradeBtn = modal.querySelector('[onclick*="upgrade"], [onclick*="levelUp"], [onclick*="selectUpgrade"]');
+        if (upgradeBtn) return upgradeBtn;
+
+        // Priority 3: Primary action buttons (not close, not emoji)
         const primaryBtns = modal.querySelectorAll('.btn:not(.emoji-btn):not([style*="position:absolute"])');
         for (const btn of primaryBtns) {
           const text = btn.textContent || '';
+          const onclick = btn.getAttribute('onclick') || '';
+          // Skip close/back buttons
+          if (onclick.includes('close') || onclick.includes('Close') || onclick.includes('back') || onclick.includes('Back')) continue;
           // Skip buttons that are just emojis or single characters
           if (text.length > 2 && !/^[\u{1F300}-\u{1F9FF}]$/u.test(text.trim())) {
             return btn;
           }
         }
-        // Try to find any non-emoji button
+        // Priority 4: Any non-emoji button
         const anyBtn = modal.querySelector('.btn:not(.emoji-btn)');
         if (anyBtn) return anyBtn;
       }
@@ -1740,8 +1755,11 @@ const GamepadController = {
       // Next floor / level up
       '[onclick*="nextFloor"]',
       '[onclick*="levelUp"]',
-      // Ribbleton portal
+      // Ribbleton hub - red portal is main action
+      '[onclick*="enterRedPortal"]',
       '[onclick*="showRibbleton"]',
+      // D20 gambit choices
+      '.choice',
       // Common advancement buttons by text content
       'button.btn:not(.secondary)',
       '.btn:not(.secondary):not(.title-credits-btn)',

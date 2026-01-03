@@ -166,6 +166,16 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
 </div>
 `}
 
+${S.hasReachedFloor20 ? `
+<div style="text-align:center;margin-top:1.5rem;padding:1rem;background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(251,191,36,0.1));border:2px solid #3b82f6;border-radius:12px">
+<h3 style="margin:0 0 0.75rem 0;color:#60a5fa;text-shadow:1px 1px 2px rgba(0,0,0,0.5)">🏆 The Flydra's Conquerors 🏆</h3>
+<p style="color:#94a3b8;font-size:0.9rem;margin-bottom:0.75rem">You've proven yourself worthy. Visit the Champions Hall to manage figurines and explore other realms.</p>
+<button class="btn" onclick="showChampionsMenu()" style="background:linear-gradient(135deg,#3b82f6,#1e40af);border:2px solid #60a5fa;padding:0.75rem 1.5rem;font-size:1rem">
+🐸 Enter Champions Hall
+</button>
+</div>
+` : ''}
+
 <div style="text-align:center;margin-top:1.5rem">
 <button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">🐸 Return to Ribbleton</button>
 </div>
@@ -764,79 +774,84 @@ showChampionsMenu();
 function showPedestal() {
 const v = document.getElementById('gameView');
 const heroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
-const heroIcons = {'Warrior': '⚔', 'Tank': '🛡', 'Mage': '📖', 'Healer': '✚'};
 const stats = ['POW', 'HP'];
 
-// Build slot grid overlay on the pedestal image
+// Build 8 slots in 4x2 grid over the pedestal image
+// Slots are positioned to overlay the cubbies in the pedestal art
 let slotsHTML = '';
-stats.forEach((stat, rowIdx) => {
 heroes.forEach((hero, colIdx) => {
+stats.forEach((stat, rowIdx) => {
 const slotted = S.pedestal.find(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
 const isSlotted = !!slotted;
 
-// Position slots in a 2x4 grid over the pedestal image
-// Adjust these percentages to match the actual slot positions on the pedestal art
-const left = 20 + (colIdx * 20); // Distribute 4 columns across width
-const top = 40 + (rowIdx * 25); // Distribute 2 rows across height
+// Position 4 columns x 2 rows of slots centered on the pedestal cubbies
+// Top row: POW slots, Bottom row: HP slots
+const left = 12 + (colIdx * 19.5); // 4 columns across the pedestal width
+const top = 32 + (rowIdx * 22); // 2 rows on the pedestal
 
 slotsHTML += `
-<div style="position:absolute;left:${left}%;top:${top}%;width:15%;height:20%;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="${isSlotted ? `removeFigurine('${hero}','${stat}')` : `slotFigurine('${hero}','${stat}')`}">
-<div style="width:100%;height:100%;background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#3b82f6' : 'rgba(255,255,255,0.3)'};border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;backdrop-filter:blur(2px)">`;
+<div style="position:absolute;left:${left}%;top:${top}%;width:17%;height:18%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s"
+     onclick="${isSlotted ? `removeFigurine('${hero}','${stat}')` : `slotFigurine('${hero}','${stat}')`}"
+     onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">`;
 
 if(isSlotted) {
-const displayIcon = slotted.source === 'statuette' ? '🗿' : heroIcons[hero];
-slotsHTML += `<div style="font-size:2rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">${displayIcon}</div>
-<div style="font-size:0.7rem;background:#000;color:#fff;padding:2px 4px;border-radius:3px;margin-top:2px">${stat === 'POW' ? '+1' : '+5'}</div>`;
+// Show frog emoji when slot is filled
+slotsHTML += `<div style="font-size:2.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));animation:frogBounce 1.5s ease-in-out infinite">🐸</div>`;
 } else {
-slotsHTML += `<div style="font-size:1.5rem;color:rgba(255,255,255,0.4);text-shadow:0 2px 4px rgba(0,0,0,0.5)">+</div>`;
+// Empty slot - subtle indicator
+slotsHTML += `<div style="width:80%;height:80%;background:rgba(0,0,0,0.2);border:2px dashed rgba(255,255,255,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center">
+<span style="font-size:1.2rem;color:rgba(255,255,255,0.4)">+</span>
+</div>`;
 }
 
-slotsHTML += `</div></div>`;
+slotsHTML += `</div>`;
 });
 });
 
-// Add legend showing hero names at top
-let legendHTML = '<div style="position:absolute;top:10%;left:0;right:0;display:flex;justify-content:space-around;padding:0 15%">';
+// Labels for heroes across the top
+let heroLabelsHTML = '<div style="position:absolute;top:18%;left:10%;right:10%;display:flex;justify-content:space-around">';
 heroes.forEach(hero => {
-legendHTML += `<div style="text-align:center;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)">
-<div style="font-size:1.5rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">${heroIcons[hero]}</div>
-<div style="font-size:0.75rem;font-weight:bold">${hero}</div>
-</div>`;
+heroLabelsHTML += `<div style="text-align:center;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.9);font-size:0.8rem;font-weight:bold">${hero}</div>`;
 });
-legendHTML += '</div>';
+heroLabelsHTML += '</div>';
 
-// Add stat labels on left
-let statLabelsHTML = '<div style="position:absolute;left:5%;top:40%;display:flex;flex-direction:column;gap:25%">';
-stats.forEach(stat => {
-statLabelsHTML += `<div style="color:#fff;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.8);font-size:1.2rem">${stat}</div>`;
-});
-statLabelsHTML += '</div>';
+// Stat labels on the left side
+let statLabelsHTML = `
+<div style="position:absolute;left:3%;top:38%;color:#fbbf24;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.9);font-size:0.9rem">POW</div>
+<div style="position:absolute;left:3%;top:60%;color:#ef4444;font-weight:bold;text-shadow:0 2px 4px rgba(0,0,0,0.9);font-size:0.9rem">HP</div>`;
+
+// Count placed figurines
+const placedCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 
 let html = `
-<div class="neutral-container">
-<div class="neutral-left" style="position:relative;min-height:600px">
-<div class="neutral-header">
-<div class="neutral-stats">💰 ${S.gold}G | 🎯 Floor ${S.floor}</div>
-<div class="neutral-narrative">
-<h2 style="margin:0">⚱️ Pedestal of Champions</h2>
-<p style="margin:0.5rem 0;font-size:0.9rem">${S.gameMode} Mode - Place figurines for permanent stat buffs</p>
-</div>
-</div>
-
-${legendHTML}
+<div style="width:100%;height:100vh;position:relative;background:#1a1a1a;overflow:hidden">
+<!-- Pedestal image as background, centered -->
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:95%;height:90%;background-image:url('assets/neutrals/statue2.png');background-size:contain;background-position:center;background-repeat:no-repeat">
+${heroLabelsHTML}
 ${statLabelsHTML}
 ${slotsHTML}
+</div>
 
-${S.hasAncientStatuette ? `<div style="position:absolute;bottom:15%;left:10%;right:10%;padding:1rem;background:rgba(251,191,36,0.9);border-radius:6px;text-align:center;border:2px solid #000">
-<p style="font-weight:bold;margin-bottom:0.5rem">🗿 Ancient Statuette Available!</p>
-<p style="font-size:0.9rem;margin:0">Click any empty slot to place it</p>
+<!-- Header overlay -->
+<div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);text-align:center;z-index:10">
+<h2 style="margin:0;color:#fbbf24;text-shadow:0 2px 8px rgba(0,0,0,0.9);font-size:1.3rem">⚱️ Pedestal of Champions</h2>
+<p style="margin:0.25rem 0;font-size:0.85rem;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)">${S.gameMode} Mode - ${placedCount}/8 figurines placed</p>
+</div>
+
+${S.hasAncientStatuette ? `<div style="position:absolute;bottom:15%;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;background:rgba(251,191,36,0.95);border-radius:8px;text-align:center;border:3px solid #000;z-index:10">
+<p style="font-weight:bold;margin:0;font-size:0.9rem">🗿 Ancient Statuette Available! Click an empty slot to place.</p>
 </div>` : ''}
 
-<div style="position:absolute;bottom:5%;left:50%;transform:translateX(-50%)">
-<button class="btn secondary" onclick="showChampionsMenu()">Back to Victory Room</button>
+<!-- Back button -->
+<div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:10">
+<button class="btn secondary" onclick="showChampionsMenu()" style="padding:0.75rem 2rem">Back to Victory Room</button>
 </div>
-</div>
-<div class="neutral-right" style="background-image:url('assets/neutrals/statue2.png')"></div>
+<style>
+@keyframes frogBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+</style>
 </div>`;
 
 v.innerHTML = html;
@@ -2063,7 +2078,6 @@ ProceduralMusic.startFroggyBeat();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
-const bluePortalUnlocked = S.hasReachedFloor20;
 
 // Show tutorial for first-time visitors to Ribbleton hub (delayed to ensure screen is rendered first)
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
@@ -2084,7 +2098,7 @@ let html = `
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 </style>
-<div style="position:relative;width:100%;height:calc(100vh - 60px);overflow:hidden">
+<div class="full-screen-content" style="position:relative;width:100%;overflow:hidden">
 <!-- Full-page background image -->
 <img src="assets/ribbleton.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
@@ -2095,24 +2109,23 @@ let html = `
 </h1>
 </div>
 
-${bluePortalUnlocked ? `
-<!-- Blue Portal (Unlocked after Floor 20) - CENTER TOP position -->
-<div style="position:absolute;top:5rem;left:50%;transform:translateX(-50%);z-index:10">
-<div onclick="enterBluePortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+
+<!-- Lilypad Pond (bottom-left) - Blue circle portal, same size as red portal -->
+${S.pondHistory && S.pondHistory.length > 0 ? `
+<div style="position:absolute;bottom:1rem;left:1rem;z-index:10">
+<div onclick="showPond()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
-     title="Return to the Statue Room">
-  <div style="width:100px;height:100px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem">🐸</div>
+     title="Reflect on your adventures at the Lilypad Pond">
+  <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 40px #3b82f6">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">🪷</div>
   </div>
-  <p style="margin-top:0.25rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.25rem 0.6rem;border-radius:4px;border:2px solid #3b82f6">🏆 Champions</p>
+  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #3b82f6">🌿 The Pond</p>
 </div>
 </div>
 ` : ''}
 
-<!-- Portal area in bottom-right corner -->
-<div style="position:absolute;bottom:1rem;right:1rem;z-index:10;display:flex;flex-direction:column;gap:0.75rem;align-items:flex-end">
-
-<!-- Red Portal (Always Available) - Animated swirling portal with goblin emoji -->
+<!-- Red Portal (bottom-right) - Always Available -->
+<div style="position:absolute;bottom:1rem;right:1rem;z-index:10">
 <div onclick="enterRedPortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
      title="Click to begin your adventure and save Tapo!">
@@ -2121,12 +2134,6 @@ ${bluePortalUnlocked ? `
   </div>
   <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
 </div>
-
-${S.pondHistory && S.pondHistory.length > 0 ? `
-<button class="btn small" onclick="showPond()" style="background:linear-gradient(135deg,rgba(30,58,138,0.9),rgba(59,130,246,0.8));border:2px solid #60a5fa;font-size:0.9rem;padding:0.5rem 1rem;box-shadow:0 4px 12px rgba(0,0,0,0.5)">
-🪷 The Pond
-</button>
-` : ''}
 </div>
 
 <!-- Quest Board in bottom-center -->
@@ -2151,17 +2158,5 @@ S.inRibbleton = false;
 SoundFX.play('portal');
 toast('Preparing to enter the dungeon...', 1200);
 setTimeout(() => transitionScreen(title), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
-}
-
-function enterBluePortal() {
-if(!S.hasReachedFloor20) {
-toast('The Blue Portal is locked!');
-SoundFX.play('error');
-return;
-}
-S.inRibbleton = false;
-SoundFX.play('portal');
-toast('Entering the Blue Portal...', 1200);
-setTimeout(() => transitionScreen(showChampionsMenu), T(ANIMATION_TIMINGS.ACTION_COMPLETE));
 }
 
