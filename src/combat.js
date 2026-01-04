@@ -931,7 +931,6 @@ return;
 const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
-debugLog('[CONFIRM] Attack confirm - S.currentInstanceTargets:', S.currentInstanceTargets, 'length:', S.currentInstanceTargets.length);
 executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
 S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
@@ -1002,7 +1001,6 @@ return;
 if(!S.pending || !needsEnemyTarget(S.pending)) return;
 const heroIdx = S.activeIdx;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
-debugLog('[TARGET] tgtEnemy called - id:', id, 'heroIdx:', heroIdx, 'targetsPerInstance:', targetsPerInstance, 'current targets:', S.currentInstanceTargets);
 if(S.pending === 'Attack') {
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
@@ -1197,7 +1195,6 @@ render();
 function executeInstance(action, heroIdx, targets) {
 const h = S.heroes[heroIdx];
 const pow = h.p;
-debugLog('[EXECUTE] executeInstance called:', action, 'heroIdx:', heroIdx, 'targets:', targets, 'target count:', targets.length);
 if(action === 'Attack') {
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
@@ -1205,10 +1202,8 @@ triggerAttackAnimation(h.id);
 const targetDetails = [];
 const damagedEnemyIds = [];
 // First pass: Apply damage to all targets
-debugLog('[EXECUTE] Starting damage loop, S.enemies:', S.enemies.map(e => ({id: e.id, n: e.n, h: e.h})));
 targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
-debugLog('[EXECUTE] Processing target:', tgtId, 'found enemy:', e ? e.n : 'NOT FOUND');
 if(!e) return;
 const hpBefore = e.h;
 damagedEnemyIds.push(e.id);

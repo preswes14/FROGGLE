@@ -537,15 +537,15 @@ v.innerHTML = `
 <!-- Full-page background image -->
 <img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;${bgStyle}">
 
-<!-- Text bar at bottom with solid background for readability -->
-<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.85);padding:1rem 1.25rem 0.75rem 1.25rem;border-top:3px solid rgba(34,197,94,0.6)">
-<div style="max-width:800px;margin:0 auto">
-${slide.html || `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">${slideText}</div>`}
-<div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;flex-wrap:wrap">
-<button class="btn" onclick="continueNarrative()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<!-- Compact text bar at bottom -->
+<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.75);padding:0.6rem 1rem 0.5rem 1rem;border-top:2px solid rgba(34,197,94,0.5)">
+<div style="max-width:700px;margin:0 auto">
+${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-height:1.5;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">${slideText}</div>`}
+<div style="display:flex;gap:0.75rem;justify-content:center;margin-top:0.6rem;flex-wrap:wrap;align-items:center">
+<button class="btn" onclick="continueNarrative()" style="padding:0.4rem 1.25rem;font-size:0.95rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
+<span style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
 </div>
-<div style="text-align:center;margin-top:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.6)">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
 </div>
 </div>
 </div>`;
@@ -731,15 +731,16 @@ debugLog('[FROGGLE] showNarrativeSlide called');
 }
 
 function showTaposBirthdayOverlay() {
-// Show Phase 1 narrative overlay
+// Show Phase 1 narrative overlay - positioned at bottom to not obscure combat
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
+overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding-bottom:2rem;';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:600px">
-<p style="font-size:1.5rem;line-height:1.7;margin-bottom:2rem;text-align:center">
+<div class="tutorial-modal" style="max-width:400px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
+<p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
 🪰 Here come three <strong>flies</strong> now - you're up! 🪰
 </p>
-<button onclick="dismissTaposBirthdayOverlay()" style="padding:1rem 2.5rem;font-size:1.3rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's catch flies!</button>
+<button onclick="dismissTaposBirthdayOverlay()" style="margin-top:0.75rem;padding:0.6rem 1.5rem;font-size:1rem;">Let's catch flies!</button>
 </div>`;
 document.body.appendChild(overlay);
 }
