@@ -1,12 +1,12 @@
-name: Build Steam Deck AppImage
+name: Build Game (Linux + Windows)
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
-  contents: write  # Required for creating releases
+  contents: write
 
 jobs:
   build:
@@ -28,16 +28,24 @@ jobs:
       - name: Build game (combine source files)
         run: ./build.sh
 
-      - name: Build Linux AppImage
-        run: npm run dist:linux
+      - name: Install Wine (for Windows cross-compile)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine64
+
+      - name: Build Linux + Windows
+        run: npm run dist:all
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload AppImage artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: FROGGLE-SteamDeck
-          path: dist/*.AppImage
+          name: FROGGLE-builds
+          path: |
+            dist/*.AppImage
+            dist/*.exe
           retention-days: 30
 
       - name: Create/Update Latest Release
@@ -45,11 +53,14 @@ jobs:
         with:
           tag_name: latest
           name: Latest Build
-          files: dist/*.AppImage
+          files: |
+            dist/*.AppImage
+            dist/*.exe
           prerelease: true
           body: |
             Automatically built from the latest main branch.
 
-            **For Steam Deck:** Download the .AppImage file, make it executable, and run!
+            **Steam Deck / Linux:** Download the `.AppImage` file
+            **Windows handhelds (ROG Ally, Legion Go, etc.):** Download the `.exe` file
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
