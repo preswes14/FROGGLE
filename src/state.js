@@ -176,7 +176,8 @@ pedestal_first_placement: false,
 tapo_victory_message: false,
 tapo_first_attack: false,
 auto_target_intro: false,
-steam_controller_setup: false
+steam_controller_setup: false,
+tutorial_fly_munched: false  // Killed a fly during tutorial (for 1G quest)
 },
 usedDeathQuotes: [], // Track which death quotes have been shown
 

@@ -1432,6 +1432,16 @@ v.innerHTML = html;
 // ===== QUEST BOARD SYSTEM =====
 // Quest definitions - all quests are passive (no acceptance required)
 const QUESTS = {
+  // === TUTORIAL QUEST (Only visible if player did the tutorial) ===
+  fly_muncher: {
+    name: 'Fly Muncher',
+    desc: 'Munch on a fly during the tutorial',
+    reward: 1,
+    category: 'learning',
+    unlock: () => S.tutorialFlags.tutorial_fly_munched,  // Only shows if they did the tutorial and killed a fly
+    check: () => S.tutorialFlags.tutorial_fly_munched
+  },
+
   // === LEARNING QUESTS (Always visible) ===
   first_blood: {
     name: 'First Blood',

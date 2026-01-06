@@ -2340,7 +2340,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.68';
+const GAME_VERSION = '12.69';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4980,7 +4980,8 @@ pedestal_first_placement: false,
 tapo_victory_message: false,
 tapo_first_attack: false,
 auto_target_intro: false,
-steam_controller_setup: false
+steam_controller_setup: false,
+tutorial_fly_munched: false  // Killed a fly during tutorial (for 1G quest)
 },
 usedDeathQuotes: [], // Track which death quotes have been shown
 
@@ -7734,10 +7735,15 @@ triggerKnockout(enemy.id);
 SoundFX.play('death');
 triggerScreenShake(true); // Heavy shake on enemy defeat
 
-// RIBBLETON TUTORIAL: Track Wolf/Goblin kills
+// RIBBLETON TUTORIAL: Track Wolf/Goblin/Fly kills
 if(tutorialState && S.floor === 0) {
 if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
+// Tutorial fly quest: "Munch on a Fly" (1G reward)
+if(enemy.n === 'Fly' && !S.tutorialFlags.tutorial_fly_munched) {
+S.tutorialFlags.tutorial_fly_munched = true;
+savePermanent();
+}
 }
 
 // QUEST TRACKING: Enemy killed
@@ -14609,6 +14615,16 @@ v.innerHTML = html;
 // ===== QUEST BOARD SYSTEM =====
 // Quest definitions - all quests are passive (no acceptance required)
 const QUESTS = {
+  // === TUTORIAL QUEST (Only visible if player did the tutorial) ===
+  fly_muncher: {
+    name: 'Fly Muncher',
+    desc: 'Munch on a fly during the tutorial',
+    reward: 1,
+    category: 'learning',
+    unlock: () => S.tutorialFlags.tutorial_fly_munched,  // Only shows if they did the tutorial and killed a fly
+    check: () => S.tutorialFlags.tutorial_fly_munched
+  },
+
   // === LEARNING QUESTS (Always visible) ===
   first_blood: {
     name: 'First Blood',

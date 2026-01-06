@@ -1443,10 +1443,15 @@ triggerKnockout(enemy.id);
 SoundFX.play('death');
 triggerScreenShake(true); // Heavy shake on enemy defeat
 
-// RIBBLETON TUTORIAL: Track Wolf/Goblin kills
+// RIBBLETON TUTORIAL: Track Wolf/Goblin/Fly kills
 if(tutorialState && S.floor === 0) {
 if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
+// Tutorial fly quest: "Munch on a Fly" (1G reward)
+if(enemy.n === 'Fly' && !S.tutorialFlags.tutorial_fly_munched) {
+S.tutorialFlags.tutorial_fly_munched = true;
+savePermanent();
+}
 }
 
 // QUEST TRACKING: Enemy killed
