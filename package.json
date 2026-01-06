@@ -42,7 +42,8 @@
     },
     "win": {
       "target": "portable",
-      "icon": "assets/tapo.png"
+      "icon": "assets/tapo.png",
+      "artifactName": "${productName}-${version}.${ext}"
     },
     "mac": {
       "target": "dmg",
