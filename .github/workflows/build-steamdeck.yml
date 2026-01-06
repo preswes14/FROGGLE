@@ -1,4 +1,4 @@
-name: Build Game (Linux + Windows)
+name: Build Game (All Platforms)
 
 on:
   push:
@@ -9,9 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-linux-windows:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,11 +41,51 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: FROGGLE-builds
+          name: builds-linux-windows
           path: |
             dist/*.AppImage
             dist/*.exe
           retention-days: 30
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build game (combine source files)
+        run: ./build.sh
+
+      - name: Build macOS
+        run: npm run dist:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: builds-mac
+          path: dist/*.dmg
+          retention-days: 30
+
+  release:
+    needs: [build-linux-windows, build-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
 
       - name: Create/Update Latest Release
         uses: softprops/action-gh-release@v1
@@ -56,11 +95,13 @@ jobs:
           files: |
             dist/*.AppImage
             dist/*.exe
+            dist/*.dmg
           prerelease: true
           body: |
             Automatically built from the latest main branch.
 
             **Steam Deck / Linux:** Download the `.AppImage` file
-            **Windows handhelds (ROG Ally, Legion Go, etc.):** Download the `.exe` file
+            **Windows / ROG Ally / Legion Go:** Download the `.exe` file
+            **Mac:** Download the `.dmg` file
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
