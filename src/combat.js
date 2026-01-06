@@ -3283,7 +3283,18 @@ return categoryHtml;
 };
 
 html += renderActiveSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+// Advanced Sigils - locked if not unlocked
+if(S.advancedSigilsUnlocked) {
 html += renderActiveSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+} else {
+html += `
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
+<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+</div>`;
+}
 }
 html += `<button class="btn secondary" onclick="addActiveToHero()">Back</button>`;
 v.innerHTML = html;
@@ -3346,7 +3357,18 @@ return categoryHtml;
 };
 
 html += renderUpgradeSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+// Advanced Sigils - locked if not unlocked
+if(S.advancedSigilsUnlocked) {
 html += renderUpgradeSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+} else {
+html += `
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
+<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+</div>`;
+}
 }
 }
 html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
@@ -3377,7 +3399,15 @@ const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive Sigil</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Cost: ${cost} XP</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.85rem;opacity:0.8">Passive sigils automatically benefit ALL heroes!</p>`;
-if(S.xp < cost) {
+// Passive Sigils - locked if not unlocked
+if(!S.passiveSigilsUnlocked) {
+html += `
+<div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
+<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+</div>`;
+} else if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
