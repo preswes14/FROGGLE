@@ -246,21 +246,36 @@ v.innerHTML = `
 </div>`;
 }
 
+// Format timestamp as readable date
+function formatSaveDate(timestamp) {
+if(!timestamp) return '';
+const d = new Date(timestamp);
+const month = d.toLocaleDateString('en-US', { month: 'short' });
+const day = d.getDate();
+const hour = d.getHours();
+const min = d.getMinutes().toString().padStart(2, '0');
+const ampm = hour >= 12 ? 'PM' : 'AM';
+const hour12 = hour % 12 || 12;
+return `${month} ${day}, ${hour12}:${min} ${ampm}`;
+}
+
 // Show save slot selection screen
 function showSaveSlotSelection() {
 const v = document.getElementById('gameView');
 const slot1 = getSlotMetadata(1);
 const slot2 = getSlotMetadata(2);
+const slot3 = getSlotMetadata(3);
 
 v.innerHTML = `
 <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow:hidden;box-sizing:border-box">
-<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1rem;max-width:500px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1rem;max-width:500px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5);max-height:95vh;overflow-y:auto">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem;color:#000">Select Save Slot</h2>
 
 <!-- Slot 1 -->
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 1</h3>
+${slot1.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot1.lastSaved)}</span>` : ''}
 </div>
 ${slot1.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
@@ -281,6 +296,7 @@ ${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active 
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 2</h3>
+${slot2.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot2.lastSaved)}</span>` : ''}
 </div>
 ${slot2.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
@@ -294,6 +310,27 @@ ${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active 
 ` : `
 <p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
 <button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
+`}
+</div>
+
+<!-- Slot 3 -->
+<div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
+<h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 3</h3>
+${slot3.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot3.lastSaved)}</span>` : ''}
+</div>
+${slot3.exists ? `
+<div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
+<div>📊 Runs: <strong>${slot3.runsAttempted}</strong> | 💰 Rate: <strong>${slot3.goingRate}G</strong></div>
+${slot3.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot3.activeFloor ? ` - Floor ${slot3.activeFloor}` : ''}</div>` : ''}
+</div>
+<div style="display:flex;gap:0.5rem">
+<button class="btn" onclick="continueSlot(3)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot3.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(3)" style="padding:0.5rem">🗑️</button>
+</div>
+` : `
+<p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
+<button class="btn" onclick="createNewSlot(3)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
 `}
 </div>
 

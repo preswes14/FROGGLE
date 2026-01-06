@@ -1037,7 +1037,8 @@ exists: true,
 runsAttempted: j.runsAttempted || j.runNumber || 1,
 goingRate: j.goingRate || 1,
 hasActiveRun: !!runData,
-activeFloor: activeFloor
+activeFloor: activeFloor,
+lastSaved: j.lastSaved || null
 };
 }
 // Check old system for migration
@@ -1252,6 +1253,7 @@ localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}_backup`, existingS
 }
 localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}`, JSON.stringify({
 version: GAME_VERSION,
+lastSaved: Date.now(),
 gold: S.gold,
 goingRate: S.goingRate,
 runsAttempted: S.runsAttempted,
