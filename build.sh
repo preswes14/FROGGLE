@@ -36,7 +36,14 @@ if [ "$1" != "--no-bump" ]; then
         sed -i "s/const GAME_VERSION = '[^']*'/const GAME_VERSION = '$NEW_VERSION'/" src/constants.js
     fi
 
-    echo "→ Version bumped: $CURRENT_VERSION → $NEW_VERSION"
+    # Also update service worker cache name
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s/const CACHE_NAME = 'froggle-v[^']*'/const CACHE_NAME = 'froggle-v$NEW_VERSION'/" sw.js
+    else
+        sed -i "s/const CACHE_NAME = 'froggle-v[^']*'/const CACHE_NAME = 'froggle-v$NEW_VERSION'/" sw.js
+    fi
+
+    echo "→ Version bumped: $CURRENT_VERSION → $NEW_VERSION (constants.js + sw.js)"
 fi
 
 # Check if templates exist, if not extract them
