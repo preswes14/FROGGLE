@@ -1384,6 +1384,8 @@ showPedestal();
 }
 
 function showSimpleVictoryScreen() {
+// JUICE: Funky frog beat for victory celebration (after fanfare)
+setTimeout(() => ProceduralMusic.startTitleBeat(), 2000);
 const v = document.getElementById('gameView');
 let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
