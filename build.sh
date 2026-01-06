@@ -29,8 +29,12 @@ if [ "$1" != "--no-bump" ]; then
     # Increment by 0.01
     NEW_VERSION=$(echo "$CURRENT_VERSION + 0.01" | bc | sed 's/^\./0./')
 
-    # Update the file
-    sed -i "s/const GAME_VERSION = '[^']*'/const GAME_VERSION = '$NEW_VERSION'/" src/constants.js
+    # Update the file (cross-platform: Mac BSD sed vs GNU sed)
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s/const GAME_VERSION = '[^']*'/const GAME_VERSION = '$NEW_VERSION'/" src/constants.js
+    else
+        sed -i "s/const GAME_VERSION = '[^']*'/const GAME_VERSION = '$NEW_VERSION'/" src/constants.js
+    fi
 
     echo "→ Version bumped: $CURRENT_VERSION → $NEW_VERSION"
 fi
