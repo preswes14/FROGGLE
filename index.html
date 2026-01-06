@@ -2340,7 +2340,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.67';
+const GAME_VERSION = '12.70';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4867,6 +4867,8 @@ hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
 fuUnlocked: false,
 forcedFUEntry: false,            // True after first Standard win, forces FU run
 tapoUnlocked: false,             // Unlocked after first FU victory
+advancedSigilsUnlocked: false,   // Death screen: Advanced sigils (Ghost, Alpha, Grapple) purchasable
+passiveSigilsUnlocked: false,    // Death screen: Passive sigils (Expand, Asterisk, Star) purchasable
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
 // ===== QUEST BOARD STATE (persistent) =====
@@ -4978,7 +4980,8 @@ pedestal_first_placement: false,
 tapo_victory_message: false,
 tapo_first_attack: false,
 auto_target_intro: false,
-steam_controller_setup: false
+steam_controller_setup: false,
+tutorial_fly_munched: false  // Killed a fly during tutorial (for 1G quest)
 },
 usedDeathQuotes: [], // Track which death quotes have been shown
 
@@ -4995,6 +4998,8 @@ let sel = [];
 // Helper function to track quest progress
 function trackQuestProgress(type, value) {
   if(!S.questProgress) return; // Guard against undefined
+  // Don't track quest progress during tutorial (Floor 0)
+  if(S.floor === 0) return;
 
   switch(type) {
     case 'enemyKill':
@@ -5624,6 +5629,8 @@ hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
 forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
+advancedSigilsUnlocked: S.advancedSigilsUnlocked,
+passiveSigilsUnlocked: S.passiveSigilsUnlocked,
 runNumber: S.runNumber,
 runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
@@ -5719,6 +5726,8 @@ S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
 S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
+S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
+S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -5967,6 +5976,8 @@ S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
 S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
+S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
+S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
@@ -6071,6 +6082,8 @@ hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
 forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
+advancedSigilsUnlocked: S.advancedSigilsUnlocked,
+passiveSigilsUnlocked: S.passiveSigilsUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
@@ -7722,10 +7735,15 @@ triggerKnockout(enemy.id);
 SoundFX.play('death');
 triggerScreenShake(true); // Heavy shake on enemy defeat
 
-// RIBBLETON TUTORIAL: Track Wolf/Goblin kills
+// RIBBLETON TUTORIAL: Track Wolf/Goblin/Fly kills
 if(tutorialState && S.floor === 0) {
 if(enemy.n === 'Wolf') tutorialState.wolfKilled = true;
 if(enemy.n === 'Goblin') tutorialState.goblinKilled = true;
+// Tutorial fly quest: "Munch on a Fly" (1G reward)
+if(enemy.n === 'Fly' && !S.tutorialFlags.tutorial_fly_munched) {
+S.tutorialFlags.tutorial_fly_munched = true;
+savePermanent();
+}
 }
 
 // QUEST TRACKING: Enemy killed
@@ -9557,7 +9575,18 @@ return categoryHtml;
 };
 
 html += renderActiveSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+// Advanced Sigils - locked if not unlocked
+if(S.advancedSigilsUnlocked) {
 html += renderActiveSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+} else {
+html += `
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
+<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+</div>`;
+}
 }
 html += `<button class="btn secondary" onclick="addActiveToHero()">Back</button>`;
 v.innerHTML = html;
@@ -9620,7 +9649,18 @@ return categoryHtml;
 };
 
 html += renderUpgradeSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+// Advanced Sigils - locked if not unlocked
+if(S.advancedSigilsUnlocked) {
 html += renderUpgradeSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+} else {
+html += `
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
+<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+</div>`;
+}
 }
 }
 html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
@@ -9651,7 +9691,15 @@ const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive Sigil</h2>
 <p style="text-align:center;margin-bottom:0.5rem">Cost: ${cost} XP</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.85rem;opacity:0.8">Passive sigils automatically benefit ALL heroes!</p>`;
-if(S.xp < cost) {
+// Passive Sigils - locked if not unlocked
+if(!S.passiveSigilsUnlocked) {
+html += `
+<div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
+<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+</div>`;
+} else if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
@@ -13608,15 +13656,41 @@ html += `</div>`;
 
 // Advanced Sigils
 html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">🔥 Advanced Sigils</h4>`;
+if(S.advancedSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(advancedSigils);
 html += `</div>`;
+} else {
+const canAffordAdvanced = S.gold >= 20;
+html += `
+<div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #f97316;box-shadow:0 0 20px rgba(249,115,22,0.3);text-align:center">
+<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<p style="color:#f97316;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Ghost • Alpha • Grapple</p>
+<p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock advanced combat techniques</p>
+<button class="btn" ${!canAffordAdvanced ? 'disabled' : ''} onclick="unlockSigilCategory('advanced')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordAdvanced ? 'background:linear-gradient(135deg,#f97316,#ea580c);border-color:#f97316;color:#fff' : ''}">
+${canAffordAdvanced ? 'UNLOCK - 20G' : 'Need 20G to Unlock'}
+</button>
+</div>`;
+}
 
 // Passive Sigils
 html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">✨ Passive Sigils</h4>`;
+if(S.passiveSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(passiveSigils);
 html += `</div>`;
+} else {
+const canAffordPassive = S.gold >= 50;
+html += `
+<div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #9333ea;box-shadow:0 0 20px rgba(147,51,234,0.3);text-align:center">
+<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<p style="color:#9333ea;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Expand • Asterisk • Star</p>
+<p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock passive enhancements</p>
+<button class="btn" ${!canAffordPassive ? 'disabled' : ''} onclick="unlockSigilCategory('passive')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordPassive ? 'background:linear-gradient(135deg,#9333ea,#7c3aed);border-color:#9333ea;color:#fff' : ''}">
+${canAffordPassive ? 'UNLOCK - 50G' : 'Need 50G to Unlock'}
+</button>
+</div>`;
+}
 }
 
 // Death Boys (only if Ghost Boys converted)
@@ -13715,6 +13789,27 @@ trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
 SoundFX.play('powerUp');
 toast(`${sig} upgraded to L${S.sig[sig]}!`, 1200);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function unlockSigilCategory(category) {
+const costs = { advanced: 20, passive: 50 };
+const cost = costs[category];
+if(!cost) { toast('Invalid category!'); return; }
+if(S.gold < cost) { toast('Not enough Gold!'); return; }
+
+S.gold -= cost;
+if(category === 'advanced') {
+S.advancedSigilsUnlocked = true;
+SoundFX.play('powerUp');
+toast('Advanced Sigils Unlocked!', 1500);
+} else if(category === 'passive') {
+S.passiveSigilsUnlocked = true;
+SoundFX.play('powerUp');
+toast('Passive Sigils Unlocked!', 1500);
+}
+// Category unlocks do NOT increase Going Rate
 savePermanent();
 showDeathScreen(); // Refresh
 }
@@ -14550,6 +14645,16 @@ v.innerHTML = html;
 // ===== QUEST BOARD SYSTEM =====
 // Quest definitions - all quests are passive (no acceptance required)
 const QUESTS = {
+  // === TUTORIAL QUEST (Only visible if player did the tutorial) ===
+  fly_muncher: {
+    name: 'Fly Muncher',
+    desc: 'Munch on a fly during the tutorial',
+    reward: 1,
+    category: 'learning',
+    unlock: () => S.tutorialFlags.tutorial_fly_munched,  // Only shows if they did the tutorial and killed a fly
+    check: () => S.tutorialFlags.tutorial_fly_munched
+  },
+
   // === LEARNING QUESTS (Always visible) ===
   first_blood: {
     name: 'First Blood',
