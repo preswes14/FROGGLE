@@ -1,8 +1,43 @@
 // ===== SERVICE WORKER REGISTRATION =====
 if ('serviceWorker' in navigator) {
 navigator.serviceWorker.register('./sw.js')
-.then(reg => debugLog('[SW] Service worker registered:', reg.scope))
+.then(reg => {
+debugLog('[SW] Service worker registered:', reg.scope);
+
+// Check for updates immediately and periodically
+reg.update().catch(() => {});
+
+// Check for updates every 60 seconds while app is open
+setInterval(() => {
+reg.update().catch(() => {});
+}, 60000);
+
+// Handle waiting service worker (update available)
+if (reg.waiting) {
+debugLog('[SW] Update waiting, activating...');
+reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+}
+
+// Listen for new service worker installing
+reg.addEventListener('updatefound', () => {
+const newWorker = reg.installing;
+debugLog('[SW] Update found, installing...');
+
+newWorker.addEventListener('statechange', () => {
+if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+debugLog('[SW] New version installed, activating...');
+newWorker.postMessage({ type: 'SKIP_WAITING' });
+}
+});
+});
+})
 .catch(err => console.warn('[SW] Registration failed:', err));
+
+// Reload page when new service worker takes control
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+debugLog('[SW] Controller changed, reloading for update...');
+window.location.reload();
+});
 }
 
 // ===== INIT =====
