@@ -22,7 +22,7 @@ FROGGLE is a weirdly empowering, delightfully breakable (f)roguelike dungeon cra
 - A hidden game mode - FROGGED UP mode - (once you clear standard)
 - Rich, strategic turn-based combat
 - All kinds of secrets and easter eggs!
--_Inspired by Slay the Spire, Balatro, and Inscrytpion - if you like any of these, you'll probably like FROGGLE!_
+-_Inspired by Slay the Spire, Balatro, and Inscryption - if you like any of these, you'll probably like FROGGLE!_
 
 ## For Beta Testers
 
@@ -64,56 +64,48 @@ _A space for tweaking copy, voice consistency, and making everything feel deligh
 ### Things to Review/Consider
 
 **README Inconsistencies:**
-- Line 25 has a typo: "Inscrytpion" → "Inscryption"
-- Line 25 formatting: underscore/italic combo `-_Inspired...` looks odd
-- Version in "Repository Structure" says v9.97 but game is now v12.73+
-- "For Beta Testers" section - is the game still in beta? Should this be "How to Play"?
+- Line 25 has a typo: "Inscrytpion" → "Inscryption" YEP FIX
+- Line 25 formatting: underscore/italic combo `-_Inspired...` looks odd REMOVE UNDERLINE
+- Version in "Repository Structure" says v9.97 but game is now v12.73+ REMOVE VERSION FROM THIS PAGE
+- "For Beta Testers" section - is the game still in beta? Should this be "How to Play"? THERE SHOULD BE A FOR BETA TESTERS SECTION THAT EMPHASIZES THE ELEMENTS I AM CURRENTLY WANTING FEEDBACK ON. ADD A HOW TO PLAY 
 
 **Voice Questions:**
-- Death quotes mix Michigan J. Frog lyrics with original content - is that intentional? (Copyright-adjacent?)
-- "please don't steal it please!" - charming or unprofessional? (I vote charming)
-- Is "weirdly empowering, delightfully breakable" the tagline? It's great but buried mid-paragraph
+- Death quotes mix Michigan J. Frog lyrics with original content - is that intentional? (Copyright-adjacent?)  DEFINITELY INTENTIONAL, I MAKE FROGGER REFERENCES AND A GOOD PLACE REFERENCE AND EVERY FROG REFERENCE I CAN THINK OF SO I THINK ITS SAFE TO HAVE A FEW MICHIGAN J FROGS (i am sort of trying to imply that Death is MJF but that's strictly implied, not explicit)
+- "please don't steal it please!" - charming or unprofessional? (I vote charming) You can leave it, I like it.
+- Is "weirdly empowering, delightfully breakable" the tagline? It's great but buried mid-paragraph EITHER THIS OR "Live. Die. Ribbit." WHICH IS A PLAY ON THE TOM CRUISE MOVIE. Weirdly Empowering Delightfully Breakable should be included in the Steam page though.
 
 **Feature List Polish:**
-- Current: "9 encounters, each with a hidden unlockable second stage"
-- Are there really 9 encounters? Double-check count
-- "18 strategic combat floors" - there are 10 combat floors (1,3,5,7,9,11,13,15,17,19)
-- Consider: odd floors are combat, even are neutral - might be clearer
+- Current: "9 encounters, each with a hidden unlockable second stage" REPLACE '9' WITH 'many mysterious"
+- Are there really 9 encounters? Double-check count YES
+- "18 strategic combat floors" - there are 10 combat floors (1,3,5,7,9,11,13,15,17,19) REPLACE WITH TACTICAL COMBAT EMPHASIS DON'T NAME FLOOR COUNT
+- Consider: odd floors are combat, even are neutral - might be clearer NAH USE ABOVE SUGGESTIONS
+- I MIGHT WANT TO ADD SOMETHING ABOUT BEING AN INDEPENDENT DEVELOPER AND THIS BEING MY FIRST GAME, HELPFUL OR NO?
 
 **Potential Taglines to Test:**
-- "Save Tapo. Roll dice. Get frogged."
-- "A roguelike that ribbits different"
-- "Tactically questionable. Emotionally devastating. Extremely froggy."
+- "Save Tapo. Roll dice. Get frogged." REMOVE
+- "A roguelike that ribbits different" REMOVE
+- "Tactically questionable. Emotionally devastating. Extremely froggy." I KIND OF LIKE THIS, ITS NOT THE TAGLINE BUT KEEP IT SOMEWHERE FOR ME TO SEE LATER.
 - "Die. Upgrade. Ribbit. Repeat."
 
 **Missing from README?**
-- PWA/installable mention (it's a full app!)
-- Controller/Steam Deck support deserves more than a one-liner
-- No screenshots or GIFs - would help a lot
-- No mention of the procedural music/sound system (it's cool!)
+- PWA/installable mention (it's a full app!) REMOVE THEN, REPLACE WITH AVAILABLE VERSIONS/COMPATIBLE DEVICES/PLATFORMS
+- Controller/Steam Deck support deserves more than a one-liner KEEP THIS NOTE FOR ME ONCE NEW VERSION IS BUILT
+- No screenshots or GIFs - would help a lot IN PROGRESS
+- No mention of the procedural music/sound system (it's cool!) SO SOMETHING LIKE "Funky froggy procedurally-generated beats?"
 
-**Easter Eggs & Secrets - Document or Keep Hidden?**
+**Easter Eggs & Secrets - Document or Keep Hidden?** KEEP THESE HIDDEN, REMOVE, DONT NEED THEM LISTED AT ALL
 - Ghost Boys encounter
 - Ancient Statuette
 - Tapo as 5th hero (mentioned but vague)
 - FU mode portal
 - Second-stage neutral encounters
 
-### Draft Rewrites
+### Draft Rewrites - tweaked below!
 
 **Current About (first line):**
-> FROGGLE is a weirdly empowering, delightfully breakable (f)roguelike dungeon crawler
+> FROGGLE is a weirdly empowering, delightfully breakable, indie (f)roguelike/(f)roguelite dungeon crawler. Upgrade abilities, unlock powerful sigils, and figure out cool ways to combo them!
 
-**Option A - Punchier:**
-> FROGGLE is a tactical (f)roguelike where every run makes your frogs permanently stronger—even when you die. Especially when you die.
 
-**Option B - More Mysterious:**
-> FROGGLE is a turn-based dungeon crawler hiding secrets in every corner. A tadpole needs saving. The dice are loaded in your favor. The frogs are counting on you.
+NOTE TO CLAUDE, I WILL WANT YOU TO REASSEMBLE ALL OF THIS INTO A NEW DRAFT USING MY FEEDBACK, THEN PUSH THAT UPDATE FOR ME TO REVIEW NEXT. THIS IS A VERY PIECEMEAL REVIEW AND I WANT TO REVIEW MORE HOLISTICALLY.
 
-**Option C - Keep but Clean:**
-> FROGGLE is a weirdly empowering, delightfully breakable roguelike dungeon crawler. (Yes, with frogs. No, we won't apologize.)
-
----
-
-_Delete this section before going truly public, or don't. I'm a README, not a cop._
 
