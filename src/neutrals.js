@@ -310,7 +310,7 @@ if(meta.hasActiveRun) {
 if(loadSlot(slot)) {
 // Success - game already started
 } else {
-toast('Failed to load slot');
+toast('Save data corrupted. Try starting a new game in this slot.');
 }
 } else {
 // Start new run in existing slot
@@ -400,7 +400,7 @@ localStorage.removeItem(`froggle8_permanent_slot${slot}`);
 toast(`Slot ${slot} deleted`);
 showSaveSlotSelection(); // Refresh
 } catch(e) {
-toast('Failed to delete slot');
+toast('Delete failed. Browser storage may be locked.');
 }
 });
 }
@@ -482,7 +482,7 @@ setTimeout(() => {
 mainTitlePage();
 }, 1000);
 } catch(err) {
-toast('Error: Invalid save file!');
+toast('Invalid file format. Make sure to select a FROGGLE save file (.json)');
 console.error('Import error:', err);
 }
 };

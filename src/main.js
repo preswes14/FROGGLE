@@ -1,3 +1,10 @@
+// ===== SERVICE WORKER REGISTRATION =====
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.register('./sw.js')
+.then(reg => debugLog('[SW] Service worker registered:', reg.scope))
+.catch(err => console.warn('[SW] Registration failed:', err));
+}
+
 // ===== INIT =====
 window.onload = () => {
 debugLog('[FROGGLE] window.onload fired');

@@ -261,7 +261,9 @@ const cl = lvl===0?'l0':lvl===1?'l1':lvl===2?'l2':lvl===3?'l3':lvl===4?'l4':'l5'
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(sigName) ? 'passive' : '';
 const clickableClass = clickable ? 'clickable' : '';
 const clickHandler = onClick ? `onclick="${onClick}('${sigName}')"` : '';
-return `<span class="sigil ${cl} ${passiveClass} ${clickableClass}" ${clickHandler} onmouseenter="showTooltip('${sigName}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigName}', this, ${lvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigName, lvl)}</span>`;
+const ariaRole = clickable || onClick ? 'role="button" tabindex="0"' : '';
+const ariaLabel = `aria-label="${sigName} level ${lvl}"`;
+return `<span class="sigil ${cl} ${passiveClass} ${clickableClass}" ${ariaRole} ${ariaLabel} ${clickHandler} onmouseenter="showTooltip('${sigName}', this, ${lvl})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sigName}', this, ${lvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(sigName, lvl)}</span>`;
 };
 
 let html = `<div class="${sigilClass}">`;
@@ -1168,6 +1170,12 @@ const ANIMATION_TIMINGS = {
   COMBO_DISPLAY: 500,     // Combo counter display time
   COUNTER_POP: 300,       // Counter pop animation
   KNOCKOUT: 600,          // Death animation
+
+  // Hero reaction durations
+  HERO_REACTION_BRIEF: 600,  // Brief reaction (quick acknowledgement)
+  HERO_REACTION_NORMAL: 800, // Normal reaction duration
+  HERO_REACTION_LONG: 1200,  // Long reaction (important events)
+  HERO_REACTION_PAINED: 1000, // Pain reaction duration
 };
 
 // ===== ANIMATION SPEED SYSTEM =====

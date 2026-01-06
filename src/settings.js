@@ -194,11 +194,30 @@ let html = `
 <span>🔍 Show Sigil Tooltips</span>
 </label>
 
+<h3 class="modal-section-title green" style="margin-top:1rem">Accessibility</h3>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${S.highContrastMode ? 'checked' : ''} onchange="toggleHighContrastMode(this.checked)">
+<span>👁️ High Contrast Mode</span>
+</label>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">Enhanced visibility for low vision users</p>
+
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
+}
+
+// Toggle high contrast mode
+function toggleHighContrastMode(enabled) {
+S.highContrastMode = enabled;
+if (enabled) {
+document.body.classList.add('high-contrast');
+} else {
+document.body.classList.remove('high-contrast');
+}
+savePermanent();
+toast(enabled ? '👁️ High Contrast Mode: ON' : '👁️ High Contrast Mode: OFF', 1500);
 }
 
 // ===== CONTROLLER SETTINGS SUBMENU =====

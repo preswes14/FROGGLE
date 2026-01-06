@@ -122,6 +122,7 @@ toastLogLocked: false,          // Whether toast log is locked open (persistent)
 toastLogVisible: true,          // Whether toast log button is shown in header
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
 helpTipsDisabled: false,        // Whether tutorial help tips are disabled
+highContrastMode: false,        // Whether high contrast accessibility mode is enabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
 controllerDisabled: false,      // Whether gamepad/controller support is disabled
 inRibbleton: false,             // Whether player is in Ribbleton hub
@@ -800,7 +801,13 @@ else if(!replace && callbacks && callbacks.onKeep) callbacks.onKeep();
 
 function savePermanent() {
 try {
+// Create backup of existing save before overwriting
+const existing = localStorage.getItem('froggle8_permanent');
+if(existing) {
+localStorage.setItem('froggle8_permanent_backup', existing);
+}
 localStorage.setItem('froggle8_permanent', JSON.stringify({
+version: GAME_VERSION,
 gold: S.gold,
 goingRate: S.goingRate,
 startingXP: S.startingXP,
@@ -818,6 +825,7 @@ runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
+highContrastMode: S.highContrastMode,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
@@ -829,11 +837,29 @@ questProgress: S.questProgress
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
 if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
-toast('Storage full! Try clearing old save slots.', 3000);
+toast('Storage full! Go to title screen > Save Manager to delete old slots.', 3500);
 } else {
-toast('Warning: Progress could not be saved', 2000);
+toast('Save failed. Check browser storage in Settings > Privacy.', 2500);
 }
 }
+}
+
+// Validate save data has required structure
+function validateSaveData(data, type = 'permanent') {
+if(typeof data !== 'object' || data === null) {
+throw new Error('Save data is not an object');
+}
+if(type === 'permanent') {
+// Check core permanent data structure
+if(data.sig && typeof data.sig !== 'object') throw new Error('Invalid sig structure');
+if(data.pedestal && !Array.isArray(data.pedestal)) throw new Error('Invalid pedestal structure');
+}
+if(type === 'run') {
+// Check core run data structure
+if(typeof data.f !== 'number') throw new Error('Invalid floor value');
+if(data.h && !Array.isArray(data.h)) throw new Error('Invalid heroes structure');
+}
+return true;
 }
 
 function loadPermanent() {
@@ -841,6 +867,28 @@ try {
 const d = localStorage.getItem('froggle8_permanent');
 if(!d) return;
 const j = JSON.parse(d);
+
+// Validate data structure
+try {
+validateSaveData(j, 'permanent');
+} catch(validationError) {
+console.warn('[SAVE] Validation failed, attempting backup restore:', validationError.message);
+const backup = localStorage.getItem('froggle8_permanent_backup');
+if(backup) {
+const backupData = JSON.parse(backup);
+validateSaveData(backupData, 'permanent');
+localStorage.setItem('froggle8_permanent', backup);
+toast('Save data was corrupted. Restored from backup.', 3000);
+return loadPermanent(); // Retry with restored backup
+}
+throw validationError;
+}
+
+// Log version info if present
+if(j.version) {
+debugLog(`[SAVE] Loading save from version ${j.version}`);
+}
+
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
@@ -871,10 +919,13 @@ S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
 S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
 S.pondHistory = j.pondHistory || [];
+// Apply high contrast mode if enabled
+if(S.highContrastMode) document.body.classList.add('high-contrast');
 // Load quest data with defaults
 S.questsCompleted = j.questsCompleted || {};
 S.questsClaimed = j.questsClaimed || {};
@@ -911,9 +962,9 @@ savePermanent();
 } catch(e) {
 console.warn('[SAVE] Failed to save game:', e);
 if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
-toast('Storage full! Try clearing old save slots.', 3000);
+toast('Storage full! Go to title screen > Save Manager to delete old slots.', 3500);
 } else {
-toast('Warning: Game could not be saved', 2000);
+toast('Game save failed. Try clearing old slots in Save Manager.', 2500);
 }
 }
 }
@@ -1062,6 +1113,28 @@ try {
 const d = localStorage.getItem(`froggle8_permanent_slot${slot}`);
 if(d) {
 const j = JSON.parse(d);
+
+// Validate and potentially restore from backup
+try {
+validateSaveData(j, 'permanent');
+} catch(validationError) {
+console.warn(`[SAVE] Slot ${slot} validation failed:`, validationError.message);
+const backup = localStorage.getItem(`froggle8_permanent_slot${slot}_backup`);
+if(backup) {
+const backupData = JSON.parse(backup);
+validateSaveData(backupData, 'permanent');
+localStorage.setItem(`froggle8_permanent_slot${slot}`, backup);
+toast('Save corrupted. Restored from backup.', 3000);
+return loadSlot(slot); // Retry with restored backup
+}
+throw validationError;
+}
+
+// Log version info
+if(j.version) {
+debugLog(`[SAVE] Slot ${slot} from version ${j.version}`);
+}
+
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.runsAttempted = j.runsAttempted || j.runNumber || 1;
@@ -1092,7 +1165,10 @@ S.tapoUnlocked = j.tapoUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
+// Apply high contrast mode if enabled
+if(S.highContrastMode) document.body.classList.add('high-contrast');
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 // Load quest data with defaults
 S.questsCompleted = j.questsCompleted || {};
@@ -1169,7 +1245,13 @@ S.currentSlot = 1;
 localStorage.setItem('froggle8_current_slot', '1');
 }
 try {
+// Create backup of existing slot save before overwriting
+const existingSlot = localStorage.getItem(`froggle8_permanent_slot${S.currentSlot}`);
+if(existingSlot) {
+localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}_backup`, existingSlot);
+}
 localStorage.setItem(`froggle8_permanent_slot${S.currentSlot}`, JSON.stringify({
+version: GAME_VERSION,
 gold: S.gold,
 goingRate: S.goingRate,
 runsAttempted: S.runsAttempted,
@@ -1187,6 +1269,7 @@ runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
+highContrastMode: S.highContrastMode,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
@@ -1198,9 +1281,9 @@ questProgress: S.questProgress
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
 if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
-toast('Storage full! Try clearing old save slots.', 3000);
+toast('Storage full! Go to title screen > Save Manager to delete old slots.', 3500);
 } else {
-toast('Warning: Progress could not be saved', 2000);
+toast('Save failed. Check browser storage in Settings > Privacy.', 2500);
 }
 }
 };
@@ -1225,9 +1308,9 @@ savePermanent();
 } catch(e) {
 console.warn('[SAVE] Failed to save game:', e);
 if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
-toast('Storage full! Try clearing old save slots.', 3000);
+toast('Storage full! Go to title screen > Save Manager to delete old slots.', 3500);
 } else {
-toast('Warning: Game could not be saved', 2000);
+toast('Game save failed. Try clearing old slots in Save Manager.', 2500);
 }
 }
 };
