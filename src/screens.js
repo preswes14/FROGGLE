@@ -443,15 +443,41 @@ html += `</div>`;
 
 // Advanced Sigils
 html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">🔥 Advanced Sigils</h4>`;
+if(S.advancedSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(advancedSigils);
 html += `</div>`;
+} else {
+const canAffordAdvanced = S.gold >= 20;
+html += `
+<div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #f97316;box-shadow:0 0 20px rgba(249,115,22,0.3);text-align:center">
+<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<p style="color:#f97316;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Ghost • Alpha • Grapple</p>
+<p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock advanced combat techniques</p>
+<button class="btn" ${!canAffordAdvanced ? 'disabled' : ''} onclick="unlockSigilCategory('advanced')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordAdvanced ? 'background:linear-gradient(135deg,#f97316,#ea580c);border-color:#f97316;color:#fff' : ''}">
+${canAffordAdvanced ? 'UNLOCK - 20G' : 'Need 20G to Unlock'}
+</button>
+</div>`;
+}
 
 // Passive Sigils
 html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">✨ Passive Sigils</h4>`;
+if(S.passiveSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(passiveSigils);
 html += `</div>`;
+} else {
+const canAffordPassive = S.gold >= 50;
+html += `
+<div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #9333ea;box-shadow:0 0 20px rgba(147,51,234,0.3);text-align:center">
+<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<p style="color:#9333ea;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Expand • Asterisk • Star</p>
+<p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock passive enhancements</p>
+<button class="btn" ${!canAffordPassive ? 'disabled' : ''} onclick="unlockSigilCategory('passive')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordPassive ? 'background:linear-gradient(135deg,#9333ea,#7c3aed);border-color:#9333ea;color:#fff' : ''}">
+${canAffordPassive ? 'UNLOCK - 50G' : 'Need 50G to Unlock'}
+</button>
+</div>`;
+}
 }
 
 // Death Boys (only if Ghost Boys converted)
@@ -550,6 +576,27 @@ trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
 SoundFX.play('powerUp');
 toast(`${sig} upgraded to L${S.sig[sig]}!`, 1200);
+savePermanent();
+showDeathScreen(); // Refresh
+}
+
+function unlockSigilCategory(category) {
+const costs = { advanced: 20, passive: 50 };
+const cost = costs[category];
+if(!cost) { toast('Invalid category!'); return; }
+if(S.gold < cost) { toast('Not enough Gold!'); return; }
+
+S.gold -= cost;
+if(category === 'advanced') {
+S.advancedSigilsUnlocked = true;
+SoundFX.play('powerUp');
+toast('Advanced Sigils Unlocked!', 1500);
+} else if(category === 'passive') {
+S.passiveSigilsUnlocked = true;
+SoundFX.play('powerUp');
+toast('Passive Sigils Unlocked!', 1500);
+}
+// Category unlocks do NOT increase Going Rate
 savePermanent();
 showDeathScreen(); // Refresh
 }

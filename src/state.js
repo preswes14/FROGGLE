@@ -63,6 +63,8 @@ hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
 fuUnlocked: false,
 forcedFUEntry: false,            // True after first Standard win, forces FU run
 tapoUnlocked: false,             // Unlocked after first FU victory
+advancedSigilsUnlocked: false,   // Death screen: Advanced sigils (Ghost, Alpha, Grapple) purchasable
+passiveSigilsUnlocked: false,    // Death screen: Passive sigils (Expand, Asterisk, Star) purchasable
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
 // ===== QUEST BOARD STATE (persistent) =====
@@ -191,6 +193,8 @@ let sel = [];
 // Helper function to track quest progress
 function trackQuestProgress(type, value) {
   if(!S.questProgress) return; // Guard against undefined
+  // Don't track quest progress during tutorial (Floor 0)
+  if(S.floor === 0) return;
 
   switch(type) {
     case 'enemyKill':
@@ -820,6 +824,8 @@ hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
 forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
+advancedSigilsUnlocked: S.advancedSigilsUnlocked,
+passiveSigilsUnlocked: S.passiveSigilsUnlocked,
 runNumber: S.runNumber,
 runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
@@ -915,6 +921,8 @@ S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
 S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
+S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
+S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -1163,6 +1171,8 @@ S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
 S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
+S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
+S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
@@ -1267,6 +1277,8 @@ hasReachedFloor20: S.hasReachedFloor20,
 fuUnlocked: S.fuUnlocked,
 forcedFUEntry: S.forcedFUEntry,
 tapoUnlocked: S.tapoUnlocked,
+advancedSigilsUnlocked: S.advancedSigilsUnlocked,
+passiveSigilsUnlocked: S.passiveSigilsUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
