@@ -9,8 +9,8 @@ S.lastNeutral = null;
 }
 
 function getNeutralEncounter() {
-// TUTORIAL: Floor 2 always gets Oracle Stage 1
-if(S.floor === 2 && !S.tutorialFlags.neutral_intro) {
+// FIRST RUN ONLY: Floor 2 gets Oracle Stage 1 as a safe intro to neutrals
+if(S.floor === 2 && S.runsAttempted === 1) {
 return 'oracle1';
 }
 

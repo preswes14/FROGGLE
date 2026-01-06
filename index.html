@@ -2340,7 +2340,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.70';
+const GAME_VERSION = '12.71';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9813,8 +9813,8 @@ S.lastNeutral = null;
 }
 
 function getNeutralEncounter() {
-// TUTORIAL: Floor 2 always gets Oracle Stage 1
-if(S.floor === 2 && !S.tutorialFlags.neutral_intro) {
+// FIRST RUN ONLY: Floor 2 gets Oracle Stage 1 as a safe intro to neutrals
+if(S.floor === 2 && S.runsAttempted === 1) {
 return 'oracle1';
 }
 
