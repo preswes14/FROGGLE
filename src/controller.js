@@ -22,6 +22,14 @@ const GamepadController = {
   lastPollLog: 0, // Debug: timestamp of last poll log
   mouseMovementThreshold: 150, // Minimum pixels to move before switching to mouse mode (high to prevent Steam Deck touchpad issues)
 
+  // Event handler references for cleanup
+  _handlers: {
+    gamepadConnected: null,
+    gamepadDisconnected: null,
+    mousemove: null,
+    keydown: null
+  },
+
   // Button indices (standard gamepad mapping)
   BUTTONS: {
     A: 0,        // Bottom button (confirm/select)
@@ -61,12 +69,14 @@ const GamepadController = {
       return;
     }
 
-    // Listen for gamepad connections
-    window.addEventListener('gamepadconnected', (e) => {
+    // Listen for gamepad connections (store refs for cleanup)
+    this._handlers.gamepadConnected = (e) => {
       debugLog('[GAMEPAD] gamepadconnected event:', e.gamepad?.id);
       this.onGamepadConnected(e);
-    });
-    window.addEventListener('gamepaddisconnected', (e) => this.onGamepadDisconnected(e));
+    };
+    this._handlers.gamepadDisconnected = (e) => this.onGamepadDisconnected(e);
+    window.addEventListener('gamepadconnected', this._handlers.gamepadConnected);
+    window.addEventListener('gamepaddisconnected', this._handlers.gamepadDisconnected);
 
     // Check for already-connected gamepads (Steam Deck may have controller pre-connected)
     const gamepads = navigator.getGamepads();
@@ -144,7 +154,7 @@ const GamepadController = {
     // and we want controller mode to persist even when occasionally tapping screen
     // STEAM DECK FIX: Track consecutive large movements to avoid touchpad false positives
     this.mouseMoveCount = 0;
-    document.addEventListener('mousemove', (e) => {
+    this._handlers.mousemove = (e) => {
       // Only deactivate on significant mouse movement (not just hover or small jitter)
       if (this.lastMouseX === null) {
         this.lastMouseX = e.clientX;
@@ -172,14 +182,15 @@ const GamepadController = {
         this.lastMouseX = e.clientX;
         this.lastMouseY = e.clientY;
       }
-    });
+    };
+    document.addEventListener('mousemove', this._handlers.mousemove);
     // Don't deactivate on click - let controller mode persist
   },
 
   // Keyboard fallback for when gamepad isn't detected (Steam mapping to keyboard, etc.)
   initKeyboardFallback() {
     // Use capture phase to catch events before they're stopped
-    document.addEventListener('keydown', (e) => {
+    this._handlers.keydown = (e) => {
       // Skip if controller support is disabled
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
 
@@ -344,7 +355,8 @@ const GamepadController = {
         e.preventDefault();
         e.stopPropagation();
       }
-    }, true); // Use capture phase
+    };
+    document.addEventListener('keydown', this._handlers.keydown, true); // Use capture phase
   },
 
   // Continuously check for gamepads (Steam Deck fix)
@@ -2032,6 +2044,55 @@ Press <strong>START (☰)</strong> anytime for settings and controls guide
 </div>
 </div>`;
     document.body.appendChild(overlay);
+  },
+
+  // Cleanup all event listeners and intervals (call when returning to title or closing game)
+  destroy() {
+    debugLog('[GAMEPAD] Destroying controller system, cleaning up resources');
+
+    // Clear intervals
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
+    }
+    if (this.gamepadCheckInterval) {
+      clearInterval(this.gamepadCheckInterval);
+      this.gamepadCheckInterval = null;
+    }
+
+    // Disconnect MutationObserver
+    if (this.domObserver) {
+      this.domObserver.disconnect();
+      this.domObserver = null;
+    }
+
+    // Remove event listeners
+    if (this._handlers.gamepadConnected) {
+      window.removeEventListener('gamepadconnected', this._handlers.gamepadConnected);
+    }
+    if (this._handlers.gamepadDisconnected) {
+      window.removeEventListener('gamepaddisconnected', this._handlers.gamepadDisconnected);
+    }
+    if (this._handlers.mousemove) {
+      document.removeEventListener('mousemove', this._handlers.mousemove);
+    }
+    if (this._handlers.keydown) {
+      document.removeEventListener('keydown', this._handlers.keydown, true);
+    }
+
+    // Reset handler references
+    this._handlers = {
+      gamepadConnected: null,
+      gamepadDisconnected: null,
+      mousemove: null,
+      keydown: null
+    };
+
+    // Reset state
+    this.active = false;
+    this.gamepadIndex = null;
+    this.clearFocus();
+    document.body.classList.remove('controller-active');
   }
 };
 

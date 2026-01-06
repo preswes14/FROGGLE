@@ -1598,8 +1598,8 @@ triggerHealAnimation(flydra.id, reviveHP);
 });
 } else {
 // All Flydras are dying - they all die for real
-// Award flat 100 gold for defeating the Flydra (entire boss, not per-head)
-const flydraGold = 100 * (S.gameMode === 'fu' ? 3 : 1); // Frogged Up multiplier
+// Award flat 150 gold for defeating the Flydra (entire boss, not per-head)
+const flydraGold = 150 * (S.gameMode === 'fu' ? 3 : 1); // Frogged Up multiplier
 S.gold += flydraGold;
 S.combatGold += flydraGold;
 SoundFX.play('coinDrop');
