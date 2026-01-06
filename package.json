@@ -32,6 +32,7 @@
       "index.html",
       "electron-main.js",
       "manifest.json",
+      "sw.js",
       "assets/**/*"
     ],
     "linux": {
