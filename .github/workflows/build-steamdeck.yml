@@ -1,17 +1,16 @@
-name: Build Steam Deck AppImage
+name: Build Game (All Platforms)
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
-  contents: write  # Required for creating releases
+  contents: write
 
 jobs:
-  build:
+  build-linux-windows:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -28,28 +27,81 @@ jobs:
       - name: Build game (combine source files)
         run: ./build.sh
 
-      - name: Build Linux AppImage
-        run: npm run dist:linux
+      - name: Install Wine (for Windows cross-compile)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine64
+
+      - name: Build Linux + Windows
+        run: npm run dist:all
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload AppImage artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: FROGGLE-SteamDeck
-          path: dist/*.AppImage
+          name: builds-linux-windows
+          path: |
+            dist/*.AppImage
+            dist/*.exe
           retention-days: 30
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build game (combine source files)
+        run: ./build.sh
+
+      - name: Build macOS
+        run: npm run dist:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: builds-mac
+          path: dist/*.dmg
+          retention-days: 30
+
+  release:
+    needs: [build-linux-windows, build-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
 
       - name: Create/Update Latest Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: latest
           name: Latest Build
-          files: dist/*.AppImage
+          files: |
+            dist/*.AppImage
+            dist/*.exe
+            dist/*.dmg
           prerelease: true
           body: |
             Automatically built from the latest main branch.
 
-            **For Steam Deck:** Download the .AppImage file, make it executable, and run!
+            **Steam Deck / Linux:** Download the `.AppImage` file
+            **Windows / ROG Ally / Legion Go:** Download the `.exe` file
+            **Mac:** Download the `.dmg` file
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

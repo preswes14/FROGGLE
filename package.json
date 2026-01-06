@@ -11,7 +11,10 @@
     "start": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "dist:linux": "electron-builder --linux AppImage"
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:win": "electron-builder --win portable",
+    "dist:all": "electron-builder --linux AppImage --win portable",
+    "dist:mac": "electron-builder --mac dmg"
   },
   "devDependencies": {
     "electron": "^28.0.0",
@@ -35,6 +38,15 @@
       "target": "AppImage",
       "category": "Game",
       "icon": "assets/tapo.png"
+    },
+    "win": {
+      "target": "portable",
+      "icon": "assets/tapo.png"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/tapo.png",
+      "category": "public.app-category.games"
     }
   },
   "keywords": [

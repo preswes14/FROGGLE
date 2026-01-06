@@ -1,0 +1,233 @@
+══════════════════════════════════════════════════════════════════
+                           FROGGLE
+                    Steam Deck Setup Guide
+══════════════════════════════════════════════════════════════════
+
+Welcome! This guide will walk you through installing FROGGLE on
+your Steam Deck. It takes about 5 minutes. Follow each step
+carefully and you'll be playing in no time!
+
+
+══════════════════════════════════════════════════════════════════
+                       DOWNLOAD LINK
+══════════════════════════════════════════════════════════════════
+
+                        t.ly/FROGGLE
+
+      (Type this into any web browser to get the game)
+
+
+══════════════════════════════════════════════════════════════════
+               STEP 1: ENTER DESKTOP MODE
+══════════════════════════════════════════════════════════════════
+
+Your Steam Deck has two modes:
+  • Gaming Mode - the normal view with your games
+  • Desktop Mode - works like a regular computer
+
+We need to use Desktop Mode to download and set up FROGGLE.
+
+HERE'S HOW:
+
+   1. Press and HOLD the POWER button
+      (the small button on the top-right edge of your Deck)
+
+   2. Keep holding for about 2 seconds until a menu appears
+
+   3. A list of options will pop up on screen
+
+   4. Tap "Switch to Desktop"
+
+   5. Wait about 10 seconds for the desktop to load
+
+You'll see a computer desktop with some icons. You're ready
+for the next step!
+
+
+══════════════════════════════════════════════════════════════════
+               STEP 2: DOWNLOAD FROGGLE
+══════════════════════════════════════════════════════════════════
+
+   1. Look for the Firefox icon and tap it
+      (It's orange and purple, looks like a fox)
+
+   2. Once Firefox opens, tap the address bar at the top
+      (That's where website addresses go)
+
+   3. A keyboard will appear. Type exactly:
+
+                        t.ly/FROGGLE
+
+   4. Press Enter on the keyboard
+
+   5. A download page will appear
+
+   6. Look for a file that ends in ".AppImage"
+      (It's the big file in the list - tap it!)
+
+   7. If a box pops up asking what to do, choose "Save File"
+
+   8. Wait for the download to finish
+      (You'll see a progress bar - it only takes a minute)
+
+
+══════════════════════════════════════════════════════════════════
+               STEP 3: MAKE THE FILE RUNNABLE
+══════════════════════════════════════════════════════════════════
+
+The file you downloaded needs permission to run. This is a
+safety feature - we just need to tell your Deck it's okay!
+
+   1. Look for the Dolphin icon and tap it
+      (It's a blue folder icon - this opens your files)
+
+   2. On the left side of the window, tap "Downloads"
+
+   3. Find the FROGGLE file you just downloaded
+      (It ends with .AppImage)
+
+   4. RIGHT-CLICK on the file
+
+      *** HOW TO RIGHT-CLICK ON STEAM DECK: ***
+      Tap and hold the file for 1 second, OR
+      Tap with two fingers at the same time
+
+   5. A menu will appear - tap "Properties" (near the bottom)
+
+   6. A new window opens. Tap the "Permissions" tab at the top
+
+   7. Look for a checkbox that says "Is executable"
+      PUT A CHECK IN THAT BOX (tap it)
+
+   8. Tap "OK" to close the window
+
+Great! The file is now ready to run.
+
+
+══════════════════════════════════════════════════════════════════
+               STEP 4: ADD FROGGLE TO STEAM
+══════════════════════════════════════════════════════════════════
+
+Now we'll add FROGGLE to your Steam library so you can play
+it from Gaming Mode like any other game.
+
+   1. Look for the Steam icon on the desktop and tap it
+      (It's the normal Steam logo you know)
+
+   2. Steam will open. Look at the very top menu bar
+
+   3. Tap "Games" in the menu bar
+
+   4. Tap "Add a Non-Steam Game to My Library..."
+
+   5. A window appears. Tap the "Browse..." button at the bottom
+
+   6. On the left side, tap "Downloads"
+
+   7. IMPORTANT: You might not see the file yet!
+
+      Look at the bottom of the window - there's a dropdown
+      that probably says "Applications"
+
+      TAP IT AND CHANGE IT TO "All Files"
+
+   8. Now you should see the FROGGLE .AppImage file
+      Tap it to select it (it will highlight)
+
+   9. Tap "Open"
+
+  10. You'll be back at the first window
+      Make sure FROGGLE has a checkmark next to it
+
+  11. Tap "Add Selected Programs"
+
+FROGGLE is now in your Steam library!
+
+
+══════════════════════════════════════════════════════════════════
+               STEP 5: RETURN TO GAMING MODE
+══════════════════════════════════════════════════════════════════
+
+Time to go back to the normal Steam Deck view!
+
+   1. Look on the desktop for an icon called:
+      "Return to Gaming Mode"
+
+   2. Double-tap it
+
+   3. Wait a few seconds for Gaming Mode to load
+
+You're back to normal! Now let's play!
+
+
+══════════════════════════════════════════════════════════════════
+               PLAYING FROGGLE
+══════════════════════════════════════════════════════════════════
+
+   1. Open your Library (press the STEAM button, then Library)
+
+   2. Scroll down to find FROGGLE
+      (It might be in a "Non-Steam" section at the bottom)
+
+      TIP: You can also search for "FROGGLE" using the
+      search icon at the top!
+
+   3. Select FROGGLE
+
+   4. Press PLAY
+
+   5. Enjoy!
+
+
+══════════════════════════════════════════════════════════════════
+               CONTROLS
+══════════════════════════════════════════════════════════════════
+
+   D-Pad or Left Stick .......... Move around / Navigate
+
+   A Button ..................... Select / Confirm
+
+   B Button ..................... Go Back / Cancel
+
+   Y Button ..................... Expand your selection
+                                  (for hitting multiple targets)
+
+   Start Button ................. Pause Menu
+
+   L1 and R1 Bumpers ............ Switch between your heroes
+
+
+══════════════════════════════════════════════════════════════════
+               TROUBLESHOOTING
+══════════════════════════════════════════════════════════════════
+
+PROBLEM: The game won't start!
+
+   → Go back to Desktop Mode and redo Step 3
+   → Make sure you checked "Is executable" in the Permissions
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+PROBLEM: My controller isn't working!
+
+   → Make sure you're in Gaming Mode, not Desktop Mode
+   → Try closing the game and opening it again
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+PROBLEM: I can't find the file when adding to Steam!
+
+   → Make sure you changed the dropdown from "Applications"
+     to "All Files" (see Step 4, part 7)
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+PROBLEM: Something else is wrong!
+
+   → Message the person who sent you this guide!
+   → Include what step you were on and what happened
+
+
+══════════════════════════════════════════════════════════════════
+                     HAVE FUN!
+══════════════════════════════════════════════════════════════════
