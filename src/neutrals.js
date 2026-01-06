@@ -202,6 +202,8 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
 
 // Show credits screen
 function showCredits() {
+// JUICE: Funky frog beat for credits
+ProceduralMusic.startTitleBeat();
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
@@ -1270,8 +1272,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Froggy beat for title/hero select
-ProceduralMusic.startFroggyBeat();
+// JUICE: Funky frog beat for title/hero select
+ProceduralMusic.startTitleBeat();
 upd();
 // Reset selection first
 sel = [];

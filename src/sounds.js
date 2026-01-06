@@ -925,6 +925,172 @@ const ProceduralMusic = {
     this.intervalIds.push(beatInterval);
   },
 
+  // Title funky beat - laid-back groovy funk with froggy sounds
+  // Used for title screen, victory screen, and credits
+  startTitleBeat() {
+    if (!this.enabled || this.currentMode === 'title') return;
+    this.stopAll();
+    if (!this.ctx) this.init();
+    if (!this.ctx) return;
+
+    this.currentMode = 'title';
+    const now = this.ctx.currentTime;
+    const bpm = 92; // Laid-back funk tempo
+    const beatDuration = 60 / bpm;
+
+    // Create master gain for title beat
+    const masterGain = this.ctx.createGain();
+    masterGain.gain.setValueAtTime(0, now);
+    masterGain.gain.linearRampToValueAtTime(this.volume * 0.9, now + 0.5);
+    masterGain.connect(this.ctx.destination);
+    this.gainNodes.push(masterGain);
+
+    // Helper: create noise buffer for percussive sounds
+    const createNoise = (duration) => {
+      const bufferSize = this.ctx.sampleRate * duration;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      return buffer;
+    };
+
+    // 16-step pattern (two measures)
+    // Funky syncopated kick: emphasis on 1, "and" of 2, 4, "and" of 6
+    //                        steps: 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+    const kickPattern =           [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0];
+    // Snare on 3, 7, 11, 15 (0-indexed: 2, 6, 10, 14)
+    const snarePattern =          [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0];
+    // Open hi-hat on offbeats for swing (1, 3, 5, 7, 9, 11, 13, 15)
+    const openHatPattern =        [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1];
+    // Closed hi-hat on main beats
+    const closedHatPattern =      [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
+    // Hop sound for funky syncopation (on "and" of 1 and "and" of 5)
+    const hopPattern =            [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0];
+    // LilyPad boing on beat 8 (every measure turnaround)
+    const lilyPadPattern =        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0];
+    // Bubble on beat 12 for fill
+    const bubblePattern =         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0];
+    // Deep croak for bass accent on 1 and 9
+    const croakPattern =          [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+
+    let step = 0;
+    let measureCount = 0;
+
+    const beatInterval = setInterval(() => {
+      if (this.currentMode !== 'title' || !this.ctx) return;
+
+      const t = this.ctx.currentTime;
+
+      // Kick drum - warm and punchy
+      if (kickPattern[step]) {
+        const kickOsc = this.ctx.createOscillator();
+        const kickGain = this.ctx.createGain();
+        kickOsc.connect(kickGain);
+        kickGain.connect(masterGain);
+        kickOsc.frequency.setValueAtTime(120, t);
+        kickOsc.frequency.exponentialRampToValueAtTime(45, t + 0.1);
+        kickGain.gain.setValueAtTime(0.55, t);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+        kickOsc.type = 'sine';
+        kickOsc.start(t);
+        kickOsc.stop(t + 0.15);
+      }
+
+      // Snare - crisp with body
+      if (snarePattern[step]) {
+        const snareOsc = this.ctx.createOscillator();
+        const snareGain = this.ctx.createGain();
+        snareOsc.connect(snareGain);
+        snareGain.connect(masterGain);
+        snareOsc.frequency.setValueAtTime(200, t);
+        snareOsc.frequency.exponentialRampToValueAtTime(140, t + 0.04);
+        snareGain.gain.setValueAtTime(0.3, t);
+        snareGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        snareOsc.type = 'triangle';
+        snareOsc.start(t);
+        snareOsc.stop(t + 0.1);
+
+        // Noise rattle
+        const snareNoise = this.ctx.createBufferSource();
+        snareNoise.buffer = createNoise(0.12);
+        const snareNoiseGain = this.ctx.createGain();
+        const snareNoiseFilter = this.ctx.createBiquadFilter();
+        snareNoiseFilter.type = 'highpass';
+        snareNoiseFilter.frequency.value = 2500;
+        snareNoise.connect(snareNoiseFilter);
+        snareNoiseFilter.connect(snareNoiseGain);
+        snareNoiseGain.connect(masterGain);
+        snareNoiseGain.gain.setValueAtTime(0.2, t);
+        snareNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+        snareNoise.start(t);
+      }
+
+      // Open hi-hat on offbeats (swingy feel)
+      if (openHatPattern[step]) {
+        const hatNoise = this.ctx.createBufferSource();
+        hatNoise.buffer = createNoise(0.08);
+        const hatGain = this.ctx.createGain();
+        const hatFilter = this.ctx.createBiquadFilter();
+        hatFilter.type = 'highpass';
+        hatFilter.frequency.value = 6000;
+        hatNoise.connect(hatFilter);
+        hatFilter.connect(hatGain);
+        hatGain.connect(masterGain);
+        hatGain.gain.setValueAtTime(0.06, t);
+        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.06);
+        hatNoise.start(t);
+      }
+
+      // Closed hi-hat on main beats (tighter)
+      if (closedHatPattern[step]) {
+        const hatNoise = this.ctx.createBufferSource();
+        hatNoise.buffer = createNoise(0.03);
+        const hatGain = this.ctx.createGain();
+        const hatFilter = this.ctx.createBiquadFilter();
+        hatFilter.type = 'highpass';
+        hatFilter.frequency.value = 8000;
+        hatNoise.connect(hatFilter);
+        hatFilter.connect(hatGain);
+        hatGain.connect(masterGain);
+        hatGain.gain.setValueAtTime(0.04, t);
+        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.025);
+        hatNoise.start(t);
+      }
+
+      // Froggy sounds for funk flavor
+      if (hopPattern[step]) {
+        SoundFX.play('hop');
+      }
+
+      if (lilyPadPattern[step]) {
+        SoundFX.play('lilyPad');
+      }
+
+      if (bubblePattern[step]) {
+        SoundFX.play('bubble');
+      }
+
+      // Deep croak for bass (only on some measures for variety)
+      if (croakPattern[step] && measureCount % 2 === 0) {
+        SoundFX.play('croak');
+      }
+
+      // Track measures for variation
+      if (step === 15) {
+        measureCount++;
+        // Every 4 measures, add a water drip for texture
+        if (measureCount % 4 === 0) {
+          setTimeout(() => SoundFX.play('waterDrip'), 100);
+        }
+      }
+
+      step = (step + 1) % 16;
+    }, beatDuration * 1000);
+    this.intervalIds.push(beatInterval);
+  },
+
   // Combat beat - percussive, drum-focused
   startCombat() {
     if (!this.enabled || this.currentMode === 'combat') return;
