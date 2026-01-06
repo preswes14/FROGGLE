@@ -1,5 +1,5 @@
 // FROGGLE Service Worker - Offline PWA Support
-const CACHE_NAME = 'froggle-v12.72';
+const CACHE_NAME = 'froggle-v12.73';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -14,14 +14,23 @@ const ASSETS_TO_CACHE = [
 
 // Install event - cache core assets
 self.addEventListener('install', event => {
+  console.log('[SW] Installing new version:', CACHE_NAME);
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       console.log('[SW] Caching core assets');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  // Activate immediately
+  // Activate immediately (don't wait for old SW to be released)
   self.skipWaiting();
+});
+
+// Listen for skip waiting message from client
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('[SW] Received SKIP_WAITING message, activating...');
+    self.skipWaiting();
+  }
 });
 
 // Activate event - clean up old caches
@@ -42,7 +51,7 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fall back to network
+// Fetch event - different strategies for different content types
 self.addEventListener('fetch', event => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
@@ -50,39 +59,60 @@ self.addEventListener('fetch', event => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
 
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        // Return cached version
-        return cachedResponse;
-      }
+  const url = new URL(event.request.url);
+  const isHTML = event.request.headers.get('accept')?.includes('text/html') ||
+                 url.pathname.endsWith('.html') ||
+                 url.pathname === '/' ||
+                 url.pathname === '';
 
-      // Not in cache - fetch from network
-      return fetch(event.request).then(response => {
-        // Don't cache non-successful responses
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+  if (isHTML) {
+    // NETWORK-FIRST for HTML - always try to get latest version
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // Got network response - cache it and return
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
           return response;
-        }
-
-        // Clone the response for caching
-        const responseToCache = response.clone();
-
-        // Cache assets (images, fonts) but not external resources
-        if (event.request.url.includes('/assets/') ||
-            event.request.url.endsWith('.html') ||
-            event.request.url.endsWith('.json')) {
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
+        })
+        .catch(() => {
+          // Network failed - fall back to cache for offline support
+          console.log('[SW] Network failed for HTML, using cache');
+          return caches.match(event.request).then(cached => {
+            return cached || caches.match('./index.html');
           });
+        })
+    );
+  } else {
+    // CACHE-FIRST for assets (images, json, etc.) - performance optimization
+    event.respondWith(
+      caches.match(event.request).then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
         }
 
-        return response;
-      }).catch(() => {
-        // Network failed - return offline fallback for HTML requests
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('./index.html');
-        }
-      });
-    })
-  );
+        // Not in cache - fetch from network
+        return fetch(event.request).then(response => {
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+
+          // Cache assets for future use
+          if (event.request.url.includes('/assets/') ||
+              event.request.url.endsWith('.json')) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+
+          return response;
+        });
+      })
+    );
+  }
 });
