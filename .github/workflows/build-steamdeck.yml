@@ -87,6 +87,16 @@ jobs:
           path: dist
           merge-multiple: true
 
+      - name: Delete old release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get all asset IDs for the 'latest' release and delete them
+          gh release view latest --repo ${{ github.repository }} --json assets -q '.assets[].name' 2>/dev/null | while read -r asset; do
+            echo "Deleting $asset..."
+            gh release delete-asset latest "$asset" --repo ${{ github.repository }} -y || true
+          done
+
       - name: Create/Update Latest Release
         uses: softprops/action-gh-release@v1
         with:
