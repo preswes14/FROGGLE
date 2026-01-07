@@ -115,6 +115,7 @@ ${inGame ? `
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
+<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">🔊 Audio</button>
 <button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay</button>
 <button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display</button>
 <button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller</button>
@@ -134,6 +135,74 @@ ${inGame ? `
 v.insertAdjacentHTML('beforeend', html);
 }
 
+// ===== AUDIO SETTINGS SUBMENU =====
+function showAudioSettings() {
+closeSettingsMenu();
+const v = document.getElementById('gameView');
+
+// Convert 0-1 to percentage for display
+const masterPct = Math.round((S.masterVolume || 1) * 100);
+const sfxPct = Math.round((S.sfxVolume || 1) * 100);
+const musicPct = Math.round((S.musicVolume || 1) * 100);
+
+let html = `
+<div class="modal-container dark">
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">🔊 AUDIO</h2>
+
+<div style="display:flex;flex-direction:column;gap:1.25rem">
+
+<div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<label style="font-weight:bold;color:#fbbf24">🔈 Master Volume</label>
+<span id="master-vol-display" style="font-size:0.9rem;color:#fbbf24">${masterPct}%</span>
+</div>
+<input type="range" min="0" max="100" value="${masterPct}"
+  oninput="updateVolumeDisplay('master', this.value); setMasterVolume(this.value / 100)"
+  style="width:100%;height:8px;cursor:pointer;accent-color:#fbbf24">
+</div>
+
+<div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<label style="font-weight:bold;color:#22c55e">💥 Sound Effects</label>
+<span id="sfx-vol-display" style="font-size:0.9rem;color:#22c55e">${sfxPct}%</span>
+</div>
+<input type="range" min="0" max="100" value="${sfxPct}"
+  oninput="updateVolumeDisplay('sfx', this.value); setSfxVolume(this.value / 100)"
+  style="width:100%;height:8px;cursor:pointer;accent-color:#22c55e">
+</div>
+
+<div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+<label style="font-weight:bold;color:#8b5cf6">🎵 Music</label>
+<span id="music-vol-display" style="font-size:0.9rem;color:#8b5cf6">${musicPct}%</span>
+</div>
+<input type="range" min="0" max="100" value="${musicPct}"
+  oninput="updateVolumeDisplay('music', this.value); setMusicVolume(this.value / 100)"
+  style="width:100%;height:8px;cursor:pointer;accent-color:#8b5cf6">
+</div>
+
+</div>
+
+<button class="btn" onclick="testAudioLevels()" style="margin-top:1rem;background:#374151">🔊 Test Sound</button>
+
+<button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
+</div>
+<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+`;
+v.insertAdjacentHTML('beforeend', html);
+}
+
+// Update volume display as slider moves
+function updateVolumeDisplay(type, value) {
+const display = document.getElementById(`${type}-vol-display`);
+if (display) display.textContent = `${value}%`;
+}
+
+// Test audio levels with a sample sound
+function testAudioLevels() {
+SoundFX.play('ribbit');
+}
+
 // ===== GAMEPLAY SETTINGS SUBMENU =====
 function showGameplaySettings() {
 closeSettingsMenu();
@@ -150,12 +219,6 @@ let html = `
 <button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨💨 4x</button>
 <button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">⚡ Instant</button>
 </div>
-
-<h3 class="modal-section-title green">Sound</h3>
-<label class="modal-checkbox-label">
-<input type="checkbox" ${SoundFX.enabled ? 'checked' : ''} onchange="toggleSoundFX(this.checked)">
-<span>🔊 Sound Effects</span>
-</label>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
