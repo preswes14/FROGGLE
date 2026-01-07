@@ -146,20 +146,14 @@ debugLog('[SAVE] Set currentSlot to 1 after migration');
 }
 v.innerHTML = `
 <div class="title-screen">
+<div class="title-container">
 <!-- Background image - landscape for wide screens, portrait for narrow -->
-<div class="title-image-wrapper">
 <picture>
 <source media="(min-aspect-ratio: 1/1)" srcset="assets/froggle_title_wide.jpeg">
 <img src="assets/froggle_title.png" alt="FROGGLE" class="title-bg-image">
 </picture>
-</div>
-
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
-
-<!-- Overlay for buttons - scales with image -->
-<div class="title-overlay">
-<div class="title-content">
 <!-- Left side buttons stacked -->
 <div class="title-button-container">
 <button class="btn title-secondary-btn" onclick="showCredits()">Credits</button>
@@ -168,7 +162,6 @@ v.innerHTML = `
 </div>
 <!-- Play button on the right -->
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
-</div>
 </div>
 </div>`;
 

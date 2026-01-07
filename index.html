@@ -1907,42 +1907,40 @@ body.high-contrast *:focus-visible {
   z-index: 99999;
 }
 
-/* Title Screen - Fullscreen splash */
+/* Title Screen - Fullscreen splash with mat */
 .title-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: #c9b896; /* Warm beige/tan to match brick wall in title art */
+  background: #bfa76e; /* Brown/yellow beige mat color */
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Container that maintains image aspect ratio */
-.title-image-wrapper {
+/* Container that wraps image AND buttons - shrinks to image size */
+.title-container {
   position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .title-bg-image {
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
+  max-width: 100vw;
+  max-height: 100vh;
   width: auto;
   height: auto;
-  object-fit: contain;
 }
 
 .title-version {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 2%;
+  right: 2%;
   background: rgba(0, 0, 0, 0.8);
   color: #3b82f6;
   padding: 0.3rem 0.6rem;
@@ -1953,40 +1951,15 @@ body.high-contrast *:focus-visible {
   z-index: 10;
 }
 
-/* Overlay container positioned over the image */
-.title-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Inner container matching image proportions - buttons go here */
-.title-content {
-  position: relative;
-  width: min(100%, calc(100vh * 1.5)); /* Approximate landscape aspect ratio */
-  height: min(100%, calc(100vw / 1.5));
-  max-width: 100%;
-  max-height: 100%;
-}
-
 .title-button-container {
   position: absolute;
-  bottom: 12%;
-  left: 4%;
+  bottom: 8%;
+  left: 5%;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.5rem;
   z-index: 10;
-  width: 15%;
-  min-width: 100px;
-  max-width: 160px;
-  pointer-events: auto;
+  width: 18%;
 }
 
 .title-secondary-btn {
@@ -1995,8 +1968,8 @@ body.high-contrast *:focus-visible {
   border-radius: 10px;
   color: white;
   font-family: 'Fredoka One', cursive;
-  font-size: clamp(0.7rem, 1.5vw, 1.1rem);
-  padding: 0.5rem 0.5rem;
+  font-size: clamp(0.65rem, 1.2vw, 1rem);
+  padding: 0.4rem 0.3rem;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
   box-shadow: 0 3px 0 #1d4ed8, 0 5px 10px rgba(0, 0, 0, 0.3);
   transition: all 0.15s ease;
@@ -2013,49 +1986,23 @@ body.high-contrast *:focus-visible {
   box-shadow: 0 1px 0 #1d4ed8, 0 3px 6px rgba(0, 0, 0, 0.2);
 }
 
-.title-credits-btn {
-  background: linear-gradient(180deg, #6366f1 0%, #4f46e5 100%);
-  border: 3px solid #000;
-  border-radius: 16px;
-  color: white;
-  font-family: 'Fredoka One', cursive;
-  font-size: 1.1rem;
-  padding: 0.6rem 1.5rem;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
-  box-shadow: 0 4px 0 #4338ca, 0 6px 12px rgba(0, 0, 0, 0.4);
-  transition: all 0.15s ease;
-}
-
-.title-credits-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #4338ca, 0 8px 16px rgba(0, 0, 0, 0.5);
-}
-
-.title-credits-btn:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #4338ca, 0 3px 6px rgba(0, 0, 0, 0.3);
-}
-
 .title-play-btn {
   position: absolute;
-  right: 4%;
-  bottom: 12%;
+  right: 5%;
+  bottom: 8%;
   background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
   border: 4px solid #000;
   border-radius: 12px;
   color: white;
   font-family: 'Fredoka One', cursive;
-  font-size: clamp(1rem, 2vw, 1.6rem);
-  padding: clamp(1.5rem, 4vh, 4rem) 0;
+  font-size: clamp(0.9rem, 1.8vw, 1.5rem);
+  padding: clamp(1rem, 3%, 3rem) 0;
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
   box-shadow: 0 5px 0 #15803d, 0 8px 16px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
   z-index: 10;
-  width: 15%;
-  min-width: 100px;
-  max-width: 160px;
+  width: 18%;
   text-align: center;
-  pointer-events: auto;
 }
 
 .title-play-btn:hover {
@@ -2066,33 +2013,6 @@ body.high-contrast *:focus-visible {
 .title-play-btn:active {
   transform: translateY(2px);
   box-shadow: 0 2px 0 #15803d, 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Portrait orientation adjustments */
-@media (max-aspect-ratio: 1/1) {
-  .title-content {
-    width: 100%;
-    height: calc(100vw / 0.75); /* Portrait image aspect ratio */
-  }
-
-  .title-button-container {
-    bottom: 5%;
-    left: 3%;
-    width: 20%;
-    gap: 0.4rem;
-  }
-
-  .title-play-btn {
-    right: 3%;
-    bottom: 5%;
-    width: 20%;
-    padding: clamp(1rem, 3vh, 2rem) 0;
-  }
-
-  .title-secondary-btn {
-    padding: 0.4rem 0.3rem;
-    font-size: clamp(0.6rem, 2.5vw, 0.9rem);
-  }
 }
 
 /* Steam Deck specific optimizations (1280x800 @ 7" screen) */
@@ -2387,7 +2307,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.77';
+const GAME_VERSION = '12.78';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -10192,20 +10112,14 @@ debugLog('[SAVE] Set currentSlot to 1 after migration');
 }
 v.innerHTML = `
 <div class="title-screen">
+<div class="title-container">
 <!-- Background image - landscape for wide screens, portrait for narrow -->
-<div class="title-image-wrapper">
 <picture>
 <source media="(min-aspect-ratio: 1/1)" srcset="assets/froggle_title_wide.jpeg">
 <img src="assets/froggle_title.png" alt="FROGGLE" class="title-bg-image">
 </picture>
-</div>
-
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
-
-<!-- Overlay for buttons - scales with image -->
-<div class="title-overlay">
-<div class="title-content">
 <!-- Left side buttons stacked -->
 <div class="title-button-container">
 <button class="btn title-secondary-btn" onclick="showCredits()">Credits</button>
@@ -10214,7 +10128,6 @@ v.innerHTML = `
 </div>
 <!-- Play button on the right -->
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
-</div>
 </div>
 </div>`;
 
