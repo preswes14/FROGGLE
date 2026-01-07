@@ -126,6 +126,9 @@ tooltipsDisabled: false,        // Whether sigil tooltips are disabled
 helpTipsDisabled: false,        // Whether tutorial help tips are disabled
 highContrastMode: false,        // Whether high contrast accessibility mode is enabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
+masterVolume: 1.0,              // Master volume (0-1) - scales all audio
+sfxVolume: 1.0,                 // SFX volume (0-1)
+musicVolume: 1.0,               // Music volume (0-1)
 controllerDisabled: false,      // Whether gamepad/controller support is disabled
 inRibbleton: false,             // Whether player is in Ribbleton hub
 
@@ -836,6 +839,9 @@ highContrastMode: S.highContrastMode,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
+masterVolume: S.masterVolume,
+sfxVolume: S.sfxVolume,
+musicVolume: S.musicVolume,
 pondHistory: S.pondHistory,
 questsCompleted: S.questsCompleted,
 questsClaimed: S.questsClaimed,
@@ -932,6 +938,11 @@ S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
 S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
+S.masterVolume = j.masterVolume !== undefined ? j.masterVolume : 1.0;
+S.sfxVolume = j.sfxVolume !== undefined ? j.sfxVolume : 1.0;
+S.musicVolume = j.musicVolume !== undefined ? j.musicVolume : 1.0;
+// Apply volume settings to audio systems
+applyVolumeSettings();
 S.pondHistory = j.pondHistory || [];
 // Apply high contrast mode if enabled
 if(S.highContrastMode) document.body.classList.add('high-contrast');
@@ -1288,6 +1299,9 @@ highContrastMode: S.highContrastMode,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
 animationSpeed: S.animationSpeed,
+masterVolume: S.masterVolume,
+sfxVolume: S.sfxVolume,
+musicVolume: S.musicVolume,
 pondHistory: S.pondHistory,
 questsCompleted: S.questsCompleted,
 questsClaimed: S.questsClaimed,

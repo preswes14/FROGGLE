@@ -1295,3 +1295,52 @@ const ProceduralMusic = {
   }
 };
 
+// ===== VOLUME SETTINGS =====
+// Apply volume settings from S state to audio systems
+function applyVolumeSettings() {
+  // Calculate effective volumes (master * individual)
+  const effectiveSfx = (S.masterVolume || 1) * (S.sfxVolume || 1);
+  const effectiveMusic = (S.masterVolume || 1) * (S.musicVolume || 1);
+
+  // Apply to SoundFX (SFX)
+  SoundFX.volume = 0.3 * effectiveSfx; // Base SFX volume is 0.3
+
+  // Apply to SoundFX music (loaded audio files)
+  SoundFX.musicVolume = 0.2 * effectiveMusic; // Base music volume is 0.2
+  if (SoundFX.musicGain && SoundFX.ctx) {
+    SoundFX.musicGain.gain.setValueAtTime(SoundFX.musicVolume, SoundFX.ctx.currentTime);
+  }
+
+  // Apply to ProceduralMusic
+  ProceduralMusic.volume = 0.15 * effectiveMusic; // Base procedural music volume is 0.15
+
+  // Update currently playing procedural music volume if active
+  if (ProceduralMusic.gainNodes && ProceduralMusic.gainNodes.length > 0 && ProceduralMusic.ctx) {
+    const masterGain = ProceduralMusic.gainNodes[0];
+    if (masterGain && masterGain.gain) {
+      masterGain.gain.setValueAtTime(ProceduralMusic.volume, ProceduralMusic.ctx.currentTime);
+    }
+  }
+}
+
+// Set master volume and apply
+function setMasterVolume(vol) {
+  S.masterVolume = Math.max(0, Math.min(1, vol));
+  applyVolumeSettings();
+  savePermanent();
+}
+
+// Set SFX volume and apply
+function setSfxVolume(vol) {
+  S.sfxVolume = Math.max(0, Math.min(1, vol));
+  applyVolumeSettings();
+  savePermanent();
+}
+
+// Set music volume and apply
+function setMusicVolume(vol) {
+  S.musicVolume = Math.max(0, Math.min(1, vol));
+  applyVolumeSettings();
+  savePermanent();
+}
+

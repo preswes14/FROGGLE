@@ -128,6 +128,8 @@ return html;
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
 debugLog('[FROGGLE] mainTitlePage START');
+// JUICE: Funky frog beat for title screen
+ProceduralMusic.startTitleBeat();
 // Hide game header on title screen
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'none';

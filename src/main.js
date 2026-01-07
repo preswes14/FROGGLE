@@ -84,6 +84,7 @@ loadPermanent(); // No slot data, use old format
 loadPermanent(); // No last slot, use old format
 }
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
+applyVolumeSettings(); // Apply audio volume settings
 initToastLog(); // Initialize toast log UI
 initSuspendSystem(); // Initialize autosave and suspend/resume system
 GamepadController.init(); // Initialize Steam Deck / controller support
