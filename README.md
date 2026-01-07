@@ -11,31 +11,28 @@ A Froggy Roguelike
 ## About
 
 FROGGLE is a weirdly empowering, delightfully breakable (f)roguelike dungeon crawler featuring:
-- An adorable Tadpole named Tapo who you MUST SAVE!
-- Tactically questionable. Emotionally devastating. Extremely froggy.
-- 4 unique hero classes (can you unlock the secret 5th hero!?)
+- An adorable little Tadpole named Tapo who YOU MUST SAVE or risk ruining his first birthday!
+- 4 Brave Frogventurers (Warrior, Tank, Mage, and Healer) - _can you unlock the secret 5th hero??_
+- Basic initially. Progressively awesomer. Eventually thrilling
+- Rich, tactical turn-based combat ranging from punk goblins to the terrifying secret boss!
 - Many mysterious encounters, each with a hidden unlockable second stage (find them all!)
-- Rich, tactical turn-based combat from punk goblins to the terrifying FLYDRA
-- 7 unique upgradable active abilities with powerful effects
-- 3 passive abilities that the whole team benefits from upgrading
+- Spend XP mid-run to upgrade stats or add/enhance abilities
 - Spend gold on death to buy PERMANENT upgrades for your party!
+- 4 Basic starter sigils with ntuitive actions like attack, shield, and heal)
+- 3 advanced upgradable active abilities with powerful effects (like preventing death or granting turns to an ally)
+- 3 game-changing passive abilities that the heroes gain/upgrade as a team!
 - The chance to swing ANY battle at ANY time with a lucky roll!
-- A hidden game mode - FROGGED UP mode - (once you clear standard)
+- A wildly challenging game mode - FROGGED UP mode - (clear Standard to unlock)
 - Funky froggy procedurally-generated beats
-- All kinds of secrets and easter eggs!
+- Lots of fun tidbits and easter eggs!
 
 *Inspired by Slay the Spire, Balatro, and Inscryption - if you like any of these, you'll probably like FROGGLE!*
 
 ## Platforms
 
-- **Web:** Any modern browser (Chrome, Firefox, Safari, Edge)
 - **Desktop:** Windows, Mac, Linux
-- **Mobile:** iOS and Android (installable as an app)
 - **Steam Deck:** Optimized with full controller support
 
-## How to Play
-
-Visit the link above and click "Play FROGGLE"!
 
 ## For Beta Testers
 
