@@ -1931,10 +1931,7 @@ body.high-contrast *:focus-visible {
 
 .title-bg-image {
   display: block;
-  max-width: 100vw;
-  max-height: 100vh;
-  width: auto;
-  height: auto;
+  /* Size set by JavaScript fitTitleImage() to fill one viewport dimension */
 }
 
 .title-version {
@@ -2307,7 +2304,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.78';
+const GAME_VERSION = '12.79';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -10130,6 +10127,33 @@ v.innerHTML = `
 <button class="btn title-play-btn" onclick="showSaveSlotSelection()">PLAY</button>
 </div>
 </div>`;
+
+// Fit title image to fill viewport while maintaining aspect ratio
+const titleImg = v.querySelector('.title-bg-image');
+function fitTitleImage() {
+  if (!titleImg || !titleImg.naturalWidth) return;
+
+  const imgRatio = titleImg.naturalWidth / titleImg.naturalHeight;
+  const viewRatio = window.innerWidth / window.innerHeight;
+
+  if (viewRatio > imgRatio) {
+    // Viewport is wider than image - fit to height, mat shows on sides
+    titleImg.style.height = '100vh';
+    titleImg.style.width = 'auto';
+  } else {
+    // Viewport is taller/equal - fit to width, mat shows on top/bottom
+    titleImg.style.width = '100vw';
+    titleImg.style.height = 'auto';
+  }
+}
+
+// Run on load and resize
+if (titleImg.complete && titleImg.naturalWidth) {
+  fitTitleImage();
+} else {
+  titleImg.addEventListener('load', fitTitleImage);
+}
+window.addEventListener('resize', fitTitleImage);
 
 // Auto-select Play button - always show focus highlight on load
 setTimeout(() => {

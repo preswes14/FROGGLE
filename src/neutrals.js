@@ -165,6 +165,33 @@ v.innerHTML = `
 </div>
 </div>`;
 
+// Fit title image to fill viewport while maintaining aspect ratio
+const titleImg = v.querySelector('.title-bg-image');
+function fitTitleImage() {
+  if (!titleImg || !titleImg.naturalWidth) return;
+
+  const imgRatio = titleImg.naturalWidth / titleImg.naturalHeight;
+  const viewRatio = window.innerWidth / window.innerHeight;
+
+  if (viewRatio > imgRatio) {
+    // Viewport is wider than image - fit to height, mat shows on sides
+    titleImg.style.height = '100vh';
+    titleImg.style.width = 'auto';
+  } else {
+    // Viewport is taller/equal - fit to width, mat shows on top/bottom
+    titleImg.style.width = '100vw';
+    titleImg.style.height = 'auto';
+  }
+}
+
+// Run on load and resize
+if (titleImg.complete && titleImg.naturalWidth) {
+  fitTitleImage();
+} else {
+  titleImg.addEventListener('load', fitTitleImage);
+}
+window.addEventListener('resize', fitTitleImage);
+
 // Auto-select Play button - always show focus highlight on load
 setTimeout(() => {
 const playBtn = document.querySelector('.title-play-btn');
