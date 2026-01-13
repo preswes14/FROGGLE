@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.82';
+const GAME_VERSION = '12.83';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -146,6 +146,17 @@ const ENEMY_EMOJI = {
 'Cave Troll': '👹',
 'Dragon': '🐉',
 'Flydra': '🐲'
+};
+
+// Enemy artwork images (replaces emojis for main enemies)
+// Fly keeps emoji (tutorial only), Flydra uses FLYDRA_HEADS
+const ENEMY_IMAGES = {
+'Goblin': 'assets/enemies/goblin.jpeg',
+'Wolf': 'assets/enemies/wolf.jpeg',
+'Giant': 'assets/enemies/giant.jpeg',
+'Orc': 'assets/enemies/orc.png',
+'Cave Troll': 'assets/enemies/cave_troll.png',
+'Dragon': 'assets/enemies/dragon.jpeg'
 };
 
 // Flydra head images and names (for multi-headed boss)
@@ -427,8 +438,13 @@ if(e.sh > 0) extra.push(`${e.sh}🛡`);
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(isSelected) extra.push('❌');
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">
-<div class="card-emoji">${enemyEmoji}</div>
+const enemyImageSrc = ENEMY_IMAGES[e.n];
+html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">`;
+if(enemyImageSrc) {
+html += `<div class="card-emoji"><img src="${enemyImageSrc}" alt="${e.n}" style="width:40px;height:40px;object-fit:contain;border-radius:4px"></div>`;
+} else {
+html += `<div class="card-emoji">${enemyEmoji}</div>`;
+}
 <div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${getEnemyDisplayName(e)}</div>
 <div class="card-stats">${e.p}💥 | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>

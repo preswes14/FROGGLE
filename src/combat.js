@@ -2646,9 +2646,14 @@ const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
 html += `<div id="${recruit.id}" class="card hero recruit${recruitShieldClass}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
-// Enemy emoji (retain original enemy type)
+// Enemy image or emoji (retain original enemy type)
 const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+const recruitImageSrc = ENEMY_IMAGES[recruit.n];
+if(recruitImageSrc) {
+html += `<div style="width:50px;height:50px;margin:0 auto 0.25rem;display:flex;align-items:center;justify-content:center"><img src="${recruitImageSrc}" alt="${recruit.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+} else {
 html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">${recruitEmoji}</div>`;
+}
 // HP
 html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
 // Shield bar (if shielded)
@@ -2724,9 +2729,12 @@ html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin
 // POW - image/emoji - HP row (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1rem;font-weight:bold;min-width:30px;text-align:center">${e.p}</div>`;
-// FLYDRA: Show head image instead of emoji
+// Show enemy image: Flydra head > artwork image > emoji fallback
+const enemyImageSrc = ENEMY_IMAGES[e.n];
 if(e.isFlydra && e.flydraHeadImage) {
 html += `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" class="flydra-head-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+} else if(enemyImageSrc) {
+html += `<div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center"><img src="${enemyImageSrc}" alt="${e.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
