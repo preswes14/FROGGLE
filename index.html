@@ -357,6 +357,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
 .card.hero .sigil-row .sigil { flex-shrink: 1; min-width: 28px; min-height: 28px; padding: 4px; font-size: 0.9rem; }
 .card.hero .sigil-row .sigil img { height: 1.3em; }
 .card.enemy { background: #b64141; color: white; width: 170px; }
+.enemy-art { border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
 .card.hero.chosen-one::before {
@@ -1224,6 +1225,7 @@ img[src*="tankfull"] {
   background: rgba(0,0,0,0.05);
   border-radius: 6px;
   margin-bottom: 0.75rem;
+  position: relative;
 }
 
 .combat-header-title {
@@ -2304,7 +2306,7 @@ body.controller-active .controller-prompts {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = '12.83';
+const GAME_VERSION = '12.84';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
