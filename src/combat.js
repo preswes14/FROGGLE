@@ -1002,10 +1002,12 @@ if(!S.pending || !needsEnemyTarget(S.pending)) return;
 const heroIdx = S.activeIdx;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
 if(S.pending === 'Attack') {
+debugLog('[TARGET] Attack target clicked:', id, 'Hero:', S.heroes[heroIdx]?.n, 'targetsPerInstance:', targetsPerInstance);
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
   S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
   S.targets = S.targets.filter(t => t !== id);
+  debugLog('[TARGET] Target removed. currentInstanceTargets:', S.currentInstanceTargets.length);
   render();
   return;
 }
@@ -1016,11 +1018,14 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
+debugLog('[TARGET] Target added. currentInstanceTargets now:', S.currentInstanceTargets.length, S.currentInstanceTargets);
 // Count available targets (enemies not yet targeted)
 const availableEnemies = S.enemies.filter(e => e.h > 0 && !S.currentInstanceTargets.includes(e.id)).length;
 // Auto-confirm when targets are full OR all available enemies selected (manual only, not auto-select)
 const shouldAutoConfirm = (S.currentInstanceTargets.length >= targetsPerInstance || availableEnemies === 0) && !S.autoSelectInProgress;
+debugLog('[TARGET] shouldAutoConfirm:', shouldAutoConfirm, '(targets:', S.currentInstanceTargets.length, '>=', targetsPerInstance, 'or available:', availableEnemies, '=== 0)');
 if(shouldAutoConfirm) {
+  debugLog('[TARGET] Auto-confirming with targets:', [...S.currentInstanceTargets]);
   confirmTargets();
 } else {
   render();
@@ -1199,17 +1204,23 @@ if(action === 'Attack') {
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
 
+// DEBUG: Log attack targets
+debugLog('[ATTACK] executeInstance called with', targets.length, 'targets:', targets);
+
 const targetDetails = [];
 const damagedEnemyIds = [];
 // First pass: Apply damage to all targets
 targets.forEach(tgtId => {
+debugLog('[ATTACK] Processing target:', tgtId);
 const e = S.enemies.find(x => x.id === tgtId);
+debugLog('[ATTACK] Found enemy:', e ? e.n : 'NOT FOUND', e ? `HP: ${e.h}/${e.m}` : '');
 if(!e) return;
 const hpBefore = e.h;
 damagedEnemyIds.push(e.id);
 // Apply damage (without animation yet)
 applyDamageToTarget(e, pow, {isHero: false, skipRewards: false});
 const hpAfter = e.h;
+debugLog('[ATTACK] Damage applied to', e.n, '- HP:', hpBefore, '->', hpAfter);
 targetDetails.push({name: e.n, before: hpBefore, after: hpAfter});
 // Track turn damage for damage counter
 S.turnDamage += pow;
@@ -2719,7 +2730,7 @@ html += `<div style="width:50px;height:50px;display:flex;align-items:center;just
 } else {
 html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
-html += `<div style="min-width:55px;text-align:center"><div style="font-size:0.8rem">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
+html += `<div style="min-width:65px;text-align:center"><div style="font-size:0.8rem">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
 // Shield bar (if shielded)
 if(e.sh > 0) {
