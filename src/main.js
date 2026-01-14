@@ -110,3 +110,53 @@ window.addEventListener('unhandledrejection', (e) => {
 console.error('[FROGGLE] UNHANDLED PROMISE REJECTION:', e.reason);
 });
 
+// ===== MOBILE DOUBLE-TAP FOR AUTO-TARGET =====
+// Only on touch devices: double-tap a sigil = select + auto-target
+(function() {
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (!isTouchDevice) return;
+
+  let lastTapTime = 0;
+  let lastTapTarget = null;
+
+  document.addEventListener('touchend', (e) => {
+    // Find if we tapped on a clickable sigil
+    const sigil = e.target.closest('.sigil.clickable');
+    if (!sigil) {
+      lastTapTarget = null;
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime;
+
+    // Check for double-tap (same sigil, within 300ms)
+    if (lastTapTarget === sigil && timeSinceLastTap < 300) {
+      // Double-tap detected! Prevent default and call actAndAutoTarget
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Extract sigil name and hero index from onclick attribute
+      const onclick = sigil.getAttribute('onclick');
+      if (onclick && onclick.startsWith("act('")) {
+        // Parse: act('Attack', 0) -> sig='Attack', heroIdx=0
+        const match = onclick.match(/act\('(\w+)',\s*(\d+)\)/);
+        if (match && typeof actAndAutoTarget === 'function') {
+          const sig = match[1];
+          const heroIdx = parseInt(match[2]);
+          debugLog('[TOUCH] Double-tap detected on sigil:', sig, 'hero:', heroIdx);
+          actAndAutoTarget(sig, heroIdx);
+        }
+      }
+
+      // Reset to prevent triple-tap continuing
+      lastTapTarget = null;
+      lastTapTime = 0;
+    } else {
+      // First tap or new target
+      lastTapTarget = sigil;
+      lastTapTime = now;
+    }
+  }, { passive: false });
+})();
+
