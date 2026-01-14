@@ -647,6 +647,9 @@ const GamepadController = {
   },
 
   onButtonPress(buttonIndex) {
+    // Debug: Log button presses to help identify mapping issues
+    debugLog('[GAMEPAD] Button pressed:', buttonIndex, '(X should be 2)');
+
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();
@@ -767,6 +770,7 @@ const GamepadController = {
         }
         break;
       case this.BUTTONS.X:
+        debugLog('[GAMEPAD] X button pressed, calling autoTarget()');
         this.autoTarget();
         break;
       case this.BUTTONS.SELECT:
@@ -899,29 +903,33 @@ const GamepadController = {
       const dx = elCenter.x - currentCenter.x;
       const dy = elCenter.y - currentCenter.y;
 
-      // Check if element is in the right direction
+      // Check if element is in the right direction using a cone-based approach
+      // Primary axis must have meaningful movement, secondary axis is allowed
       let inDirection = false;
       let primaryDist = 0;
       let secondaryDist = 0;
 
+      // Use smaller threshold (5px) and consider element size
+      const threshold = 5;
+
       switch (dir) {
         case 'up':
-          inDirection = dy < -10;
+          inDirection = dy < -threshold;
           primaryDist = Math.abs(dy);
           secondaryDist = Math.abs(dx);
           break;
         case 'down':
-          inDirection = dy > 10;
+          inDirection = dy > threshold;
           primaryDist = Math.abs(dy);
           secondaryDist = Math.abs(dx);
           break;
         case 'left':
-          inDirection = dx < -10;
+          inDirection = dx < -threshold;
           primaryDist = Math.abs(dx);
           secondaryDist = Math.abs(dy);
           break;
         case 'right':
-          inDirection = dx > 10;
+          inDirection = dx > threshold;
           primaryDist = Math.abs(dx);
           secondaryDist = Math.abs(dy);
           break;
@@ -929,8 +937,13 @@ const GamepadController = {
 
       if (!inDirection) continue;
 
-      // Score: prefer closer elements, with penalty for off-axis distance
-      const score = primaryDist + secondaryDist * 2;
+      // Improved scoring: heavily favor elements that are more aligned with direction
+      // Use a "cone" approach - elements directly in line score better
+      // Penalize off-axis distance more when primary distance is small
+      const alignment = primaryDist > 0 ? secondaryDist / primaryDist : secondaryDist;
+      // Score combines: distance + alignment penalty (capped at 3x for very off-axis elements)
+      const alignmentPenalty = Math.min(3, alignment) * 50;
+      const score = primaryDist + alignmentPenalty;
 
       if (score < bestScore) {
         bestScore = score;
@@ -938,7 +951,33 @@ const GamepadController = {
       }
     }
 
-    // If no element in direction, wrap around
+    // If no element in direction, try to find any element that's even slightly in that direction
+    if (!bestCandidate) {
+      for (const el of this.focusableElements) {
+        if (el === this.focusedElement) continue;
+        const rect = el.getBoundingClientRect();
+        const dx = (rect.left + rect.width/2) - currentCenter.x;
+        const dy = (rect.top + rect.height/2) - currentCenter.y;
+
+        let isInDirection = false;
+        switch (dir) {
+          case 'up': isInDirection = dy < 0; break;
+          case 'down': isInDirection = dy > 0; break;
+          case 'left': isInDirection = dx < 0; break;
+          case 'right': isInDirection = dx > 0; break;
+        }
+
+        if (isInDirection) {
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < bestScore) {
+            bestScore = dist;
+            bestCandidate = el;
+          }
+        }
+      }
+    }
+
+    // Final fallback: wrap around in the sorted list
     if (!bestCandidate) {
       const idx = this.focusableElements.indexOf(this.focusedElement);
       if (dir === 'down' || dir === 'right') {
@@ -1405,6 +1444,8 @@ const GamepadController = {
   // Auto target: automatically select targets using AI logic (X button)
   // Press once to auto-select, press again to confirm
   autoTarget() {
+    debugLog('[GAMEPAD] autoTarget() called, S.pending:', S?.pending, 'S.currentInstanceTargets:', S?.currentInstanceTargets?.length);
+
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
     }
@@ -1412,11 +1453,13 @@ const GamepadController = {
     // Only works when we have a pending action that needs targets
     if (typeof S === 'undefined' || !S.pending) {
       toast('No action selected - choose a sigil first!', 1500);
+      debugLog('[GAMEPAD] autoTarget() - no pending action');
       return;
     }
 
     // If targets are already selected, confirm them on second press
     if (S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+      debugLog('[GAMEPAD] autoTarget() - confirming existing targets');
       if (typeof confirmTargets === 'function') {
         confirmTargets();
       }
@@ -1472,19 +1515,28 @@ const GamepadController = {
         return aLaneDist - bLaneDist;
       });
 
-      // Click targets up to targetsNeeded
+      // Target enemies directly by calling tgtEnemy function
       const toTarget = aliveEnemies.slice(0, targetsNeeded);
       S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
+      let successCount = 0;
       for (const enemy of toTarget) {
-        const card = document.getElementById(enemy.id);
-        if (card) {
-          card.click();
+        // Call tgtEnemy directly instead of relying on click()
+        if (typeof tgtEnemy === 'function') {
+          tgtEnemy(enemy.id);
+          successCount++;
+        } else {
+          // Fallback to clicking if function not available
+          const card = document.getElementById(enemy.id);
+          if (card) {
+            card.click();
+            successCount++;
+          }
         }
       }
       S.autoSelectInProgress = false;
 
-      if (toTarget.length > 0) {
-        toast(`Auto-targeted ${toTarget.length} enem${toTarget.length === 1 ? 'y' : 'ies'}!`, 1200);
+      if (successCount > 0) {
+        toast(`Auto-targeted ${successCount} enem${successCount === 1 ? 'y' : 'ies'}!`, 1200);
       }
 
     } else if (['Heal', 'Shield', 'Alpha'].includes(pending)) {
@@ -1520,19 +1572,28 @@ const GamepadController = {
         aliveHeroes.sort((a, b) => b.p - a.p);
       }
 
-      // Click targets up to targetsNeeded
+      // Target heroes directly by calling tgtHero function
       const toTarget = aliveHeroes.slice(0, targetsNeeded);
       S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
+      let successCount = 0;
       for (const hero of toTarget) {
-        const card = document.getElementById(hero.id);
-        if (card) {
-          card.click();
+        // Call tgtHero directly instead of relying on click()
+        if (typeof tgtHero === 'function') {
+          tgtHero(hero.id);
+          successCount++;
+        } else {
+          // Fallback to clicking if function not available
+          const card = document.getElementById(hero.id);
+          if (card) {
+            card.click();
+            successCount++;
+          }
         }
       }
       S.autoSelectInProgress = false;
 
-      if (toTarget.length > 0) {
-        toast(`Auto-targeted ${toTarget.length} hero${toTarget.length === 1 ? '' : 'es'}!`, 1200);
+      if (successCount > 0) {
+        toast(`Auto-targeted ${successCount} hero${successCount === 1 ? '' : 'es'}!`, 1200);
       }
 
     } else {
