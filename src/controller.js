@@ -771,6 +771,26 @@ const GamepadController = {
         break;
       case this.BUTTONS.X:
         debugLog('[GAMEPAD] X button pressed, calling autoTarget()');
+        // X does select-and-auto-target: if focused on a sigil, activate it first
+        if (this.focusedElement) {
+          const sigil = this.focusedElement.classList.contains('sigil') ? this.focusedElement
+                      : this.focusedElement.querySelector('.sigil.clickable');
+          if (sigil && sigil.hasAttribute('onclick')) {
+            // Activate the sigil first
+            const onclick = sigil.getAttribute('onclick');
+            try {
+              const fn = new Function(onclick);
+              fn.call(sigil);
+              debugLog('[GAMEPAD] X activated sigil, now auto-targeting');
+              // Small delay to let state update, then auto-target
+              setTimeout(() => this.autoTarget(), 50);
+              break;
+            } catch (e) {
+              debugLog('[GAMEPAD] Sigil activation failed:', e);
+            }
+          }
+        }
+        // If not on a sigil or sigil activation failed, just do normal auto-target
         this.autoTarget();
         break;
       case this.BUTTONS.SELECT:

@@ -17663,6 +17663,26 @@ const GamepadController = {
         break;
       case this.BUTTONS.X:
         debugLog('[GAMEPAD] X button pressed, calling autoTarget()');
+        // X does select-and-auto-target: if focused on a sigil, activate it first
+        if (this.focusedElement) {
+          const sigil = this.focusedElement.classList.contains('sigil') ? this.focusedElement
+                      : this.focusedElement.querySelector('.sigil.clickable');
+          if (sigil && sigil.hasAttribute('onclick')) {
+            // Activate the sigil first
+            const onclick = sigil.getAttribute('onclick');
+            try {
+              const fn = new Function(onclick);
+              fn.call(sigil);
+              debugLog('[GAMEPAD] X activated sigil, now auto-targeting');
+              // Small delay to let state update, then auto-target
+              setTimeout(() => this.autoTarget(), 50);
+              break;
+            } catch (e) {
+              debugLog('[GAMEPAD] Sigil activation failed:', e);
+            }
+          }
+        }
+        // If not on a sigil or sigil activation failed, just do normal auto-target
         this.autoTarget();
         break;
       case this.BUTTONS.SELECT:
@@ -19197,6 +19217,56 @@ console.error('[FROGGLE] Stack:', e.error ? e.error.stack : 'No stack trace');
 window.addEventListener('unhandledrejection', (e) => {
 console.error('[FROGGLE] UNHANDLED PROMISE REJECTION:', e.reason);
 });
+
+// ===== MOBILE DOUBLE-TAP FOR AUTO-TARGET =====
+// Only on touch devices: double-tap a sigil = select + auto-target
+(function() {
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (!isTouchDevice) return;
+
+  let lastTapTime = 0;
+  let lastTapTarget = null;
+
+  document.addEventListener('touchend', (e) => {
+    // Find if we tapped on a clickable sigil
+    const sigil = e.target.closest('.sigil.clickable');
+    if (!sigil) {
+      lastTapTarget = null;
+      return;
+    }
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime;
+
+    // Check for double-tap (same sigil, within 300ms)
+    if (lastTapTarget === sigil && timeSinceLastTap < 300) {
+      // Double-tap detected! Prevent default and call actAndAutoTarget
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Extract sigil name and hero index from onclick attribute
+      const onclick = sigil.getAttribute('onclick');
+      if (onclick && onclick.startsWith("act('")) {
+        // Parse: act('Attack', 0) -> sig='Attack', heroIdx=0
+        const match = onclick.match(/act\('(\w+)',\s*(\d+)\)/);
+        if (match && typeof actAndAutoTarget === 'function') {
+          const sig = match[1];
+          const heroIdx = parseInt(match[2]);
+          debugLog('[TOUCH] Double-tap detected on sigil:', sig, 'hero:', heroIdx);
+          actAndAutoTarget(sig, heroIdx);
+        }
+      }
+
+      // Reset to prevent triple-tap continuing
+      lastTapTarget = null;
+      lastTapTime = 0;
+    } else {
+      // First tap or new target
+      lastTapTarget = sigil;
+      lastTapTime = now;
+    }
+  }, { passive: false });
+})();
 
 
 </script>
