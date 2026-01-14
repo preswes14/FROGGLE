@@ -647,6 +647,9 @@ const GamepadController = {
   },
 
   onButtonPress(buttonIndex) {
+    // Debug: Log button presses to help identify mapping issues
+    debugLog('[GAMEPAD] Button pressed:', buttonIndex, '(X should be 2)');
+
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();
@@ -767,6 +770,7 @@ const GamepadController = {
         }
         break;
       case this.BUTTONS.X:
+        debugLog('[GAMEPAD] X button pressed, calling autoTarget()');
         this.autoTarget();
         break;
       case this.BUTTONS.SELECT:
@@ -1440,6 +1444,8 @@ const GamepadController = {
   // Auto target: automatically select targets using AI logic (X button)
   // Press once to auto-select, press again to confirm
   autoTarget() {
+    debugLog('[GAMEPAD] autoTarget() called, S.pending:', S?.pending, 'S.currentInstanceTargets:', S?.currentInstanceTargets?.length);
+
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
     }
@@ -1447,11 +1453,13 @@ const GamepadController = {
     // Only works when we have a pending action that needs targets
     if (typeof S === 'undefined' || !S.pending) {
       toast('No action selected - choose a sigil first!', 1500);
+      debugLog('[GAMEPAD] autoTarget() - no pending action');
       return;
     }
 
     // If targets are already selected, confirm them on second press
     if (S.currentInstanceTargets && S.currentInstanceTargets.length > 0) {
+      debugLog('[GAMEPAD] autoTarget() - confirming existing targets');
       if (typeof confirmTargets === 'function') {
         confirmTargets();
       }
