@@ -445,7 +445,7 @@ html += `<div class="card-emoji"><img src="${enemyImageSrc}" alt="${e.n}" style=
 } else {
 html += `<div class="card-emoji">${enemyEmoji}</div>`;
 }
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${getEnemyDisplayName(e)}</div>
+html += `<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${getEnemyDisplayName(e)}</div>
 <div class="card-stats">${e.p}💥 | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
 <div class="sigil-divider"></div>
 <div class="sigil-row">`;
