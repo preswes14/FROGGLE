@@ -1,0 +1,46 @@
+name: Deploy to Steam
+
+on:
+  workflow_dispatch:
+      inputs:
+            branch:
+                    description: 'Steam branch to deploy to'
+                            required: true
+                                    default: 'beta'
+                                            type: choice
+                                                    options:
+                                                              - beta
+                                                                        - default
+
+                                                                        jobs:
+                                                                          deploy:
+                                                                              runs-on: ubuntu-latest
+                                                                                  steps:
+                                                                                        - name: Checkout code
+                                                                                                uses: actions/checkout@v4
+
+                                                                                                      - name: Download latest release
+                                                                                                              env:
+                                                                                                                        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                                                                                                                                run: |
+                                                                                                                                          mkdir -p content/windows content/linux content/mac
+                                                                                                                                                    gh release download latest --pattern "*.exe" --dir content/windows || echo "No Windows build"
+                                                                                                                                                              gh release download latest --pattern "*.AppImage" --dir content/linux || echo "No Linux build"
+                                                                                                                                                                        gh release download latest --pattern "*.dmg" --dir content/mac || echo "No Mac build"
+                                                                                                                                                                                  find content -type f -ls
+                                                                                                                                                                                  
+                                                                                                                                                                                        - name: Install SteamCMD
+                                                                                                                                                                                                uses: CyberAndrii/setup-steamcmd@v1
+                                                                                                                                                                                                
+                                                                                                                                                                                                      - name: Setup Steam authentication
+                                                                                                                                                                                                              env:
+                                                                                                                                                                                                                        STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
+                                                                                                                                                                                                                                run: |
+                                                                                                                                                                                                                                          mkdir -p ~/.steam/config
+                                                                                                                                                                                                                                                    echo "$STEAM_CONFIG_VDF" | base64 -d > ~/.steam/config/config.vdf
+                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                          - name: Deploy to Steam
+                                                                                                                                                                                                                                                                  run: |
+                                                                                                                                                                                                                                                                            steamcmd +login ${{ secrets.STEAM_USERNAME }} +run_app_build $(pwd)/steamcmd/app_build_4333900.vdf +quit
+                                                                                                                                                                                                                                                                                    env:
+                                                                                                                                                                                                                                                                                              STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
