@@ -23,11 +23,19 @@ mkdir -p build
 
 # Auto-increment version unless --no-bump flag is passed
 if [ "$1" != "--no-bump" ]; then
-    # Extract current version
+    # Extract current version (handles both "12.85" and "STM_1.01" formats)
     CURRENT_VERSION=$(grep "const GAME_VERSION" src/constants.js | sed "s/.*'\([^']*\)'.*/\1/")
 
-    # Increment by 0.01
-    NEW_VERSION=$(echo "$CURRENT_VERSION + 0.01" | bc | sed 's/^\./0./')
+    # Check if it's the new S_ format (Steam builds)
+    if [[ "$CURRENT_VERSION" == S_* ]]; then
+        # Extract numeric part and increment
+        VERSION_NUM=$(echo "$CURRENT_VERSION" | sed 's/S_//')
+        NEW_NUM=$(echo "$VERSION_NUM + 0.01" | bc | sed 's/^\./0./')
+        NEW_VERSION="S_$NEW_NUM"
+    else
+        # Legacy format: just increment the number
+        NEW_VERSION=$(echo "$CURRENT_VERSION + 0.01" | bc | sed 's/^\./0./')
+    fi
 
     # Update the file (cross-platform: Mac BSD sed vs GNU sed)
     if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -36,11 +44,12 @@ if [ "$1" != "--no-bump" ]; then
         sed -i "s/const GAME_VERSION = '[^']*'/const GAME_VERSION = '$NEW_VERSION'/" src/constants.js
     fi
 
-    # Also update service worker cache name
+    # Also update service worker cache name (use just the numeric part)
+    CACHE_VERSION=$(echo "$NEW_VERSION" | sed 's/S_//')
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        sed -i '' "s/const CACHE_NAME = 'froggle-v[^']*'/const CACHE_NAME = 'froggle-v$NEW_VERSION'/" sw.js
+        sed -i '' "s/const CACHE_NAME = 'froggle-v[^']*'/const CACHE_NAME = 'froggle-v$CACHE_VERSION'/" sw.js
     else
-        sed -i "s/const CACHE_NAME = 'froggle-v[^']*'/const CACHE_NAME = 'froggle-v$NEW_VERSION'/" sw.js
+        sed -i "s/const CACHE_NAME = 'froggle-v[^']*'/const CACHE_NAME = 'froggle-v$CACHE_VERSION'/" sw.js
     fi
 
     echo "→ Version bumped: $CURRENT_VERSION → $NEW_VERSION (constants.js + sw.js)"
@@ -67,6 +76,7 @@ echo "→ Concatenating JavaScript modules..."
 # Order based on actual code structure and dependencies
 MODULES=(
     "src/constants.js"      # Version, HERO_IMAGES, DEATH_QUOTES, H, E, SIGIL_*, ANIMATION_TIMINGS
+    "src/steam.js"          # Steam integration (achievements, stats, cloud save)
     "src/sounds.js"         # SoundFX system
     "src/state.js"          # Game state S, upd(), animations, toast, save/load
     "src/combat.js"         # Floor management, combat system, render(), level up

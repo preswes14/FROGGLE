@@ -1,6 +1,6 @@
 {
   "name": "froggle",
-  "version": "12.64.0",
+  "version": "1.0.1",
   "description": "FROGGLE - A tactical turn-based roguelike PWA",
   "main": "electron-main.js",
   "scripts": {
@@ -15,6 +15,9 @@
     "dist:win": "electron-builder --win portable",
     "dist:all": "electron-builder --linux AppImage --win portable",
     "dist:mac": "electron-builder --mac dmg"
+  },
+  "dependencies": {
+    "steamworks.js": "^0.3.1"
   },
   "devDependencies": {
     "electron": "^28.0.0",
@@ -31,6 +34,8 @@
     "files": [
       "index.html",
       "electron-main.js",
+      "electron-preload.js",
+      "steam_appid.txt",
       "manifest.json",
       "sw.js",
       "assets/**/*"
