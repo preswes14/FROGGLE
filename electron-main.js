@@ -19,10 +19,14 @@ function initSteam() {
       console.log('[Steam] Initialized successfully');
       console.log('[Steam] User:', steamClient.localplayer.getName());
 
-      // Run Steam callbacks periodically
+      // Run Steam callbacks periodically (wrapped in try/catch for Steam Deck stability)
       setInterval(() => {
         if (steamClient) {
-          steamClient.runCallbacks();
+          try {
+            steamClient.runCallbacks();
+          } catch (e) {
+            console.warn('[Steam] Callback error:', e.message);
+          }
         }
       }, 100);
     }
