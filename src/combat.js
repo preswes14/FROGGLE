@@ -931,7 +931,14 @@ return;
 const heroIdx = S.activeIdx;
 
 if(S.pending === 'Attack') {
-executeInstance(S.pending, heroIdx, [...S.currentInstanceTargets]);
+// SAFEGUARD: Make a copy of targets before clearing
+const targetsToExecute = [...S.currentInstanceTargets];
+debugLog('[CONFIRM] Attack with', targetsToExecute.length, 'targets:', targetsToExecute.join(', '));
+if(targetsToExecute.length === 0) {
+  toast('No targets selected!');
+  return;
+}
+executeInstance(S.pending, heroIdx, targetsToExecute);
 S.instancesRemaining = Math.max(0, S.instancesRemaining - 1);
 S.currentInstanceTargets = [];
 if(S.instancesRemaining <= 0) {
@@ -971,7 +978,20 @@ S.currentInstanceTargets = [];
 }
 }
 
+// Debounce tracking for target clicks to prevent double-fire issues in Proton/touch
+let lastTargetTime = 0;
+let lastTargetId = null;
+
 function tgtEnemy(id) {
+// Debounce: prevent double-fire within 100ms on same target
+const now = Date.now();
+if(id === lastTargetId && now - lastTargetTime < 100) {
+  debugLog('[TARGET] Debounced duplicate click on', id);
+  return;
+}
+lastTargetTime = now;
+lastTargetId = id;
+
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
@@ -1059,6 +1079,15 @@ if(shouldAutoConfirmGrapple) {
 }
 
 function tgtHero(id) {
+// Debounce: prevent double-fire within 100ms on same target (reuse enemy debounce vars)
+const now = Date.now();
+if(id === lastTargetId && now - lastTargetTime < 100) {
+  debugLog('[TARGET] Debounced duplicate click on', id);
+  return;
+}
+lastTargetTime = now;
+lastTargetId = id;
+
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(!S.pending || !needsHeroTarget(S.pending)) return;
 const heroIdx = S.activeIdx;
@@ -1200,12 +1229,18 @@ render();
 function executeInstance(action, heroIdx, targets) {
 const h = S.heroes[heroIdx];
 const pow = h.p;
+// SAFEGUARD: Ensure targets is a valid array
+if(!Array.isArray(targets)) {
+  console.error('[ATTACK] targets is not an array:', targets);
+  targets = [];
+}
+debugLog('[EXECUTE] executeInstance called - action:', action, 'targets:', targets.length, targets);
 if(action === 'Attack') {
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
 
 // DEBUG: Log attack targets
-debugLog('[ATTACK] executeInstance called with', targets.length, 'targets:', targets);
+debugLog('[ATTACK] Processing attack with', targets.length, 'targets:', JSON.stringify(targets));
 
 const targetDetails = [];
 const damagedEnemyIds = [];

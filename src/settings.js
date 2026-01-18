@@ -103,6 +103,7 @@ menus.forEach(m => m.remove());
 function showSettingsMenu() {
 const v = document.getElementById('gameView');
 const inGame = S.heroes && S.heroes.length > 0 && S.floor > 0;
+const inTutorial = S.heroes && S.heroes.length > 0 && S.floor === 0;
 const inRibbleton = S.inRibbleton;
 
 let html = `
@@ -123,6 +124,8 @@ ${inGame ? `
 
 ${inGame ? `
 <button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-top:1rem;background:#dc2626">🚪 Quit to Ribbleton</button>
+` : inTutorial ? `
+<button class="btn danger" onclick="confirmQuitTutorial()" style="margin-top:1rem;background:#dc2626">🚪 Exit Tutorial</button>
 ` : inRibbleton ? `
 <button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">🚪 Quit Game</button>
 ` : ''}
@@ -348,6 +351,28 @@ S.recruits = [];
 S.combatXP = 0;
 S.combatGold = 0;
 S.inRibbleton = true;
+setTimeout(() => {
+showRibbleton();
+}, 500);
+});
+}
+
+function confirmQuitTutorial() {
+showConfirmModal('Exit tutorial? You can restart it anytime from Ribbleton.', () => {
+closeSettingsMenu();
+toast('Exiting tutorial...', 1200);
+// Clear tutorial state
+if(typeof tutorialState !== 'undefined') tutorialState = null;
+// Reset game state
+S.heroes = [];
+S.floor = 0;
+S.round = 0;
+S.enemies = [];
+S.recruits = [];
+S.combatXP = 0;
+S.combatGold = 0;
+S.inRibbleton = true;
+S.inTutorial = false;
 setTimeout(() => {
 showRibbleton();
 }, 500);

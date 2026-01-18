@@ -1669,13 +1669,17 @@ const GamepadController = {
       // Buttons - most common interactive elements
       '.btn:not(.disabled)',
       'button:not(.disabled):not([disabled])',
+      // Cancel button during targeting (important for controller)
+      '[onclick*="cancelAction"]',
       // Choice options
       '.choice',
       // Clickable cards (heroes, enemies)
       '.card[onclick]',
       '.card.hero:not(.acted)',
-      '.card.enemy.targetable',
       '.card.hero.targetable',
+      '.card.enemy.targetable',
+      // Always include enemy cards in combat for navigation (even if not currently targetable)
+      '.card.enemy:not(.dead)',
       // Clickable sigils
       '.sigil.clickable',
       '.sigil[onclick]',
