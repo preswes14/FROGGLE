@@ -6,34 +6,10 @@ let mainWindow;
 let steamClient = null;
 let steamInitialized = false;
 
-// Initialize Steam
+// Initialize Steam - DISABLED for Steam Deck compatibility testing
 function initSteam() {
-  try {
-    const steamworks = require('steamworks.js');
-
-    // Initialize with your App ID (reads from steam_appid.txt in dev)
-    steamClient = steamworks.init();
-
-    if (steamClient) {
-      steamInitialized = true;
-      console.log('[Steam] Initialized successfully');
-      console.log('[Steam] User:', steamClient.localplayer.getName());
-
-      // Run Steam callbacks periodically (wrapped in try/catch for Steam Deck stability)
-      setInterval(() => {
-        if (steamClient) {
-          try {
-            steamClient.runCallbacks();
-          } catch (e) {
-            console.warn('[Steam] Callback error:', e.message);
-          }
-        }
-      }, 100);
-    }
-  } catch (e) {
-    console.log('[Steam] Not available:', e.message);
-    steamInitialized = false;
-  }
+  console.log('[Steam] Disabled for compatibility testing');
+  steamInitialized = false;
 }
 
 // ============================================
