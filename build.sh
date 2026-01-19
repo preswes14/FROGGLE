@@ -52,7 +52,16 @@ if [ "$1" != "--no-bump" ]; then
         sed -i "s/const CACHE_NAME = 'froggle-v[^']*'/const CACHE_NAME = 'froggle-v$CACHE_VERSION'/" sw.js
     fi
 
-    echo "→ Version bumped: $CURRENT_VERSION → $NEW_VERSION (constants.js + sw.js)"
+    # Also update package.json version for electron-builder artifact naming
+    # Convert S_1.09 → 1.9.0 (semver format required by npm)
+    PKG_VERSION=$(echo "$CACHE_VERSION" | sed 's/^0*//' | sed 's/\.0*/./g').0
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$PKG_VERSION\"/" package.json
+    else
+        sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$PKG_VERSION\"/" package.json
+    fi
+
+    echo "→ Version bumped: $CURRENT_VERSION → $NEW_VERSION (constants.js + sw.js + package.json)"
 fi
 
 # Check if templates exist, if not extract them
