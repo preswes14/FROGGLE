@@ -37,3 +37,30 @@ contextBridge.exposeInMainWorld('electronInfo', {
   platform: process.platform,
   isElectron: true
 });
+
+// Expose Steam Input bridge for controller support
+// This receives input state from main process and forwards to renderer
+let steamInputCallback = null;
+
+ipcRenderer.on('steam-input-state', (event, state) => {
+  if (steamInputCallback) {
+    steamInputCallback(state);
+  }
+});
+
+contextBridge.exposeInMainWorld('steamInputBridge', {
+  // Check if Steam Input is available
+  get initialized() {
+    return ipcRenderer.sendSync('steam-input-initialized');
+  },
+
+  // Register callback to receive input state
+  onInput: (callback) => {
+    steamInputCallback = callback;
+  },
+
+  // Unregister callback
+  offInput: () => {
+    steamInputCallback = null;
+  }
+});
