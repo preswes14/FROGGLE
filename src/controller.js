@@ -1508,14 +1508,15 @@ const GamepadController = {
     // Calculate total targets based on expand
     // Use getTargetsPerInstance if available (respects Mage/Healer bonus properly)
     let totalTargets = 1;
+    const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
     if (typeof getTargetsPerInstance === 'function') {
       totalTargets = getTargetsPerInstance(pending, heroIdx);
     } else {
       // Fallback: manually calculate (shouldn't normally be needed)
-      const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
       totalTargets = 1 + expandLevel;
     }
     targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
+    toast(`[DEBUG] Hero: ${hero?.n}, Expand L${expandLevel}, totalTargets=${totalTargets}, targetsNeeded=${targetsNeeded}`, 3000);
 
     // Different targeting logic based on action type
     if (['Attack', 'Grapple', 'D20_TARGET'].includes(pending)) {
@@ -1537,6 +1538,7 @@ const GamepadController = {
 
       // Target enemies directly by calling tgtEnemy function
       const toTarget = aliveEnemies.slice(0, targetsNeeded);
+      toast(`[DEBUG] Auto-targeting ${toTarget.length} of ${targetsNeeded} needed (Expand allows ${totalTargets})`, 2000);
       S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
       let successCount = 0;
       for (const enemy of toTarget) {
@@ -1554,6 +1556,9 @@ const GamepadController = {
         }
       }
       S.autoSelectInProgress = false;
+      // Debug: show what's actually in currentInstanceTargets after auto-select
+      const actualTargets = S.currentInstanceTargets ? S.currentInstanceTargets.length : 0;
+      toast(`[DEBUG] After auto-select: ${actualTargets} in currentInstanceTargets`, 2000);
 
       if (successCount > 0) {
         toast(`Auto-targeted ${successCount} enem${successCount === 1 ? 'y' : 'ies'}!`, 1200);

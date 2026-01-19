@@ -1025,6 +1025,7 @@ const heroIdx = S.activeIdx;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
 if(S.pending === 'Attack') {
 debugLog('[TARGET] Attack target clicked:', id, 'Hero:', S.heroes[heroIdx]?.n, 'targetsPerInstance:', targetsPerInstance);
+toast(`[DEBUG] tgtEnemy: id=${id}, heroIdx=${heroIdx}, targetsPerInstance=${targetsPerInstance}, current=${S.currentInstanceTargets?.length || 0}`, 2500);
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
   S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
