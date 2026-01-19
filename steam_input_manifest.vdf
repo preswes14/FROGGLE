@@ -1,0 +1,102 @@
+"In Game Actions"
+{
+	"actions"
+	{
+		"GameControls"
+		{
+			"title"	"#Set_GameControls"
+			"StickPadGyro"
+			{
+				"Move"
+				{
+					"title"	"#Action_Move"
+					"input_mode"	"joystick_move"
+				}
+			}
+			"AnalogTrigger"
+			{
+			}
+			"Button"
+			{
+				"confirm"
+				{
+					"title"	"#Action_Confirm"
+				}
+				"cancel"
+				{
+					"title"	"#Action_Cancel"
+				}
+				"auto_target"
+				{
+					"title"	"#Action_AutoTarget"
+				}
+				"tooltip"
+				{
+					"title"	"#Action_Tooltip"
+				}
+				"menu"
+				{
+					"title"	"#Action_Menu"
+				}
+				"prev_unit"
+				{
+					"title"	"#Action_PrevUnit"
+				}
+				"next_unit"
+				{
+					"title"	"#Action_NextUnit"
+				}
+				"prev_sigil"
+				{
+					"title"	"#Action_PrevSigil"
+				}
+				"next_sigil"
+				{
+					"title"	"#Action_NextSigil"
+				}
+				"switch_sides"
+				{
+					"title"	"#Action_SwitchSides"
+				}
+				"dpad_up"
+				{
+					"title"	"#Action_Up"
+				}
+				"dpad_down"
+				{
+					"title"	"#Action_Down"
+				}
+				"dpad_left"
+				{
+					"title"	"#Action_Left"
+				}
+				"dpad_right"
+				{
+					"title"	"#Action_Right"
+				}
+			}
+		}
+	}
+	"localization"
+	{
+		"english"
+		{
+			"Set_GameControls"	"Game Controls"
+			"Action_Move"	"Move"
+			"Action_Confirm"	"Confirm / Select"
+			"Action_Cancel"	"Back / Cancel"
+			"Action_AutoTarget"	"Auto-Target"
+			"Action_Tooltip"	"Toggle Tooltip"
+			"Action_Menu"	"Menu"
+			"Action_PrevUnit"	"Previous Unit"
+			"Action_NextUnit"	"Next Unit"
+			"Action_PrevSigil"	"Previous Sigil"
+			"Action_NextSigil"	"Next Sigil"
+			"Action_SwitchSides"	"Switch Sides"
+			"Action_Up"	"Up"
+			"Action_Down"	"Down"
+			"Action_Left"	"Left"
+			"Action_Right"	"Right"
+		}
+	}
+}
