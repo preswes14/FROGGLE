@@ -482,8 +482,10 @@ const GamepadController = {
     if (blocking) return blocking;
 
     // Check for modals (FAQ, Sigilarium, Settings, etc.)
+    // Note: .modal-container uses position:fixed, so offsetParent is always null
+    // Use getComputedStyle to properly check visibility
     const modal = document.querySelector('.modal-container');
-    if (modal && modal.offsetParent !== null) return 'modal';
+    if (modal && getComputedStyle(modal).display !== 'none') return 'modal';
 
     // Check game state for combat context
     if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0) {
@@ -1039,13 +1041,37 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
-    // If we have targets selected, try to confirm them
+    // If we have ALL required targets selected, confirm them
+    // IMPORTANT: Don't auto-confirm if player can still select more targets (e.g., Mage with Expand)
     if (typeof S !== 'undefined' && S.pending) {
-      const hasTargets = (S.pending === 'D20_TARGET' && S.targets?.length > 0) ||
-                         (S.currentInstanceTargets?.length > 0);
-      if (hasTargets && typeof confirmTargets === 'function') {
-        confirmTargets();
-        return;
+      if (S.pending === 'D20_TARGET' && S.targets?.length > 0) {
+        // D20 targeting - check if we have max targets
+        const heroIdx = S.d20HeroIdx;
+        const maxTargets = 1 + (typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0);
+        const aliveEnemies = S.enemies?.filter(e => e.h > 0).length || 0;
+        if (S.targets.length >= maxTargets || S.targets.length >= aliveEnemies) {
+          if (typeof confirmTargets === 'function') {
+            confirmTargets();
+            return;
+          }
+        }
+        // Not at max targets yet - fall through to let player select more
+      } else if (S.currentInstanceTargets?.length > 0) {
+        // Other targeting (Attack, Grapple, etc.) - check if we have max targets
+        const heroIdx = S.activeIdx;
+        const maxTargets = typeof getTargetsPerInstance === 'function'
+          ? getTargetsPerInstance(S.pending, heroIdx)
+          : 1;
+        const aliveTargets = S.pending === 'Attack' || S.pending === 'Grapple'
+          ? S.enemies?.filter(e => e.h > 0).length || 0
+          : S.heroes?.filter(h => h.h > 0 || h.ls).length || 0;
+        if (S.currentInstanceTargets.length >= maxTargets || S.currentInstanceTargets.length >= aliveTargets) {
+          if (typeof confirmTargets === 'function') {
+            confirmTargets();
+            return;
+          }
+        }
+        // Not at max targets yet - fall through to let player select more
       }
     }
 
@@ -1214,7 +1240,8 @@ const GamepadController = {
 
     for (const selector of closeSelectors) {
       const btn = document.querySelector(selector);
-      if (btn && btn.offsetParent !== null) {
+      // Use getComputedStyle instead of offsetParent - offsetParent returns null for position:fixed elements
+      if (btn && getComputedStyle(btn).display !== 'none' && getComputedStyle(btn).visibility !== 'hidden') {
         btn.click();
         setTimeout(() => this.updateFocusableElements(), 100);
         return;
@@ -1366,8 +1393,8 @@ const GamepadController = {
     }
     if (!card) return;
 
-    // Get all sigils in this card
-    const sigils = Array.from(card.querySelectorAll('.sigil'));
+    // Get only CLICKABLE sigils in this card (skip passive sigils like Expand, Asterisk, Star)
+    const sigils = Array.from(card.querySelectorAll('.sigil.clickable, .sigil[onclick]'));
     if (sigils.length === 0) return;
 
     // Find current sigil index
@@ -1508,11 +1535,11 @@ const GamepadController = {
     // Calculate total targets based on expand
     // Use getTargetsPerInstance if available (respects Mage/Healer bonus properly)
     let totalTargets = 1;
+    const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
     if (typeof getTargetsPerInstance === 'function') {
       totalTargets = getTargetsPerInstance(pending, heroIdx);
     } else {
       // Fallback: manually calculate (shouldn't normally be needed)
-      const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
       totalTargets = 1 + expandLevel;
     }
     targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));

@@ -611,7 +611,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .toast-log-entry:first-child { border-top: none; }
 .toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
-.tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
+.tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 50000; display: flex; align-items: center; justify-content: center; }
 .tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
 .tutorial-modal h2 { margin-top: 0; color: #22c55e; }
 .tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; background: rgba(34,197,94,0.15); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.4); color: #f0f0f0; }
@@ -2343,7 +2343,7 @@ window.onerror = function(msg, url, line, col, error) {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.06';
+const GAME_VERSION = 'S_1.09';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -7750,8 +7750,6 @@ const heroIdx = S.activeIdx;
 if(S.pending === 'Attack') {
 // SAFEGUARD: Make a copy of targets before clearing
 const targetsToExecute = [...S.currentInstanceTargets];
-// VISIBLE DEBUG: Show how many targets confirmTargets() received
-toast(`[DEBUG] Confirming ${targetsToExecute.length} target(s)`, 1500);
 debugLog('[CONFIRM] Attack with', targetsToExecute.length, 'targets:', targetsToExecute.join(', '));
 if(targetsToExecute.length === 0) {
   toast('No targets selected!');
@@ -8055,9 +8053,6 @@ if(!Array.isArray(targets)) {
 }
 debugLog('[EXECUTE] executeInstance called - action:', action, 'targets:', targets.length, targets);
 if(action === 'Attack') {
-// VISIBLE DEBUG: Show target count on screen for debugging
-toast(`[DEBUG] Attack executing with ${targets.length} target(s)`, 2000);
-
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
 
@@ -17190,7 +17185,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSigilarium() {
-const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
+// Fix: Sigilarium uses .light class, not .dark - remove both to be safe
+const menus = document.querySelectorAll('.modal-container.dark, .modal-container.light, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
@@ -17791,8 +17787,10 @@ const GamepadController = {
     if (blocking) return blocking;
 
     // Check for modals (FAQ, Sigilarium, Settings, etc.)
+    // Note: .modal-container uses position:fixed, so offsetParent is always null
+    // Use getComputedStyle to properly check visibility
     const modal = document.querySelector('.modal-container');
-    if (modal && modal.offsetParent !== null) return 'modal';
+    if (modal && getComputedStyle(modal).display !== 'none') return 'modal';
 
     // Check game state for combat context
     if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0) {
@@ -18348,13 +18346,37 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
-    // If we have targets selected, try to confirm them
+    // If we have ALL required targets selected, confirm them
+    // IMPORTANT: Don't auto-confirm if player can still select more targets (e.g., Mage with Expand)
     if (typeof S !== 'undefined' && S.pending) {
-      const hasTargets = (S.pending === 'D20_TARGET' && S.targets?.length > 0) ||
-                         (S.currentInstanceTargets?.length > 0);
-      if (hasTargets && typeof confirmTargets === 'function') {
-        confirmTargets();
-        return;
+      if (S.pending === 'D20_TARGET' && S.targets?.length > 0) {
+        // D20 targeting - check if we have max targets
+        const heroIdx = S.d20HeroIdx;
+        const maxTargets = 1 + (typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0);
+        const aliveEnemies = S.enemies?.filter(e => e.h > 0).length || 0;
+        if (S.targets.length >= maxTargets || S.targets.length >= aliveEnemies) {
+          if (typeof confirmTargets === 'function') {
+            confirmTargets();
+            return;
+          }
+        }
+        // Not at max targets yet - fall through to let player select more
+      } else if (S.currentInstanceTargets?.length > 0) {
+        // Other targeting (Attack, Grapple, etc.) - check if we have max targets
+        const heroIdx = S.activeIdx;
+        const maxTargets = typeof getTargetsPerInstance === 'function'
+          ? getTargetsPerInstance(S.pending, heroIdx)
+          : 1;
+        const aliveTargets = S.pending === 'Attack' || S.pending === 'Grapple'
+          ? S.enemies?.filter(e => e.h > 0).length || 0
+          : S.heroes?.filter(h => h.h > 0 || h.ls).length || 0;
+        if (S.currentInstanceTargets.length >= maxTargets || S.currentInstanceTargets.length >= aliveTargets) {
+          if (typeof confirmTargets === 'function') {
+            confirmTargets();
+            return;
+          }
+        }
+        // Not at max targets yet - fall through to let player select more
       }
     }
 
@@ -18523,7 +18545,8 @@ const GamepadController = {
 
     for (const selector of closeSelectors) {
       const btn = document.querySelector(selector);
-      if (btn && btn.offsetParent !== null) {
+      // Use getComputedStyle instead of offsetParent - offsetParent returns null for position:fixed elements
+      if (btn && getComputedStyle(btn).display !== 'none' && getComputedStyle(btn).visibility !== 'hidden') {
         btn.click();
         setTimeout(() => this.updateFocusableElements(), 100);
         return;
@@ -18675,8 +18698,8 @@ const GamepadController = {
     }
     if (!card) return;
 
-    // Get all sigils in this card
-    const sigils = Array.from(card.querySelectorAll('.sigil'));
+    // Get only CLICKABLE sigils in this card (skip passive sigils like Expand, Asterisk, Star)
+    const sigils = Array.from(card.querySelectorAll('.sigil.clickable, .sigil[onclick]'));
     if (sigils.length === 0) return;
 
     // Find current sigil index
@@ -18817,11 +18840,11 @@ const GamepadController = {
     // Calculate total targets based on expand
     // Use getTargetsPerInstance if available (respects Mage/Healer bonus properly)
     let totalTargets = 1;
+    const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
     if (typeof getTargetsPerInstance === 'function') {
       totalTargets = getTargetsPerInstance(pending, heroIdx);
     } else {
       // Fallback: manually calculate (shouldn't normally be needed)
-      const expandLevel = typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0;
       totalTargets = 1 + expandLevel;
     }
     targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));

@@ -1140,7 +1140,8 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeSigilarium() {
-const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
+// Fix: Sigilarium uses .light class, not .dark - remove both to be safe
+const menus = document.querySelectorAll('.modal-container.dark, .modal-container.light, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 

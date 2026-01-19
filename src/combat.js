@@ -933,8 +933,6 @@ const heroIdx = S.activeIdx;
 if(S.pending === 'Attack') {
 // SAFEGUARD: Make a copy of targets before clearing
 const targetsToExecute = [...S.currentInstanceTargets];
-// VISIBLE DEBUG: Show how many targets confirmTargets() received
-toast(`[DEBUG] Confirming ${targetsToExecute.length} target(s)`, 1500);
 debugLog('[CONFIRM] Attack with', targetsToExecute.length, 'targets:', targetsToExecute.join(', '));
 if(targetsToExecute.length === 0) {
   toast('No targets selected!');
@@ -1238,9 +1236,6 @@ if(!Array.isArray(targets)) {
 }
 debugLog('[EXECUTE] executeInstance called - action:', action, 'targets:', targets.length, targets);
 if(action === 'Attack') {
-// VISIBLE DEBUG: Show target count on screen for debugging
-toast(`[DEBUG] Attack executing with ${targets.length} target(s)`, 2000);
-
 // Trigger attacker animation
 triggerAttackAnimation(h.id);
 
