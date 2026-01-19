@@ -1,6 +1,6 @@
 {
   "name": "froggle",
-  "version": "1.0.1",
+  "version": "1.10.0",
   "description": "FROGGLE - A tactical turn-based roguelike PWA",
   "main": "electron-main.js",
   "scripts": {
@@ -43,17 +43,19 @@
     "linux": {
       "target": "AppImage",
       "category": "Game",
-      "icon": "assets/tapo.png"
+      "icon": "assets/tapo.png",
+      "artifactName": "${productName}-S_${version}-linux.${ext}"
     },
     "win": {
       "target": "portable",
       "icon": "assets/tapo.png",
-      "artifactName": "${productName}-${version}.${ext}"
+      "artifactName": "${productName}-S_${version}-windows.${ext}"
     },
     "mac": {
       "target": "dmg",
       "icon": "assets/tapo.png",
-      "category": "public.app-category.games"
+      "category": "public.app-category.games",
+      "artifactName": "${productName}-S_${version}-mac.${ext}"
     }
   },
   "keywords": [
