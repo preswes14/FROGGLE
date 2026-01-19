@@ -652,21 +652,12 @@ const GamepadController = {
     // Debug: Log button presses to help identify mapping issues
     debugLog('[GAMEPAD] Button pressed:', buttonIndex, '(X should be 2)');
 
-    // VISIBLE DEBUG: Show button index on screen to diagnose Steam Deck mapping
-    const buttonNames = ['A','B','X','Y','LB','RB','LT','RT','SELECT','START','L3','R3','UP','DOWN','LEFT','RIGHT'];
-    const expectedName = buttonNames[buttonIndex] || `BTN${buttonIndex}`;
-    toast(`[BTN] ${buttonIndex} = ${expectedName}`, 1500);
-
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();
     }
 
     const context = this.getNavigationContext();
-    // Show context for debugging
-    if (buttonIndex === this.BUTTONS.B || buttonIndex === this.BUTTONS.START) {
-      toast(`[CTX] ${context}, btn=${buttonIndex}`, 1500);
-    }
 
     // Handle blocking overlays - only allow specific actions
     // START button should ALWAYS open menu (except during suspend)
@@ -1050,13 +1041,37 @@ const GamepadController = {
       SoundFX.play('click');
     }
 
-    // If we have targets selected, try to confirm them
+    // If we have ALL required targets selected, confirm them
+    // IMPORTANT: Don't auto-confirm if player can still select more targets (e.g., Mage with Expand)
     if (typeof S !== 'undefined' && S.pending) {
-      const hasTargets = (S.pending === 'D20_TARGET' && S.targets?.length > 0) ||
-                         (S.currentInstanceTargets?.length > 0);
-      if (hasTargets && typeof confirmTargets === 'function') {
-        confirmTargets();
-        return;
+      if (S.pending === 'D20_TARGET' && S.targets?.length > 0) {
+        // D20 targeting - check if we have max targets
+        const heroIdx = S.d20HeroIdx;
+        const maxTargets = 1 + (typeof getLevel === 'function' ? getLevel('Expand', heroIdx) : 0);
+        const aliveEnemies = S.enemies?.filter(e => e.h > 0).length || 0;
+        if (S.targets.length >= maxTargets || S.targets.length >= aliveEnemies) {
+          if (typeof confirmTargets === 'function') {
+            confirmTargets();
+            return;
+          }
+        }
+        // Not at max targets yet - fall through to let player select more
+      } else if (S.currentInstanceTargets?.length > 0) {
+        // Other targeting (Attack, Grapple, etc.) - check if we have max targets
+        const heroIdx = S.activeIdx;
+        const maxTargets = typeof getTargetsPerInstance === 'function'
+          ? getTargetsPerInstance(S.pending, heroIdx)
+          : 1;
+        const aliveTargets = S.pending === 'Attack' || S.pending === 'Grapple'
+          ? S.enemies?.filter(e => e.h > 0).length || 0
+          : S.heroes?.filter(h => h.h > 0 || h.ls).length || 0;
+        if (S.currentInstanceTargets.length >= maxTargets || S.currentInstanceTargets.length >= aliveTargets) {
+          if (typeof confirmTargets === 'function') {
+            confirmTargets();
+            return;
+          }
+        }
+        // Not at max targets yet - fall through to let player select more
       }
     }
 
@@ -1528,7 +1543,6 @@ const GamepadController = {
       totalTargets = 1 + expandLevel;
     }
     targetsNeeded = Math.max(1, totalTargets - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0));
-    toast(`[DEBUG] Hero: ${hero?.n}, Expand L${expandLevel}, totalTargets=${totalTargets}, targetsNeeded=${targetsNeeded}`, 3000);
 
     // Different targeting logic based on action type
     if (['Attack', 'Grapple', 'D20_TARGET'].includes(pending)) {
@@ -1550,7 +1564,6 @@ const GamepadController = {
 
       // Target enemies directly by calling tgtEnemy function
       const toTarget = aliveEnemies.slice(0, targetsNeeded);
-      toast(`[DEBUG] Auto-targeting ${toTarget.length} of ${targetsNeeded} needed (Expand allows ${totalTargets})`, 2000);
       S.autoSelectInProgress = true; // Prevent auto-confirm during auto-select
       let successCount = 0;
       for (const enemy of toTarget) {
@@ -1568,9 +1581,6 @@ const GamepadController = {
         }
       }
       S.autoSelectInProgress = false;
-      // Debug: show what's actually in currentInstanceTargets after auto-select
-      const actualTargets = S.currentInstanceTargets ? S.currentInstanceTargets.length : 0;
-      toast(`[DEBUG] After auto-select: ${actualTargets} in currentInstanceTargets`, 2000);
 
       if (successCount > 0) {
         toast(`Auto-targeted ${successCount} enem${successCount === 1 ? 'y' : 'ies'}!`, 1200);
