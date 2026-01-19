@@ -482,8 +482,10 @@ const GamepadController = {
     if (blocking) return blocking;
 
     // Check for modals (FAQ, Sigilarium, Settings, etc.)
+    // Note: .modal-container uses position:fixed, so offsetParent is always null
+    // Use getComputedStyle to properly check visibility
     const modal = document.querySelector('.modal-container');
-    if (modal && modal.offsetParent !== null) return 'modal';
+    if (modal && getComputedStyle(modal).display !== 'none') return 'modal';
 
     // Check game state for combat context
     if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0) {
@@ -650,12 +652,21 @@ const GamepadController = {
     // Debug: Log button presses to help identify mapping issues
     debugLog('[GAMEPAD] Button pressed:', buttonIndex, '(X should be 2)');
 
+    // VISIBLE DEBUG: Show button index on screen to diagnose Steam Deck mapping
+    const buttonNames = ['A','B','X','Y','LB','RB','LT','RT','SELECT','START','L3','R3','UP','DOWN','LEFT','RIGHT'];
+    const expectedName = buttonNames[buttonIndex] || `BTN${buttonIndex}`;
+    toast(`[BTN] ${buttonIndex} = ${expectedName}`, 1500);
+
     // Activate controller mode on any button press
     if (!this.active) {
       this.activateControllerMode();
     }
 
     const context = this.getNavigationContext();
+    // Show context for debugging
+    if (buttonIndex === this.BUTTONS.B || buttonIndex === this.BUTTONS.START) {
+      toast(`[CTX] ${context}, btn=${buttonIndex}`, 1500);
+    }
 
     // Handle blocking overlays - only allow specific actions
     // START button should ALWAYS open menu (except during suspend)
@@ -1214,7 +1225,8 @@ const GamepadController = {
 
     for (const selector of closeSelectors) {
       const btn = document.querySelector(selector);
-      if (btn && btn.offsetParent !== null) {
+      // Use getComputedStyle instead of offsetParent - offsetParent returns null for position:fixed elements
+      if (btn && getComputedStyle(btn).display !== 'none' && getComputedStyle(btn).visibility !== 'hidden') {
         btn.click();
         setTimeout(() => this.updateFocusableElements(), 100);
         return;
