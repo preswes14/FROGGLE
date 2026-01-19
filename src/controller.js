@@ -1366,8 +1366,8 @@ const GamepadController = {
     }
     if (!card) return;
 
-    // Get all sigils in this card
-    const sigils = Array.from(card.querySelectorAll('.sigil'));
+    // Get only CLICKABLE sigils in this card (skip passive sigils like Expand, Asterisk, Star)
+    const sigils = Array.from(card.querySelectorAll('.sigil.clickable, .sigil[onclick]'));
     if (sigils.length === 0) return;
 
     // Find current sigil index

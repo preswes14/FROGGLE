@@ -611,7 +611,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .toast-log-entry:first-child { border-top: none; }
 .toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
-.tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 20000; display: flex; align-items: center; justify-content: center; }
+.tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 50000; display: flex; align-items: center; justify-content: center; }
 .tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 600px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
 .tutorial-modal h2 { margin-top: 0; color: #22c55e; }
 .tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.6; background: rgba(34,197,94,0.15); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.4); color: #f0f0f0; }
@@ -18675,8 +18675,8 @@ const GamepadController = {
     }
     if (!card) return;
 
-    // Get all sigils in this card
-    const sigils = Array.from(card.querySelectorAll('.sigil'));
+    // Get only CLICKABLE sigils in this card (skip passive sigils like Expand, Asterisk, Star)
+    const sigils = Array.from(card.querySelectorAll('.sigil.clickable, .sigil[onclick]'));
     if (sigils.length === 0) return;
 
     // Find current sigil index
