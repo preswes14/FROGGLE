@@ -44,18 +44,18 @@
       "target": "AppImage",
       "category": "Game",
       "icon": "assets/tapo.png",
-      "artifactName": "${productName}-${version}-linux.${ext}"
+      "artifactName": "${productName}-S_${version}-linux.${ext}"
     },
     "win": {
       "target": "portable",
       "icon": "assets/tapo.png",
-      "artifactName": "${productName}-${version}-windows.${ext}"
+      "artifactName": "${productName}-S_${version}-windows.${ext}"
     },
     "mac": {
       "target": "dmg",
       "icon": "assets/tapo.png",
       "category": "public.app-category.games",
-      "artifactName": "${productName}-${version}-mac.${ext}"
+      "artifactName": "${productName}-S_${version}-mac.${ext}"
     }
   },
   "keywords": [
