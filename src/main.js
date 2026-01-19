@@ -92,6 +92,26 @@ mainTitlePage();
 debugLog('[FROGGLE] mainTitlePage called');
 };
 
+// VISIBLE error overlay for debugging (especially Steam Deck where console isn't accessible)
+function showErrorOverlay(title, details) {
+  let overlay = document.getElementById('errorOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'errorOverlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);color:#ff6b6b;padding:2rem;z-index:999999;overflow:auto;font-family:monospace;font-size:14px;';
+    document.body.appendChild(overlay);
+  }
+  const errorHtml = `
+    <div style="max-width:800px;margin:0 auto;">
+      <h1 style="color:#ff6b6b;margin-bottom:1rem;">⚠️ ${title}</h1>
+      <pre style="background:#1a1a1a;padding:1rem;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;">${details}</pre>
+      <p style="margin-top:1rem;color:#888;">Build: ${typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'unknown'}</p>
+      <button onclick="this.parentElement.parentElement.remove()" style="margin-top:1rem;padding:0.5rem 1rem;background:#333;color:#fff;border:none;border-radius:4px;cursor:pointer;">Dismiss</button>
+    </div>
+  `;
+  overlay.innerHTML = errorHtml;
+}
+
 // Global error handler for image loading failures
 window.addEventListener('error', (e) => {
 if(e.target && e.target.tagName === 'IMG') {
@@ -102,12 +122,15 @@ console.error('[FROGGLE] Image path:', e.target.getAttribute('src'));
 console.error('[FROGGLE] JAVASCRIPT ERROR:', e.message);
 console.error('[FROGGLE] File:', e.filename, 'Line:', e.lineno, 'Col:', e.colno);
 console.error('[FROGGLE] Stack:', e.error ? e.error.stack : 'No stack trace');
+// Show visible error overlay
+showErrorOverlay('JavaScript Error', `${e.message}\n\nFile: ${e.filename}\nLine: ${e.lineno}, Col: ${e.colno}\n\nStack:\n${e.error ? e.error.stack : 'No stack trace'}`);
 }
 }, true);
 
 // Catch unhandled promise rejections
 window.addEventListener('unhandledrejection', (e) => {
 console.error('[FROGGLE] UNHANDLED PROMISE REJECTION:', e.reason);
+showErrorOverlay('Unhandled Promise Rejection', String(e.reason));
 });
 
 // ===== MOBILE DOUBLE-TAP FOR AUTO-TARGET =====
