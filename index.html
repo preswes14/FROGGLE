@@ -2343,7 +2343,7 @@ window.onerror = function(msg, url, line, col, error) {
 
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.11';
+const GAME_VERSION = 'S_1.12';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -17355,11 +17355,6 @@ const GamepadController = {
     DPAD_RIGHT: 15
   },
 
-  // Steam Input state tracking
-  steamInputActive: false,
-  steamInputState: {},
-  steamInputPrevState: {},
-
   // Initialize controller system
   init() {
     debugLog('[GAMEPAD] Initializing controller support...');
@@ -17369,9 +17364,6 @@ const GamepadController = {
       debugLog('[GAMEPAD] Controller support disabled by user setting');
       return;
     }
-
-    // Try to initialize Steam Input first (preferred for Steam Deck)
-    this.initSteamInput();
 
     // ALWAYS set up keyboard fallback (works even if gamepad API unavailable)
     this.initKeyboardFallback();
@@ -17670,118 +17662,6 @@ const GamepadController = {
       }
     };
     document.addEventListener('keydown', this._handlers.keydown, true); // Use capture phase
-  },
-
-  // Initialize Steam Input (native controller support for Steam/Steam Deck)
-  initSteamInput() {
-    // Check if Steam Input bridge is available (only in Electron with Steam)
-    if (typeof steamInputBridge === 'undefined') {
-      debugLog('[STEAM INPUT] Bridge not available (not running in Steam)');
-      return;
-    }
-
-    if (!steamInputBridge.initialized) {
-      debugLog('[STEAM INPUT] Not initialized');
-      return;
-    }
-
-    debugLog('[STEAM INPUT] Initializing...');
-    this.steamInputActive = true;
-    this.activateControllerMode();
-    toast('Steam Input controller connected!', 2000);
-
-    // Register for input state updates from main process
-    steamInputBridge.onInput((state) => {
-      this.processSteamInput(state);
-    });
-
-    debugLog('[STEAM INPUT] Listening for input');
-  },
-
-  // Process Steam Input state and trigger actions
-  processSteamInput(state) {
-    if (!this.steamInputActive) return;
-
-    const prev = this.steamInputPrevState;
-    const cooldown = 100; // ms between repeated actions
-    const now = Date.now();
-
-    // Helper to detect button press (transition from not pressed to pressed)
-    const justPressed = (action) => state[action] && !prev[action];
-
-    // Helper to check cooldown
-    const canAct = () => {
-      if (now - this.lastInputTime < cooldown) return false;
-      this.lastInputTime = now;
-      return true;
-    };
-
-    // Process digital actions (buttons)
-    if (justPressed('menu') && canAct()) {
-      this.openMenu();
-    } else if (justPressed('confirm') && canAct()) {
-      if (!this.tryDirectAction()) {
-        this.confirmSelection();
-      }
-    } else if (justPressed('cancel') && canAct()) {
-      this.goBack();
-    } else if (justPressed('autoTarget') && canAct()) {
-      this.autoTarget();
-    } else if (justPressed('tooltip') && canAct()) {
-      this.toggleTooltip();
-    } else if (justPressed('prevUnit') && canAct()) {
-      const context = this.getNavigationContext();
-      if (context === 'combat' || context === 'targeting') {
-        this.cycleUnit('prev');
-      } else {
-        this.pageScroll('up');
-      }
-    } else if (justPressed('nextUnit') && canAct()) {
-      const context = this.getNavigationContext();
-      if (context === 'combat' || context === 'targeting') {
-        this.cycleUnit('next');
-      } else {
-        this.pageScroll('down');
-      }
-    } else if (justPressed('prevSigil') && canAct()) {
-      const context = this.getNavigationContext();
-      if (context === 'combat' || context === 'targeting') {
-        this.cycleSigil('prev');
-      }
-    } else if (justPressed('nextSigil') && canAct()) {
-      const context = this.getNavigationContext();
-      if (context === 'combat' || context === 'targeting') {
-        this.cycleSigil('next');
-      }
-    } else if (justPressed('switchSides') && canAct()) {
-      this.switchSides();
-    } else if (justPressed('dpadUp') && canAct()) {
-      this.onDirection('up');
-    } else if (justPressed('dpadDown') && canAct()) {
-      this.onDirection('down');
-    } else if (justPressed('dpadLeft') && canAct()) {
-      this.onDirection('left');
-    } else if (justPressed('dpadRight') && canAct()) {
-      this.onDirection('right');
-    }
-
-    // Process analog stick movement
-    if (state.move && canAct()) {
-      const deadzone = 0.5;
-      const x = state.move.x || 0;
-      const y = state.move.y || 0;
-
-      if (Math.abs(x) > deadzone || Math.abs(y) > deadzone) {
-        if (Math.abs(x) > Math.abs(y)) {
-          this.onDirection(x > 0 ? 'right' : 'left');
-        } else {
-          this.onDirection(y > 0 ? 'down' : 'up');
-        }
-      }
-    }
-
-    // Save state for next frame
-    this.steamInputPrevState = { ...state };
   },
 
   // Continuously check for gamepads (Steam Deck fix)

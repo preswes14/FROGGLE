@@ -6,12 +6,6 @@ let mainWindow;
 let steamClient = null;
 let steamInitialized = false;
 
-// Steam Input state
-let steamInputInitialized = false;
-let steamInputActions = {};
-let steamInputControllers = [];
-let inputPollInterval = null;
-
 // Initialize Steam
 function initSteam() {
   try {
@@ -24,9 +18,6 @@ function initSteam() {
       steamInitialized = true;
       console.log('[Steam] Initialized successfully');
       console.log('[Steam] User:', steamClient.localplayer.getName());
-
-      // Initialize Steam Input
-      initSteamInput();
 
       // Run Steam callbacks periodically (wrapped in try/catch for Steam Deck stability)
       setInterval(() => {
@@ -45,95 +36,6 @@ function initSteam() {
   }
 }
 
-// Initialize Steam Input for controller support
-function initSteamInput() {
-  try {
-    if (!steamClient || !steamClient.input) {
-      console.log('[Steam Input] Not available');
-      return;
-    }
-
-    steamClient.input.init();
-    steamInputInitialized = true;
-    console.log('[Steam Input] Initialized');
-
-    // Get action handles for our game actions
-    steamInputActions = {
-      actionSet: steamClient.input.getActionSet('GameControls'),
-      confirm: steamClient.input.getDigitalAction('confirm'),
-      cancel: steamClient.input.getDigitalAction('cancel'),
-      autoTarget: steamClient.input.getDigitalAction('auto_target'),
-      tooltip: steamClient.input.getDigitalAction('tooltip'),
-      menu: steamClient.input.getDigitalAction('menu'),
-      prevUnit: steamClient.input.getDigitalAction('prev_unit'),
-      nextUnit: steamClient.input.getDigitalAction('next_unit'),
-      prevSigil: steamClient.input.getDigitalAction('prev_sigil'),
-      nextSigil: steamClient.input.getDigitalAction('next_sigil'),
-      switchSides: steamClient.input.getDigitalAction('switch_sides'),
-      dpadUp: steamClient.input.getDigitalAction('dpad_up'),
-      dpadDown: steamClient.input.getDigitalAction('dpad_down'),
-      dpadLeft: steamClient.input.getDigitalAction('dpad_left'),
-      dpadRight: steamClient.input.getDigitalAction('dpad_right'),
-      move: steamClient.input.getAnalogAction('Move')
-    };
-
-    console.log('[Steam Input] Actions loaded:', Object.keys(steamInputActions).length);
-
-    // Start polling for input
-    inputPollInterval = setInterval(pollSteamInput, 16); // ~60fps
-
-  } catch (e) {
-    console.warn('[Steam Input] Init failed:', e.message);
-    steamInputInitialized = false;
-  }
-}
-
-// Poll Steam Input and send to renderer
-function pollSteamInput() {
-  if (!steamInputInitialized || !steamClient || !mainWindow) return;
-
-  try {
-    // Get connected controllers
-    steamInputControllers = steamClient.input.getControllers();
-
-    if (steamInputControllers.length === 0) return;
-
-    const controller = steamInputControllers[0];
-
-    // Activate our action set
-    if (steamInputActions.actionSet) {
-      controller.activateActionSet(steamInputActions.actionSet);
-    }
-
-    // Build input state object
-    const inputState = {
-      // Digital actions (buttons)
-      confirm: controller.isDigitalActionPressed(steamInputActions.confirm),
-      cancel: controller.isDigitalActionPressed(steamInputActions.cancel),
-      autoTarget: controller.isDigitalActionPressed(steamInputActions.autoTarget),
-      tooltip: controller.isDigitalActionPressed(steamInputActions.tooltip),
-      menu: controller.isDigitalActionPressed(steamInputActions.menu),
-      prevUnit: controller.isDigitalActionPressed(steamInputActions.prevUnit),
-      nextUnit: controller.isDigitalActionPressed(steamInputActions.nextUnit),
-      prevSigil: controller.isDigitalActionPressed(steamInputActions.prevSigil),
-      nextSigil: controller.isDigitalActionPressed(steamInputActions.nextSigil),
-      switchSides: controller.isDigitalActionPressed(steamInputActions.switchSides),
-      dpadUp: controller.isDigitalActionPressed(steamInputActions.dpadUp),
-      dpadDown: controller.isDigitalActionPressed(steamInputActions.dpadDown),
-      dpadLeft: controller.isDigitalActionPressed(steamInputActions.dpadLeft),
-      dpadRight: controller.isDigitalActionPressed(steamInputActions.dpadRight),
-      // Analog actions (stick)
-      move: controller.getAnalogActionVector(steamInputActions.move)
-    };
-
-    // Send to renderer
-    mainWindow.webContents.send('steam-input-state', inputState);
-
-  } catch (e) {
-    // Don't spam console on every poll error
-  }
-}
-
 // ============================================
 // IPC Handlers for Steam API
 // ============================================
@@ -141,11 +43,6 @@ function pollSteamInput() {
 // Connection status
 ipcMain.on('steam-initialized', (event) => {
   event.returnValue = steamInitialized;
-});
-
-// Steam Input status
-ipcMain.on('steam-input-initialized', (event) => {
-  event.returnValue = steamInputInitialized;
 });
 
 // Achievements
