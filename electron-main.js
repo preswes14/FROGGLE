@@ -25,8 +25,13 @@ function initSteam() {
       console.log('[Steam] Initialized successfully');
       console.log('[Steam] User:', steamClient.localplayer.getName());
 
-      // Initialize Steam Input
-      initSteamInput();
+      // Initialize Steam Input (wrapped in try/catch so it can't crash the app)
+      try {
+        initSteamInput();
+      } catch (inputError) {
+        console.warn('[Steam Input] Failed to initialize:', inputError.message);
+        steamInputInitialized = false;
+      }
 
       // Run Steam callbacks periodically (wrapped in try/catch for Steam Deck stability)
       setInterval(() => {
@@ -48,16 +53,32 @@ function initSteam() {
 // Initialize Steam Input for controller support
 function initSteamInput() {
   try {
-    if (!steamClient || !steamClient.input) {
-      console.log('[Steam Input] Not available');
+    // Check if Steam Input API is available in this version of steamworks.js
+    if (!steamClient) {
+      console.log('[Steam Input] No Steam client');
+      return;
+    }
+
+    if (!steamClient.input) {
+      console.log('[Steam Input] Input API not available in this steamworks.js version');
+      return;
+    }
+
+    if (typeof steamClient.input.init !== 'function') {
+      console.log('[Steam Input] init() not available');
       return;
     }
 
     steamClient.input.init();
+
+    // Verify we can get controllers before marking as initialized
+    const testControllers = steamClient.input.getControllers();
+    console.log('[Steam Input] Found', testControllers?.length || 0, 'controllers');
+
     steamInputInitialized = true;
     console.log('[Steam Input] Initialized');
 
-    // Get action handles for our game actions
+    // Get action handles for our game actions (these may return 0 if IGA not configured)
     steamInputActions = {
       actionSet: steamClient.input.getActionSet('GameControls'),
       confirm: steamClient.input.getDigitalAction('confirm'),
@@ -84,53 +105,64 @@ function initSteamInput() {
 
   } catch (e) {
     console.warn('[Steam Input] Init failed:', e.message);
+    console.warn('[Steam Input] Stack:', e.stack);
     steamInputInitialized = false;
+    // Don't rethrow - let the game continue without Steam Input
   }
 }
 
 // Poll Steam Input and send to renderer
 function pollSteamInput() {
   if (!steamInputInitialized || !steamClient || !mainWindow) return;
+  if (!steamClient.input) return;
 
   try {
     // Get connected controllers
     steamInputControllers = steamClient.input.getControllers();
 
-    if (steamInputControllers.length === 0) return;
+    if (!steamInputControllers || steamInputControllers.length === 0) return;
 
     const controller = steamInputControllers[0];
+    if (!controller) return;
 
-    // Activate our action set
-    if (steamInputActions.actionSet) {
+    // Activate our action set (may be 0 if IGA not configured, which is fine)
+    if (steamInputActions.actionSet && typeof controller.activateActionSet === 'function') {
       controller.activateActionSet(steamInputActions.actionSet);
     }
 
-    // Build input state object
-    const inputState = {
-      // Digital actions (buttons)
-      confirm: controller.isDigitalActionPressed(steamInputActions.confirm),
-      cancel: controller.isDigitalActionPressed(steamInputActions.cancel),
-      autoTarget: controller.isDigitalActionPressed(steamInputActions.autoTarget),
-      tooltip: controller.isDigitalActionPressed(steamInputActions.tooltip),
-      menu: controller.isDigitalActionPressed(steamInputActions.menu),
-      prevUnit: controller.isDigitalActionPressed(steamInputActions.prevUnit),
-      nextUnit: controller.isDigitalActionPressed(steamInputActions.nextUnit),
-      prevSigil: controller.isDigitalActionPressed(steamInputActions.prevSigil),
-      nextSigil: controller.isDigitalActionPressed(steamInputActions.nextSigil),
-      switchSides: controller.isDigitalActionPressed(steamInputActions.switchSides),
-      dpadUp: controller.isDigitalActionPressed(steamInputActions.dpadUp),
-      dpadDown: controller.isDigitalActionPressed(steamInputActions.dpadDown),
-      dpadLeft: controller.isDigitalActionPressed(steamInputActions.dpadLeft),
-      dpadRight: controller.isDigitalActionPressed(steamInputActions.dpadRight),
-      // Analog actions (stick)
-      move: controller.getAnalogActionVector(steamInputActions.move)
-    };
+    // Build input state object - check each method exists
+    const inputState = {};
+
+    if (typeof controller.isDigitalActionPressed === 'function') {
+      inputState.confirm = controller.isDigitalActionPressed(steamInputActions.confirm);
+      inputState.cancel = controller.isDigitalActionPressed(steamInputActions.cancel);
+      inputState.autoTarget = controller.isDigitalActionPressed(steamInputActions.autoTarget);
+      inputState.tooltip = controller.isDigitalActionPressed(steamInputActions.tooltip);
+      inputState.menu = controller.isDigitalActionPressed(steamInputActions.menu);
+      inputState.prevUnit = controller.isDigitalActionPressed(steamInputActions.prevUnit);
+      inputState.nextUnit = controller.isDigitalActionPressed(steamInputActions.nextUnit);
+      inputState.prevSigil = controller.isDigitalActionPressed(steamInputActions.prevSigil);
+      inputState.nextSigil = controller.isDigitalActionPressed(steamInputActions.nextSigil);
+      inputState.switchSides = controller.isDigitalActionPressed(steamInputActions.switchSides);
+      inputState.dpadUp = controller.isDigitalActionPressed(steamInputActions.dpadUp);
+      inputState.dpadDown = controller.isDigitalActionPressed(steamInputActions.dpadDown);
+      inputState.dpadLeft = controller.isDigitalActionPressed(steamInputActions.dpadLeft);
+      inputState.dpadRight = controller.isDigitalActionPressed(steamInputActions.dpadRight);
+    }
+
+    if (typeof controller.getAnalogActionVector === 'function') {
+      inputState.move = controller.getAnalogActionVector(steamInputActions.move);
+    }
 
     // Send to renderer
     mainWindow.webContents.send('steam-input-state', inputState);
 
   } catch (e) {
-    // Don't spam console on every poll error
+    // Don't spam console on every poll error, but log first error
+    if (!pollSteamInput.errorLogged) {
+      console.warn('[Steam Input] Poll error:', e.message);
+      pollSteamInput.errorLogged = true;
+    }
   }
 }
 
