@@ -1,27 +1,32 @@
 // ===== STEAM DECK / CONTROLLER SUPPORT SYSTEM =====
-// Simplified approach: Always support both keyboard and gamepad, no mode switching
 const GamepadController = {
   // State
-  active: false,           // Visual focus ring active
-  gamepadIndex: null,      // Connected gamepad index
-  focusedElement: null,    // Currently focused element
-  focusableElements: [],   // Cached focusable elements
-  lastInputTime: 0,        // Debounce timestamp
-  inputCooldown: 100,      // ms between inputs - slightly higher for reliability
-  axisDeadzone: 0.4,       // Analog stick deadzone
-  pollInterval: null,      // Main polling interval
-  buttonStates: {},        // Button pressed states for edge detection
-  tooltipVisible: false,   // Tooltip state
-  tooltipElement: null,    // Element with active tooltip
-  currentUnitIndex: 0,     // For LB/RB cycling
-  currentSigilIndex: 0,    // For LT/RT cycling
-  lastFocusedId: null,     // For focus restoration
-  gamepadMissingCount: 0,  // Tolerance for intermittent gamepad loss
+  active: false,
+  gamepadIndex: null,
+  focusedElement: null,
+  focusableElements: [],
+  lastInputTime: 0,
+  inputCooldown: 80, // ms between inputs - lower = more responsive
+  axisDeadzone: 0.5,
+  pollInterval: null,
+  buttonStates: {},
+  contextStack: [], // Stack for nested menus/modals
+  tooltipVisible: false, // Track if tooltip is showing via controller
+  tooltipElement: null, // Element with active tooltip
+  currentUnitIndex: 0, // Current unit (hero/enemy) index for LB/RB cycling
+  currentSigilIndex: 0, // Current sigil index for LT/RT cycling
+  lastFocusedId: null, // For focus restoration after render
+  lastMouseX: null, // For tracking mouse movement delta
+  lastMouseY: null, // For tracking mouse movement delta
+  pollCount: 0, // Debug: count poll cycles
+  lastPollLog: 0, // Debug: timestamp of last poll log
+  mouseMovementThreshold: 150, // Minimum pixels to move before switching to mouse mode (high to prevent Steam Deck touchpad issues)
 
   // Event handler references for cleanup
   _handlers: {
     gamepadConnected: null,
     gamepadDisconnected: null,
+    mousemove: null,
     keydown: null
   },
 
@@ -46,7 +51,6 @@ const GamepadController = {
   },
 
   // Initialize controller system
-  // Simplified: Always support both keyboard and gamepad, single polling loop
   init() {
     debugLog('[GAMEPAD] Initializing controller support...');
 
@@ -56,39 +60,87 @@ const GamepadController = {
       return;
     }
 
-    // ALWAYS set up keyboard controls (works everywhere, Steam can map controller to keyboard)
+    // ALWAYS set up keyboard fallback (works even if gamepad API unavailable)
     this.initKeyboardFallback();
 
     // Check if gamepad API is available
     if (!navigator.getGamepads) {
-      debugLog('[GAMEPAD] Gamepad API not available, using keyboard only');
+      debugLog('[GAMEPAD] Gamepad API not available, using keyboard fallback');
       return;
     }
 
-    // Listen for gamepad connections
+    // Listen for gamepad connections (store refs for cleanup)
     this._handlers.gamepadConnected = (e) => {
-      debugLog('[GAMEPAD] Connected:', e.gamepad?.id);
+      debugLog('[GAMEPAD] gamepadconnected event:', e.gamepad?.id);
       this.onGamepadConnected(e);
     };
     this._handlers.gamepadDisconnected = (e) => this.onGamepadDisconnected(e);
     window.addEventListener('gamepadconnected', this._handlers.gamepadConnected);
     window.addEventListener('gamepaddisconnected', this._handlers.gamepadDisconnected);
 
-    // Check for already-connected gamepads
-    this.checkForGamepads();
+    // Check for already-connected gamepads (Steam Deck may have controller pre-connected)
+    const gamepads = navigator.getGamepads();
+    let foundGamepad = false;
+    for (let i = 0; i < gamepads.length; i++) {
+      const gp = gamepads[i];
+      if (gp && !foundGamepad) {
+        debugLog('[GAMEPAD] Found pre-connected gamepad:', gp.id);
+        this.onGamepadConnected({ gamepad: gp });
+        foundGamepad = true;
+      }
+    }
 
-    // Single polling loop at 60fps - handles both gamepad detection and input
+    // CRITICAL: Steam Deck fix - Start continuous polling regardless of event
+    // Steam Deck's gamepad may not fire 'gamepadconnected' event but still be available
+    // Poll every 500ms to check for newly available gamepads
+    this.gamepadCheckInterval = setInterval(() => this.checkForGamepads(), 500);
+
+    // Also start the main polling loop immediately - it will no-op if no gamepad
     if (!this.pollInterval) {
       this.pollInterval = setInterval(() => this.poll(), 16);
     }
 
-    // Simple DOM observer for focus management
-    this.domObserver = new MutationObserver(() => {
-      // Debounce: only update if we have focus to maintain
-      if (this.active && this.focusedElement) {
-        // Check if focused element was removed
-        if (!document.body.contains(this.focusedElement)) {
-          this.restoreFocusState();
+    // Delayed status check - show helpful setup prompt if no gamepad detected
+    setTimeout(() => {
+      const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+      let foundGamepad = false;
+      for (let i = 0; i < gps.length; i++) {
+        if (gps[i]) foundGamepad = true;
+      }
+
+      // If no gamepad detected and user hasn't dismissed this before, show setup help
+      // This helps Steam Deck users in Gaming Mode
+      if (!foundGamepad && !this.active && typeof S !== 'undefined' && !S.tutorialFlags.steam_controller_setup) {
+        this.showSteamControllerSetupHelp();
+      }
+    }, 3000);
+
+    // Watch for DOM changes to update focusable elements (screen transitions)
+    this.domObserver = new MutationObserver((mutations) => {
+      // Only update if controller mode is active and we have significant DOM changes
+      if (this.active) {
+        let significantChange = false;
+        for (const mutation of mutations) {
+          if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+            // Check if added/removed nodes contain buttons or interactive elements
+            for (const node of mutation.addedNodes) {
+              if (node.nodeType === 1 && (node.classList?.contains('btn') || node.querySelector?.('.btn'))) {
+                significantChange = true;
+                break;
+              }
+            }
+            if (significantChange) break;
+          }
+        }
+        if (significantChange) {
+          setTimeout(() => {
+            this.updateFocusableElements();
+            // Re-establish focus if lost - use smart default
+            if (this.focusableElements.length > 0 && !document.body.contains(this.focusedElement)) {
+              const bestFocus = this.findBestDefaultFocus();
+              this.setFocus(bestFocus || this.focusableElements[0]);
+            }
+          }, 100);
         }
       }
     });
@@ -97,7 +149,42 @@ const GamepadController = {
       subtree: true
     });
 
-    debugLog('[GAMEPAD] Initialization complete');
+    // Switch to mouse mode on significant sustained mouse movement
+    // NOTE: Don't deactivate on click - Steam Deck touchscreen generates clicks
+    // and we want controller mode to persist even when occasionally tapping screen
+    // STEAM DECK FIX: Track consecutive large movements to avoid touchpad false positives
+    this.mouseMoveCount = 0;
+    this._handlers.mousemove = (e) => {
+      // Only deactivate on significant mouse movement (not just hover or small jitter)
+      if (this.lastMouseX === null) {
+        this.lastMouseX = e.clientX;
+        this.lastMouseY = e.clientY;
+        this.mouseMoveCount = 0;
+        return;
+      }
+      const dx = Math.abs(e.clientX - this.lastMouseX);
+      const dy = Math.abs(e.clientY - this.lastMouseY);
+
+      // Require MULTIPLE consecutive large movements (150px+) before switching to mouse mode
+      // This prevents Steam Deck touchpad from accidentally deactivating controller mode
+      if (dx > this.mouseMovementThreshold || dy > this.mouseMovementThreshold) {
+        this.mouseMoveCount++;
+        this.lastMouseX = e.clientX;
+        this.lastMouseY = e.clientY;
+        // Need 3 consecutive large movements to switch to mouse mode
+        if (this.mouseMoveCount >= 3) {
+          this.deactivateControllerMode();
+          this.mouseMoveCount = 0;
+        }
+      } else {
+        // Reset counter on small movement
+        this.mouseMoveCount = 0;
+        this.lastMouseX = e.clientX;
+        this.lastMouseY = e.clientY;
+      }
+    };
+    document.addEventListener('mousemove', this._handlers.mousemove);
+    // Don't deactivate on click - let controller mode persist
   },
 
   // Keyboard fallback for when gamepad isn't detected (Steam mapping to keyboard, etc.)
@@ -272,47 +359,79 @@ const GamepadController = {
     document.addEventListener('keydown', this._handlers.keydown, true); // Use capture phase
   },
 
-  // Check for connected gamepads
+  // Continuously check for gamepads (Steam Deck fix)
   checkForGamepads() {
     if (this.gamepadIndex !== null) return; // Already have a gamepad
 
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
     for (let i = 0; i < gamepads.length; i++) {
       const gp = gamepads[i];
-      // Accept gamepad if it exists (connected property may be undefined on some devices)
-      if (gp && gp.buttons && gp.buttons.length > 0) {
+      // STEAM DECK FIX: Accept gamepad even if gp.connected is undefined
+      // Some browsers/devices don't properly set the connected property
+      if (gp && (gp.connected || gp.connected === undefined)) {
+        // Detect Steam Deck specifically
+        const isSteamDeck = this.detectSteamDeck(gp);
+        if (isSteamDeck) this.isSteamDeck = true;
+
         this.gamepadIndex = i;
         this.activateControllerMode();
-        toast(`🎮 Controller detected! Use D-pad to navigate.`, 2500);
-        debugLog('[GAMEPAD] Found gamepad:', gp.id);
+
+        const deviceName = isSteamDeck ? 'Steam Deck' : 'Controller';
+        toast(`🎮 ${deviceName} detected! Use D-pad to navigate.`, 2500);
         return;
       }
     }
   },
 
+  // Detect if we're running on Steam Deck
+  detectSteamDeck(gp) {
+    if (!gp) return false;
+    const id = (gp.id || '').toLowerCase();
+    // Steam Deck controller IDs
+    return id.includes('steam') ||
+           id.includes('valve') ||
+           id.includes('deck') ||
+           // Generic XInput that might be Steam Deck
+           (id.includes('xinput') && navigator.userAgent.toLowerCase().includes('linux'));
+  },
+
   onGamepadConnected(e) {
+    debugLog('[GAMEPAD] Controller connected:', e.gamepad.id);
+
+    // Check if controller support is disabled
     if (typeof S !== 'undefined' && S.controllerDisabled) return;
 
     this.gamepadIndex = e.gamepad.index;
     this.activateControllerMode();
-    toast('🎮 Controller connected! Use D-pad to navigate.', 2500);
+
+    // Start polling loop
+    if (!this.pollInterval) {
+      this.pollInterval = setInterval(() => this.poll(), 16); // ~60fps
+    }
+
+    toast('🎮 Controller connected! Use D-pad to navigate, START for menu.', 2500);
   },
 
   onGamepadDisconnected(e) {
     debugLog('[GAMEPAD] Disconnected:', e.gamepad.id);
     if (e.gamepad.index === this.gamepadIndex) {
       this.gamepadIndex = null;
-      // Don't deactivate - keep focus ring visible for keyboard use
-      // Just clear gamepad state
-      this.buttonStates = {};
+      this.deactivateControllerMode();
 
       // Check for other connected gamepads
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
       for (const gp of gamepads) {
-        if (gp && gp.buttons && gp.buttons.length > 0) {
+        if (gp) {
           this.gamepadIndex = gp.index;
+          this.activateControllerMode();
           return;
         }
+      }
+
+      // No gamepads left
+      if (this.pollInterval) {
+        clearInterval(this.pollInterval);
+        this.pollInterval = null;
       }
     }
   },
@@ -323,6 +442,7 @@ const GamepadController = {
     document.body.classList.add('controller-active');
     this.updateFocusableElements();
     if (this.focusableElements.length > 0 && !this.focusedElement) {
+      // Use smart default focus instead of just the first element
       const bestFocus = this.findBestDefaultFocus();
       this.setFocus(bestFocus || this.focusableElements[0]);
     }
@@ -335,7 +455,7 @@ const GamepadController = {
     this.active = false;
     document.body.classList.remove('controller-active');
     this.clearFocus();
-    debugLog('[GAMEPAD] Controller mode deactivated');
+    debugLog('[GAMEPAD] Controller mode deactivated (mouse input detected)');
   },
 
   // Check if a blocking modal/overlay is visible that should capture all input
@@ -376,39 +496,53 @@ const GamepadController = {
     return 'menu';
   },
 
-  // Main polling loop - simplified
+  // Main polling loop
   poll() {
-    const now = Date.now();
+    this.pollCount++;
+    let now = Date.now();
 
-    // Handle suspended state - any button resumes
+    // Ensure focus is valid if controller is active (prevents stale focus issues)
+    if (this.active && (!this.focusedElement || !document.body.contains(this.focusedElement))) {
+      this.updateFocusableElements();
+      if (this.focusableElements.length > 0) {
+        const best = this.findBestDefaultFocus();
+        this.setFocus(best || this.focusableElements[0]);
+      }
+    }
+
+    // Skip if game is suspended (but still allow button to resume)
     if (typeof S !== 'undefined' && S.suspended) {
+      // Check for any button press to resume
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-      const gp = gamepads[this.gamepadIndex];
-      if (gp) {
-        for (let b = 0; b < gp.buttons.length; b++) {
-          if (gp.buttons[b].pressed && !this.buttonStates[b]) {
-            if (typeof resumeGame === 'function') resumeGame();
-            this.buttonStates[b] = true;
-            return;
+      for (let i = 0; i < gamepads.length; i++) {
+        const gp = gamepads[i];
+        if (gp) {
+          for (let b = 0; b < gp.buttons.length; b++) {
+            if (gp.buttons[b].pressed && !this.buttonStates[b]) {
+              if (typeof resumeGame === 'function') resumeGame();
+              this.buttonStates[b] = true;
+              return;
+            }
+            this.buttonStates[b] = gp.buttons[b].pressed;
           }
-          this.buttonStates[b] = gp.buttons[b].pressed;
         }
       }
       return;
     }
 
-    // Get fresh gamepad state
+    // STEAM DECK FIX: Always try to get gamepads fresh each poll
+    // Some devices need repeated polling to properly initialize
     const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
 
-    // Try to find a gamepad if we don't have one (auto-discovery)
+    // Try to find a gamepad if we don't have one
     if (this.gamepadIndex === null) {
       for (let i = 0; i < gamepads.length; i++) {
         const gp = gamepads[i];
-        if (gp && gp.buttons && gp.buttons.length > 0) {
+        // Accept gamepad even if connected is undefined (Steam Deck fix)
+        if (gp && (gp.connected || gp.connected === undefined) && gp.buttons && gp.buttons.length > 0) {
           this.gamepadIndex = i;
-          debugLog('[GAMEPAD] Poll discovered gamepad:', gp.id);
+          debugLog('[GAMEPAD] Poll found gamepad:', gp.id);
           this.activateControllerMode();
-          toast('🎮 Controller ready!', 1500);
           break;
         }
       }
@@ -417,16 +551,20 @@ const GamepadController = {
 
     const gp = gamepads[this.gamepadIndex];
     if (!gp || !gp.buttons) {
-      // Gamepad temporarily unavailable - tolerate brief interruptions
-      this.gamepadMissingCount++;
-      if (this.gamepadMissingCount > 30) { // ~0.5 seconds
-        debugLog('[GAMEPAD] Gamepad lost');
+      // Gamepad temporarily unavailable - don't immediately disconnect
+      // STEAM DECK FIX: Wait for a few poll cycles before declaring disconnected
+      this.gamepadMissingCount = (this.gamepadMissingCount || 0) + 1;
+      if (this.gamepadMissingCount > 30) { // About 0.5 seconds at 60fps
+        debugLog('[GAMEPAD] Gamepad lost after multiple missing polls');
         this.gamepadIndex = null;
         this.gamepadMissingCount = 0;
       }
       return;
     }
     this.gamepadMissingCount = 0;
+
+    // Refresh timestamp for input timing
+    now = Date.now();
 
     // Check buttons ALWAYS (don't skip due to cooldown - we need to track state)
     for (let i = 0; i < gp.buttons.length; i++) {
@@ -2020,14 +2158,18 @@ Press <strong>START (☰)</strong> anytime for settings and controls guide
     document.body.appendChild(overlay);
   },
 
-  // Cleanup all event listeners and intervals
+  // Cleanup all event listeners and intervals (call when returning to title or closing game)
   destroy() {
-    debugLog('[GAMEPAD] Cleaning up controller system');
+    debugLog('[GAMEPAD] Destroying controller system, cleaning up resources');
 
-    // Clear polling interval
+    // Clear intervals
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
       this.pollInterval = null;
+    }
+    if (this.gamepadCheckInterval) {
+      clearInterval(this.gamepadCheckInterval);
+      this.gamepadCheckInterval = null;
     }
 
     // Disconnect MutationObserver
@@ -2043,6 +2185,9 @@ Press <strong>START (☰)</strong> anytime for settings and controls guide
     if (this._handlers.gamepadDisconnected) {
       window.removeEventListener('gamepaddisconnected', this._handlers.gamepadDisconnected);
     }
+    if (this._handlers.mousemove) {
+      document.removeEventListener('mousemove', this._handlers.mousemove);
+    }
     if (this._handlers.keydown) {
       document.removeEventListener('keydown', this._handlers.keydown, true);
     }
@@ -2051,13 +2196,13 @@ Press <strong>START (☰)</strong> anytime for settings and controls guide
     this._handlers = {
       gamepadConnected: null,
       gamepadDisconnected: null,
+      mousemove: null,
       keydown: null
     };
 
     // Reset state
     this.active = false;
     this.gamepadIndex = null;
-    this.buttonStates = {};
     this.clearFocus();
     document.body.classList.remove('controller-active');
   }
