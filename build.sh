@@ -67,7 +67,21 @@ fi
 # Check if templates exist, if not extract them
 if [ ! -f "build/template_head.html" ] || [ ! -f "build/template_foot.html" ]; then
     echo "→ Extracting HTML templates from index.html..."
-    SCRIPT_START=$(grep -n "^<script>$" index.html | head -1 | cut -d: -f1)
+
+    # Use marker comment to find the main script block (not other <script> tags)
+    # This prevents accidentally cutting at early error handler or other script blocks
+    MARKER_LINE=$(grep -n "FROGGLE_MAIN_SCRIPT_START" index.html | cut -d: -f1)
+
+    if [ -n "$MARKER_LINE" ]; then
+        # Use marker - extract everything up to and including the marker line
+        SCRIPT_START=$((MARKER_LINE + 1))
+        echo "  Using marker at line $MARKER_LINE"
+    else
+        # Fallback: find the LAST <script> tag (main script is always last)
+        SCRIPT_START=$(grep -n "^<script>$" index.html | tail -1 | cut -d: -f1)
+        echo "  ⚠️  No marker found, using last <script> tag at line $SCRIPT_START"
+    fi
+
     SCRIPT_END=$(grep -n "^</script>$" index.html | tail -1 | cut -d: -f1)
 
     head -n $((SCRIPT_START - 1)) index.html > build/template_head.html
