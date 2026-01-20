@@ -6,12 +6,6 @@ let mainWindow;
 let steamClient = null;
 let steamInitialized = false;
 
-// Steam Input state
-let steamInputInitialized = false;
-let steamInputActions = {};
-let steamInputControllers = [];
-let inputPollInterval = null;
-
 // Initialize Steam
 function initSteam() {
   try {
@@ -24,14 +18,6 @@ function initSteam() {
       steamInitialized = true;
       console.log('[Steam] Initialized successfully');
       console.log('[Steam] User:', steamClient.localplayer.getName());
-
-      // Initialize Steam Input (wrapped in try/catch so it can't crash the app)
-      try {
-        initSteamInput();
-      } catch (inputError) {
-        console.warn('[Steam Input] Failed to initialize:', inputError.message);
-        steamInputInitialized = false;
-      }
 
       // Run Steam callbacks periodically (wrapped in try/catch for Steam Deck stability)
       setInterval(() => {
@@ -50,122 +36,6 @@ function initSteam() {
   }
 }
 
-// Initialize Steam Input for controller support
-function initSteamInput() {
-  try {
-    // Check if Steam Input API is available in this version of steamworks.js
-    if (!steamClient) {
-      console.log('[Steam Input] No Steam client');
-      return;
-    }
-
-    if (!steamClient.input) {
-      console.log('[Steam Input] Input API not available in this steamworks.js version');
-      return;
-    }
-
-    if (typeof steamClient.input.init !== 'function') {
-      console.log('[Steam Input] init() not available');
-      return;
-    }
-
-    steamClient.input.init();
-
-    // Verify we can get controllers before marking as initialized
-    const testControllers = steamClient.input.getControllers();
-    console.log('[Steam Input] Found', testControllers?.length || 0, 'controllers');
-
-    steamInputInitialized = true;
-    console.log('[Steam Input] Initialized');
-
-    // Get action handles for our game actions (these may return 0 if IGA not configured)
-    steamInputActions = {
-      actionSet: steamClient.input.getActionSet('GameControls'),
-      confirm: steamClient.input.getDigitalAction('confirm'),
-      cancel: steamClient.input.getDigitalAction('cancel'),
-      autoTarget: steamClient.input.getDigitalAction('auto_target'),
-      tooltip: steamClient.input.getDigitalAction('tooltip'),
-      menu: steamClient.input.getDigitalAction('menu'),
-      prevUnit: steamClient.input.getDigitalAction('prev_unit'),
-      nextUnit: steamClient.input.getDigitalAction('next_unit'),
-      prevSigil: steamClient.input.getDigitalAction('prev_sigil'),
-      nextSigil: steamClient.input.getDigitalAction('next_sigil'),
-      switchSides: steamClient.input.getDigitalAction('switch_sides'),
-      dpadUp: steamClient.input.getDigitalAction('dpad_up'),
-      dpadDown: steamClient.input.getDigitalAction('dpad_down'),
-      dpadLeft: steamClient.input.getDigitalAction('dpad_left'),
-      dpadRight: steamClient.input.getDigitalAction('dpad_right'),
-      move: steamClient.input.getAnalogAction('Move')
-    };
-
-    console.log('[Steam Input] Actions loaded:', Object.keys(steamInputActions).length);
-
-    // Start polling for input
-    inputPollInterval = setInterval(pollSteamInput, 16); // ~60fps
-
-  } catch (e) {
-    console.warn('[Steam Input] Init failed:', e.message);
-    console.warn('[Steam Input] Stack:', e.stack);
-    steamInputInitialized = false;
-    // Don't rethrow - let the game continue without Steam Input
-  }
-}
-
-// Poll Steam Input and send to renderer
-function pollSteamInput() {
-  if (!steamInputInitialized || !steamClient || !mainWindow) return;
-  if (!steamClient.input) return;
-
-  try {
-    // Get connected controllers
-    steamInputControllers = steamClient.input.getControllers();
-
-    if (!steamInputControllers || steamInputControllers.length === 0) return;
-
-    const controller = steamInputControllers[0];
-    if (!controller) return;
-
-    // Activate our action set (may be 0 if IGA not configured, which is fine)
-    if (steamInputActions.actionSet && typeof controller.activateActionSet === 'function') {
-      controller.activateActionSet(steamInputActions.actionSet);
-    }
-
-    // Build input state object - check each method exists
-    const inputState = {};
-
-    if (typeof controller.isDigitalActionPressed === 'function') {
-      inputState.confirm = controller.isDigitalActionPressed(steamInputActions.confirm);
-      inputState.cancel = controller.isDigitalActionPressed(steamInputActions.cancel);
-      inputState.autoTarget = controller.isDigitalActionPressed(steamInputActions.autoTarget);
-      inputState.tooltip = controller.isDigitalActionPressed(steamInputActions.tooltip);
-      inputState.menu = controller.isDigitalActionPressed(steamInputActions.menu);
-      inputState.prevUnit = controller.isDigitalActionPressed(steamInputActions.prevUnit);
-      inputState.nextUnit = controller.isDigitalActionPressed(steamInputActions.nextUnit);
-      inputState.prevSigil = controller.isDigitalActionPressed(steamInputActions.prevSigil);
-      inputState.nextSigil = controller.isDigitalActionPressed(steamInputActions.nextSigil);
-      inputState.switchSides = controller.isDigitalActionPressed(steamInputActions.switchSides);
-      inputState.dpadUp = controller.isDigitalActionPressed(steamInputActions.dpadUp);
-      inputState.dpadDown = controller.isDigitalActionPressed(steamInputActions.dpadDown);
-      inputState.dpadLeft = controller.isDigitalActionPressed(steamInputActions.dpadLeft);
-      inputState.dpadRight = controller.isDigitalActionPressed(steamInputActions.dpadRight);
-    }
-
-    if (typeof controller.getAnalogActionVector === 'function') {
-      inputState.move = controller.getAnalogActionVector(steamInputActions.move);
-    }
-
-    // Send to renderer
-    mainWindow.webContents.send('steam-input-state', inputState);
-
-  } catch (e) {
-    // Don't spam console on every poll error, but log first error
-    if (!pollSteamInput.errorLogged) {
-      console.warn('[Steam Input] Poll error:', e.message);
-      pollSteamInput.errorLogged = true;
-    }
-  }
-}
-
 // ============================================
 // IPC Handlers for Steam API
 // ============================================
@@ -173,11 +43,6 @@ function pollSteamInput() {
 // Connection status
 ipcMain.on('steam-initialized', (event) => {
   event.returnValue = steamInitialized;
-});
-
-// Steam Input status
-ipcMain.on('steam-input-initialized', (event) => {
-  event.returnValue = steamInputInitialized;
 });
 
 // Achievements
