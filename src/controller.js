@@ -181,7 +181,7 @@ const GamepadController = {
     const tutorialModal = document.querySelector('.tutorial-modal-backdrop');
     if (tutorialModal) return 'tutorial';
 
-    const confirmModal = document.querySelector('.confirm-modal-container');
+    const confirmModal = document.querySelector('.confirm-modal');
     if (confirmModal) return 'confirm';
 
     if (typeof S !== 'undefined' && S.suspended) return 'suspend';
@@ -694,16 +694,7 @@ function forceReinitController() {
   closeSettingsMenu();
 }
 
-function toggleControllerDebug() {
-  // Simple debug: show gamepad state
-  const gps = typeof gameControl !== 'undefined' ? gameControl.getGamepads() : {};
-  const keys = Object.keys(gps);
-  if (keys.length === 0) {
-    toast('No gamepads detected', 2000);
-  } else {
-    toast(`Gamepads: ${keys.length}, Active: ${GamepadController.active}`, 3000);
-  }
-}
+// toggleControllerDebug is defined in settings.js (has full debug overlay)
 
 function showControlsGuide() {
   const v = document.getElementById('gameView');

@@ -16504,82 +16504,7 @@ showSettingsMenu();
 }
 }
 
-function toggleControllerSupport(enabled) {
-S.controllerDisabled = !enabled;
-if(enabled) {
-toast('🎮 Controller support enabled! Connect a gamepad to use.', 2000);
-// Restart polling interval if it was stopped
-if(!GamepadController.pollInterval) {
-GamepadController.pollInterval = setInterval(() => GamepadController.poll(), 16);
-}
-// Restart gamepad check interval if it was stopped
-if(!GamepadController.gamepadCheckInterval) {
-GamepadController.gamepadCheckInterval = setInterval(() => GamepadController.checkForGamepads(), 500);
-}
-// Re-initialize controller if a gamepad is connected
-if(navigator.getGamepads) {
-const gamepads = navigator.getGamepads();
-for(const gp of gamepads) {
-if(gp) {
-GamepadController.gamepadIndex = gp.index;
-GamepadController.activateControllerMode();
-break;
-}
-}
-}
-} else {
-toast('Controller support disabled.', 1200);
-GamepadController.deactivateControllerMode();
-GamepadController.gamepadIndex = null;
-if(GamepadController.pollInterval) {
-clearInterval(GamepadController.pollInterval);
-GamepadController.pollInterval = null;
-}
-if(GamepadController.gamepadCheckInterval) {
-clearInterval(GamepadController.gamepadCheckInterval);
-GamepadController.gamepadCheckInterval = null;
-}
-}
-savePermanent();
-}
-
-function forceReinitController() {
-// Clear any existing state
-S.controllerDisabled = false;
-GamepadController.gamepadIndex = null;
-GamepadController.active = false;
-GamepadController.buttonStates = {};
-// Clear and restart intervals
-if(GamepadController.pollInterval) {
-clearInterval(GamepadController.pollInterval);
-GamepadController.pollInterval = null;
-}
-if(GamepadController.gamepadCheckInterval) {
-clearInterval(GamepadController.gamepadCheckInterval);
-GamepadController.gamepadCheckInterval = null;
-}
-// Start fresh polling
-GamepadController.pollInterval = setInterval(() => GamepadController.poll(), 16);
-GamepadController.gamepadCheckInterval = setInterval(() => GamepadController.checkForGamepads(), 500);
-// Check for connected gamepads
-if(navigator.getGamepads) {
-const gamepads = navigator.getGamepads();
-for(let i = 0; i < gamepads.length; i++) {
-const gp = gamepads[i];
-if(gp) {
-GamepadController.gamepadIndex = i;
-GamepadController.activateControllerMode();
-toast(`🎮 Controller found: ${gp.id.substring(0,30)}...`, 2500);
-savePermanent();
-closeSettingsMenu();
-return;
-}
-}
-}
-toast('🎮 Controller polling restarted. Press any button on your controller.', 2500);
-savePermanent();
-closeSettingsMenu();
-}
+// toggleControllerSupport and forceReinitController are defined in controller.js
 
 // Live controller debug overlay - shows input in real-time on screen
 function toggleControllerDebug() {
@@ -17487,7 +17412,7 @@ const GamepadController = {
     const tutorialModal = document.querySelector('.tutorial-modal-backdrop');
     if (tutorialModal) return 'tutorial';
 
-    const confirmModal = document.querySelector('.confirm-modal-container');
+    const confirmModal = document.querySelector('.confirm-modal');
     if (confirmModal) return 'confirm';
 
     if (typeof S !== 'undefined' && S.suspended) return 'suspend';
@@ -18000,16 +17925,7 @@ function forceReinitController() {
   closeSettingsMenu();
 }
 
-function toggleControllerDebug() {
-  // Simple debug: show gamepad state
-  const gps = typeof gameControl !== 'undefined' ? gameControl.getGamepads() : {};
-  const keys = Object.keys(gps);
-  if (keys.length === 0) {
-    toast('No gamepads detected', 2000);
-  } else {
-    toast(`Gamepads: ${keys.length}, Active: ${GamepadController.active}`, 3000);
-  }
-}
+// toggleControllerDebug is defined in settings.js (has full debug overlay)
 
 function showControlsGuide() {
   const v = document.getElementById('gameView');
