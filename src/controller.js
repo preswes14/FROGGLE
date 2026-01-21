@@ -12,6 +12,7 @@ const GamepadController = {
   focusableElements: [],
   lastFocusedId: null,
   currentGamepad: null,
+  keyboardOnlyMode: false, // Enable if no gamepad detected - allows keyboard/mapped controls
 
   // Initialize controller system
   init() {
@@ -58,29 +59,64 @@ const GamepadController = {
   },
 
   // Poll for gamepads that were connected before page load
+  // Gamepad API requires user interaction before reporting gamepads,
+  // so we poll continuously until we find one
   checkExistingGamepads() {
-    if (typeof navigator.getGamepads !== 'function') return;
+    if (typeof navigator.getGamepads !== 'function') {
+      debugLog('[GAMEPAD] navigator.getGamepads not available');
+      return;
+    }
+
+    let pollCount = 0;
+    const maxPolls = 30; // Poll for 3 seconds (every 100ms), then enable keyboard mode
 
     const pollForGamepad = () => {
+      pollCount++;
       const gamepads = navigator.getGamepads();
+
+      // Log what we see (first few times and periodically)
+      if (pollCount <= 3 || pollCount % 50 === 0) {
+        const gpInfo = [];
+        for (let i = 0; i < gamepads.length; i++) {
+          if (gamepads[i]) {
+            gpInfo.push(`[${i}]: ${gamepads[i].id} (${gamepads[i].buttons.length} btns)`);
+          }
+        }
+        debugLog(`[GAMEPAD] Poll #${pollCount}: ${gpInfo.length ? gpInfo.join(', ') : 'no gamepads found'}`);
+      }
+
       for (let i = 0; i < gamepads.length; i++) {
         const gp = gamepads[i];
         if (gp && gp.connected && !this.currentGamepad) {
           debugLog('[GAMEPAD] Found pre-connected gamepad:', gp.id);
           // Manually trigger the gamecontroller.js connection flow
-          // by dispatching a synthetic event
           const event = new CustomEvent('gamepadconnected', { detail: { gamepad: gp } });
           window.dispatchEvent(event);
-          return; // Found one, stop polling
+          return; // Stop polling
         }
+      }
+
+      // Keep polling until we find one or hit max
+      if (pollCount < maxPolls && !this.currentGamepad) {
+        setTimeout(pollForGamepad, 100);
+      } else if (!this.currentGamepad) {
+        // No gamepad found after polling - enable keyboard-only mode
+        // This allows Steam Deck users to map controller to keyboard
+        debugLog('[GAMEPAD] No gamepad found after polling, enabling keyboard-only mode');
+        this.keyboardOnlyMode = true;
+        toast('🎮 Keyboard mode enabled (no gamepad detected)', 2000);
       }
     };
 
-    // Poll a few times with delay (gamepad might take a moment to be visible)
+    // Start polling
     pollForGamepad();
-    setTimeout(pollForGamepad, 100);
-    setTimeout(pollForGamepad, 500);
-    setTimeout(pollForGamepad, 1000);
+  },
+
+  // Manually enable keyboard-only mode (for settings menu)
+  enableKeyboardMode() {
+    this.keyboardOnlyMode = true;
+    toast('🎮 Keyboard control mode enabled!', 2000);
+    debugLog('[GAMEPAD] Keyboard-only mode manually enabled');
   },
 
   // Set up button bindings for a gamepad
@@ -150,10 +186,12 @@ const GamepadController = {
       // Ignore if typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      // Only handle keyboard if controller mode is already active OR if a gamepad is connected
-      // This prevents keyboard from accidentally activating controller mode on touch devices
+      // Handle keyboard if:
+      // 1. Controller mode is already active, OR
+      // 2. A gamepad is connected, OR
+      // 3. Keyboard-only mode is enabled (for Steam Deck when gamepad not detected)
       const hasGamepad = this.currentGamepad !== null;
-      if (!this.active && !hasGamepad) return;
+      if (!this.active && !hasGamepad && !this.keyboardOnlyMode) return;
 
       let handled = false;
 

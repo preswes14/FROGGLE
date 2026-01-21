@@ -480,10 +480,34 @@ overlay.innerHTML = `
 <div id="debug-axes" style="margin-top:5px"></div>
 <div id="debug-keyboard" style="margin-top:5px;color:#ff0">Last key: none</div>
 <div id="debug-key-count" style="font-size:10px;color:#888">Keys pressed: 0</div>
-<div style="margin-top:8px;font-size:10px;color:#888">Tap here to close</div>
+<div style="margin-top:8px">
+<button id="debug-detect-btn" style="background:#22c55e;color:#000;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer">🔍 Force Detect</button>
+</div>
+<div style="margin-top:5px;font-size:10px;color:#888">Tap overlay to close</div>
 `;
-overlay.onclick = () => overlay.remove();
+overlay.onclick = (e) => {
+  if (e.target === overlay) overlay.remove();
+};
 document.body.appendChild(overlay);
+
+// Force detect button
+document.getElementById('debug-detect-btn').onclick = (e) => {
+  e.stopPropagation();
+  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+  let msg = 'Gamepad API result:\\n';
+  for (let i = 0; i < 4; i++) {
+    msg += `[${i}]: ${gamepads[i] ? gamepads[i].id : 'null'}\\n`;
+  }
+  msg += '\\nIf all null, Steam Input may be intercepting.\\n';
+  msg += 'Try: Steam > FROGGLE > Properties > Controller\\n';
+  msg += '> Use "Gamepad with Joystick Trackpad"';
+  alert(msg);
+  // Also try to reinit controller
+  if (typeof GamepadController !== 'undefined') {
+    GamepadController.checkExistingGamepads();
+    toast('Retrying gamepad detection...', 1500);
+  }
+};
 
 // Track keyboard input - use capture to catch ALL key events
 let keyCount = 0;
@@ -537,9 +561,20 @@ break;
 }
 
 if (!found) {
-statusEl.innerHTML = '<span style="color:#f00">✗ NO GAMEPAD DETECTED</span>';
-buttonsEl.innerHTML = 'Try pressing a button...';
-axesEl.innerHTML = '';
+// Show more diagnostic info
+const gpArray = navigator.getGamepads ? navigator.getGamepads() : null;
+const gpLen = gpArray ? gpArray.length : 'N/A';
+const hasAPI = typeof navigator.getGamepads === 'function' ? 'Yes' : 'No';
+const gcLib = typeof gameControl !== 'undefined' ? 'Loaded' : 'Missing';
+const gcGps = typeof gameControl !== 'undefined' ? Object.keys(gameControl.getGamepads()).length : 0;
+statusEl.innerHTML = `<span style="color:#f00">✗ NO GAMEPAD</span><br>
+<span style="font-size:10px;color:#888">
+API: ${hasAPI} | Array len: ${gpLen}<br>
+gameControl: ${gcLib} (${gcGps} gps)<br>
+GamepadController: ${typeof GamepadController !== 'undefined' ? (GamepadController.currentGamepad ? 'Connected' : 'No GP') : 'Missing'}
+</span>`;
+buttonsEl.innerHTML = '<span style="color:#ff0">Press controller buttons...</span>';
+axesEl.innerHTML = '<span style="font-size:10px;color:#888">If using Steam Deck, check Steam Input config</span>';
 }
 
 requestAnimationFrame(updateDebug);
