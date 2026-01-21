@@ -15,6 +15,12 @@ let mainWindow;
 let steamClient = null;
 let steamInitialized = false;
 
+// Steam Input state
+let steamInputInitialized = false;
+let gameControlsActionSet = null;
+let inputActions = {};
+let activeControllers = [];
+
 // Initialize Steam
 function initSteam() {
   try {
@@ -38,10 +44,77 @@ function initSteam() {
           }
         }
       }, 100);
+
+      // Initialize Steam Input
+      initSteamInput();
     }
   } catch (e) {
     console.log('[Steam] Not available:', e.message);
     steamInitialized = false;
+  }
+}
+
+// Initialize Steam Input API for controller support
+function initSteamInput() {
+  if (!steamClient || !steamClient.input) {
+    console.log('[SteamInput] Input API not available');
+    return;
+  }
+
+  try {
+    // Initialize the input system
+    steamClient.input.init();
+    steamInputInitialized = true;
+    console.log('[SteamInput] Initialized successfully');
+
+    // Get the GameControls action set (defined in steam_input_manifest.vdf)
+    gameControlsActionSet = steamClient.input.getActionSet('GameControls');
+    console.log('[SteamInput] GameControls action set:', gameControlsActionSet);
+
+    // Get handles for all our digital actions
+    const digitalActions = [
+      'confirm', 'cancel', 'auto_target', 'tooltip', 'menu',
+      'prev_unit', 'next_unit', 'prev_sigil', 'next_sigil', 'switch_sides',
+      'dpad_up', 'dpad_down', 'dpad_left', 'dpad_right'
+    ];
+
+    for (const action of digitalActions) {
+      inputActions[action] = steamClient.input.getDigitalAction(action);
+      console.log(`[SteamInput] Action '${action}':`, inputActions[action]);
+    }
+
+    // Get analog action for joystick
+    inputActions['Move'] = steamClient.input.getAnalogAction('Move');
+    console.log('[SteamInput] Analog action Move:', inputActions['Move']);
+
+    // Poll for controllers periodically
+    setInterval(updateControllers, 100);
+
+  } catch (e) {
+    console.error('[SteamInput] Init failed:', e);
+    steamInputInitialized = false;
+  }
+}
+
+// Update active controllers list
+function updateControllers() {
+  if (!steamInputInitialized || !steamClient.input) return;
+
+  try {
+    const controllers = steamClient.input.getControllers();
+    if (controllers && controllers.length > 0) {
+      activeControllers = controllers;
+      // Activate our action set on all controllers
+      for (const controller of controllers) {
+        if (gameControlsActionSet) {
+          controller.activateActionSet(gameControlsActionSet);
+        }
+      }
+    } else {
+      activeControllers = [];
+    }
+  } catch (e) {
+    // Silently ignore - controllers may not be connected
   }
 }
 
@@ -247,6 +320,69 @@ ipcMain.on('steam-get-user-info', (event) => {
       name: steamClient.localplayer.getName(),
       steamId: steamClient.localplayer.getSteamId().steamId64
     };
+  } catch (e) {
+    event.returnValue = null;
+  }
+});
+
+// ============================================
+// Steam Input IPC Handlers
+// ============================================
+
+// Check if Steam Input is available
+ipcMain.on('steam-input-available', (event) => {
+  event.returnValue = steamInputInitialized && activeControllers.length > 0;
+});
+
+// Get number of connected controllers
+ipcMain.on('steam-input-controller-count', (event) => {
+  event.returnValue = activeControllers.length;
+});
+
+// Get all input state at once (efficient single call for polling)
+ipcMain.on('steam-input-get-state', (event) => {
+  if (!steamInputInitialized || activeControllers.length === 0) {
+    event.returnValue = null;
+    return;
+  }
+
+  try {
+    const controller = activeControllers[0]; // Use first controller
+    const state = {
+      connected: true,
+      // Digital actions (buttons)
+      confirm: controller.isDigitalActionPressed(inputActions['confirm']),
+      cancel: controller.isDigitalActionPressed(inputActions['cancel']),
+      auto_target: controller.isDigitalActionPressed(inputActions['auto_target']),
+      tooltip: controller.isDigitalActionPressed(inputActions['tooltip']),
+      menu: controller.isDigitalActionPressed(inputActions['menu']),
+      prev_unit: controller.isDigitalActionPressed(inputActions['prev_unit']),
+      next_unit: controller.isDigitalActionPressed(inputActions['next_unit']),
+      prev_sigil: controller.isDigitalActionPressed(inputActions['prev_sigil']),
+      next_sigil: controller.isDigitalActionPressed(inputActions['next_sigil']),
+      switch_sides: controller.isDigitalActionPressed(inputActions['switch_sides']),
+      dpad_up: controller.isDigitalActionPressed(inputActions['dpad_up']),
+      dpad_down: controller.isDigitalActionPressed(inputActions['dpad_down']),
+      dpad_left: controller.isDigitalActionPressed(inputActions['dpad_left']),
+      dpad_right: controller.isDigitalActionPressed(inputActions['dpad_right']),
+      // Analog action (joystick)
+      move: controller.getAnalogActionVector(inputActions['Move'])
+    };
+    event.returnValue = state;
+  } catch (e) {
+    console.warn('[SteamInput] Error getting state:', e.message);
+    event.returnValue = null;
+  }
+});
+
+// Get controller type (for showing correct button prompts)
+ipcMain.on('steam-input-controller-type', (event) => {
+  if (!steamInputInitialized || activeControllers.length === 0) {
+    event.returnValue = null;
+    return;
+  }
+  try {
+    event.returnValue = activeControllers[0].getType();
   } catch (e) {
     event.returnValue = null;
   }

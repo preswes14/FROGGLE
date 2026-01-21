@@ -29,7 +29,13 @@ contextBridge.exposeInMainWorld('steamBridge', {
   cloudQuota: () => ipcRenderer.sendSync('steam-cloud-quota'),
 
   // User Info
-  getUserInfo: () => ipcRenderer.sendSync('steam-get-user-info')
+  getUserInfo: () => ipcRenderer.sendSync('steam-get-user-info'),
+
+  // Steam Input (Controller)
+  inputAvailable: () => ipcRenderer.sendSync('steam-input-available'),
+  inputControllerCount: () => ipcRenderer.sendSync('steam-input-controller-count'),
+  inputGetState: () => ipcRenderer.sendSync('steam-input-get-state'),
+  inputControllerType: () => ipcRenderer.sendSync('steam-input-controller-type')
 });
 
 // Expose platform info

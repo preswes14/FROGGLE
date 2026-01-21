@@ -1,9 +1,6 @@
-// ===== GAMECONTROLLER.JS LIBRARY (MIT License) =====
-// https://github.com/alvaromontoro/gamecontroller.js - v1.5.0
-(()=>{"use strict";const t=(t,e="log")=>{"error"===e?console&&"function"==typeof console.error&&console.error(t):console&&"function"==typeof console.info&&console.info(t)},e=e=>t(e,"error"),n=()=>navigator.getGamepads&&"function"==typeof navigator.getGamepads||navigator.getGamepads&&"function"==typeof navigator.webkitGetGamepads||!1,o="Invalid property.",i="Invalid value. It must be a number between 0.00 and 1.00.",s="Button does not exist.",a="Unknown event name.",c=function(t){let n={id:t.index,buttons:t.buttons.length,axes:Math.floor(t.axes.length/2),axeValues:[],axeThreshold:[1],hapticActuator:null,vibrationMode:-1,vibration:!1,mapping:t.mapping,buttonActions:{},axesActions:{},pressed:{},set:function(t,n){if(["axeThreshold"].indexOf(t)>=0){if("axeThreshold"===t&&(!parseFloat(n)||n<0||n>1))return void e(i);this[t]=n}else e(o)},vibrate:function(t=.75,e=500){if(this.hapticActuator)switch(this.vibrationMode){case 0:return this.hapticActuator.pulse(t,e);case 1:return this.hapticActuator.playEffect("dual-rumble",{duration:e,strongMagnitude:t,weakMagnitude:t})}},triggerDirectionalAction:function(t,e,n,o,i){n&&o%2===i?(this.pressed[`${t}${e}`]||(this.pressed[`${t}${e}`]=!0,this.axesActions[e][t].before()),this.axesActions[e][t].action()):this.pressed[`${t}${e}`]&&o%2===i&&(delete this.pressed[`${t}${e}`],this.axesActions[e][t].after())},checkStatus:function(){let t={};const e=navigator.getGamepads?navigator.getGamepads():navigator.webkitGetGamepads?navigator.webkitGetGamepads():[];if(e.length){if(t=e[this.id],t.buttons)for(let e=0;e<this.buttons;e++)!0===t.buttons[e].pressed?(this.pressed[`button${e}`]||(this.pressed[`button${e}`]=!0,this.buttonActions[e].before()),this.buttonActions[e].action()):this.pressed[`button${e}`]&&(delete this.pressed[`button${e}`],this.buttonActions[e].after());if(t.axes){const e=t.axes.length%2;for(let n=0;n<2*this.axes;n++){const o=t.axes[n+e].toFixed(4),i=Math.floor(n/2);this.axeValues[i][n%2]=o,this.triggerDirectionalAction("right",i,o>=this.axeThreshold[0],n,0),this.triggerDirectionalAction("left",i,o<=-this.axeThreshold[0],n,0),this.triggerDirectionalAction("down",i,o>=this.axeThreshold[0],n,1),this.triggerDirectionalAction("up",i,o<=-this.axeThreshold[0],n,1)}}}},associateEvent:function(t,n,o){if(t.match(/^button\d+$/)){const i=parseInt(t.match(/^button(\d+)$/)[1]);i>=0&&i<this.buttons?this.buttonActions[i][o]=n:e(s)}else if("start"===t)this.buttonActions[9][o]=n;else if("select"===t)this.buttonActions[8][o]=n;else if("r1"===t)this.buttonActions[5][o]=n;else if("r2"===t)this.buttonActions[7][o]=n;else if("l1"===t)this.buttonActions[4][o]=n;else if("l2"===t)this.buttonActions[6][o]=n;else if("power"===t)this.buttons>=17?this.buttonActions[16][o]=n:e(s);else if(t.match(/^(up|down|left|right)(\d+)$/)){const i=t.match(/^(up|down|left|right)(\d+)$/),a=i[1],c=parseInt(i[2]);c>=0&&c<this.axes?this.axesActions[c][a][o]=n:e(s)}else if(t.match(/^(up|down|left|right)$/)){const e=t.match(/^(up|down|left|right)$/)[1];this.axesActions[0][e][o]=n}return this},on:function(t,e){return this.associateEvent(t,e,"action")},off:function(t){return this.associateEvent(t,(function(){}),"action")},after:function(t,e){return this.associateEvent(t,e,"after")},before:function(t,e){return this.associateEvent(t,e,"before")}};for(let t=0;t<n.buttons;t++)n.buttonActions[t]={action:()=>{},after:()=>{},before:()=>{}};for(let t=0;t<n.axes;t++)n.axesActions[t]={down:{action:()=>{},after:()=>{},before:()=>{}},left:{action:()=>{},after:()=>{},before:()=>{}},right:{action:()=>{},after:()=>{},before:()=>{}},up:{action:()=>{},after:()=>{},before:()=>{}}},n.axeValues[t]=[0,0];return t.hapticActuators?"function"==typeof t.hapticActuators.pulse?(n.hapticActuator=t.hapticActuators,n.vibrationMode=0,n.vibration=!0):t.hapticActuators[0]&&"function"==typeof t.hapticActuators[0].pulse&&(n.hapticActuator=t.hapticActuators[0],n.vibrationMode=0,n.vibration=!0):t.vibrationActuator&&"function"==typeof t.vibrationActuator.playEffect&&(n.hapticActuator=t.vibrationActuator,n.vibrationMode=1,n.vibration=!0),n},r={gamepads:{},axeThreshold:[1],isReady:n(),onConnect:function(){},onDisconnect:function(){},onBeforeCycle:function(){},onAfterCycle:function(){},getGamepads:function(){return this.gamepads},getGamepad:function(t){return this.gamepads[t]?this.gamepads[t]:null},set:function(t,n){if(["axeThreshold"].indexOf(t)>=0){if("axeThreshold"===t&&(!parseFloat(n)||n<0||n>1))return void e(i);if(this[t]=n,"axeThreshold"===t){const t=this.getGamepads(),e=Object.keys(t);for(let n=0;n<e.length;n++)t[e[n]].set("axeThreshold",this.axeThreshold)}}else e(o)},checkStatus:function(){const t=window.requestAnimationFrame||window.webkitRequestAnimationFrame,e=Object.keys(r.gamepads);r.onBeforeCycle();for(let t=0;t<e.length;t++)r.gamepads[e[t]].checkStatus();r.onAfterCycle(),e.length>0&&t(r.checkStatus)},init:function(){window.addEventListener("gamepadconnected",(e=>{const n=e.gamepad||e.detail.gamepad;if(t("Gamepad detected."),window.gamepads||(window.gamepads={}),n){if(!window.gamepads[n.index]){window.gamepads[n.index]=n;const t=c(n);t.set("axeThreshold",this.axeThreshold),this.gamepads[t.id]=t,this.onConnect(this.gamepads[t.id])}1===Object.keys(this.gamepads).length&&this.checkStatus()}})),window.addEventListener("gamepaddisconnected",(e=>{const n=e.gamepad||e.detail.gamepad;t("Gamepad disconnected."),n&&(delete window.gamepads[n.index],delete this.gamepads[n.index],this.onDisconnect(n.index))}))},on:function(t,n){switch(t){case"connect":this.onConnect=n;break;case"disconnect":this.onDisconnect=n;break;case"beforeCycle":case"beforecycle":this.onBeforeCycle=n;break;case"afterCycle":case"aftercycle":this.onAfterCycle=n;break;default:e(a)}return this},off:function(t){switch(t){case"connect":this.onConnect=function(){};break;case"disconnect":this.onDisconnect=function(){};break;case"beforeCycle":case"beforecycle":this.onBeforeCycle=function(){};break;case"afterCycle":case"aftercycle":this.onAfterCycle=function(){};break;default:e(a)}return this}};r.init();const h=r;n()?window.gameControl=h:e("Your web browser does not support the Gamepad API.")})();
-
-// ===== FROGGLE CONTROLLER WRAPPER =====
-// Clean wrapper around gamecontroller.js for game-specific logic
+// ===== FROGGLE CONTROLLER - Steam Input API =====
+// Uses Steam Input for native controller support on Steam Deck
+// Falls back to keyboard for browser/non-Steam environments
 
 const GamepadController = {
   // State
@@ -11,187 +8,195 @@ const GamepadController = {
   focusedElement: null,
   focusableElements: [],
   lastFocusedId: null,
-  currentGamepad: null,
-  keyboardOnlyMode: false, // Enable if no gamepad detected - allows keyboard/mapped controls
+
+  // Steam Input state
+  steamInputAvailable: false,
+  lastInputState: null,
+  pollInterval: null,
 
   // Initialize controller system
   init() {
-    debugLog('[GAMEPAD] Initializing controller support...');
+    debugLog('[CONTROLLER] Initializing...');
 
     // Check if disabled
     if (typeof S !== 'undefined' && S.controllerDisabled) {
-      debugLog('[GAMEPAD] Controller support disabled');
+      debugLog('[CONTROLLER] Controller support disabled in settings');
       return;
     }
 
-    // Always set up keyboard (works as fallback, Steam can map controller to keyboard)
+    // Always set up keyboard (works everywhere)
     this.initKeyboard();
+    this.initTouchDetection();
 
-    // Check if gameControl library loaded
-    if (typeof gameControl === 'undefined') {
-      debugLog('[GAMEPAD] gameControl not available, keyboard only');
+    // Check for Steam Input (only in Electron with Steam)
+    if (window.steamBridge && typeof window.steamBridge.inputAvailable === 'function') {
+      // Give Steam a moment to initialize controllers
+      setTimeout(() => this.initSteamInput(), 500);
+    } else {
+      debugLog('[CONTROLLER] Steam Input not available (browser mode)');
+    }
+
+    debugLog('[CONTROLLER] Initialization complete');
+  },
+
+  // Initialize Steam Input polling
+  initSteamInput() {
+    try {
+      const available = window.steamBridge.inputAvailable();
+      const controllerCount = window.steamBridge.inputControllerCount();
+
+      debugLog(`[CONTROLLER] Steam Input check: available=${available}, controllers=${controllerCount}`);
+
+      if (available && controllerCount > 0) {
+        this.steamInputAvailable = true;
+        this.activate();
+        toast('🎮 Controller connected!', 2000);
+
+        // Start polling Steam Input
+        this.startPolling();
+
+        // Log controller type
+        const type = window.steamBridge.inputControllerType();
+        debugLog('[CONTROLLER] Controller type:', type);
+      } else {
+        debugLog('[CONTROLLER] No Steam controllers detected, retrying...');
+        // Retry a few times
+        this.retrySteamInput(5);
+      }
+    } catch (e) {
+      debugLog('[CONTROLLER] Steam Input init error:', e.message);
+    }
+  },
+
+  // Retry Steam Input detection
+  retrySteamInput(retriesLeft) {
+    if (retriesLeft <= 0) {
+      debugLog('[CONTROLLER] Steam Input not available after retries');
       return;
     }
 
-    // Configure stick sensitivity
-    gameControl.set('axeThreshold', 0.4);
-
-    // Handle controller connection
-    gameControl.on('connect', gp => {
-      debugLog('[GAMEPAD] Connected:', gp.id);
-      this.currentGamepad = gp;
-      this.setupGamepad(gp);
-      this.activate();
-      toast('🎮 Controller connected!', 2000);
-    });
-
-    gameControl.on('disconnect', () => {
-      debugLog('[GAMEPAD] Disconnected');
-      this.currentGamepad = null;
-      // Don't deactivate - keep focus visible for keyboard
-    });
-
-    // CRITICAL: Check for already-connected gamepads (Steam Deck has controller always connected)
-    // The gamepadconnected event doesn't fire for already-connected controllers
-    this.checkExistingGamepads();
-
-    debugLog('[GAMEPAD] Initialization complete');
+    setTimeout(() => {
+      try {
+        const available = window.steamBridge.inputAvailable();
+        if (available) {
+          this.steamInputAvailable = true;
+          this.activate();
+          toast('🎮 Controller connected!', 2000);
+          this.startPolling();
+        } else {
+          this.retrySteamInput(retriesLeft - 1);
+        }
+      } catch (e) {
+        debugLog('[CONTROLLER] Retry error:', e.message);
+      }
+    }, 500);
   },
 
-  // Poll for gamepads that were connected before page load
-  // Gamepad API requires user interaction before reporting gamepads,
-  // so we poll continuously until we find one
-  checkExistingGamepads() {
-    if (typeof navigator.getGamepads !== 'function') {
-      debugLog('[GAMEPAD] navigator.getGamepads not available');
-      return;
+  // Start polling Steam Input
+  startPolling() {
+    if (this.pollInterval) return;
+
+    debugLog('[CONTROLLER] Starting Steam Input polling');
+
+    this.pollInterval = setInterval(() => {
+      this.pollSteamInput();
+    }, 16); // ~60fps polling
+  },
+
+  // Stop polling
+  stopPolling() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+      this.pollInterval = null;
     }
-
-    let pollCount = 0;
-    const maxPolls = 30; // Poll for 3 seconds (every 100ms), then enable keyboard mode
-
-    const pollForGamepad = () => {
-      pollCount++;
-      const gamepads = navigator.getGamepads();
-
-      // Log what we see (first few times and periodically)
-      if (pollCount <= 3 || pollCount % 50 === 0) {
-        const gpInfo = [];
-        for (let i = 0; i < gamepads.length; i++) {
-          if (gamepads[i]) {
-            gpInfo.push(`[${i}]: ${gamepads[i].id} (${gamepads[i].buttons.length} btns)`);
-          }
-        }
-        debugLog(`[GAMEPAD] Poll #${pollCount}: ${gpInfo.length ? gpInfo.join(', ') : 'no gamepads found'}`);
-      }
-
-      for (let i = 0; i < gamepads.length; i++) {
-        const gp = gamepads[i];
-        if (gp && gp.connected && !this.currentGamepad) {
-          debugLog('[GAMEPAD] Found pre-connected gamepad:', gp.id);
-          // Manually trigger the gamecontroller.js connection flow
-          const event = new CustomEvent('gamepadconnected', { detail: { gamepad: gp } });
-          window.dispatchEvent(event);
-          return; // Stop polling
-        }
-      }
-
-      // Keep polling until we find one or hit max
-      if (pollCount < maxPolls && !this.currentGamepad) {
-        setTimeout(pollForGamepad, 100);
-      } else if (!this.currentGamepad) {
-        // No gamepad found after polling - enable keyboard-only mode
-        // This allows Steam Deck users to map controller to keyboard
-        debugLog('[GAMEPAD] No gamepad found after polling, enabling keyboard-only mode');
-        this.keyboardOnlyMode = true;
-        toast('🎮 Keyboard mode enabled (no gamepad detected)', 2000);
-      }
-    };
-
-    // Start polling
-    pollForGamepad();
   },
 
-  // Manually enable keyboard-only mode (for settings menu)
-  enableKeyboardMode() {
-    this.keyboardOnlyMode = true;
-    toast('🎮 Keyboard control mode enabled!', 2000);
-    debugLog('[GAMEPAD] Keyboard-only mode manually enabled');
-  },
+  // Poll Steam Input and handle button presses
+  pollSteamInput() {
+    if (!this.steamInputAvailable || !window.steamBridge) return;
 
-  // Set up button bindings for a gamepad
-  setupGamepad(gp) {
-    // A button (0) - Confirm/Select
-    gp.before('button0', () => this.handleA());
+    try {
+      const state = window.steamBridge.inputGetState();
+      if (!state || !state.connected) {
+        // Controller disconnected
+        if (this.lastInputState?.connected) {
+          debugLog('[CONTROLLER] Controller disconnected');
+          this.steamInputAvailable = false;
+          this.stopPolling();
+        }
+        this.lastInputState = state;
+        return;
+      }
 
-    // B button (1) - Back/Cancel
-    gp.before('button1', () => this.handleB());
+      const prev = this.lastInputState || {};
 
-    // X button (2) - Auto-target
-    gp.before('button2', () => this.handleX());
+      // Check for button presses (transition from not pressed to pressed)
+      if (state.confirm && !prev.confirm) this.handleA();
+      if (state.cancel && !prev.cancel) this.handleB();
+      if (state.auto_target && !prev.auto_target) this.handleX();
+      if (state.tooltip && !prev.tooltip) this.handleY();
+      if (state.prev_unit && !prev.prev_unit) this.handleLB();
+      if (state.next_unit && !prev.next_unit) this.handleRB();
+      if (state.prev_sigil && !prev.prev_sigil) this.handleLT();
+      if (state.next_sigil && !prev.next_sigil) this.handleRT();
+      if (state.switch_sides && !prev.switch_sides) this.handleSelect();
+      if (state.menu && !prev.menu) this.handleStart();
 
-    // Y button (3) - Toggle tooltip
-    gp.before('button3', () => this.handleY());
+      // D-pad
+      if (state.dpad_up && !prev.dpad_up) this.handleDirection('up');
+      if (state.dpad_down && !prev.dpad_down) this.handleDirection('down');
+      if (state.dpad_left && !prev.dpad_left) this.handleDirection('left');
+      if (state.dpad_right && !prev.dpad_right) this.handleDirection('right');
 
-    // LB (4) - Cycle units prev / page up
-    gp.before('l1', () => this.handleLB());
+      // Analog stick (with deadzone)
+      if (state.move) {
+        const threshold = 0.5;
+        const prevMove = prev.move || { x: 0, y: 0 };
 
-    // RB (5) - Cycle units next / page down
-    gp.before('r1', () => this.handleRB());
+        // Left
+        if (state.move.x < -threshold && prevMove.x >= -threshold) {
+          this.handleDirection('left');
+        }
+        // Right
+        if (state.move.x > threshold && prevMove.x <= threshold) {
+          this.handleDirection('right');
+        }
+        // Up (note: y axis may be inverted)
+        if (state.move.y < -threshold && prevMove.y >= -threshold) {
+          this.handleDirection('up');
+        }
+        // Down
+        if (state.move.y > threshold && prevMove.y <= threshold) {
+          this.handleDirection('down');
+        }
+      }
 
-    // LT (6) - Cycle sigils prev
-    gp.before('l2', () => this.handleLT());
-
-    // RT (7) - Cycle sigils next
-    gp.before('r2', () => this.handleRT());
-
-    // Select (8) - Switch sides
-    gp.before('select', () => this.handleSelect());
-
-    // Start (9) - Menu
-    gp.before('start', () => this.handleStart());
-
-    // D-pad (12-15)
-    gp.before('button12', () => this.handleDirection('up'));
-    gp.before('button13', () => this.handleDirection('down'));
-    gp.before('button14', () => this.handleDirection('left'));
-    gp.before('button15', () => this.handleDirection('right'));
-
-    // Left stick
-    gp.before('up', () => this.handleDirection('up'));
-    gp.before('down', () => this.handleDirection('down'));
-    gp.before('left', () => this.handleDirection('left'));
-    gp.before('right', () => this.handleDirection('right'));
+      this.lastInputState = state;
+    } catch (e) {
+      // Silently ignore polling errors
+    }
   },
 
   // Touch listener - deactivate controller mode when user touches screen
   initTouchDetection() {
     document.addEventListener('touchstart', () => {
       if (this.active) {
-        debugLog('[GAMEPAD] Touch detected, deactivating controller mode');
+        debugLog('[CONTROLLER] Touch detected, deactivating controller mode');
         this.deactivate();
       }
     }, { passive: true });
   },
 
-  // Keyboard fallback (for desktop/debugging, not primary on Steam Deck)
+  // Keyboard fallback (for browser/desktop)
   initKeyboard() {
-    // Also set up touch detection
-    this.initTouchDetection();
-
-    // Use bubble phase (not capture) to avoid interfering with other handlers
     document.addEventListener('keydown', e => {
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
-
-      // Ignore if typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      // Handle keyboard if:
-      // 1. Controller mode is already active, OR
-      // 2. A gamepad is connected, OR
-      // 3. Keyboard-only mode is enabled (for Steam Deck when gamepad not detected)
-      const hasGamepad = this.currentGamepad !== null;
-      if (!this.active && !hasGamepad && !this.keyboardOnlyMode) return;
+      // In browser mode (no Steam Input), keyboard always works
+      // In Steam mode, keyboard is backup
+      const allowKeyboard = !this.steamInputAvailable || this.active;
+      if (!allowKeyboard) return;
 
       let handled = false;
 
@@ -222,19 +227,16 @@ const GamepadController = {
           handled = true;
           break;
         case 'Tab':
-          if (e.shiftKey) {
-            this.handleDirection('left');
-          } else {
-            this.handleDirection('right');
-          }
+          this.handleDirection(e.shiftKey ? 'left' : 'right');
           handled = true;
           break;
       }
 
       if (handled) {
         e.preventDefault();
+        if (!this.active) this.activate();
       }
-    }); // bubble phase, not capture
+    });
   },
 
   // Activate controller mode (show focus ring)
@@ -248,7 +250,7 @@ const GamepadController = {
       this.setFocus(best || this.focusableElements[0]);
     }
     this.updatePrompts();
-    debugLog('[GAMEPAD] Activated');
+    debugLog('[CONTROLLER] Activated');
   },
 
   // Deactivate controller mode
@@ -257,14 +259,13 @@ const GamepadController = {
     this.active = false;
     document.body.classList.remove('controller-active');
     this.clearFocus();
-    this.updatePrompts(); // Hide the prompts bar
-    debugLog('[GAMEPAD] Deactivated');
+    this.updatePrompts();
+    debugLog('[CONTROLLER] Deactivated');
   },
 
   // ===== CONTEXT DETECTION =====
 
   getContext() {
-    // Check for blocking overlays
     const tutorialModal = document.querySelector('.tutorial-modal-backdrop');
     if (tutorialModal) return 'tutorial';
 
@@ -273,11 +274,9 @@ const GamepadController = {
 
     if (typeof S !== 'undefined' && S.suspended) return 'suspend';
 
-    // Check for modals
     const modal = document.querySelector('.modal-container');
     if (modal && getComputedStyle(modal).display !== 'none') return 'modal';
 
-    // Check game state
     if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0) {
       return S.pending ? 'targeting' : 'combat';
     }
@@ -310,20 +309,16 @@ const GamepadController = {
       return;
     }
 
-    // Try clicking focused element
     if (this.focusedElement) {
-      // Check for onclick attribute
       if (this.focusedElement.hasAttribute('onclick')) {
         this.focusedElement.click();
         return;
       }
-      // Check for clickable child
       const clickable = this.focusedElement.querySelector('[onclick], button, .btn');
       if (clickable) {
         clickable.click();
         return;
       }
-      // Try native click
       this.focusedElement.click();
     }
   },
@@ -341,7 +336,6 @@ const GamepadController = {
     }
 
     if (ctx === 'modal') {
-      // Close modal
       const backBtn = document.querySelector('.settings-back-btn, .modal-close, [onclick*="close"]');
       if (backBtn) {
         backBtn.click();
@@ -354,7 +348,6 @@ const GamepadController = {
     }
 
     if (ctx === 'targeting' && typeof S !== 'undefined') {
-      // Cancel targeting
       S.pending = null;
       S.targets = [];
       if (typeof render === 'function') render();
@@ -369,7 +362,6 @@ const GamepadController = {
     const ctx = this.getContext();
     if (ctx !== 'combat' && ctx !== 'targeting') return;
 
-    // If focused on a sigil, activate it then auto-target
     if (this.focusedElement) {
       const sigil = this.focusedElement.classList?.contains('sigil')
         ? this.focusedElement
@@ -382,14 +374,12 @@ const GamepadController = {
       }
     }
 
-    // Just auto-target
     this.autoTarget();
   },
 
   handleY() {
     if (!this.active) this.activate();
 
-    // Toggle tooltip on focused element
     if (this.focusedElement) {
       const sigil = this.focusedElement.classList?.contains('sigil')
         ? this.focusedElement
@@ -446,7 +436,6 @@ const GamepadController = {
   handleSelect() {
     if (!this.active) this.activate();
     this.playClick();
-    // Switch between heroes and enemies in targeting
     const ctx = this.getContext();
     if (ctx === 'targeting') {
       const enemies = document.querySelectorAll('.card.enemy:not(.dead)');
@@ -471,15 +460,12 @@ const GamepadController = {
   handleDirection(dir) {
     if (!this.active) {
       this.activate();
-      // Don't return - continue to navigate so first press does something
     }
 
     const ctx = this.getContext();
 
-    // Block during tutorial/suspend
     if (ctx === 'tutorial' || ctx === 'suspend') return;
 
-    // Confirm modal - switch between Yes/No
     if (ctx === 'confirm') {
       const yes = document.querySelector('.confirm-btn-yes');
       const no = document.querySelector('.confirm-btn-no');
@@ -507,7 +493,6 @@ const GamepadController = {
       return;
     }
 
-    // Find spatially nearest element in direction
     const current = this.focusedElement.getBoundingClientRect();
     const cx = current.left + current.width / 2;
     const cy = current.top + current.height / 2;
@@ -525,7 +510,6 @@ const GamepadController = {
       const dx = ex - cx;
       const dy = ey - cy;
 
-      // Check if element is in the right direction
       let inDirection = false;
       switch (dir) {
         case 'up': inDirection = dy < -10; break;
@@ -536,16 +520,8 @@ const GamepadController = {
 
       if (!inDirection) continue;
 
-      // Score: prefer elements more aligned with direction
       const dist = Math.sqrt(dx * dx + dy * dy);
-      let perpDist;
-      if (dir === 'up' || dir === 'down') {
-        perpDist = Math.abs(dx);
-      } else {
-        perpDist = Math.abs(dy);
-      }
-
-      // Weight perpendicular distance heavily to prefer aligned elements
+      const perpDist = (dir === 'up' || dir === 'down') ? Math.abs(dx) : Math.abs(dy);
       const score = dist + perpDist * 2;
 
       if (score < bestScore) {
@@ -579,17 +555,11 @@ const GamepadController = {
     this.focusableElements = Array.from(
       document.querySelectorAll(selectors.join(','))
     ).filter(el => {
-      // Must be visible
       const style = getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden') return false;
-
-      // Must have size
       const rect = el.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return false;
-
-      // Must be in viewport (roughly)
       if (rect.bottom < 0 || rect.top > window.innerHeight + 100) return false;
-
       return true;
     });
   },
@@ -597,21 +567,17 @@ const GamepadController = {
   setFocus(el) {
     if (!el) return;
 
-    // Clear old focus
     if (this.focusedElement) {
       this.focusedElement.classList.remove('controller-focus');
     }
 
-    // Set new focus
     this.focusedElement = el;
     el.classList.add('controller-focus');
 
-    // Store ID for restoration
     if (el.id) {
       this.lastFocusedId = el.id;
     }
 
-    // Scroll into view if needed
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   },
 
@@ -623,7 +589,6 @@ const GamepadController = {
   },
 
   findBestDefaultFocus() {
-    // Try to restore last focused element
     if (this.lastFocusedId) {
       const el = document.getElementById(this.lastFocusedId);
       if (el && this.focusableElements.includes(el)) {
@@ -631,7 +596,6 @@ const GamepadController = {
       }
     }
 
-    // In combat, focus active hero or first targetable
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
       const activeHero = document.querySelector('.card.hero.active');
@@ -641,11 +605,9 @@ const GamepadController = {
       if (targetable) return targetable;
     }
 
-    // Default to first focusable
     return this.focusableElements[0];
   },
 
-  // Save/restore focus across render()
   saveFocusState() {
     if (this.focusedElement?.id) {
       this.lastFocusedId = this.focusedElement.id;
@@ -665,7 +627,6 @@ const GamepadController = {
     let cards;
 
     if (ctx === 'targeting') {
-      // Cycle through valid targets
       if (typeof S !== 'undefined') {
         if (['Attack', 'Grapple', 'D20_TARGET'].includes(S.pending)) {
           cards = Array.from(document.querySelectorAll('.card.enemy:not(.dead)'));
@@ -674,7 +635,6 @@ const GamepadController = {
         }
       }
     } else {
-      // Cycle through heroes
       cards = Array.from(document.querySelectorAll('.card.hero:not(.dead)'));
     }
 
@@ -688,7 +648,6 @@ const GamepadController = {
   },
 
   cycleSigil(dir) {
-    // Find sigils on current hero
     let hero = this.focusedElement?.closest('.card.hero');
     if (!hero) {
       hero = document.querySelector('.card.hero.active');
@@ -709,7 +668,6 @@ const GamepadController = {
     const ctx = this.getContext();
     if (ctx !== 'targeting' || typeof S === 'undefined' || !S.pending) return;
 
-    // Find valid targets
     let targets;
     if (['Attack', 'Grapple', 'D20_TARGET'].includes(S.pending)) {
       targets = Array.from(document.querySelectorAll('.card.enemy:not(.dead)'));
@@ -719,7 +677,6 @@ const GamepadController = {
 
     if (targets.length === 0) return;
 
-    // Click the first valid target
     const target = targets[0];
     if (target.hasAttribute('onclick')) {
       target.click();
@@ -752,8 +709,8 @@ const GamepadController = {
   // ===== CLEANUP =====
 
   destroy() {
+    this.stopPolling();
     this.deactivate();
-    // gamecontroller.js handles its own cleanup
   }
 };
 
@@ -762,32 +719,22 @@ function toggleControllerSupport(enabled) {
   S.controllerDisabled = !enabled;
   if (enabled) {
     toast('🎮 Controller support enabled!', 2000);
-    // Re-initialize if needed
-    if (typeof gameControl !== 'undefined' && !GamepadController.active) {
-      const gps = gameControl.getGamepads();
-      const keys = Object.keys(gps);
-      if (keys.length > 0) {
-        GamepadController.setupGamepad(gps[keys[0]]);
-        GamepadController.activate();
-      }
-    }
+    GamepadController.init();
   } else {
     toast('Controller support disabled.', 1200);
-    GamepadController.deactivate();
+    GamepadController.destroy();
   }
   savePermanent();
 }
 
 function forceReinitController() {
   S.controllerDisabled = false;
-  GamepadController.deactivate();
+  GamepadController.destroy();
   GamepadController.init();
-  toast('🎮 Controller re-initialized. Press any button.', 2500);
+  toast('🎮 Controller re-initialized!', 2500);
   savePermanent();
   closeSettingsMenu();
 }
-
-// toggleControllerDebug is defined in settings.js (has full debug overlay)
 
 function showControlsGuide() {
   const v = document.getElementById('gameView');
