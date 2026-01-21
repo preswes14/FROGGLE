@@ -1,6 +1,15 @@
 const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
 const path = require('path');
 
+// Enable Gamepad API support in Chromium
+// These flags help with controller detection, especially on Steam Deck
+app.commandLine.appendSwitch('enable-gamepad-extensions');
+app.commandLine.appendSwitch('enable-features', 'GamepadButtonAxisEvents,WebHID');
+// Allow gamepad access from file:// URLs (may be needed for local HTML)
+app.commandLine.appendSwitch('disable-features', 'BlockInsecurePrivateNetworkRequests');
+// Ensure we get raw gamepad input, not filtered through Steam
+app.commandLine.appendSwitch('disable-hid-blocklist');
+
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
 let steamClient = null;
