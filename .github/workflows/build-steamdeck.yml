@@ -25,7 +25,7 @@ jobs:
         run: npm ci
 
       - name: Build game (combine source files)
-        run: ./build.sh
+        run: ./build.sh --no-bump
 
       - name: Build Linux
         run: npm run dist:linux
@@ -56,7 +56,7 @@ jobs:
 
       - name: Build game (combine source files)
         shell: bash
-        run: ./build.sh
+        run: ./build.sh --no-bump
 
       - name: Build Windows
         run: npm run dist:win
@@ -86,7 +86,7 @@ jobs:
         run: npm ci
 
       - name: Build game (combine source files)
-        run: ./build.sh
+        run: ./build.sh --no-bump
 
       - name: Build macOS
         run: npm run dist:mac
