@@ -77,6 +77,14 @@
 			}
 		}
 	}
+	"controller_config"
+	{
+		"controller_neptune"	"controller_config/controller_neptune.vdf"
+		"controller_xbox360"	"controller_config/controller_xbox360.vdf"
+		"controller_xboxone"	"controller_config/controller_xbox360.vdf"
+		"controller_ps4"	"controller_config/controller_xbox360.vdf"
+		"controller_ps5"	"controller_config/controller_xbox360.vdf"
+	}
 	"localization"
 	{
 		"english"
