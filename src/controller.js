@@ -50,7 +50,37 @@ const GamepadController = {
       // Don't deactivate - keep focus visible for keyboard
     });
 
+    // CRITICAL: Check for already-connected gamepads (Steam Deck has controller always connected)
+    // The gamepadconnected event doesn't fire for already-connected controllers
+    this.checkExistingGamepads();
+
     debugLog('[GAMEPAD] Initialization complete');
+  },
+
+  // Poll for gamepads that were connected before page load
+  checkExistingGamepads() {
+    if (typeof navigator.getGamepads !== 'function') return;
+
+    const pollForGamepad = () => {
+      const gamepads = navigator.getGamepads();
+      for (let i = 0; i < gamepads.length; i++) {
+        const gp = gamepads[i];
+        if (gp && gp.connected && !this.currentGamepad) {
+          debugLog('[GAMEPAD] Found pre-connected gamepad:', gp.id);
+          // Manually trigger the gamecontroller.js connection flow
+          // by dispatching a synthetic event
+          const event = new CustomEvent('gamepadconnected', { detail: { gamepad: gp } });
+          window.dispatchEvent(event);
+          return; // Found one, stop polling
+        }
+      }
+    };
+
+    // Poll a few times with delay (gamepad might take a moment to be visible)
+    pollForGamepad();
+    setTimeout(pollForGamepad, 100);
+    setTimeout(pollForGamepad, 500);
+    setTimeout(pollForGamepad, 1000);
   },
 
   // Set up button bindings for a gamepad
@@ -98,13 +128,32 @@ const GamepadController = {
     gp.before('right', () => this.handleDirection('right'));
   },
 
-  // Keyboard fallback
+  // Touch listener - deactivate controller mode when user touches screen
+  initTouchDetection() {
+    document.addEventListener('touchstart', () => {
+      if (this.active) {
+        debugLog('[GAMEPAD] Touch detected, deactivating controller mode');
+        this.deactivate();
+      }
+    }, { passive: true });
+  },
+
+  // Keyboard fallback (for desktop/debugging, not primary on Steam Deck)
   initKeyboard() {
+    // Also set up touch detection
+    this.initTouchDetection();
+
+    // Use bubble phase (not capture) to avoid interfering with other handlers
     document.addEventListener('keydown', e => {
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
 
       // Ignore if typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      // Only handle keyboard if controller mode is already active OR if a gamepad is connected
+      // This prevents keyboard from accidentally activating controller mode on touch devices
+      const hasGamepad = this.currentGamepad !== null;
+      if (!this.active && !hasGamepad) return;
 
       let handled = false;
 
@@ -146,9 +195,8 @@ const GamepadController = {
 
       if (handled) {
         e.preventDefault();
-        if (!this.active) this.activate();
       }
-    }, true);
+    }); // bubble phase, not capture
   },
 
   // Activate controller mode (show focus ring)
@@ -171,6 +219,7 @@ const GamepadController = {
     this.active = false;
     document.body.classList.remove('controller-active');
     this.clearFocus();
+    this.updatePrompts(); // Hide the prompts bar
     debugLog('[GAMEPAD] Deactivated');
   },
 
@@ -276,7 +325,7 @@ const GamepadController = {
   },
 
   handleX() {
-    if (!this.active) return;
+    if (!this.active) this.activate();
     this.playClick();
 
     const ctx = this.getContext();
@@ -300,7 +349,7 @@ const GamepadController = {
   },
 
   handleY() {
-    if (!this.active) return;
+    if (!this.active) this.activate();
 
     // Toggle tooltip on focused element
     if (this.focusedElement) {
@@ -317,6 +366,7 @@ const GamepadController = {
   },
 
   handleLB() {
+    if (!this.active) this.activate();
     this.playClick();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
@@ -327,6 +377,7 @@ const GamepadController = {
   },
 
   handleRB() {
+    if (!this.active) this.activate();
     this.playClick();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
@@ -337,6 +388,7 @@ const GamepadController = {
   },
 
   handleLT() {
+    if (!this.active) this.activate();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
       this.playClick();
@@ -345,6 +397,7 @@ const GamepadController = {
   },
 
   handleRT() {
+    if (!this.active) this.activate();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
       this.playClick();
@@ -353,6 +406,7 @@ const GamepadController = {
   },
 
   handleSelect() {
+    if (!this.active) this.activate();
     this.playClick();
     // Switch between heroes and enemies in targeting
     const ctx = this.getContext();
@@ -369,6 +423,7 @@ const GamepadController = {
   },
 
   handleStart() {
+    if (!this.active) this.activate();
     this.playClick();
     if (typeof showSettingsMenu === 'function') {
       showSettingsMenu();
@@ -378,7 +433,7 @@ const GamepadController = {
   handleDirection(dir) {
     if (!this.active) {
       this.activate();
-      return;
+      // Don't return - continue to navigate so first press does something
     }
 
     const ctx = this.getContext();
