@@ -1,14 +1,14 @@
 const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
 const path = require('path');
 
-// Enable Gamepad API support in Chromium
-// These flags help with controller detection, especially on Steam Deck
-app.commandLine.appendSwitch('enable-gamepad-extensions');
-app.commandLine.appendSwitch('enable-features', 'GamepadButtonAxisEvents,WebHID');
-// Allow gamepad access from file:// URLs (may be needed for local HTML)
-app.commandLine.appendSwitch('disable-features', 'BlockInsecurePrivateNetworkRequests');
-// Ensure we get raw gamepad input, not filtered through Steam
-app.commandLine.appendSwitch('disable-hid-blocklist');
+// Chromium flags for gamepad support
+// NOTE: Some of these may cause issues on certain platforms
+// Only enable the safest, most widely supported flags
+try {
+  app.commandLine.appendSwitch('enable-gamepad-extensions');
+} catch (e) {
+  console.log('Could not set gamepad flag');
+}
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
@@ -32,7 +32,12 @@ function initSteam() {
     if (steamClient) {
       steamInitialized = true;
       console.log('[Steam] Initialized successfully');
-      console.log('[Steam] User:', steamClient.localplayer.getName());
+
+      try {
+        console.log('[Steam] User:', steamClient.localplayer.getName());
+      } catch (e) {
+        console.log('[Steam] Could not get user name');
+      }
 
       // Run Steam callbacks periodically (wrapped in try/catch for Steam Deck stability)
       setInterval(() => {
@@ -40,13 +45,14 @@ function initSteam() {
           try {
             steamClient.runCallbacks();
           } catch (e) {
-            console.warn('[Steam] Callback error:', e.message);
+            // Silently ignore callback errors
           }
         }
       }, 100);
 
-      // Initialize Steam Input
-      initSteamInput();
+      // DISABLED: Steam Input causes crashes on Steam Deck
+      // The steamworks.js library may not properly support Steam Input API
+      // initSteamInput();
     }
   } catch (e) {
     console.log('[Steam] Not available:', e.message);
