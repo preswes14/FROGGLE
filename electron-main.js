@@ -4,24 +4,14 @@ const path = require('path');
 // Enable Gamepad API support in Chromium
 // These flags help with controller detection, especially on Steam Deck
 app.commandLine.appendSwitch('enable-gamepad-extensions');
-app.commandLine.appendSwitch('enable-features', 'GamepadButtonAxisEvents,WebHID');
-// Allow gamepad access from file:// URLs (may be needed for local HTML)
-app.commandLine.appendSwitch('disable-features', 'BlockInsecurePrivateNetworkRequests');
-// Ensure we get raw gamepad input, not filtered through Steam
-app.commandLine.appendSwitch('disable-hid-blocklist');
+app.commandLine.appendSwitch('enable-features', 'GamepadButtonAxisEvents');
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow;
 let steamClient = null;
 let steamInitialized = false;
 
-// Steam Input state
-let steamInputInitialized = false;
-let gameControlsActionSet = null;
-let inputActions = {};
-let activeControllers = [];
-
-// Initialize Steam
+// Initialize Steam (for achievements, stats, cloud saves - NOT controller input)
 function initSteam() {
   try {
     const steamworks = require('steamworks.js');
@@ -34,7 +24,7 @@ function initSteam() {
       console.log('[Steam] Initialized successfully');
       console.log('[Steam] User:', steamClient.localplayer.getName());
 
-      // Run Steam callbacks periodically (wrapped in try/catch for Steam Deck stability)
+      // Run Steam callbacks periodically
       setInterval(() => {
         if (steamClient) {
           try {
@@ -44,123 +34,10 @@ function initSteam() {
           }
         }
       }, 100);
-
-      // Initialize Steam Input
-      initSteamInput();
     }
   } catch (e) {
     console.log('[Steam] Not available:', e.message);
     steamInitialized = false;
-  }
-}
-
-// Initialize Steam Input API for controller support
-// NOTE: This is optional - if it fails, the game will still work with keyboard
-function initSteamInput() {
-  // Steam Input may not be available in steamworks.js
-  // Check very carefully before using
-  if (!steamClient) {
-    console.log('[SteamInput] No Steam client');
-    return;
-  }
-
-  // Check if input API exists at all
-  if (typeof steamClient.input === 'undefined') {
-    console.log('[SteamInput] Steam Input API not exposed by steamworks.js - using keyboard fallback');
-    return;
-  }
-
-  try {
-    // Check if init method exists
-    if (typeof steamClient.input.init !== 'function') {
-      console.log('[SteamInput] input.init() not available');
-      return;
-    }
-
-    // Try to initialize
-    steamClient.input.init();
-    console.log('[SteamInput] init() called');
-
-    // Check for required methods before proceeding
-    if (typeof steamClient.input.getActionSet !== 'function' ||
-        typeof steamClient.input.getDigitalAction !== 'function' ||
-        typeof steamClient.input.getControllers !== 'function') {
-      console.log('[SteamInput] Required methods not available');
-      return;
-    }
-
-    // Get the GameControls action set (defined in steam_input_manifest.vdf)
-    gameControlsActionSet = steamClient.input.getActionSet('GameControls');
-    console.log('[SteamInput] GameControls action set:', gameControlsActionSet);
-
-    if (!gameControlsActionSet) {
-      console.log('[SteamInput] Could not get GameControls action set');
-      return;
-    }
-
-    // Get handles for all our digital actions
-    const digitalActions = [
-      'confirm', 'cancel', 'auto_target', 'tooltip', 'menu',
-      'prev_unit', 'next_unit', 'prev_sigil', 'next_sigil', 'switch_sides',
-      'dpad_up', 'dpad_down', 'dpad_left', 'dpad_right'
-    ];
-
-    for (const action of digitalActions) {
-      try {
-        inputActions[action] = steamClient.input.getDigitalAction(action);
-      } catch (e) {
-        console.log(`[SteamInput] Could not get action '${action}'`);
-      }
-    }
-
-    // Get analog action for joystick (if available)
-    if (typeof steamClient.input.getAnalogAction === 'function') {
-      try {
-        inputActions['Move'] = steamClient.input.getAnalogAction('Move');
-      } catch (e) {
-        console.log('[SteamInput] Could not get Move analog action');
-      }
-    }
-
-    // Only mark as initialized if we got this far
-    steamInputInitialized = true;
-    console.log('[SteamInput] Initialized successfully');
-
-    // Poll for controllers periodically
-    setInterval(updateControllers, 100);
-
-  } catch (e) {
-    console.log('[SteamInput] Init failed (non-fatal):', e.message);
-    steamInputInitialized = false;
-  }
-}
-
-// Update active controllers list
-function updateControllers() {
-  if (!steamInputInitialized) return;
-  if (!steamClient || !steamClient.input) return;
-  if (typeof steamClient.input.getControllers !== 'function') return;
-
-  try {
-    const controllers = steamClient.input.getControllers();
-    if (controllers && Array.isArray(controllers) && controllers.length > 0) {
-      activeControllers = controllers;
-      // Activate our action set on all controllers
-      for (const controller of controllers) {
-        if (gameControlsActionSet && controller && typeof controller.activateActionSet === 'function') {
-          try {
-            controller.activateActionSet(gameControlsActionSet);
-          } catch (e) {
-            // Ignore activation errors
-          }
-        }
-      }
-    } else {
-      activeControllers = [];
-    }
-  } catch (e) {
-    // Silently ignore - controllers may not be connected
-    activeControllers = [];
   }
 }
 
@@ -194,7 +71,6 @@ ipcMain.on('steam-get-achievements', (event) => {
     return;
   }
   try {
-    // Get all achievements and filter to unlocked ones
     const achievements = steamClient.achievement.getAll();
     const unlocked = achievements.filter(a => a.achieved).map(a => a.name);
     event.returnValue = unlocked;
@@ -254,7 +130,6 @@ ipcMain.on('steam-get-stat', (event, statName) => {
     return;
   }
   try {
-    // Try int first, then float
     const intVal = steamClient.stats.getInt(statName);
     if (intVal !== undefined) {
       event.returnValue = intVal;
@@ -372,99 +247,10 @@ ipcMain.on('steam-get-user-info', (event) => {
 });
 
 // ============================================
-// Steam Input IPC Handlers
-// ============================================
-
-// Check if Steam Input is available
-ipcMain.on('steam-input-available', (event) => {
-  event.returnValue = steamInputInitialized && activeControllers.length > 0;
-});
-
-// Get number of connected controllers
-ipcMain.on('steam-input-controller-count', (event) => {
-  event.returnValue = activeControllers.length;
-});
-
-// Get all input state at once (efficient single call for polling)
-ipcMain.on('steam-input-get-state', (event) => {
-  if (!steamInputInitialized || !activeControllers || activeControllers.length === 0) {
-    event.returnValue = null;
-    return;
-  }
-
-  try {
-    const controller = activeControllers[0]; // Use first controller
-    if (!controller) {
-      event.returnValue = null;
-      return;
-    }
-
-    // Helper to safely get digital action state
-    const getDigital = (actionName) => {
-      try {
-        if (controller.isDigitalActionPressed && inputActions[actionName]) {
-          return controller.isDigitalActionPressed(inputActions[actionName]);
-        }
-      } catch (e) {}
-      return false;
-    };
-
-    // Helper to safely get analog action state
-    const getAnalog = (actionName) => {
-      try {
-        if (controller.getAnalogActionVector && inputActions[actionName]) {
-          return controller.getAnalogActionVector(inputActions[actionName]);
-        }
-      } catch (e) {}
-      return { x: 0, y: 0 };
-    };
-
-    const state = {
-      connected: true,
-      // Digital actions (buttons)
-      confirm: getDigital('confirm'),
-      cancel: getDigital('cancel'),
-      auto_target: getDigital('auto_target'),
-      tooltip: getDigital('tooltip'),
-      menu: getDigital('menu'),
-      prev_unit: getDigital('prev_unit'),
-      next_unit: getDigital('next_unit'),
-      prev_sigil: getDigital('prev_sigil'),
-      next_sigil: getDigital('next_sigil'),
-      switch_sides: getDigital('switch_sides'),
-      dpad_up: getDigital('dpad_up'),
-      dpad_down: getDigital('dpad_down'),
-      dpad_left: getDigital('dpad_left'),
-      dpad_right: getDigital('dpad_right'),
-      // Analog action (joystick)
-      move: getAnalog('Move')
-    };
-    event.returnValue = state;
-  } catch (e) {
-    console.warn('[SteamInput] Error getting state:', e.message);
-    event.returnValue = null;
-  }
-});
-
-// Get controller type (for showing correct button prompts)
-ipcMain.on('steam-input-controller-type', (event) => {
-  if (!steamInputInitialized || activeControllers.length === 0) {
-    event.returnValue = null;
-    return;
-  }
-  try {
-    event.returnValue = activeControllers[0].getType();
-  } catch (e) {
-    event.returnValue = null;
-  }
-});
-
-// ============================================
 // Window Management
 // ============================================
 
 function createWindow() {
-  // Create the browser window - let Steam handle fullscreen
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -479,7 +265,7 @@ function createWindow() {
     backgroundColor: '#1a1a2e'
   });
 
-  // Maximize window on start (works better with Steam than fullscreen)
+  // Maximize window on start
   mainWindow.maximize();
 
   // Load the game
@@ -499,7 +285,6 @@ function createWindow() {
 
   // Prevent accidental navigation away
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    // Only allow local file navigation
     if (!url.startsWith('file://')) {
       event.preventDefault();
     }
@@ -508,12 +293,9 @@ function createWindow() {
 
 // Create window when Electron is ready
 app.whenReady().then(() => {
-  // Initialize Steam before creating window
   initSteam();
-
   createWindow();
 
-  // macOS: recreate window when dock icon clicked
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -528,7 +310,7 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Handle Escape key to quit (useful for Steam Deck)
+// Handle Alt+F4 to quit (useful for Steam Deck)
 app.on('browser-window-focus', () => {
   globalShortcut.register('Alt+F4', () => {
     app.quit();

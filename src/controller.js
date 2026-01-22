@@ -1,6 +1,6 @@
-// ===== FROGGLE CONTROLLER - Steam Input API =====
-// Uses Steam Input for native controller support on Steam Deck
-// Falls back to keyboard for browser/non-Steam environments
+// ===== FROGGLE CONTROLLER - Standard Gamepad API =====
+// Uses the Web Gamepad API - works in browsers, Electron, and Steam Deck
+// No native dependencies, no Steam Input complexity
 
 const GamepadController = {
   // State
@@ -9,98 +9,71 @@ const GamepadController = {
   focusableElements: [],
   lastFocusedId: null,
 
-  // Steam Input state
-  steamInputAvailable: false,
-  lastInputState: null,
+  // Gamepad state
   pollInterval: null,
+  lastButtons: {},
+  lastAxes: { x: 0, y: 0 },
+  connected: false,
 
   // Initialize controller system
   init() {
     debugLog('[CONTROLLER] Initializing...');
 
-    // Check if disabled
+    // Check if disabled in settings
     if (typeof S !== 'undefined' && S.controllerDisabled) {
       debugLog('[CONTROLLER] Controller support disabled in settings');
       return;
     }
 
-    // Always set up keyboard (works everywhere)
+    // Set up keyboard (always works as fallback)
     this.initKeyboard();
     this.initTouchDetection();
 
-    // Check for Steam Input (only in Electron with Steam)
-    if (window.steamBridge && typeof window.steamBridge.inputAvailable === 'function') {
-      // Give Steam a moment to initialize controllers
-      setTimeout(() => this.initSteamInput(), 500);
-    } else {
-      debugLog('[CONTROLLER] Steam Input not available (browser mode)');
-    }
+    // Set up gamepad
+    this.initGamepad();
 
     debugLog('[CONTROLLER] Initialization complete');
   },
 
-  // Initialize Steam Input polling
-  initSteamInput() {
-    try {
-      const available = window.steamBridge.inputAvailable();
-      const controllerCount = window.steamBridge.inputControllerCount();
+  // Initialize Web Gamepad API
+  initGamepad() {
+    // Listen for gamepad connect/disconnect
+    window.addEventListener('gamepadconnected', (e) => {
+      debugLog('[CONTROLLER] Gamepad connected:', e.gamepad.id);
+      this.connected = true;
+      this.activate();
+      toast('🎮 Controller connected!', 2000);
+      this.startPolling();
+    });
 
-      debugLog(`[CONTROLLER] Steam Input check: available=${available}, controllers=${controllerCount}`);
+    window.addEventListener('gamepaddisconnected', (e) => {
+      debugLog('[CONTROLLER] Gamepad disconnected:', e.gamepad.id);
+      this.connected = false;
+      // Check if any gamepads still connected
+      const gamepads = navigator.getGamepads();
+      const anyConnected = Array.from(gamepads).some(gp => gp !== null);
+      if (!anyConnected) {
+        this.stopPolling();
+      }
+    });
 
-      if (available && controllerCount > 0) {
-        this.steamInputAvailable = true;
-        this.activate();
-        toast('🎮 Controller connected!', 2000);
-
-        // Start polling Steam Input
+    // Check if gamepad already connected (page refresh with controller plugged in)
+    const gamepads = navigator.getGamepads();
+    for (const gp of gamepads) {
+      if (gp) {
+        debugLog('[CONTROLLER] Gamepad already connected:', gp.id);
+        this.connected = true;
         this.startPolling();
-
-        // Log controller type
-        const type = window.steamBridge.inputControllerType();
-        debugLog('[CONTROLLER] Controller type:', type);
-      } else {
-        debugLog('[CONTROLLER] No Steam controllers detected, retrying...');
-        // Retry a few times
-        this.retrySteamInput(5);
+        break;
       }
-    } catch (e) {
-      debugLog('[CONTROLLER] Steam Input init error:', e.message);
     }
   },
 
-  // Retry Steam Input detection
-  retrySteamInput(retriesLeft) {
-    if (retriesLeft <= 0) {
-      debugLog('[CONTROLLER] Steam Input not available after retries');
-      return;
-    }
-
-    setTimeout(() => {
-      try {
-        const available = window.steamBridge.inputAvailable();
-        if (available) {
-          this.steamInputAvailable = true;
-          this.activate();
-          toast('🎮 Controller connected!', 2000);
-          this.startPolling();
-        } else {
-          this.retrySteamInput(retriesLeft - 1);
-        }
-      } catch (e) {
-        debugLog('[CONTROLLER] Retry error:', e.message);
-      }
-    }, 500);
-  },
-
-  // Start polling Steam Input
+  // Start polling gamepad state
   startPolling() {
     if (this.pollInterval) return;
-
-    debugLog('[CONTROLLER] Starting Steam Input polling');
-
-    this.pollInterval = setInterval(() => {
-      this.pollSteamInput();
-    }, 16); // ~60fps polling
+    debugLog('[CONTROLLER] Starting gamepad polling');
+    this.pollInterval = setInterval(() => this.poll(), 16); // ~60fps
   },
 
   // Stop polling
@@ -108,76 +81,91 @@ const GamepadController = {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
       this.pollInterval = null;
+      debugLog('[CONTROLLER] Stopped gamepad polling');
     }
   },
 
-  // Poll Steam Input and handle button presses
-  pollSteamInput() {
-    if (!this.steamInputAvailable || !window.steamBridge) return;
+  // Poll gamepad state
+  poll() {
+    const gamepads = navigator.getGamepads();
+    const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
 
-    try {
-      const state = window.steamBridge.inputGetState();
-      if (!state || !state.connected) {
-        // Controller disconnected
-        if (this.lastInputState?.connected) {
-          debugLog('[CONTROLLER] Controller disconnected');
-          this.steamInputAvailable = false;
-          this.stopPolling();
-        }
-        this.lastInputState = state;
-        return;
-      }
+    if (!gp) return;
 
-      const prev = this.lastInputState || {};
+    // Standard gamepad mapping (works for Xbox, PlayStation, Switch Pro, Steam Deck):
+    // buttons[0] = A/Cross/B(Nintendo)
+    // buttons[1] = B/Circle/A(Nintendo)
+    // buttons[2] = X/Square/Y(Nintendo)
+    // buttons[3] = Y/Triangle/X(Nintendo)
+    // buttons[4] = LB/L1
+    // buttons[5] = RB/R1
+    // buttons[6] = LT/L2
+    // buttons[7] = RT/R2
+    // buttons[8] = Select/Share/Minus
+    // buttons[9] = Start/Options/Plus
+    // buttons[10] = L3 (left stick click)
+    // buttons[11] = R3 (right stick click)
+    // buttons[12] = D-pad Up
+    // buttons[13] = D-pad Down
+    // buttons[14] = D-pad Left
+    // buttons[15] = D-pad Right
+    // axes[0] = Left stick X (-1 to 1)
+    // axes[1] = Left stick Y (-1 to 1)
 
-      // Check for button presses (transition from not pressed to pressed)
-      if (state.confirm && !prev.confirm) this.handleA();
-      if (state.cancel && !prev.cancel) this.handleB();
-      if (state.auto_target && !prev.auto_target) this.handleX();
-      if (state.tooltip && !prev.tooltip) this.handleY();
-      if (state.prev_unit && !prev.prev_unit) this.handleLB();
-      if (state.next_unit && !prev.next_unit) this.handleRB();
-      if (state.prev_sigil && !prev.prev_sigil) this.handleLT();
-      if (state.next_sigil && !prev.next_sigil) this.handleRT();
-      if (state.switch_sides && !prev.switch_sides) this.handleSelect();
-      if (state.menu && !prev.menu) this.handleStart();
+    const prev = this.lastButtons;
 
-      // D-pad
-      if (state.dpad_up && !prev.dpad_up) this.handleDirection('up');
-      if (state.dpad_down && !prev.dpad_down) this.handleDirection('down');
-      if (state.dpad_left && !prev.dpad_left) this.handleDirection('left');
-      if (state.dpad_right && !prev.dpad_right) this.handleDirection('right');
+    // Face buttons
+    if (this.pressed(gp, 0) && !prev[0]) this.handleA();
+    if (this.pressed(gp, 1) && !prev[1]) this.handleB();
+    if (this.pressed(gp, 2) && !prev[2]) this.handleX();
+    if (this.pressed(gp, 3) && !prev[3]) this.handleY();
 
-      // Analog stick (with deadzone)
-      if (state.move) {
-        const threshold = 0.5;
-        const prevMove = prev.move || { x: 0, y: 0 };
+    // Shoulders
+    if (this.pressed(gp, 4) && !prev[4]) this.handleLB();
+    if (this.pressed(gp, 5) && !prev[5]) this.handleRB();
 
-        // Left
-        if (state.move.x < -threshold && prevMove.x >= -threshold) {
-          this.handleDirection('left');
-        }
-        // Right
-        if (state.move.x > threshold && prevMove.x <= threshold) {
-          this.handleDirection('right');
-        }
-        // Up (note: y axis may be inverted)
-        if (state.move.y < -threshold && prevMove.y >= -threshold) {
-          this.handleDirection('up');
-        }
-        // Down
-        if (state.move.y > threshold && prevMove.y <= threshold) {
-          this.handleDirection('down');
-        }
-      }
+    // Triggers (as buttons)
+    if (this.pressed(gp, 6) && !prev[6]) this.handleLT();
+    if (this.pressed(gp, 7) && !prev[7]) this.handleRT();
 
-      this.lastInputState = state;
-    } catch (e) {
-      // Silently ignore polling errors
+    // Select/Start
+    if (this.pressed(gp, 8) && !prev[8]) this.handleSelect();
+    if (this.pressed(gp, 9) && !prev[9]) this.handleStart();
+
+    // D-pad
+    if (this.pressed(gp, 12) && !prev[12]) this.handleDirection('up');
+    if (this.pressed(gp, 13) && !prev[13]) this.handleDirection('down');
+    if (this.pressed(gp, 14) && !prev[14]) this.handleDirection('left');
+    if (this.pressed(gp, 15) && !prev[15]) this.handleDirection('right');
+
+    // Left stick (with deadzone)
+    const deadzone = 0.5;
+    const ax = gp.axes[0] || 0;
+    const ay = gp.axes[1] || 0;
+    const prevAx = this.lastAxes.x;
+    const prevAy = this.lastAxes.y;
+
+    if (ax < -deadzone && prevAx >= -deadzone) this.handleDirection('left');
+    if (ax > deadzone && prevAx <= deadzone) this.handleDirection('right');
+    if (ay < -deadzone && prevAy >= -deadzone) this.handleDirection('up');
+    if (ay > deadzone && prevAy <= deadzone) this.handleDirection('down');
+
+    // Save state for next frame
+    this.lastButtons = {};
+    for (let i = 0; i < gp.buttons.length; i++) {
+      this.lastButtons[i] = this.pressed(gp, i);
     }
+    this.lastAxes = { x: ax, y: ay };
   },
 
-  // Touch listener - deactivate controller mode when user touches screen
+  // Helper to check if button is pressed
+  pressed(gp, index) {
+    const btn = gp.buttons[index];
+    if (!btn) return false;
+    return typeof btn === 'object' ? btn.pressed : btn > 0.5;
+  },
+
+  // Touch detection - deactivate controller mode on touch
   initTouchDetection() {
     document.addEventListener('touchstart', () => {
       if (this.active) {
@@ -187,16 +175,11 @@ const GamepadController = {
     }, { passive: true });
   },
 
-  // Keyboard fallback (for browser/desktop)
+  // Keyboard fallback
   initKeyboard() {
     document.addEventListener('keydown', e => {
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      // In browser mode (no Steam Input), keyboard always works
-      // In Steam mode, keyboard is backup
-      const allowKeyboard = !this.steamInputAvailable || this.active;
-      if (!allowKeyboard) return;
 
       let handled = false;
 
@@ -249,7 +232,6 @@ const GamepadController = {
       const best = this.findBestDefaultFocus();
       this.setFocus(best || this.focusableElements[0]);
     }
-    this.updatePrompts();
     debugLog('[CONTROLLER] Activated');
   },
 
@@ -259,7 +241,6 @@ const GamepadController = {
     this.active = false;
     document.body.classList.remove('controller-active');
     this.clearFocus();
-    this.updatePrompts();
     debugLog('[CONTROLLER] Deactivated');
   },
 
@@ -608,18 +589,6 @@ const GamepadController = {
     return this.focusableElements[0];
   },
 
-  saveFocusState() {
-    if (this.focusedElement?.id) {
-      this.lastFocusedId = this.focusedElement.id;
-    }
-  },
-
-  restoreFocusState() {
-    this.updateFocusableElements();
-    const best = this.findBestDefaultFocus();
-    if (best) this.setFocus(best);
-  },
-
   // ===== COMBAT HELPERS =====
 
   cycleUnit(dir) {
@@ -692,13 +661,6 @@ const GamepadController = {
   },
 
   // ===== UI =====
-
-  updatePrompts() {
-    const prompts = document.getElementById('controllerPrompts');
-    if (prompts) {
-      prompts.style.display = this.active ? 'flex' : 'none';
-    }
-  },
 
   playClick() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
