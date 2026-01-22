@@ -2344,7 +2344,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.16';
+const GAME_VERSION = 'S_1.17';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -18152,6 +18152,7 @@ debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpT
 applyVolumeSettings(); // Apply audio volume settings
 initToastLog(); // Initialize toast log UI
 initSuspendSystem(); // Initialize autosave and suspend/resume system
+Steam.init(); // Initialize Steam achievements/stats (if running in Electron)
 GamepadController.init(); // Initialize Steam Deck / controller support
 mainTitlePage();
 debugLog('[FROGGLE] mainTitlePage called');

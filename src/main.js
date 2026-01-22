@@ -87,6 +87,7 @@ debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpT
 applyVolumeSettings(); // Apply audio volume settings
 initToastLog(); // Initialize toast log UI
 initSuspendSystem(); // Initialize autosave and suspend/resume system
+Steam.init(); // Initialize Steam achievements/stats (if running in Electron)
 GamepadController.init(); // Initialize Steam Deck / controller support
 mainTitlePage();
 debugLog('[FROGGLE] mainTitlePage called');
