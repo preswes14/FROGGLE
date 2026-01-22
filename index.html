@@ -2344,7 +2344,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.14';
+const GAME_VERSION = 'S_1.17';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -17264,9 +17264,9 @@ render();
 
 
 
-// ===== FROGGLE CONTROLLER - Steam Input API =====
-// Uses Steam Input for native controller support on Steam Deck
-// Falls back to keyboard for browser/non-Steam environments
+// ===== FROGGLE CONTROLLER - Standard Gamepad API =====
+// Uses the Web Gamepad API - works in browsers, Electron, and Steam Deck
+// No native dependencies, no Steam Input complexity
 
 const GamepadController = {
   // State
@@ -17275,98 +17275,82 @@ const GamepadController = {
   focusableElements: [],
   lastFocusedId: null,
 
-  // Steam Input state
-  steamInputAvailable: false,
-  lastInputState: null,
+  // Gamepad state
   pollInterval: null,
+  lastButtons: {},
+  lastAxes: { x: 0, y: 0 },
+  connected: false,
+
+  // Steam Deck input interception detection
+  connectTime: 0,           // When gamepad connected
+  firstInputTime: 0,        // When we first received actual input
+  inputDetectionShown: false, // Have we shown the warning?
 
   // Initialize controller system
   init() {
     debugLog('[CONTROLLER] Initializing...');
 
-    // Check if disabled
+    // Check if disabled in settings
     if (typeof S !== 'undefined' && S.controllerDisabled) {
       debugLog('[CONTROLLER] Controller support disabled in settings');
       return;
     }
 
-    // Always set up keyboard (works everywhere)
+    // Set up keyboard (always works as fallback)
     this.initKeyboard();
     this.initTouchDetection();
 
-    // Check for Steam Input (only in Electron with Steam)
-    if (window.steamBridge && typeof window.steamBridge.inputAvailable === 'function') {
-      // Give Steam a moment to initialize controllers
-      setTimeout(() => this.initSteamInput(), 500);
-    } else {
-      debugLog('[CONTROLLER] Steam Input not available (browser mode)');
-    }
+    // Set up gamepad
+    this.initGamepad();
 
     debugLog('[CONTROLLER] Initialization complete');
   },
 
-  // Initialize Steam Input polling
-  initSteamInput() {
-    try {
-      const available = window.steamBridge.inputAvailable();
-      const controllerCount = window.steamBridge.inputControllerCount();
+  // Initialize Web Gamepad API
+  initGamepad() {
+    // Listen for gamepad connect/disconnect
+    window.addEventListener('gamepadconnected', (e) => {
+      debugLog('[CONTROLLER] Gamepad connected:', e.gamepad.id);
+      this.connected = true;
+      this.connectTime = Date.now();
+      this.firstInputTime = 0;
+      this.inputDetectionShown = false;
+      this.activate();
+      toast('🎮 Controller connected!', 2000);
+      this.startPolling();
 
-      debugLog(`[CONTROLLER] Steam Input check: available=${available}, controllers=${controllerCount}`);
+      // Start checking for Steam Deck input interception
+      this.startInputDetection();
+    });
 
-      if (available && controllerCount > 0) {
-        this.steamInputAvailable = true;
-        this.activate();
-        toast('🎮 Controller connected!', 2000);
+    window.addEventListener('gamepaddisconnected', (e) => {
+      debugLog('[CONTROLLER] Gamepad disconnected:', e.gamepad.id);
+      this.connected = false;
+      // Check if any gamepads still connected
+      const gamepads = navigator.getGamepads();
+      const anyConnected = Array.from(gamepads).some(gp => gp !== null);
+      if (!anyConnected) {
+        this.stopPolling();
+      }
+    });
 
-        // Start polling Steam Input
+    // Check if gamepad already connected (page refresh with controller plugged in)
+    const gamepads = navigator.getGamepads();
+    for (const gp of gamepads) {
+      if (gp) {
+        debugLog('[CONTROLLER] Gamepad already connected:', gp.id);
+        this.connected = true;
         this.startPolling();
-
-        // Log controller type
-        const type = window.steamBridge.inputControllerType();
-        debugLog('[CONTROLLER] Controller type:', type);
-      } else {
-        debugLog('[CONTROLLER] No Steam controllers detected, retrying...');
-        // Retry a few times
-        this.retrySteamInput(5);
+        break;
       }
-    } catch (e) {
-      debugLog('[CONTROLLER] Steam Input init error:', e.message);
     }
   },
 
-  // Retry Steam Input detection
-  retrySteamInput(retriesLeft) {
-    if (retriesLeft <= 0) {
-      debugLog('[CONTROLLER] Steam Input not available after retries');
-      return;
-    }
-
-    setTimeout(() => {
-      try {
-        const available = window.steamBridge.inputAvailable();
-        if (available) {
-          this.steamInputAvailable = true;
-          this.activate();
-          toast('🎮 Controller connected!', 2000);
-          this.startPolling();
-        } else {
-          this.retrySteamInput(retriesLeft - 1);
-        }
-      } catch (e) {
-        debugLog('[CONTROLLER] Retry error:', e.message);
-      }
-    }, 500);
-  },
-
-  // Start polling Steam Input
+  // Start polling gamepad state
   startPolling() {
     if (this.pollInterval) return;
-
-    debugLog('[CONTROLLER] Starting Steam Input polling');
-
-    this.pollInterval = setInterval(() => {
-      this.pollSteamInput();
-    }, 16); // ~60fps polling
+    debugLog('[CONTROLLER] Starting gamepad polling');
+    this.pollInterval = setInterval(() => this.poll(), 16); // ~60fps
   },
 
   // Stop polling
@@ -17374,76 +17358,129 @@ const GamepadController = {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
       this.pollInterval = null;
+      debugLog('[CONTROLLER] Stopped gamepad polling');
     }
   },
 
-  // Poll Steam Input and handle button presses
-  pollSteamInput() {
-    if (!this.steamInputAvailable || !window.steamBridge) return;
+  // Poll gamepad state
+  poll() {
+    const gamepads = navigator.getGamepads();
+    const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
 
-    try {
-      const state = window.steamBridge.inputGetState();
-      if (!state || !state.connected) {
-        // Controller disconnected
-        if (this.lastInputState?.connected) {
-          debugLog('[CONTROLLER] Controller disconnected');
-          this.steamInputAvailable = false;
-          this.stopPolling();
-        }
-        this.lastInputState = state;
-        return;
-      }
+    if (!gp) return;
 
-      const prev = this.lastInputState || {};
+    // Standard gamepad mapping (works for Xbox, PlayStation, Switch Pro, Steam Deck):
+    // buttons[0] = A/Cross/B(Nintendo)
+    // buttons[1] = B/Circle/A(Nintendo)
+    // buttons[2] = X/Square/Y(Nintendo)
+    // buttons[3] = Y/Triangle/X(Nintendo)
+    // buttons[4] = LB/L1
+    // buttons[5] = RB/R1
+    // buttons[6] = LT/L2
+    // buttons[7] = RT/R2
+    // buttons[8] = Select/Share/Minus
+    // buttons[9] = Start/Options/Plus
+    // buttons[10] = L3 (left stick click)
+    // buttons[11] = R3 (right stick click)
+    // buttons[12] = D-pad Up
+    // buttons[13] = D-pad Down
+    // buttons[14] = D-pad Left
+    // buttons[15] = D-pad Right
+    // axes[0] = Left stick X (-1 to 1)
+    // axes[1] = Left stick Y (-1 to 1)
 
-      // Check for button presses (transition from not pressed to pressed)
-      if (state.confirm && !prev.confirm) this.handleA();
-      if (state.cancel && !prev.cancel) this.handleB();
-      if (state.auto_target && !prev.auto_target) this.handleX();
-      if (state.tooltip && !prev.tooltip) this.handleY();
-      if (state.prev_unit && !prev.prev_unit) this.handleLB();
-      if (state.next_unit && !prev.next_unit) this.handleRB();
-      if (state.prev_sigil && !prev.prev_sigil) this.handleLT();
-      if (state.next_sigil && !prev.next_sigil) this.handleRT();
-      if (state.switch_sides && !prev.switch_sides) this.handleSelect();
-      if (state.menu && !prev.menu) this.handleStart();
+    const prev = this.lastButtons;
 
-      // D-pad
-      if (state.dpad_up && !prev.dpad_up) this.handleDirection('up');
-      if (state.dpad_down && !prev.dpad_down) this.handleDirection('down');
-      if (state.dpad_left && !prev.dpad_left) this.handleDirection('left');
-      if (state.dpad_right && !prev.dpad_right) this.handleDirection('right');
+    // Face buttons
+    if (this.pressed(gp, 0) && !prev[0]) { this.markInputReceived(); this.handleA(); }
+    if (this.pressed(gp, 1) && !prev[1]) { this.markInputReceived(); this.handleB(); }
+    if (this.pressed(gp, 2) && !prev[2]) { this.markInputReceived(); this.handleX(); }
+    if (this.pressed(gp, 3) && !prev[3]) { this.markInputReceived(); this.handleY(); }
 
-      // Analog stick (with deadzone)
-      if (state.move) {
-        const threshold = 0.5;
-        const prevMove = prev.move || { x: 0, y: 0 };
+    // Shoulders
+    if (this.pressed(gp, 4) && !prev[4]) { this.markInputReceived(); this.handleLB(); }
+    if (this.pressed(gp, 5) && !prev[5]) { this.markInputReceived(); this.handleRB(); }
 
-        // Left
-        if (state.move.x < -threshold && prevMove.x >= -threshold) {
-          this.handleDirection('left');
-        }
-        // Right
-        if (state.move.x > threshold && prevMove.x <= threshold) {
-          this.handleDirection('right');
-        }
-        // Up (note: y axis may be inverted)
-        if (state.move.y < -threshold && prevMove.y >= -threshold) {
-          this.handleDirection('up');
-        }
-        // Down
-        if (state.move.y > threshold && prevMove.y <= threshold) {
-          this.handleDirection('down');
-        }
-      }
+    // Triggers (as buttons)
+    if (this.pressed(gp, 6) && !prev[6]) { this.markInputReceived(); this.handleLT(); }
+    if (this.pressed(gp, 7) && !prev[7]) { this.markInputReceived(); this.handleRT(); }
 
-      this.lastInputState = state;
-    } catch (e) {
-      // Silently ignore polling errors
+    // Select/Start
+    if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); this.handleSelect(); }
+    if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); this.handleStart(); }
+
+    // D-pad
+    if (this.pressed(gp, 12) && !prev[12]) { this.markInputReceived(); this.handleDirection('up'); }
+    if (this.pressed(gp, 13) && !prev[13]) { this.markInputReceived(); this.handleDirection('down'); }
+    if (this.pressed(gp, 14) && !prev[14]) { this.markInputReceived(); this.handleDirection('left'); }
+    if (this.pressed(gp, 15) && !prev[15]) { this.markInputReceived(); this.handleDirection('right'); }
+
+    // Left stick (with deadzone)
+    const deadzone = 0.5;
+    const ax = gp.axes[0] || 0;
+    const ay = gp.axes[1] || 0;
+    const prevAx = this.lastAxes.x;
+    const prevAy = this.lastAxes.y;
+
+    if (ax < -deadzone && prevAx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
+    if (ax > deadzone && prevAx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
+    if (ay < -deadzone && prevAy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
+    if (ay > deadzone && prevAy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
+
+    // Save state for next frame
+    this.lastButtons = {};
+    for (let i = 0; i < gp.buttons.length; i++) {
+      this.lastButtons[i] = this.pressed(gp, i);
+    }
+    this.lastAxes = { x: ax, y: ay };
+  },
+
+  // Helper to check if button is pressed
+  pressed(gp, index) {
+    const btn = gp.buttons[index];
+    if (!btn) return false;
+    return typeof btn === 'object' ? btn.pressed : btn > 0.5;
+  },
+
+  // Track that we received actual input (for Steam Deck detection)
+  markInputReceived() {
+    if (!this.firstInputTime && this.connectTime) {
+      this.firstInputTime = Date.now();
+      debugLog('[CONTROLLER] First input received after', this.firstInputTime - this.connectTime, 'ms');
     }
   },
 
-  // Touch listener - deactivate controller mode when user touches screen
+  // Start detecting if Steam is intercepting input (Steam Deck issue)
+  startInputDetection() {
+    // After 5 seconds, if no input received, show warning
+    setTimeout(() => {
+      if (this.connected && !this.firstInputTime && !this.inputDetectionShown) {
+        this.inputDetectionShown = true;
+        this.showSteamDeckWarning();
+      }
+    }, 5000);
+  },
+
+  // Show warning about Steam Deck controller configuration
+  showSteamDeckWarning() {
+    debugLog('[CONTROLLER] No input detected - possible Steam interception');
+
+    // Check if we're likely on Steam Deck (Linux + gamepad connected + no input)
+    const isSteamDeck = navigator.userAgent.includes('Linux') ||
+                        (typeof window.electronInfo !== 'undefined');
+
+    if (isSteamDeck) {
+      toast('⚠️ Controller not responding? Check Steam Deck settings', 4000);
+      // Show more detailed help after a moment
+      setTimeout(() => {
+        if (!this.firstInputTime) {
+          showSteamDeckHelp();
+        }
+      }, 2000);
+    }
+  },
+
+  // Touch detection - deactivate controller mode on touch
   initTouchDetection() {
     document.addEventListener('touchstart', () => {
       if (this.active) {
@@ -17453,16 +17490,11 @@ const GamepadController = {
     }, { passive: true });
   },
 
-  // Keyboard fallback (for browser/desktop)
+  // Keyboard fallback
   initKeyboard() {
     document.addEventListener('keydown', e => {
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      // In browser mode (no Steam Input), keyboard always works
-      // In Steam mode, keyboard is backup
-      const allowKeyboard = !this.steamInputAvailable || this.active;
-      if (!allowKeyboard) return;
 
       let handled = false;
 
@@ -17515,7 +17547,6 @@ const GamepadController = {
       const best = this.findBestDefaultFocus();
       this.setFocus(best || this.focusableElements[0]);
     }
-    this.updatePrompts();
     debugLog('[CONTROLLER] Activated');
   },
 
@@ -17525,7 +17556,6 @@ const GamepadController = {
     this.active = false;
     document.body.classList.remove('controller-active');
     this.clearFocus();
-    this.updatePrompts();
     debugLog('[CONTROLLER] Deactivated');
   },
 
@@ -17874,18 +17904,6 @@ const GamepadController = {
     return this.focusableElements[0];
   },
 
-  saveFocusState() {
-    if (this.focusedElement?.id) {
-      this.lastFocusedId = this.focusedElement.id;
-    }
-  },
-
-  restoreFocusState() {
-    this.updateFocusableElements();
-    const best = this.findBestDefaultFocus();
-    if (best) this.setFocus(best);
-  },
-
   // ===== COMBAT HELPERS =====
 
   cycleUnit(dir) {
@@ -17959,13 +17977,6 @@ const GamepadController = {
 
   // ===== UI =====
 
-  updatePrompts() {
-    const prompts = document.getElementById('controllerPrompts');
-    if (prompts) {
-      prompts.style.display = this.active ? 'flex' : 'none';
-    }
-  },
-
   playClick() {
     if (typeof SoundFX !== 'undefined' && SoundFX.play) {
       SoundFX.play('click');
@@ -18021,6 +18032,35 @@ function showControlsGuide() {
 </div>
 <div class="modal-overlay" onclick="closeSettingsMenu()"></div>`;
   v.insertAdjacentHTML('beforeend', html);
+}
+
+function showSteamDeckHelp() {
+  const v = document.getElementById('gameView');
+  const html = `
+<div class="modal-container dark" style="max-width:400px">
+  <h2 class="modal-title" style="margin-bottom:1rem">🎮 Steam Deck Setup</h2>
+  <div style="text-align:left;font-size:0.85rem;line-height:1.5">
+    <p style="margin-bottom:0.8rem">Controller not working? Steam may be intercepting input.</p>
+    <p style="margin-bottom:0.5rem"><strong>To fix:</strong></p>
+    <ol style="margin-left:1.2rem;margin-bottom:1rem">
+      <li>Press the <strong>STEAM</strong> button</li>
+      <li>Go to <strong>Controller Settings</strong></li>
+      <li>Select <strong>"Gamepad with Joystick Trackpad"</strong></li>
+      <li>Or choose <strong>"Gamepad"</strong> template</li>
+    </ol>
+    <p style="font-size:0.8rem;opacity:0.8">This tells Steam to pass controller input directly to the game instead of converting it to mouse/keyboard.</p>
+  </div>
+  <button class="btn" onclick="closeSteamDeckHelp()" style="margin-top:1rem">Got it</button>
+</div>
+<div class="modal-overlay steam-deck-help-overlay" onclick="closeSteamDeckHelp()"></div>`;
+  v.insertAdjacentHTML('beforeend', html);
+}
+
+function closeSteamDeckHelp() {
+  const modal = document.querySelector('.modal-container');
+  const overlay = document.querySelector('.steam-deck-help-overlay');
+  if (modal) modal.remove();
+  if (overlay) overlay.remove();
 }
 
 // ===== SERVICE WORKER REGISTRATION =====
@@ -18112,6 +18152,7 @@ debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpT
 applyVolumeSettings(); // Apply audio volume settings
 initToastLog(); // Initialize toast log UI
 initSuspendSystem(); // Initialize autosave and suspend/resume system
+Steam.init(); // Initialize Steam achievements/stats (if running in Electron)
 GamepadController.init(); // Initialize Steam Deck / controller support
 mainTitlePage();
 debugLog('[FROGGLE] mainTitlePage called');

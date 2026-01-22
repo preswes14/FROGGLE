@@ -1,9 +1,10 @@
 // Electron Preload Script
 // Bridges Steam API from main process to renderer securely via contextBridge
+// Note: Controller input uses the standard Web Gamepad API, not Steam Input
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose Steam bridge to renderer
+// Expose Steam bridge to renderer (achievements, stats, cloud saves only)
 contextBridge.exposeInMainWorld('steamBridge', {
   // Connection status
   get initialized() {
@@ -29,13 +30,7 @@ contextBridge.exposeInMainWorld('steamBridge', {
   cloudQuota: () => ipcRenderer.sendSync('steam-cloud-quota'),
 
   // User Info
-  getUserInfo: () => ipcRenderer.sendSync('steam-get-user-info'),
-
-  // Steam Input (Controller)
-  inputAvailable: () => ipcRenderer.sendSync('steam-input-available'),
-  inputControllerCount: () => ipcRenderer.sendSync('steam-input-controller-count'),
-  inputGetState: () => ipcRenderer.sendSync('steam-input-get-state'),
-  inputControllerType: () => ipcRenderer.sendSync('steam-input-controller-type')
+  getUserInfo: () => ipcRenderer.sendSync('steam-get-user-info')
 });
 
 // Expose platform info
