@@ -555,11 +555,18 @@ buttonsEl.innerHTML = pressed.length > 0
 ? `Buttons: ${pressed.join(' ')}`
 : 'Buttons: <span style="color:#888">none</span>';
 
-// Show axes
-const axes = gp.axes.map((a, i) => Math.abs(a) > 0.2 ? `${i}:${a.toFixed(1)}` : null).filter(Boolean);
+// Show axes with friendly names
+const axisNames = ['LX', 'LY', 'RX', 'RY', 'LT', 'RT'];
+const axes = gp.axes.map((a, i) => {
+  if (Math.abs(a) > 0.15) {
+    const name = axisNames[i] || `#${i}`;
+    return `<span style="color:#0f0">${name}</span>:${a.toFixed(1)}`;
+  }
+  return null;
+}).filter(Boolean);
 axesEl.innerHTML = axes.length > 0
-? `Axes: <span style="color:#0f0">${axes.join(', ')}</span>`
-: 'Axes: centered';
+? `Axes: ${axes.join(' ')}`
+: 'Axes: <span style="color:#888">centered</span>';
 break;
 }
 }

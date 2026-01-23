@@ -12,7 +12,7 @@ const GamepadController = {
   // Gamepad state
   pollInterval: null,
   lastButtons: {},
-  lastAxes: { x: 0, y: 0 },
+  lastAxes: { lx: 0, ly: 0, rx: 0, ry: 0 },  // Left and right stick axes
   connected: false,
 
   // Steam Deck input interception detection
@@ -153,24 +153,37 @@ const GamepadController = {
     if (this.pressed(gp, 14) && !prev[14]) { this.markInputReceived(); this.handleDirection('left'); }
     if (this.pressed(gp, 15) && !prev[15]) { this.markInputReceived(); this.handleDirection('right'); }
 
-    // Left stick (with deadzone)
-    const deadzone = 0.5;
-    const ax = gp.axes[0] || 0;
-    const ay = gp.axes[1] || 0;
-    const prevAx = this.lastAxes.x;
-    const prevAy = this.lastAxes.y;
+    // Analog sticks with lower deadzone for better responsiveness
+    const deadzone = 0.3;
 
-    if (ax < -deadzone && prevAx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
-    if (ax > deadzone && prevAx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
-    if (ay < -deadzone && prevAy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
-    if (ay > deadzone && prevAy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
+    // Left stick (axes 0,1) - navigation
+    const lx = gp.axes[0] || 0;
+    const ly = gp.axes[1] || 0;
+    const prevLx = this.lastAxes.lx;
+    const prevLy = this.lastAxes.ly;
+
+    if (lx < -deadzone && prevLx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
+    if (lx > deadzone && prevLx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
+    if (ly < -deadzone && prevLy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
+    if (ly > deadzone && prevLy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
+
+    // Right stick (axes 2,3) - also navigation (some users prefer right stick)
+    const rx = gp.axes[2] || 0;
+    const ry = gp.axes[3] || 0;
+    const prevRx = this.lastAxes.rx;
+    const prevRy = this.lastAxes.ry;
+
+    if (rx < -deadzone && prevRx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
+    if (rx > deadzone && prevRx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
+    if (ry < -deadzone && prevRy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
+    if (ry > deadzone && prevRy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
 
     // Save state for next frame
     this.lastButtons = {};
     for (let i = 0; i < gp.buttons.length; i++) {
       this.lastButtons[i] = this.pressed(gp, i);
     }
-    this.lastAxes = { x: ax, y: ay };
+    this.lastAxes = { lx, ly, rx, ry };
   },
 
   // Helper to check if button is pressed
@@ -343,7 +356,8 @@ const GamepadController = {
       return;
     }
 
-    if (this.focusedElement) {
+    // Try focused element first
+    if (this.focusedElement && document.body.contains(this.focusedElement)) {
       if (this.focusedElement.hasAttribute('onclick')) {
         this.focusedElement.click();
         return;
@@ -354,11 +368,30 @@ const GamepadController = {
         return;
       }
       this.focusedElement.click();
+      return;
+    }
+
+    // No focused element - find the most prominent clickable thing
+    this.updateFocusableElements();
+    if (this.focusableElements.length > 0) {
+      const best = this.findBestDefaultFocus();
+      if (best) {
+        this.setFocus(best);
+        best.click();
+        return;
+      }
+    }
+
+    // Last resort: find any visible button
+    const anyBtn = document.querySelector('.btn:not([disabled]), button:not([disabled])');
+    if (anyBtn) {
+      anyBtn.click();
     }
   },
 
   handleB() {
-    if (!this.active) return;
+    // B should work even if controller not "active" yet
+    if (!this.active) this.activate();
     this.playClick();
 
     const ctx = this.getContext();
@@ -386,6 +419,24 @@ const GamepadController = {
       S.targets = [];
       if (typeof render === 'function') render();
       return;
+    }
+
+    // In menus/combat: try to find a back/cancel button
+    const backBtn = document.querySelector(
+      '.back-btn, [onclick*="back"], [onclick*="Back"], ' +
+      '[onclick*="close"], [onclick*="Close"], ' +
+      '[onclick*="cancel"], [onclick*="Cancel"], ' +
+      '.modal-close, .settings-back-btn'
+    );
+    if (backBtn) {
+      backBtn.click();
+      return;
+    }
+
+    // Try ESC key behavior - close any overlay/modal
+    const overlay = document.querySelector('.modal-overlay, .tutorial-modal-backdrop');
+    if (overlay) {
+      overlay.click();
     }
   },
 
