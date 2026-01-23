@@ -448,7 +448,7 @@ const GamepadController = {
 
     // In combat: use sigil and auto-target
     if (ctx === 'combat' || ctx === 'targeting') {
-      if (this.focusedElement) {
+      if (this.focusedElement && document.body.contains(this.focusedElement)) {
         const sigil = this.focusedElement.classList?.contains('sigil')
           ? this.focusedElement
           : this.focusedElement.querySelector('.sigil.clickable');
@@ -471,10 +471,8 @@ const GamepadController = {
     if (!this.active) this.activate();
     this.playClick();
 
-    const ctx = this.getContext();
-
     // Try to show sigil tooltip if one is focused
-    if (this.focusedElement) {
+    if (this.focusedElement && document.body.contains(this.focusedElement)) {
       const sigil = this.focusedElement.classList?.contains('sigil')
         ? this.focusedElement
         : this.focusedElement.querySelector('.sigil');
@@ -487,11 +485,9 @@ const GamepadController = {
       }
     }
 
-    // Outside combat with no sigil: show controls guide
-    if (ctx !== 'combat' && ctx !== 'targeting') {
-      if (typeof showControlsGuide === 'function') {
-        showControlsGuide();
-      }
+    // No sigil focused: show controls guide
+    if (typeof showControlsGuide === 'function') {
+      showControlsGuide();
     }
   },
 
@@ -545,7 +541,9 @@ const GamepadController = {
     if (!this.active) this.activate();
     this.playClick();
     const ctx = this.getContext();
+
     if (ctx === 'targeting') {
+      // In targeting: switch between enemies and heroes
       const enemies = document.querySelectorAll('.card.enemy:not(.dead)');
       const heroes = document.querySelectorAll('.card.hero:not(.dead)');
 
@@ -553,6 +551,21 @@ const GamepadController = {
         this.setFocus(heroes[0]);
       } else if (enemies.length) {
         this.setFocus(enemies[0]);
+      }
+    } else if (ctx === 'combat') {
+      // In combat (not targeting): auto-select first sigil on active hero
+      const activeHero = document.querySelector('.card.hero.active');
+      if (activeHero) {
+        const sigil = activeHero.querySelector('.sigil.clickable');
+        if (sigil) {
+          this.setFocus(sigil);
+        }
+      }
+    } else {
+      // In menus: focus the primary/play button
+      const primary = document.querySelector('.title-play-btn, .btn-primary, .btn:first-of-type');
+      if (primary) {
+        this.setFocus(primary);
       }
     }
   },
@@ -862,28 +875,7 @@ function forceReinitController() {
   closeSettingsMenu();
 }
 
-function showControlsGuide() {
-  const v = document.getElementById('gameView');
-  const html = `
-<div class="modal-container dark">
-  <h2 class="modal-title blue" style="margin-bottom:1rem">🎮 CONTROLS</h2>
-  <div style="text-align:left;font-size:0.9rem;line-height:1.6">
-    <p><strong>A</strong> - Select / Confirm</p>
-    <p><strong>B</strong> - Back / Cancel</p>
-    <p><strong>X</strong> - Auto-target (combat) / Confirm (menus)</p>
-    <p><strong>Y</strong> - Show tooltip / Controls guide</p>
-    <p><strong>D-Pad / Left Stick</strong> - Navigate</p>
-    <p><strong>LB/RB</strong> - Cycle heroes/targets</p>
-    <p><strong>LT/RT</strong> - Cycle sigils / Navigate</p>
-    <p><strong>L3</strong> - Controls guide</p>
-    <p><strong>R3</strong> - Debug overlay</p>
-    <p><strong>Start</strong> - Menu</p>
-  </div>
-  <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem">Close</button>
-</div>
-<div class="modal-overlay" onclick="closeSettingsMenu()"></div>`;
-  v.insertAdjacentHTML('beforeend', html);
-}
+// showControlsGuide() is defined in settings.js with more detail
 
 function showSteamDeckHelp() {
   const v = document.getElementById('gameView');
@@ -908,8 +900,13 @@ function showSteamDeckHelp() {
 }
 
 function closeSteamDeckHelp() {
-  const modal = document.querySelector('.modal-container');
+  // Only remove the Steam Deck help modal, not other modals
   const overlay = document.querySelector('.steam-deck-help-overlay');
-  if (modal) modal.remove();
-  if (overlay) overlay.remove();
+  if (overlay) {
+    const modal = overlay.previousElementSibling;
+    if (modal?.classList.contains('modal-container')) {
+      modal.remove();
+    }
+    overlay.remove();
+  }
 }
