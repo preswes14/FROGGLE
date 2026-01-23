@@ -143,6 +143,10 @@ const GamepadController = {
     if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); this.handleSelect(); }
     if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); this.handleStart(); }
 
+    // Stick clicks (L3/R3)
+    if (this.pressed(gp, 10) && !prev[10]) { this.markInputReceived(); this.handleL3(); }
+    if (this.pressed(gp, 11) && !prev[11]) { this.markInputReceived(); this.handleR3(); }
+
     // D-pad
     if (this.pressed(gp, 12) && !prev[12]) { this.markInputReceived(); this.handleDirection('up'); }
     if (this.pressed(gp, 13) && !prev[13]) { this.markInputReceived(); this.handleDirection('down'); }
@@ -390,26 +394,35 @@ const GamepadController = {
     this.playClick();
 
     const ctx = this.getContext();
-    if (ctx !== 'combat' && ctx !== 'targeting') return;
 
-    if (this.focusedElement) {
-      const sigil = this.focusedElement.classList?.contains('sigil')
-        ? this.focusedElement
-        : this.focusedElement.querySelector('.sigil.clickable');
+    // In combat: use sigil and auto-target
+    if (ctx === 'combat' || ctx === 'targeting') {
+      if (this.focusedElement) {
+        const sigil = this.focusedElement.classList?.contains('sigil')
+          ? this.focusedElement
+          : this.focusedElement.querySelector('.sigil.clickable');
 
-      if (sigil && sigil.hasAttribute('onclick')) {
-        sigil.click();
-        setTimeout(() => this.autoTarget(), 50);
-        return;
+        if (sigil && sigil.hasAttribute('onclick')) {
+          sigil.click();
+          setTimeout(() => this.autoTarget(), 50);
+          return;
+        }
       }
+      this.autoTarget();
+      return;
     }
 
-    this.autoTarget();
+    // Outside combat: X acts like A (secondary confirm)
+    this.handleA();
   },
 
   handleY() {
     if (!this.active) this.activate();
+    this.playClick();
 
+    const ctx = this.getContext();
+
+    // Try to show sigil tooltip if one is focused
     if (this.focusedElement) {
       const sigil = this.focusedElement.classList?.contains('sigil')
         ? this.focusedElement
@@ -419,6 +432,14 @@ const GamepadController = {
         const name = sigil.dataset?.sigil || sigil.textContent?.trim();
         const level = parseInt(sigil.dataset?.level) || 0;
         showTooltip(name, sigil, level);
+        return;
+      }
+    }
+
+    // Outside combat with no sigil: show controls guide
+    if (ctx !== 'combat' && ctx !== 'targeting') {
+      if (typeof showControlsGuide === 'function') {
+        showControlsGuide();
       }
     }
   },
@@ -447,19 +468,25 @@ const GamepadController = {
 
   handleLT() {
     if (!this.active) this.activate();
+    this.playClick();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
-      this.playClick();
       this.cycleSigil('prev');
+    } else {
+      // Outside combat: navigate left through options
+      this.handleDirection('left');
     }
   },
 
   handleRT() {
     if (!this.active) this.activate();
+    this.playClick();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
-      this.playClick();
       this.cycleSigil('next');
+    } else {
+      // Outside combat: navigate right through options
+      this.handleDirection('right');
     }
   },
 
@@ -484,6 +511,29 @@ const GamepadController = {
     this.playClick();
     if (typeof showSettingsMenu === 'function') {
       showSettingsMenu();
+    }
+  },
+
+  handleL3() {
+    if (!this.active) this.activate();
+    this.playClick();
+    // L3 shows controls guide
+    if (typeof showControlsGuide === 'function') {
+      showControlsGuide();
+    }
+  },
+
+  handleR3() {
+    if (!this.active) this.activate();
+    this.playClick();
+    // R3 toggles controller debug overlay
+    if (typeof showControllerDebug === 'function') {
+      const existing = document.getElementById('controller-debug-overlay');
+      if (existing) {
+        existing.remove();
+      } else {
+        showControllerDebug();
+      }
     }
   },
 
@@ -755,11 +805,13 @@ function showControlsGuide() {
   <div style="text-align:left;font-size:0.9rem;line-height:1.6">
     <p><strong>A</strong> - Select / Confirm</p>
     <p><strong>B</strong> - Back / Cancel</p>
-    <p><strong>X</strong> - Auto-target (combat)</p>
-    <p><strong>Y</strong> - Show tooltip</p>
+    <p><strong>X</strong> - Auto-target (combat) / Confirm (menus)</p>
+    <p><strong>Y</strong> - Show tooltip / Controls guide</p>
     <p><strong>D-Pad / Left Stick</strong> - Navigate</p>
     <p><strong>LB/RB</strong> - Cycle heroes/targets</p>
-    <p><strong>LT/RT</strong> - Cycle sigils</p>
+    <p><strong>LT/RT</strong> - Cycle sigils / Navigate</p>
+    <p><strong>L3</strong> - Controls guide</p>
+    <p><strong>R3</strong> - Debug overlay</p>
     <p><strong>Start</strong> - Menu</p>
   </div>
   <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem">Close</button>
