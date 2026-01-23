@@ -728,12 +728,26 @@ const GamepadController = {
     }
 
     const ctx = this.getContext();
+
+    // Title screen: prioritize Play button
+    const playBtn = document.querySelector('.title-play-btn');
+    if (playBtn && this.focusableElements.includes(playBtn)) {
+      return playBtn;
+    }
+
+    // Combat: prioritize active hero or targetable
     if (ctx === 'combat' || ctx === 'targeting') {
       const activeHero = document.querySelector('.card.hero.active');
       if (activeHero) return activeHero;
 
       const targetable = document.querySelector('.card.targetable');
       if (targetable) return targetable;
+    }
+
+    // Default: prioritize primary buttons over secondary
+    const primaryBtn = document.querySelector('.btn-primary, .btn:not(.title-secondary-btn)');
+    if (primaryBtn && this.focusableElements.includes(primaryBtn)) {
+      return primaryBtn;
     }
 
     return this.focusableElements[0];

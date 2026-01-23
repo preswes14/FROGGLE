@@ -2344,7 +2344,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.19';
+const GAME_VERSION = 'S_1.20';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -18009,12 +18009,26 @@ const GamepadController = {
     }
 
     const ctx = this.getContext();
+
+    // Title screen: prioritize Play button
+    const playBtn = document.querySelector('.title-play-btn');
+    if (playBtn && this.focusableElements.includes(playBtn)) {
+      return playBtn;
+    }
+
+    // Combat: prioritize active hero or targetable
     if (ctx === 'combat' || ctx === 'targeting') {
       const activeHero = document.querySelector('.card.hero.active');
       if (activeHero) return activeHero;
 
       const targetable = document.querySelector('.card.targetable');
       if (targetable) return targetable;
+    }
+
+    // Default: prioritize primary buttons over secondary
+    const primaryBtn = document.querySelector('.btn-primary, .btn:not(.title-secondary-btn)');
+    if (primaryBtn && this.focusableElements.includes(primaryBtn)) {
+      return primaryBtn;
     }
 
     return this.focusableElements[0];
