@@ -504,7 +504,7 @@ document.getElementById('debug-detect-btn').onclick = (e) => {
   alert(msg);
   // Also try to reinit controller
   if (typeof GamepadController !== 'undefined') {
-    GamepadController.checkExistingGamepads();
+    GamepadController.initGamepad();
     toast('Retrying gamepad detection...', 1500);
   }
 };
@@ -540,22 +540,33 @@ if (gp) {
 found = true;
 statusEl.innerHTML = `<span style="color:#0f0">✓ FOUND:</span> ${gp.id.substring(0,30)}...`;
 
-// Show pressed buttons
+// Button names for standard gamepad layout
+const btnNames = ['A','B','X','Y','LB','RB','LT','RT','Select','Start','L3','R3','Up','Down','Left','Right'];
+
+// Show pressed buttons with names
 const pressed = [];
 for (let b = 0; b < gp.buttons.length; b++) {
 if (gp.buttons[b].pressed || gp.buttons[b].value > 0.5) {
-pressed.push(b);
+const name = btnNames[b] || `#${b}`;
+pressed.push(`<span style="color:#0f0">${name}</span><span style="color:#888">(${b})</span>`);
 }
 }
 buttonsEl.innerHTML = pressed.length > 0
-? `Buttons: <span style="color:#0f0">${pressed.join(', ')}</span>`
-: 'Buttons: none';
+? `Buttons: ${pressed.join(' ')}`
+: 'Buttons: <span style="color:#888">none</span>';
 
-// Show axes
-const axes = gp.axes.map((a, i) => Math.abs(a) > 0.2 ? `${i}:${a.toFixed(1)}` : null).filter(Boolean);
+// Show axes with friendly names
+const axisNames = ['LX', 'LY', 'RX', 'RY', 'LT', 'RT'];
+const axes = gp.axes.map((a, i) => {
+  if (Math.abs(a) > 0.15) {
+    const name = axisNames[i] || `#${i}`;
+    return `<span style="color:#0f0">${name}</span>:${a.toFixed(1)}`;
+  }
+  return null;
+}).filter(Boolean);
 axesEl.innerHTML = axes.length > 0
-? `Axes: <span style="color:#0f0">${axes.join(', ')}</span>`
-: 'Axes: centered';
+? `Axes: ${axes.join(' ')}`
+: 'Axes: <span style="color:#888">centered</span>';
 break;
 }
 }
@@ -585,6 +596,8 @@ toast('Controller debug enabled - overlay shown', 1500);
 closeSettingsMenu();
 }
 
+// Alias for controller.js R3 handler
+const showControllerDebug = toggleControllerDebug;
 
 function showControlsGuide() {
 closeSettingsMenu();
@@ -612,7 +625,9 @@ const controls = [
 ]},
 { section: '⚙️ Menu Buttons', items: [
   { btn: 'START (☰)', desc: 'Open Settings menu (works anywhere)' },
-  { btn: 'SELECT (⊡)', desc: 'Auto-target: smart targeting for current action' }
+  { btn: 'SELECT (⊡)', desc: 'Auto-target: smart targeting for current action' },
+  { btn: 'L3 (left click)', desc: 'Show Controls Guide' },
+  { btn: 'R3 (right click)', desc: 'Toggle Controller Debug overlay' }
 ]},
 { section: '⌨️ Keyboard Fallback', items: [
   { btn: 'Arrow Keys / WASD', desc: 'Navigate (D-pad equivalent)' },

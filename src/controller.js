@@ -12,7 +12,7 @@ const GamepadController = {
   // Gamepad state
   pollInterval: null,
   lastButtons: {},
-  lastAxes: { x: 0, y: 0 },
+  lastAxes: { lx: 0, ly: 0, rx: 0, ry: 0 },  // Left and right stick axes
   connected: false,
 
   // Steam Deck input interception detection
@@ -143,30 +143,47 @@ const GamepadController = {
     if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); this.handleSelect(); }
     if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); this.handleStart(); }
 
+    // Stick clicks (L3/R3)
+    if (this.pressed(gp, 10) && !prev[10]) { this.markInputReceived(); this.handleL3(); }
+    if (this.pressed(gp, 11) && !prev[11]) { this.markInputReceived(); this.handleR3(); }
+
     // D-pad
     if (this.pressed(gp, 12) && !prev[12]) { this.markInputReceived(); this.handleDirection('up'); }
     if (this.pressed(gp, 13) && !prev[13]) { this.markInputReceived(); this.handleDirection('down'); }
     if (this.pressed(gp, 14) && !prev[14]) { this.markInputReceived(); this.handleDirection('left'); }
     if (this.pressed(gp, 15) && !prev[15]) { this.markInputReceived(); this.handleDirection('right'); }
 
-    // Left stick (with deadzone)
-    const deadzone = 0.5;
-    const ax = gp.axes[0] || 0;
-    const ay = gp.axes[1] || 0;
-    const prevAx = this.lastAxes.x;
-    const prevAy = this.lastAxes.y;
+    // Analog sticks with lower deadzone for better responsiveness
+    const deadzone = 0.3;
 
-    if (ax < -deadzone && prevAx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
-    if (ax > deadzone && prevAx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
-    if (ay < -deadzone && prevAy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
-    if (ay > deadzone && prevAy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
+    // Left stick (axes 0,1) - navigation
+    const lx = gp.axes[0] || 0;
+    const ly = gp.axes[1] || 0;
+    const prevLx = this.lastAxes.lx;
+    const prevLy = this.lastAxes.ly;
+
+    if (lx < -deadzone && prevLx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
+    if (lx > deadzone && prevLx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
+    if (ly < -deadzone && prevLy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
+    if (ly > deadzone && prevLy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
+
+    // Right stick (axes 2,3) - also navigation (some users prefer right stick)
+    const rx = gp.axes[2] || 0;
+    const ry = gp.axes[3] || 0;
+    const prevRx = this.lastAxes.rx;
+    const prevRy = this.lastAxes.ry;
+
+    if (rx < -deadzone && prevRx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
+    if (rx > deadzone && prevRx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
+    if (ry < -deadzone && prevRy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
+    if (ry > deadzone && prevRy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
 
     // Save state for next frame
     this.lastButtons = {};
     for (let i = 0; i < gp.buttons.length; i++) {
       this.lastButtons[i] = this.pressed(gp, i);
     }
-    this.lastAxes = { x: ax, y: ay };
+    this.lastAxes = { lx, ly, rx, ry };
   },
 
   // Helper to check if button is pressed
@@ -339,7 +356,8 @@ const GamepadController = {
       return;
     }
 
-    if (this.focusedElement) {
+    // Try focused element first
+    if (this.focusedElement && document.body.contains(this.focusedElement)) {
       if (this.focusedElement.hasAttribute('onclick')) {
         this.focusedElement.click();
         return;
@@ -350,11 +368,30 @@ const GamepadController = {
         return;
       }
       this.focusedElement.click();
+      return;
+    }
+
+    // No focused element - find the most prominent clickable thing
+    this.updateFocusableElements();
+    if (this.focusableElements.length > 0) {
+      const best = this.findBestDefaultFocus();
+      if (best) {
+        this.setFocus(best);
+        best.click();
+        return;
+      }
+    }
+
+    // Last resort: find any visible button
+    const anyBtn = document.querySelector('.btn:not([disabled]), button:not([disabled])');
+    if (anyBtn) {
+      anyBtn.click();
     }
   },
 
   handleB() {
-    if (!this.active) return;
+    // B should work even if controller not "active" yet
+    if (!this.active) this.activate();
     this.playClick();
 
     const ctx = this.getContext();
@@ -383,6 +420,24 @@ const GamepadController = {
       if (typeof render === 'function') render();
       return;
     }
+
+    // In menus/combat: try to find a back/cancel button
+    const backBtn = document.querySelector(
+      '.back-btn, [onclick*="back"], [onclick*="Back"], ' +
+      '[onclick*="close"], [onclick*="Close"], ' +
+      '[onclick*="cancel"], [onclick*="Cancel"], ' +
+      '.modal-close, .settings-back-btn'
+    );
+    if (backBtn) {
+      backBtn.click();
+      return;
+    }
+
+    // Try ESC key behavior - close any overlay/modal
+    const overlay = document.querySelector('.modal-overlay, .tutorial-modal-backdrop');
+    if (overlay) {
+      overlay.click();
+    }
   },
 
   handleX() {
@@ -390,27 +445,34 @@ const GamepadController = {
     this.playClick();
 
     const ctx = this.getContext();
-    if (ctx !== 'combat' && ctx !== 'targeting') return;
 
-    if (this.focusedElement) {
-      const sigil = this.focusedElement.classList?.contains('sigil')
-        ? this.focusedElement
-        : this.focusedElement.querySelector('.sigil.clickable');
+    // In combat: use sigil and auto-target
+    if (ctx === 'combat' || ctx === 'targeting') {
+      if (this.focusedElement && document.body.contains(this.focusedElement)) {
+        const sigil = this.focusedElement.classList?.contains('sigil')
+          ? this.focusedElement
+          : this.focusedElement.querySelector('.sigil.clickable');
 
-      if (sigil && sigil.hasAttribute('onclick')) {
-        sigil.click();
-        setTimeout(() => this.autoTarget(), 50);
-        return;
+        if (sigil && sigil.hasAttribute('onclick')) {
+          sigil.click();
+          setTimeout(() => this.autoTarget(), 50);
+          return;
+        }
       }
+      this.autoTarget();
+      return;
     }
 
-    this.autoTarget();
+    // Outside combat: X acts like A (secondary confirm)
+    this.handleA();
   },
 
   handleY() {
     if (!this.active) this.activate();
+    this.playClick();
 
-    if (this.focusedElement) {
+    // Try to show sigil tooltip if one is focused
+    if (this.focusedElement && document.body.contains(this.focusedElement)) {
       const sigil = this.focusedElement.classList?.contains('sigil')
         ? this.focusedElement
         : this.focusedElement.querySelector('.sigil');
@@ -419,7 +481,13 @@ const GamepadController = {
         const name = sigil.dataset?.sigil || sigil.textContent?.trim();
         const level = parseInt(sigil.dataset?.level) || 0;
         showTooltip(name, sigil, level);
+        return;
       }
+    }
+
+    // No sigil focused: show controls guide
+    if (typeof showControlsGuide === 'function') {
+      showControlsGuide();
     }
   },
 
@@ -447,19 +515,25 @@ const GamepadController = {
 
   handleLT() {
     if (!this.active) this.activate();
+    this.playClick();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
-      this.playClick();
       this.cycleSigil('prev');
+    } else {
+      // Outside combat: navigate left through options
+      this.handleDirection('left');
     }
   },
 
   handleRT() {
     if (!this.active) this.activate();
+    this.playClick();
     const ctx = this.getContext();
     if (ctx === 'combat' || ctx === 'targeting') {
-      this.playClick();
       this.cycleSigil('next');
+    } else {
+      // Outside combat: navigate right through options
+      this.handleDirection('right');
     }
   },
 
@@ -467,7 +541,9 @@ const GamepadController = {
     if (!this.active) this.activate();
     this.playClick();
     const ctx = this.getContext();
+
     if (ctx === 'targeting') {
+      // In targeting: switch between enemies and heroes
       const enemies = document.querySelectorAll('.card.enemy:not(.dead)');
       const heroes = document.querySelectorAll('.card.hero:not(.dead)');
 
@@ -475,6 +551,21 @@ const GamepadController = {
         this.setFocus(heroes[0]);
       } else if (enemies.length) {
         this.setFocus(enemies[0]);
+      }
+    } else if (ctx === 'combat') {
+      // In combat (not targeting): auto-select first sigil on active hero
+      const activeHero = document.querySelector('.card.hero.active');
+      if (activeHero) {
+        const sigil = activeHero.querySelector('.sigil.clickable');
+        if (sigil) {
+          this.setFocus(sigil);
+        }
+      }
+    } else {
+      // In menus: focus the primary/play button
+      const primary = document.querySelector('.title-play-btn, .btn-primary, .btn:first-of-type');
+      if (primary) {
+        this.setFocus(primary);
       }
     }
   },
@@ -484,6 +575,29 @@ const GamepadController = {
     this.playClick();
     if (typeof showSettingsMenu === 'function') {
       showSettingsMenu();
+    }
+  },
+
+  handleL3() {
+    if (!this.active) this.activate();
+    this.playClick();
+    // L3 shows controls guide
+    if (typeof showControlsGuide === 'function') {
+      showControlsGuide();
+    }
+  },
+
+  handleR3() {
+    if (!this.active) this.activate();
+    this.playClick();
+    // R3 toggles controller debug overlay
+    if (typeof showControllerDebug === 'function') {
+      const existing = document.getElementById('controller-debug-overlay');
+      if (existing) {
+        existing.remove();
+      } else {
+        showControllerDebug();
+      }
     }
   },
 
@@ -627,12 +741,26 @@ const GamepadController = {
     }
 
     const ctx = this.getContext();
+
+    // Title screen: prioritize Play button
+    const playBtn = document.querySelector('.title-play-btn');
+    if (playBtn && this.focusableElements.includes(playBtn)) {
+      return playBtn;
+    }
+
+    // Combat: prioritize active hero or targetable
     if (ctx === 'combat' || ctx === 'targeting') {
       const activeHero = document.querySelector('.card.hero.active');
       if (activeHero) return activeHero;
 
       const targetable = document.querySelector('.card.targetable');
       if (targetable) return targetable;
+    }
+
+    // Default: prioritize primary buttons over secondary
+    const primaryBtn = document.querySelector('.btn-primary, .btn:not(.title-secondary-btn)');
+    if (primaryBtn && this.focusableElements.includes(primaryBtn)) {
+      return primaryBtn;
     }
 
     return this.focusableElements[0];
@@ -747,26 +875,7 @@ function forceReinitController() {
   closeSettingsMenu();
 }
 
-function showControlsGuide() {
-  const v = document.getElementById('gameView');
-  const html = `
-<div class="modal-container dark">
-  <h2 class="modal-title blue" style="margin-bottom:1rem">🎮 CONTROLS</h2>
-  <div style="text-align:left;font-size:0.9rem;line-height:1.6">
-    <p><strong>A</strong> - Select / Confirm</p>
-    <p><strong>B</strong> - Back / Cancel</p>
-    <p><strong>X</strong> - Auto-target (combat)</p>
-    <p><strong>Y</strong> - Show tooltip</p>
-    <p><strong>D-Pad / Left Stick</strong> - Navigate</p>
-    <p><strong>LB/RB</strong> - Cycle heroes/targets</p>
-    <p><strong>LT/RT</strong> - Cycle sigils</p>
-    <p><strong>Start</strong> - Menu</p>
-  </div>
-  <button class="btn" onclick="closeSettingsMenu()" style="margin-top:1rem">Close</button>
-</div>
-<div class="modal-overlay" onclick="closeSettingsMenu()"></div>`;
-  v.insertAdjacentHTML('beforeend', html);
-}
+// showControlsGuide() is defined in settings.js with more detail
 
 function showSteamDeckHelp() {
   const v = document.getElementById('gameView');
@@ -791,8 +900,13 @@ function showSteamDeckHelp() {
 }
 
 function closeSteamDeckHelp() {
-  const modal = document.querySelector('.modal-container');
+  // Only remove the Steam Deck help modal, not other modals
   const overlay = document.querySelector('.steam-deck-help-overlay');
-  if (modal) modal.remove();
-  if (overlay) overlay.remove();
+  if (overlay) {
+    const modal = overlay.previousElementSibling;
+    if (modal?.classList.contains('modal-container')) {
+      modal.remove();
+    }
+    overlay.remove();
+  }
 }
