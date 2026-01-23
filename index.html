@@ -2344,7 +2344,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.21';
+const GAME_VERSION = 'S_1.22';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -17279,9 +17279,9 @@ render();
 
 
 
-// ===== FROGGLE CONTROLLER - Standard Gamepad API =====
-// Uses the Web Gamepad API - works in browsers, Electron, and Steam Deck
-// No native dependencies, no Steam Input complexity
+// ===== FROGGLE CONTROLLER - Keyboard-First Approach =====
+// Steam Deck in browser mode converts controller to keyboard events
+// This code handles those keyboard events directly
 
 const GamepadController = {
   // State
@@ -17290,226 +17290,157 @@ const GamepadController = {
   focusableElements: [],
   lastFocusedId: null,
 
-  // Gamepad state
-  pollInterval: null,
-  lastButtons: {},
-  lastAxes: { lx: 0, ly: 0, rx: 0, ry: 0 },  // Left and right stick axes
-  connected: false,
-
-  // Steam Deck input interception detection
-  connectTime: 0,           // When gamepad connected
-  firstInputTime: 0,        // When we first received actual input
-  inputDetectionShown: false, // Have we shown the warning?
+  // Debounce tracking - prevents double-fire from rapid events
+  lastActionTime: {},
+  DEBOUNCE_MS: 150, // Ignore same action within 150ms
 
   // Initialize controller system
   init() {
-    debugLog('[CONTROLLER] Initializing...');
+    debugLog('[CONTROLLER] Initializing keyboard-first controller...');
 
-    // Check if disabled in settings
     if (typeof S !== 'undefined' && S.controllerDisabled) {
       debugLog('[CONTROLLER] Controller support disabled in settings');
       return;
     }
 
-    // Set up keyboard (always works as fallback)
     this.initKeyboard();
     this.initTouchDetection();
-
-    // Set up gamepad
-    this.initGamepad();
 
     debugLog('[CONTROLLER] Initialization complete');
   },
 
-  // Initialize Web Gamepad API
-  initGamepad() {
-    // Listen for gamepad connect/disconnect
-    window.addEventListener('gamepadconnected', (e) => {
-      debugLog('[CONTROLLER] Gamepad connected:', e.gamepad.id);
-      this.connected = true;
-      this.connectTime = Date.now();
-      this.firstInputTime = 0;
-      this.inputDetectionShown = false;
-      this.activate();
-      toast('🎮 Controller connected!', 2000);
-      this.startPolling();
+  // Check debounce - returns true if action should be allowed
+  shouldAllowAction(action) {
+    const now = Date.now();
+    const lastTime = this.lastActionTime[action] || 0;
+    if (now - lastTime < this.DEBOUNCE_MS) {
+      debugLog('[CONTROLLER] Debounced:', action);
+      return false;
+    }
+    this.lastActionTime[action] = now;
+    return true;
+  },
 
-      // Start checking for Steam Deck input interception
-      this.startInputDetection();
-    });
+  // Main keyboard handler - this is where Steam Deck input arrives
+  initKeyboard() {
+    document.addEventListener('keydown', e => {
+      if (typeof S !== 'undefined' && S.controllerDisabled) return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    window.addEventListener('gamepaddisconnected', (e) => {
-      debugLog('[CONTROLLER] Gamepad disconnected:', e.gamepad.id);
-      this.connected = false;
-      // Check if any gamepads still connected
-      const gamepads = navigator.getGamepads();
-      const anyConnected = Array.from(gamepads).some(gp => gp !== null);
-      if (!anyConnected) {
-        this.stopPolling();
+      // Ignore key repeat (holding button down)
+      if (e.repeat) return;
+
+      let handled = false;
+      let action = null;
+
+      switch (e.key) {
+        // D-pad / Arrow keys
+        case 'ArrowUp':
+          action = 'up';
+          this.handleDirection('up');
+          handled = true;
+          break;
+        case 'ArrowDown':
+          action = 'down';
+          this.handleDirection('down');
+          handled = true;
+          break;
+        case 'ArrowLeft':
+          action = 'left';
+          this.handleDirection('left');
+          handled = true;
+          break;
+        case 'ArrowRight':
+          action = 'right';
+          this.handleDirection('right');
+          handled = true;
+          break;
+
+        // A button - Enter only (not Space to avoid double-fire)
+        case 'Enter':
+          action = 'A';
+          if (this.shouldAllowAction('A')) {
+            this.handleA();
+          }
+          handled = true;
+          break;
+
+        // Space - treat as separate from Enter to avoid double-fire
+        case ' ':
+          action = 'Space';
+          if (this.shouldAllowAction('A')) { // Still debounce against A
+            this.handleA();
+          }
+          handled = true;
+          break;
+
+        // B button - Escape OR Backspace (Steam uses Backspace for B)
+        case 'Escape':
+        case 'Backspace':
+          action = 'B';
+          if (this.shouldAllowAction('B')) {
+            this.handleB();
+          }
+          handled = true;
+          break;
+
+        // Tab for navigation
+        case 'Tab':
+          action = 'Tab';
+          this.handleDirection(e.shiftKey ? 'left' : 'right');
+          handled = true;
+          break;
+
+        // X button - some Steam configs send 'x' key
+        case 'x':
+        case 'X':
+          action = 'X';
+          if (this.shouldAllowAction('X')) {
+            this.handleX();
+          }
+          handled = true;
+          break;
+
+        // Y button - some Steam configs send 'y' key
+        case 'y':
+        case 'Y':
+          action = 'Y';
+          if (this.shouldAllowAction('Y')) {
+            this.handleY();
+          }
+          handled = true;
+          break;
+
+        // Start/Menu button - often mapped to Escape in some configs
+        // (handled above with B)
+
+        // Page navigation (bumpers often map to these)
+        case 'PageUp':
+          action = 'PageUp';
+          this.scrollPage('up');
+          handled = true;
+          break;
+        case 'PageDown':
+          action = 'PageDown';
+          this.scrollPage('down');
+          handled = true;
+          break;
+      }
+
+      if (handled) {
+        e.preventDefault();
+        if (!this.active) this.activate();
       }
     });
 
-    // Check if gamepad already connected (page refresh with controller plugged in)
-    const gamepads = navigator.getGamepads();
-    for (const gp of gamepads) {
-      if (gp) {
-        debugLog('[CONTROLLER] Gamepad already connected:', gp.id);
-        this.connected = true;
-        this.startPolling();
-        break;
-      }
-    }
-  },
+    // Also handle mouse clicks (Steam might map A to left-click)
+    document.addEventListener('mousedown', e => {
+      if (typeof S !== 'undefined' && S.controllerDisabled) return;
 
-  // Start polling gamepad state
-  startPolling() {
-    if (this.pollInterval) return;
-    debugLog('[CONTROLLER] Starting gamepad polling');
-    this.pollInterval = setInterval(() => this.poll(), 16); // ~60fps
-  },
-
-  // Stop polling
-  stopPolling() {
-    if (this.pollInterval) {
-      clearInterval(this.pollInterval);
-      this.pollInterval = null;
-      debugLog('[CONTROLLER] Stopped gamepad polling');
-    }
-  },
-
-  // Poll gamepad state
-  poll() {
-    const gamepads = navigator.getGamepads();
-    const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
-
-    if (!gp) return;
-
-    // Standard gamepad mapping (works for Xbox, PlayStation, Switch Pro, Steam Deck):
-    // buttons[0] = A/Cross/B(Nintendo)
-    // buttons[1] = B/Circle/A(Nintendo)
-    // buttons[2] = X/Square/Y(Nintendo)
-    // buttons[3] = Y/Triangle/X(Nintendo)
-    // buttons[4] = LB/L1
-    // buttons[5] = RB/R1
-    // buttons[6] = LT/L2
-    // buttons[7] = RT/R2
-    // buttons[8] = Select/Share/Minus
-    // buttons[9] = Start/Options/Plus
-    // buttons[10] = L3 (left stick click)
-    // buttons[11] = R3 (right stick click)
-    // buttons[12] = D-pad Up
-    // buttons[13] = D-pad Down
-    // buttons[14] = D-pad Left
-    // buttons[15] = D-pad Right
-    // axes[0] = Left stick X (-1 to 1)
-    // axes[1] = Left stick Y (-1 to 1)
-
-    const prev = this.lastButtons;
-
-    // Face buttons
-    if (this.pressed(gp, 0) && !prev[0]) { this.markInputReceived(); this.handleA(); }
-    if (this.pressed(gp, 1) && !prev[1]) { this.markInputReceived(); this.handleB(); }
-    if (this.pressed(gp, 2) && !prev[2]) { this.markInputReceived(); this.handleX(); }
-    if (this.pressed(gp, 3) && !prev[3]) { this.markInputReceived(); this.handleY(); }
-
-    // Shoulders
-    if (this.pressed(gp, 4) && !prev[4]) { this.markInputReceived(); this.handleLB(); }
-    if (this.pressed(gp, 5) && !prev[5]) { this.markInputReceived(); this.handleRB(); }
-
-    // Triggers (as buttons)
-    if (this.pressed(gp, 6) && !prev[6]) { this.markInputReceived(); this.handleLT(); }
-    if (this.pressed(gp, 7) && !prev[7]) { this.markInputReceived(); this.handleRT(); }
-
-    // Select/Start
-    if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); this.handleSelect(); }
-    if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); this.handleStart(); }
-
-    // Stick clicks (L3/R3)
-    if (this.pressed(gp, 10) && !prev[10]) { this.markInputReceived(); this.handleL3(); }
-    if (this.pressed(gp, 11) && !prev[11]) { this.markInputReceived(); this.handleR3(); }
-
-    // D-pad
-    if (this.pressed(gp, 12) && !prev[12]) { this.markInputReceived(); this.handleDirection('up'); }
-    if (this.pressed(gp, 13) && !prev[13]) { this.markInputReceived(); this.handleDirection('down'); }
-    if (this.pressed(gp, 14) && !prev[14]) { this.markInputReceived(); this.handleDirection('left'); }
-    if (this.pressed(gp, 15) && !prev[15]) { this.markInputReceived(); this.handleDirection('right'); }
-
-    // Analog sticks with lower deadzone for better responsiveness
-    const deadzone = 0.3;
-
-    // Left stick (axes 0,1) - navigation
-    const lx = gp.axes[0] || 0;
-    const ly = gp.axes[1] || 0;
-    const prevLx = this.lastAxes.lx;
-    const prevLy = this.lastAxes.ly;
-
-    if (lx < -deadzone && prevLx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
-    if (lx > deadzone && prevLx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
-    if (ly < -deadzone && prevLy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
-    if (ly > deadzone && prevLy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
-
-    // Right stick (axes 2,3) - also navigation (some users prefer right stick)
-    const rx = gp.axes[2] || 0;
-    const ry = gp.axes[3] || 0;
-    const prevRx = this.lastAxes.rx;
-    const prevRy = this.lastAxes.ry;
-
-    if (rx < -deadzone && prevRx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
-    if (rx > deadzone && prevRx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
-    if (ry < -deadzone && prevRy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
-    if (ry > deadzone && prevRy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
-
-    // Save state for next frame
-    this.lastButtons = {};
-    for (let i = 0; i < gp.buttons.length; i++) {
-      this.lastButtons[i] = this.pressed(gp, i);
-    }
-    this.lastAxes = { lx, ly, rx, ry };
-  },
-
-  // Helper to check if button is pressed
-  pressed(gp, index) {
-    const btn = gp.buttons[index];
-    if (!btn) return false;
-    return typeof btn === 'object' ? btn.pressed : btn > 0.5;
-  },
-
-  // Track that we received actual input (for Steam Deck detection)
-  markInputReceived() {
-    if (!this.firstInputTime && this.connectTime) {
-      this.firstInputTime = Date.now();
-      debugLog('[CONTROLLER] First input received after', this.firstInputTime - this.connectTime, 'ms');
-    }
-  },
-
-  // Start detecting if Steam is intercepting input (Steam Deck issue)
-  startInputDetection() {
-    // After 5 seconds, if no input received, show warning
-    setTimeout(() => {
-      if (this.connected && !this.firstInputTime && !this.inputDetectionShown) {
-        this.inputDetectionShown = true;
-        this.showSteamDeckWarning();
-      }
-    }, 5000);
-  },
-
-  // Show warning about Steam Deck controller configuration
-  showSteamDeckWarning() {
-    debugLog('[CONTROLLER] No input detected - possible Steam interception');
-
-    // Check if we're likely on Steam Deck (Linux + gamepad connected + no input)
-    const isSteamDeck = navigator.userAgent.includes('Linux') ||
-                        (typeof window.electronInfo !== 'undefined');
-
-    if (isSteamDeck) {
-      toast('⚠️ Controller not responding? Check Steam Deck settings', 4000);
-      // Show more detailed help after a moment
-      setTimeout(() => {
-        if (!this.firstInputTime) {
-          showSteamDeckHelp();
-        }
-      }, 2000);
-    }
+      // If we get a mouse event while controller is active,
+      // it might be from Steam mapping a button to click
+      // Don't interfere - let the click happen naturally
+    });
   },
 
   // Touch detection - deactivate controller mode on touch
@@ -17520,53 +17451,6 @@ const GamepadController = {
         this.deactivate();
       }
     }, { passive: true });
-  },
-
-  // Keyboard fallback
-  initKeyboard() {
-    document.addEventListener('keydown', e => {
-      if (typeof S !== 'undefined' && S.controllerDisabled) return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      let handled = false;
-
-      switch (e.key) {
-        case 'ArrowUp':
-          this.handleDirection('up');
-          handled = true;
-          break;
-        case 'ArrowDown':
-          this.handleDirection('down');
-          handled = true;
-          break;
-        case 'ArrowLeft':
-          this.handleDirection('left');
-          handled = true;
-          break;
-        case 'ArrowRight':
-          this.handleDirection('right');
-          handled = true;
-          break;
-        case 'Enter':
-        case ' ':
-          this.handleA();
-          handled = true;
-          break;
-        case 'Escape':
-          this.handleB();
-          handled = true;
-          break;
-        case 'Tab':
-          this.handleDirection(e.shiftKey ? 'left' : 'right');
-          handled = true;
-          break;
-      }
-
-      if (handled) {
-        e.preventDefault();
-        if (!this.active) this.activate();
-      }
-    });
   },
 
   // Activate controller mode (show focus ring)
@@ -17671,7 +17555,6 @@ const GamepadController = {
   },
 
   handleB() {
-    // B should work even if controller not "active" yet
     if (!this.active) this.activate();
     this.playClick();
 
@@ -17714,7 +17597,7 @@ const GamepadController = {
       return;
     }
 
-    // Try ESC key behavior - close any overlay/modal
+    // Try to close any overlay/modal
     const overlay = document.querySelector('.modal-overlay, .tutorial-modal-backdrop');
     if (overlay) {
       overlay.click();
@@ -17769,116 +17652,6 @@ const GamepadController = {
     // No sigil focused: show controls guide
     if (typeof showControlsGuide === 'function') {
       showControlsGuide();
-    }
-  },
-
-  handleLB() {
-    if (!this.active) this.activate();
-    this.playClick();
-    const ctx = this.getContext();
-    if (ctx === 'combat' || ctx === 'targeting') {
-      this.cycleUnit('prev');
-    } else {
-      this.scrollPage('up');
-    }
-  },
-
-  handleRB() {
-    if (!this.active) this.activate();
-    this.playClick();
-    const ctx = this.getContext();
-    if (ctx === 'combat' || ctx === 'targeting') {
-      this.cycleUnit('next');
-    } else {
-      this.scrollPage('down');
-    }
-  },
-
-  handleLT() {
-    if (!this.active) this.activate();
-    this.playClick();
-    const ctx = this.getContext();
-    if (ctx === 'combat' || ctx === 'targeting') {
-      this.cycleSigil('prev');
-    } else {
-      // Outside combat: navigate left through options
-      this.handleDirection('left');
-    }
-  },
-
-  handleRT() {
-    if (!this.active) this.activate();
-    this.playClick();
-    const ctx = this.getContext();
-    if (ctx === 'combat' || ctx === 'targeting') {
-      this.cycleSigil('next');
-    } else {
-      // Outside combat: navigate right through options
-      this.handleDirection('right');
-    }
-  },
-
-  handleSelect() {
-    if (!this.active) this.activate();
-    this.playClick();
-    const ctx = this.getContext();
-
-    if (ctx === 'targeting') {
-      // In targeting: switch between enemies and heroes
-      const enemies = document.querySelectorAll('.card.enemy:not(.dead)');
-      const heroes = document.querySelectorAll('.card.hero:not(.dead)');
-
-      if (this.focusedElement?.classList.contains('enemy') && heroes.length) {
-        this.setFocus(heroes[0]);
-      } else if (enemies.length) {
-        this.setFocus(enemies[0]);
-      }
-    } else if (ctx === 'combat') {
-      // In combat (not targeting): auto-select first sigil on active hero
-      const activeHero = document.querySelector('.card.hero.active');
-      if (activeHero) {
-        const sigil = activeHero.querySelector('.sigil.clickable');
-        if (sigil) {
-          this.setFocus(sigil);
-        }
-      }
-    } else {
-      // In menus: focus the primary/play button
-      const primary = document.querySelector('.title-play-btn, .btn-primary, .btn:first-of-type');
-      if (primary) {
-        this.setFocus(primary);
-      }
-    }
-  },
-
-  handleStart() {
-    if (!this.active) this.activate();
-    this.playClick();
-    if (typeof showSettingsMenu === 'function') {
-      showSettingsMenu();
-    }
-  },
-
-  handleL3() {
-    if (!this.active) this.activate();
-    this.playClick();
-    // L3 shows controls guide
-    if (typeof showControlsGuide === 'function') {
-      showControlsGuide();
-    }
-  },
-
-  handleR3() {
-    if (!this.active) this.activate();
-    this.playClick();
-    // R3 toggles controller debug overlay
-    if (typeof showControllerDebug === 'function') {
-      const existing = document.getElementById('controller-debug-overlay');
-      if (existing) {
-        existing.remove();
-      } else {
-        showControllerDebug();
-      }
     }
   },
 
@@ -18049,48 +17822,6 @@ const GamepadController = {
 
   // ===== COMBAT HELPERS =====
 
-  cycleUnit(dir) {
-    const ctx = this.getContext();
-    let cards;
-
-    if (ctx === 'targeting') {
-      if (typeof S !== 'undefined') {
-        if (['Attack', 'Grapple', 'D20_TARGET'].includes(S.pending)) {
-          cards = Array.from(document.querySelectorAll('.card.enemy:not(.dead)'));
-        } else {
-          cards = Array.from(document.querySelectorAll('.card.hero:not(.dead)'));
-        }
-      }
-    } else {
-      cards = Array.from(document.querySelectorAll('.card.hero:not(.dead)'));
-    }
-
-    if (!cards || cards.length === 0) return;
-
-    let idx = cards.findIndex(c => c === this.focusedElement || c.contains(this.focusedElement));
-    if (idx === -1) idx = 0;
-    else idx = dir === 'next' ? (idx + 1) % cards.length : (idx - 1 + cards.length) % cards.length;
-
-    this.setFocus(cards[idx]);
-  },
-
-  cycleSigil(dir) {
-    let hero = this.focusedElement?.closest('.card.hero');
-    if (!hero) {
-      hero = document.querySelector('.card.hero.active');
-    }
-    if (!hero) return;
-
-    const sigils = Array.from(hero.querySelectorAll('.sigil.clickable'));
-    if (sigils.length === 0) return;
-
-    let idx = sigils.findIndex(s => s === this.focusedElement);
-    if (idx === -1) idx = 0;
-    else idx = dir === 'next' ? (idx + 1) % sigils.length : (idx - 1 + sigils.length) % sigils.length;
-
-    this.setFocus(sigils[idx]);
-  },
-
   autoTarget() {
     const ctx = this.getContext();
     if (ctx !== 'targeting' || typeof S === 'undefined' || !S.pending) return;
@@ -18129,7 +17860,6 @@ const GamepadController = {
   // ===== CLEANUP =====
 
   destroy() {
-    this.stopPolling();
     this.deactivate();
   }
 };
@@ -18164,15 +17894,15 @@ function showSteamDeckHelp() {
 <div class="modal-container dark" style="max-width:400px">
   <h2 class="modal-title" style="margin-bottom:1rem">🎮 Steam Deck Setup</h2>
   <div style="text-align:left;font-size:0.85rem;line-height:1.5">
-    <p style="margin-bottom:0.8rem">Controller not working? Steam may be intercepting input.</p>
-    <p style="margin-bottom:0.5rem"><strong>To fix:</strong></p>
-    <ol style="margin-left:1.2rem;margin-bottom:1rem">
-      <li>Press the <strong>STEAM</strong> button</li>
-      <li>Go to <strong>Controller Settings</strong></li>
-      <li>Select <strong>"Gamepad with Joystick Trackpad"</strong></li>
-      <li>Or choose <strong>"Gamepad"</strong> template</li>
-    </ol>
-    <p style="font-size:0.8rem;opacity:0.8">This tells Steam to pass controller input directly to the game instead of converting it to mouse/keyboard.</p>
+    <p style="margin-bottom:0.8rem">For best results, use Steam's <strong>Web Browser</strong> controller template.</p>
+    <p style="margin-bottom:0.5rem"><strong>Controls:</strong></p>
+    <ul style="margin-left:1.2rem;margin-bottom:1rem">
+      <li><strong>D-pad</strong> - Navigate</li>
+      <li><strong>A</strong> - Select/Confirm</li>
+      <li><strong>B</strong> - Back/Cancel</li>
+      <li><strong>Arrows</strong> - D-pad alternatives</li>
+    </ul>
+    <p style="font-size:0.8rem;opacity:0.8">If buttons don't work, check Steam → Controller Settings and try "Web Browser" or "Keyboard" template.</p>
   </div>
   <button class="btn" onclick="closeSteamDeckHelp()" style="margin-top:1rem">Got it</button>
 </div>
@@ -18181,7 +17911,6 @@ function showSteamDeckHelp() {
 }
 
 function closeSteamDeckHelp() {
-  // Only remove the Steam Deck help modal, not other modals
   const overlay = document.querySelector('.steam-deck-help-overlay');
   if (overlay) {
     const modal = overlay.previousElementSibling;
