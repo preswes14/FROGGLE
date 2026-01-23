@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Steam Deck Key Tester</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: monospace;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 20px;
+      font-size: 16px;
+    }
+    h1 { color: #4ecdc4; margin-bottom: 10px; }
+    .log {
+      background: #16213e;
+      padding: 15px;
+      border-radius: 8px;
+      min-height: 400px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .event {
+      margin: 5px 0;
+      padding: 8px;
+      background: #0f3460;
+      border-radius: 4px;
+    }
+    .key { color: #e94560; font-weight: bold; }
+    .code { color: #4ecdc4; }
+    .type { color: #f9ed69; }
+    .clear {
+      margin-top: 15px;
+      padding: 15px 30px;
+      font-size: 18px;
+      background: #e94560;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .instructions {
+      background: #16213e;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Steam Deck Key Tester</h1>
+  <div class="instructions">
+    <p>Press each button on your Steam Deck controller and note what appears:</p>
+    <p>• A button → ?</p>
+    <p>• B button → ?</p>
+    <p>• X button → ?</p>
+    <p>• Y button → ?</p>
+    <p>• D-pad → ?</p>
+    <p>• Start/Select → ?</p>
+    <p>• Bumpers/Triggers → ?</p>
+  </div>
+  <div id="log" class="log"></div>
+  <button class="clear" onclick="document.getElementById('log').innerHTML=''">Clear Log</button>
+
+  <script>
+    const log = document.getElementById('log');
+    let eventCount = 0;
+
+    function logEvent(type, e) {
+      eventCount++;
+      const div = document.createElement('div');
+      div.className = 'event';
+      div.innerHTML = `
+        <span class="type">[${type}]</span>
+        key=<span class="key">"${e.key}"</span>
+        code=<span class="code">${e.code}</span>
+        keyCode=${e.keyCode}
+        repeat=${e.repeat}
+      `;
+      log.insertBefore(div, log.firstChild);
+
+      // Keep only last 50 events
+      while (log.children.length > 50) {
+        log.removeChild(log.lastChild);
+      }
+    }
+
+    document.addEventListener('keydown', e => logEvent('keydown', e));
+    document.addEventListener('keyup', e => logEvent('keyup', e));
+
+    // Also check for mouse events (Steam might map some buttons to clicks)
+    document.addEventListener('mousedown', e => {
+      const div = document.createElement('div');
+      div.className = 'event';
+      div.innerHTML = `<span class="type">[mousedown]</span> button=${e.button}`;
+      log.insertBefore(div, log.firstChild);
+    });
+
+    // Check if Gamepad API even sees anything
+    window.addEventListener('gamepadconnected', e => {
+      const div = document.createElement('div');
+      div.className = 'event';
+      div.innerHTML = `<span class="type">[gamepad]</span> CONNECTED: ${e.gamepad.id}`;
+      log.insertBefore(div, log.firstChild);
+    });
+
+    // Poll for gamepad
+    setInterval(() => {
+      const gps = navigator.getGamepads();
+      for (const gp of gps) {
+        if (gp) {
+          for (let i = 0; i < gp.buttons.length; i++) {
+            if (gp.buttons[i].pressed) {
+              const div = document.createElement('div');
+              div.className = 'event';
+              div.innerHTML = `<span class="type">[gamepad-poll]</span> button[${i}] pressed`;
+              log.insertBefore(div, log.firstChild);
+            }
+          }
+        }
+      }
+    }, 100);
+  </script>
+</body>
+</html>
