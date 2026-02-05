@@ -244,6 +244,10 @@ function trackQuestProgress(type, value) {
       if(value > S.questProgress.highestFloor) {
         S.questProgress.highestFloor = value;
       }
+      // Track FU mode floor progress separately
+      if(S.gameMode === 'fu' && value > (S.questProgress.highestFUFloor || 0)) {
+        S.questProgress.highestFUFloor = value;
+      }
       break;
     case 'gold':
       S.questProgress.totalGoldEarned += value;

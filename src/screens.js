@@ -239,7 +239,7 @@ ${run.xpEarned !== undefined ? `
 ` : ''}
 ${run.goldEarned !== undefined ? `
 <div style="display:flex;justify-content:space-between">
-<span style="color:#94a3b8">Gold Earned:</span>
+<span style="color:#94a3b8">Gold Balance:</span>
 <span style="color:#fbbf24;font-weight:bold">${run.goldEarned}G</span>
 </div>
 ` : ''}
@@ -575,7 +575,9 @@ S.goingRate += rateIncrease;
 trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
 SoundFX.play('powerUp');
-toast(`${sig} upgraded to L${S.sig[sig]}!`, 1200);
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const displayLevel = actives.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+toast(`${sig} upgraded to L${displayLevel}!`, 1200);
 savePermanent();
 showDeathScreen(); // Refresh
 }
@@ -1304,7 +1306,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 <h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
 <img src="assets/tapo.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
-<p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Has access to ALL sigils in the Sigilarium</p>
+<p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Starts with D20 + any upgraded passives</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.6;margin-top:0.5rem;font-style:italic">(Glass cannon mode activated)</p>
 </div>
 
@@ -1840,7 +1842,7 @@ const QUESTS = {
     reward: 20,
     category: 'fu',
     unlock: () => S.fuUnlocked,
-    check: () => S.questProgress.highestFloor >= 1 && S.gameMode === 'fu'
+    check: () => (S.questProgress.highestFUFloor || 0) >= 1
   },
   recruiter: {
     name: 'Recruiter',

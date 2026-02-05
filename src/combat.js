@@ -817,7 +817,7 @@ const dmg = enemy.p;
 toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
-enemy.st = 1;
+enemy.st = Math.max(enemy.st, 1);
 // Show stun tutorial popup first time
 showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
@@ -1096,6 +1096,8 @@ const target = S.heroes.find(x => x.id === id);
 if(!target) return;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
 if(S.pending === 'Shield' || S.pending === 'Heal') {
+// Last Stand heroes can only be targeted by Heal, not Shield
+if(S.pending === 'Shield' && target.ls) { toast(`${target.n} is in Last Stand - can't gain shields!`); return; }
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
   S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
@@ -1110,8 +1112,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Count available heroes (alive heroes not yet targeted)
-const availableHeroes = S.heroes.filter(hero => (hero.h > 0 || hero.ls) && !S.currentInstanceTargets.includes(hero.id)).length;
+// Count available heroes (alive heroes not yet targeted; Shield excludes LS heroes)
+const availableHeroes = S.heroes.filter(hero => {
+  if(S.currentInstanceTargets.includes(hero.id)) return false;
+  if(S.pending === 'Shield') return hero.h > 0 && !hero.ls;
+  return hero.h > 0 || hero.ls;
+}).length;
 // Auto-confirm when targets are full OR all available heroes selected (manual only, not auto-select)
 const shouldAutoConfirm = (S.currentInstanceTargets.length >= targetsPerInstance || availableHeroes === 0) && !S.autoSelectInProgress;
 if(shouldAutoConfirm) {
@@ -1120,10 +1126,11 @@ if(shouldAutoConfirm) {
   render();
 }
 } else if(S.pending === 'Alpha') {
-// Alpha: can't target self or already-acted heroes
+// Alpha: can't target self, already-acted heroes, or Last Stand heroes
 const alphaUser = S.heroes[S.activeIdx];
 if(!alphaUser) return; // Guard against invalid activeIdx
 if(id === alphaUser.id) { toast('Cannot Alpha yourself!'); return; }
+if(target.ls) { toast(`${target.n} is in Last Stand - can only use D20!`); return; }
 const targetIdx = S.heroes.findIndex(x => x.id === id);
 if(S.acted.includes(targetIdx)) { toast('That hero already acted!'); return; }
 // Toggle: if already targeted, remove it
@@ -1864,7 +1871,8 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 const dmgToRecruit = target.p;
-recruit.h -= dmgToRecruit;
+// Use applyDamageToTarget so shields/ghost are respected
+const recoil = applyDamageToTarget(recruit, dmgToRecruit, {isHero: false, skipRewards: true, silent: true});
 toast(`${recruit.n} (Recruit) grappled ${target.n}!`);
 if(recruit.h <= 0) {
 recruit.h = 0;
@@ -2413,7 +2421,8 @@ html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
-const isTargetable = S.pending && needsHeroTarget(S.pending);
+// Last Stand heroes can only be targeted by Heal (not Shield or Alpha)
+const isTargetable = S.pending === 'Heal';
 const hasActed = S.acted.includes(i);
 const isActive = S.activeIdx === i;
 let lsClasses = 'card hero last-stand-flipped';

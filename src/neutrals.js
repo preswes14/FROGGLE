@@ -1395,7 +1395,7 @@ warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], b
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
 mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
 healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], bonus: 'ALL sigils'}
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upgraded passives'}
 };
 
 // Update all card displays
@@ -2998,6 +2998,7 @@ if(state.stage === 2) {
 payout = Math.min(payout, 40); // Cap at 40G for Stage 2
 }
 const netGain = payout - state.wager;
+S.gold -= state.wager; // Deduct wager before adding payout
 S.gold += payout;
 upd();
 
@@ -3363,7 +3364,7 @@ v.innerHTML = `
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
 Baby Tapo has been added to your hero roster!<br>
 <span style="color:#22c55e">Stats: 1 HP / 1 POW</span><br>
-<span style="color:#8b5cf6">Starts with ALL active sigils!</span>
+<span style="color:#8b5cf6">Starts with D20 + any upgraded passives!</span>
 </div>
 </div>
 <button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #3b82f6, #f97316);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>

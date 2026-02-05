@@ -115,7 +115,7 @@ Enemy Turn:
 | Tank | 1 | 10 | Attack, Shield, D20 | Defensive, high HP |
 | Mage | 1 | 5 | Attack, D20, Expand | Multi-target (Expand always +1 level higher) |
 | Healer | 1 | 5 | Heal, D20, Expand | Support (Expand always +1 level higher) |
-| Tapo | 1 | 1 | ALL sigils | Unlockable, versatile |
+| Tapo | 1 | 1 | D20 (+ upgraded passives) | Unlockable, versatile |
 
 ### Sigils (10 Types)
 
@@ -149,7 +149,7 @@ Defined in `E` object (constants.js).
 | Giant | 3 | 12 | 6 | 12 | 1 turn | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | Shield L1 |
 | Cave Troll | 4 | 15 | 10 | 15 | special | Expand, Shield, Grapple, Alpha, Heal, Ghost | **RAGE:** Attack L1→L2→L3→L1 |
 | Dragon | 5 | 20 | 20 | 25 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L1 |
-| Flydra | 5 | 25 | 100† | 50/head | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
+| Flydra | 5 | 25 | 150† | 50/head | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
 
 †Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2.
 
@@ -159,7 +159,7 @@ Defined in `E` object (constants.js).
 - **Cave Troll**: Rolling rage mechanic - Attack level cycles L1→L2→L3→L1. Draws a sigil each turn EXCEPT on reset turns (when L3→L1)
 - **Giant**: Starts with Shield L1, can draw Attack/Shield/Heal at L2
 - **Dragon**: Permanent Attack L2 + Expand L1 (always hits 2 targets twice)
-- **Flydra** (Floor 19 boss): Multi-headed, revives at 50% HP if other heads alive, grants Ghost charges to surviving heads on death. †Gold (100) awarded only when ALL heads defeated; XP awarded per-head kill
+- **Flydra** (Floor 19 boss): Multi-headed, revives at 50% HP if other heads alive, grants Ghost charges to surviving heads on death. †Gold (150) awarded only when ALL heads defeated; XP awarded per-head kill
 
 **Floor Appearances** (N = hero count, 2 or 3):
 | Floor | Encounter |
@@ -189,7 +189,7 @@ Defined in `E` object (constants.js).
    - Displayed: stored + 1 for active sigils (L0 stored = "L1" shown)
    - `getLevel(sigil)` returns the TOTAL (permanent + temp)
 5. **Ghost before Last Stand**: Ghost charges prevent lethal damage BEFORE checking Last Stand
-6. **Last Stand restrictions**: Heroes in Last Stand (`hero.ls === true`) can ONLY use D20
+6. **Last Stand restrictions**: Heroes in Last Stand (`hero.ls === true`) can ONLY use D20. They can only be targeted by Heal (to revive) or Stun — they cannot take damage or gain shields
 7. **Damage goes through shield first**: Shield absorbs before HP reduces
 8. **Multi-instance state**: `S.instancesRemaining` tracks remaining instances, `S.currentInstanceTargets` for current selection
 
