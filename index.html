@@ -2344,7 +2344,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.23';
+const GAME_VERSION = 'S_1.24';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2950,7 +2950,8 @@ showTapoRescueSequence();
 }
 return {hpLost: 0, shieldLost, totalDamage: rawDamage};
 }
-// Heroes enter Last Stand
+// Heroes enter Last Stand (guard against re-entry resetting lst)
+if(!target.ls) {
 target.ls = true;
 target.lst = 0;
 triggerScreenShake(true); // Heavy shake on entering last stand
@@ -2960,6 +2961,7 @@ toast(`${target.n} entered Last Stand!`, 3000);
 // Skip Last Stand explanation during tutorial - Tapo intervention prevents it
 if(!(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
+}
 }
 }
 } else {
@@ -5560,6 +5562,10 @@ function trackQuestProgress(type, value) {
       if(value > S.questProgress.highestFloor) {
         S.questProgress.highestFloor = value;
       }
+      // Track FU mode floor progress separately
+      if(S.gameMode === 'fu' && value > (S.questProgress.highestFUFloor || 0)) {
+        S.questProgress.highestFUFloor = value;
+      }
       break;
     case 'gold':
       S.questProgress.totalGoldEarned += value;
@@ -7635,7 +7641,7 @@ const dmg = enemy.p;
 toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
-enemy.st = 1;
+enemy.st = Math.max(enemy.st, 1);
 // Show stun tutorial popup first time
 showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
@@ -7914,6 +7920,8 @@ const target = S.heroes.find(x => x.id === id);
 if(!target) return;
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
 if(S.pending === 'Shield' || S.pending === 'Heal') {
+// Last Stand heroes can only be targeted by Heal, not Shield
+if(S.pending === 'Shield' && target.ls) { toast(`${target.n} is in Last Stand - can't gain shields!`); return; }
 // Toggle: if already targeted, remove it
 if(S.currentInstanceTargets.includes(id)) {
   S.currentInstanceTargets = S.currentInstanceTargets.filter(t => t !== id);
@@ -7928,8 +7936,12 @@ if(S.currentInstanceTargets.length >= targetsPerInstance) {
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
-// Count available heroes (alive heroes not yet targeted)
-const availableHeroes = S.heroes.filter(hero => (hero.h > 0 || hero.ls) && !S.currentInstanceTargets.includes(hero.id)).length;
+// Count available heroes (alive heroes not yet targeted; Shield excludes LS heroes)
+const availableHeroes = S.heroes.filter(hero => {
+  if(S.currentInstanceTargets.includes(hero.id)) return false;
+  if(S.pending === 'Shield') return hero.h > 0 && !hero.ls;
+  return hero.h > 0 || hero.ls;
+}).length;
 // Auto-confirm when targets are full OR all available heroes selected (manual only, not auto-select)
 const shouldAutoConfirm = (S.currentInstanceTargets.length >= targetsPerInstance || availableHeroes === 0) && !S.autoSelectInProgress;
 if(shouldAutoConfirm) {
@@ -7938,10 +7950,11 @@ if(shouldAutoConfirm) {
   render();
 }
 } else if(S.pending === 'Alpha') {
-// Alpha: can't target self or already-acted heroes
+// Alpha: can't target self, already-acted heroes, or Last Stand heroes
 const alphaUser = S.heroes[S.activeIdx];
 if(!alphaUser) return; // Guard against invalid activeIdx
 if(id === alphaUser.id) { toast('Cannot Alpha yourself!'); return; }
+if(target.ls) { toast(`${target.n} is in Last Stand - can only use D20!`); return; }
 const targetIdx = S.heroes.findIndex(x => x.id === id);
 if(S.acted.includes(targetIdx)) { toast('That hero already acted!'); return; }
 // Toggle: if already targeted, remove it
@@ -8682,7 +8695,8 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 const dmgToRecruit = target.p;
-recruit.h -= dmgToRecruit;
+// Use applyDamageToTarget so shields/ghost are respected
+const recoil = applyDamageToTarget(recruit, dmgToRecruit, {isHero: false, skipRewards: true, silent: true});
 toast(`${recruit.n} (Recruit) grappled ${target.n}!`);
 if(recruit.h <= 0) {
 recruit.h = 0;
@@ -9231,7 +9245,8 @@ html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.
 
 // LAST STAND: Flipped card visual (similar to dying Flydra)
 if(h.ls) {
-const isTargetable = S.pending && needsHeroTarget(S.pending);
+// Last Stand heroes can only be targeted by Heal (not Shield or Alpha)
+const isTargetable = S.pending === 'Heal';
 const hasActed = S.acted.includes(i);
 const isActive = S.activeIdx === i;
 let lsClasses = 'card hero last-stand-flipped';
@@ -11779,7 +11794,7 @@ warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], b
 tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
 mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
 healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'], bonus: 'ALL sigils'}
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upgraded passives'}
 };
 
 // Update all card displays
@@ -13382,6 +13397,7 @@ if(state.stage === 2) {
 payout = Math.min(payout, 40); // Cap at 40G for Stage 2
 }
 const netGain = payout - state.wager;
+S.gold -= state.wager; // Deduct wager before adding payout
 S.gold += payout;
 upd();
 
@@ -13747,7 +13763,7 @@ v.innerHTML = `
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
 Baby Tapo has been added to your hero roster!<br>
 <span style="color:#22c55e">Stats: 1 HP / 1 POW</span><br>
-<span style="color:#8b5cf6">Starts with ALL active sigils!</span>
+<span style="color:#8b5cf6">Starts with D20 + any upgraded passives!</span>
 </div>
 </div>
 <button class="btn" onclick="completeTapoUnlock()" style="background:linear-gradient(135deg, #3b82f6, #f97316);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Victory!</button>
@@ -14063,7 +14079,7 @@ ${run.xpEarned !== undefined ? `
 ` : ''}
 ${run.goldEarned !== undefined ? `
 <div style="display:flex;justify-content:space-between">
-<span style="color:#94a3b8">Gold Earned:</span>
+<span style="color:#94a3b8">Gold Balance:</span>
 <span style="color:#fbbf24;font-weight:bold">${run.goldEarned}G</span>
 </div>
 ` : ''}
@@ -14399,7 +14415,9 @@ S.goingRate += rateIncrease;
 trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
 SoundFX.play('powerUp');
-toast(`${sig} upgraded to L${S.sig[sig]}!`, 1200);
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const displayLevel = actives.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+toast(`${sig} upgraded to L${displayLevel}!`, 1200);
 savePermanent();
 showDeathScreen(); // Refresh
 }
@@ -15128,7 +15146,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 <h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
 <img src="assets/tapo.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
-<p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Has access to ALL sigils in the Sigilarium</p>
+<p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Starts with D20 + any upgraded passives</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.6;margin-top:0.5rem;font-style:italic">(Glass cannon mode activated)</p>
 </div>
 
@@ -15664,7 +15682,7 @@ const QUESTS = {
     reward: 20,
     category: 'fu',
     unlock: () => S.fuUnlocked,
-    check: () => S.questProgress.highestFloor >= 1 && S.gameMode === 'fu'
+    check: () => (S.questProgress.highestFUFloor || 0) >= 1
   },
   recruiter: {
     name: 'Recruiter',
@@ -16452,7 +16470,12 @@ function toggleHelpTips(enabled) {
 S.helpTipsDisabled = !enabled;
 // If turning ON, reset all tutorial flags so they show again
 if(enabled) {
-S.tutorialFlags = {};
+// Preserve narrative/progression flags while resetting tip popups
+const narrativeFlags = ['death_intro', 'first_victory_sequence', 'first_fu_victory',
+  'tapo_victory_message', 'death_exit_warning', 'tutorial_fly_munched'];
+const preserved = {};
+narrativeFlags.forEach(flag => { if(S.tutorialFlags[flag]) preserved[flag] = S.tutorialFlags[flag]; });
+S.tutorialFlags = preserved;
 toast('Help/Tips enabled! All tips reset and will show again.', 2000);
 // Re-trigger current screen to show relevant popups immediately
 if(typeof render === 'function') {
@@ -16735,13 +16758,13 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeControlsGuide() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay');
+const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
 function showSteamInputGuide() {
 // Remove existing modal first
-const menus = document.querySelectorAll('.modal-container, .modal-overlay');
+const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 
 const v = document.getElementById('gameView');
@@ -17043,7 +17066,7 @@ arrow.textContent = '▼';
 }
 
 function closeFAQ() {
-const overlays = document.querySelectorAll('.modal-container.dark, .modal-overlay');
+const overlays = document.querySelectorAll('.modal-container.faq, .modal-overlay');
 overlays.forEach(el => el.remove());
 }
 
@@ -17250,6 +17273,8 @@ hero.p = newPOW;
 hero.m = newMaxHP;
 // Also set current HP to max HP for convenience
 hero.h = newMaxHP;
+// Clear Last Stand if setting HP > 0
+if(hero.ls && hero.h > 0) { hero.ls = false; hero.lst = 0; }
 saveGame();
 upd();
 toast(`Updated ${hero.n}: POW=${newPOW}, HP=${newMaxHP}!`, 1200);
@@ -18263,18 +18288,51 @@ S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
+starterActives.forEach(sig => {
+if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
+S.sig[sig] = 0;
+needsFix = true;
+}
+});
+if(needsFix) {
+debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
+}
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
+S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
+S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
+S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
+S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
+S.masterVolume = j.masterVolume !== undefined ? j.masterVolume : 1.0;
+S.sfxVolume = j.sfxVolume !== undefined ? j.sfxVolume : 1.0;
+S.musicVolume = j.musicVolume !== undefined ? j.musicVolume : 1.0;
+S.pondHistory = j.pondHistory || [];
+// Apply high contrast mode if enabled
+if(S.highContrastMode) document.body.classList.add('high-contrast');
+// Load quest data with defaults
+S.questsCompleted = j.questsCompleted || {};
+S.questsClaimed = j.questsClaimed || {};
+if(j.questProgress) {
+  Object.assign(S.questProgress, j.questProgress);
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+}
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 S.currentSlot = slot;
 debugLog('[FROGGLE] Loaded slot-specific permanent data');

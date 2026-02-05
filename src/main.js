@@ -58,18 +58,51 @@ S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
+starterActives.forEach(sig => {
+if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
+S.sig[sig] = 0;
+needsFix = true;
+}
+});
+if(needsFix) {
+debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
+}
 S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
 S.fuUnlocked = j.fuUnlocked || false;
+S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
+S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
+S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
+S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
+S.masterVolume = j.masterVolume !== undefined ? j.masterVolume : 1.0;
+S.sfxVolume = j.sfxVolume !== undefined ? j.sfxVolume : 1.0;
+S.musicVolume = j.musicVolume !== undefined ? j.musicVolume : 1.0;
+S.pondHistory = j.pondHistory || [];
+// Apply high contrast mode if enabled
+if(S.highContrastMode) document.body.classList.add('high-contrast');
+// Load quest data with defaults
+S.questsCompleted = j.questsCompleted || {};
+S.questsClaimed = j.questsClaimed || {};
+if(j.questProgress) {
+  Object.assign(S.questProgress, j.questProgress);
+  if(!S.questProgress.heroesPlayed) S.questProgress.heroesPlayed = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.heroWins) S.questProgress.heroWins = { Warrior: 0, Tank: 0, Mage: 0, Healer: 0, Tapo: 0 };
+  if(!S.questProgress.neutralsCompleted) S.questProgress.neutralsCompleted = { shopkeeper: false, wishingwell: false, treasurechest: false, wizard: false, oracle: false, encampment: false, gambling: false, ghost: false, royal: false };
+  if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
+}
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 S.currentSlot = slot;
 debugLog('[FROGGLE] Loaded slot-specific permanent data');

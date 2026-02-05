@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.23';
+const GAME_VERSION = 'S_1.24';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -605,7 +605,8 @@ showTapoRescueSequence();
 }
 return {hpLost: 0, shieldLost, totalDamage: rawDamage};
 }
-// Heroes enter Last Stand
+// Heroes enter Last Stand (guard against re-entry resetting lst)
+if(!target.ls) {
 target.ls = true;
 target.lst = 0;
 triggerScreenShake(true); // Heavy shake on entering last stand
@@ -615,6 +616,7 @@ toast(`${target.n} entered Last Stand!`, 3000);
 // Skip Last Stand explanation during tutorial - Tapo intervention prevents it
 if(!(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
+}
 }
 }
 } else {

@@ -406,7 +406,12 @@ function toggleHelpTips(enabled) {
 S.helpTipsDisabled = !enabled;
 // If turning ON, reset all tutorial flags so they show again
 if(enabled) {
-S.tutorialFlags = {};
+// Preserve narrative/progression flags while resetting tip popups
+const narrativeFlags = ['death_intro', 'first_victory_sequence', 'first_fu_victory',
+  'tapo_victory_message', 'death_exit_warning', 'tutorial_fly_munched'];
+const preserved = {};
+narrativeFlags.forEach(flag => { if(S.tutorialFlags[flag]) preserved[flag] = S.tutorialFlags[flag]; });
+S.tutorialFlags = preserved;
 toast('Help/Tips enabled! All tips reset and will show again.', 2000);
 // Re-trigger current screen to show relevant popups immediately
 if(typeof render === 'function') {
@@ -689,13 +694,13 @@ v.insertAdjacentHTML('beforeend', html);
 }
 
 function closeControlsGuide() {
-const menus = document.querySelectorAll('.modal-container, .modal-overlay');
+const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 }
 
 function showSteamInputGuide() {
 // Remove existing modal first
-const menus = document.querySelectorAll('.modal-container, .modal-overlay');
+const menus = document.querySelectorAll('.modal-container.dark, .modal-overlay');
 menus.forEach(m => m.remove());
 
 const v = document.getElementById('gameView');
@@ -997,7 +1002,7 @@ arrow.textContent = '▼';
 }
 
 function closeFAQ() {
-const overlays = document.querySelectorAll('.modal-container.dark, .modal-overlay');
+const overlays = document.querySelectorAll('.modal-container.faq, .modal-overlay');
 overlays.forEach(el => el.remove());
 }
 
@@ -1204,6 +1209,8 @@ hero.p = newPOW;
 hero.m = newMaxHP;
 // Also set current HP to max HP for convenience
 hero.h = newMaxHP;
+// Clear Last Stand if setting HP > 0
+if(hero.ls && hero.h > 0) { hero.ls = false; hero.lst = 0; }
 saveGame();
 upd();
 toast(`Updated ${hero.n}: POW=${newPOW}, HP=${newMaxHP}!`, 1200);
