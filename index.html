@@ -2325,36 +2325,8 @@ body.controller-active .controller-prompts {
 
 <!-- Early error handler - catches parse errors in main script -->
 <script>
-window.onerror = function(msg, url, line, col, error) {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#1a0a0a;color:#ff6b6b;padding:2rem;z-index:999999;overflow:auto;font-family:monospace;font-size:14px;';
-  overlay.innerHTML = '<div style="max-width:800px;margin:0 auto;">' +
-    '<h1 style="color:#ff6b6b;margin-bottom:1rem;">⚠️ FROGGLE Crash Report</h1>' +
-    '<pre style="background:#000;padding:1rem;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-all;">' +
-    'Error: ' + msg + '\n\n' +
-    'Location: Line ' + line + ', Col ' + col + '\n\n' +
-    'Stack: ' + (error && error.stack ? error.stack : 'N/A') +
-    '</pre>' +
-    '<p style="margin-top:1rem;color:#888;">Take a photo of this screen and send to developer</p>' +
-    '</div>';
-  document.body.appendChild(overlay);
-  return false;
-};
-</script>
-
-<!-- Controller button prompts (shown when gamepad is connected) -->
-<div id="controllerPrompts" class="controller-prompts">
-  <div class="controller-prompt"><span class="controller-btn dpad">D-Pad</span> Move</div>
-  <div class="controller-prompt"><span class="controller-btn a">A</span> Select</div>
-  <div class="controller-prompt"><span class="controller-btn b">B</span> Back</div>
-  <div class="controller-prompt"><span class="controller-btn y">Y</span> Tooltip</div>
-  <div class="controller-prompt"><span class="controller-btn start">☰</span> Menu</div>
-</div>
-
-<!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
-<script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.26';
+const GAME_VERSION = 'S_1.27';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -7100,7 +7072,7 @@ enemy.rage = true;
 enemy.ragePattern = base.ragePattern;
 enemy.rageIndex = 0; // Start at first level (L1)
 // Start with Attack at first level of pattern
-enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
+enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: true});
 }
 return enemy;
 });
@@ -7443,7 +7415,7 @@ html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">✅ DC 10: CONFUSE</strong><br>
-<span style="font-size:0.95rem">Deal this enemy's POW to all enemies</span>
+<span style="font-size:0.95rem">Target deals its own POW to itself</span>
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
@@ -7479,7 +7451,7 @@ const lsBonus = h.lst * 2;
 html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
-{dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
+{dc:10, name:'CONFUSE', desc:'Target deals its own POW to itself'},
 {dc:12, name:'MEND', desc:'Heal self for POW'},
 {dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
@@ -7744,10 +7716,8 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
-// Guard against fast tapping causing negative instances
-if(S.instancesRemaining <= 0) return;
 
-// D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
+// D20_TARGET uses S.targets, not S.currentInstanceTargets - check before instancesRemaining guard
 if(S.pending === 'D20_TARGET') {
 if(!S.targets || S.targets.length === 0) {
   toast('Select at least one target first!');
@@ -7756,6 +7726,9 @@ if(!S.targets || S.targets.length === 0) {
 rollD20();
 return;
 }
+
+// Guard against fast tapping causing negative instances
+if(S.instancesRemaining <= 0) return;
 
 // For other actions, check S.currentInstanceTargets
 if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
@@ -8377,9 +8350,20 @@ toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction +
 render();
 return;
 } else {
-// All Alpha-granted actions complete
+// All Alpha-granted actions complete - DON'T consume recipient's normal turn
 S.alphaGrantedActions = [];
 S.alphaCurrentAction = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.turnDamage = 0;
+autosave();
+checkTurnEnd();
+render();
+return;
 }
 }
 // Normal action finish
@@ -8422,7 +8406,8 @@ function checkTurnEnd() {
 // First check if combat has ended (all enemies dead or all heroes in last stand)
 // This prevents continuing turn progression after victory/defeat
 if(S.enemies.length === 0 || S.heroes.every(h => h.ls)) {
-return; // Combat ended, don't process turn logic
+checkCombatEnd(); // Trigger defeat/victory handling (e.g., all heroes LS from Grapple recoil)
+return;
 }
 
 // Check if all non-stunned heroes have acted (optimized single-pass)
@@ -8782,6 +8767,8 @@ return true;
 });
 // Execute drawn sigils first (so Grapple stuns before attack)
 safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+// Check if enemy died from Grapple recoil before executing base attack
+if(enemy.h <= 0 && (!enemy.g || enemy.g === 0)) return;
 // Then execute base attack
 executeEnemyBaseAttack(enemy);
 enemy.s = enemy.s.filter(s => s.perm);
@@ -8813,9 +8800,9 @@ added.add(primaryHero.id);
 }
 if(targets.length >= count) return targets;
 
-// 2. That hero's recruited ally (if present)
+// 2. That hero's recruited ally (if present) - use recruitedBy to match the hero in this lane
 if(S.recruits && S.recruits.length > 0) {
-const primaryRecruit = S.recruits.find(r => r.li === enemy.li && r.h > 0);
+const primaryRecruit = S.recruits.find(r => r.recruitedBy === enemy.li && r.h > 0);
 if(primaryRecruit) {
 targets.push(primaryRecruit);
 added.add(primaryRecruit.id);
@@ -8842,8 +8829,8 @@ if(targets.length >= count) return targets;
 // 5-6. Recruited allies of nearby heroes, then any remaining
 if(S.recruits && S.recruits.length > 0) {
 const aliveRecruits = S.recruits.filter(r => r.h > 0 && !added.has(r.id));
-// Sort by lane distance from enemy
-aliveRecruits.sort((a, b) => Math.abs(a.li - enemy.li) - Math.abs(b.li - enemy.li));
+// Sort by proximity to enemy's lane (using recruitedBy for correct hero association)
+aliveRecruits.sort((a, b) => Math.abs(a.recruitedBy - enemy.li) - Math.abs(b.recruitedBy - enemy.li));
 
 for(const recruit of aliveRecruits) {
 if(targets.length >= count) break;
@@ -8882,7 +8869,8 @@ if(enemy.sh > enemy.m) enemy.sh = enemy.m;
 toast(`${getEnemyDisplayName(enemy)} gained ${shieldAmt} shield!`);
 } else if(sig === 'Heal') {
 const healAmt = 2 * enemy.p * level;
-const allies = S.enemies.filter(e => e.id !== enemy.id && e.h > 0);
+// Include self as heal candidate - heal the most injured ally or self
+const allies = S.enemies.filter(e => e.h > 0 && e.h < e.m);
 if(allies.length > 0) {
 allies.sort((a,b) => a.h - b.h);
 const healTarget = allies[0];
@@ -8894,14 +8882,15 @@ toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} f
 const target = S.heroes[enemy.li];
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
-enemy.h -= dmgToEnemy;
+// Use applyDamageToTarget so enemy shield/ghost are respected
+applyDamageToTarget(enemy, dmgToEnemy, {isHero: false, skipRewards: true, silent: true});
 toast(`${getEnemyDisplayName(enemy)} grappled ${target.n}!`);
-if(enemy.h <= 0) {
-enemy.h = 0;
+if(enemy.h <= 0 && enemy.g === 0) {
 toast(`${getEnemyDisplayName(enemy)} defeated by grapple recoil!`);
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 } else {
-target.st = level;
+// Use Math.max to avoid overwriting a higher existing stun value
+target.st = Math.max(target.st, level);
 toast(`${target.n} stunned for ${level} turns!`);
 }
 }
@@ -9126,11 +9115,12 @@ SoundFX.play('ribbit'); // Celebratory frog croak!
 
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
-let starBonus = 0;
+let maxStarLevel = 0;
 S.heroes.forEach(h => {
 const starLevel = getLevel('Star', S.heroes.indexOf(h));
-starBonus += starLevel * 0.5;
+if(starLevel > maxStarLevel) maxStarLevel = starLevel;
 });
+const starBonus = maxStarLevel * 0.5;
 const bonusXP = Math.floor(combatXP * (1 + starBonus));
 S.xp += bonusXP;
 S.combatXP = 0; // Reset combat XP
@@ -14427,7 +14417,6 @@ S.goingRate += rateIncrease;
 trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
 SoundFX.play('powerUp');
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const displayLevel = actives.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
 toast(`${sig} upgraded to L${displayLevel}!`, 1200);
 savePermanent();
@@ -16350,6 +16339,14 @@ let html = `
 v.insertAdjacentHTML('beforeend', html);
 }
 
+// Toggle toast log visibility in header
+function toggleToastLogVisibility(enabled) {
+S.toastLogVisible = enabled;
+savePermanent();
+render();
+toast(enabled ? '📜 Toast Log: Visible' : '📜 Toast Log: Hidden', 1500);
+}
+
 // Toggle high contrast mode
 function toggleHighContrastMode(enabled) {
 S.highContrastMode = enabled;
@@ -16929,14 +16926,17 @@ This is intentional! Plan your actions carefully.`
 q: "How does Last Stand work and how long does it last?",
 a: `When a hero reaches 0 HP (and has no Ghost charges), they enter <strong>Last Stand</strong> instead of dying immediately. In Last Stand:<br><br>
 • They can ONLY use D20 gambits (no other actions)<br>
-• Each turn in Last Stand increases D20 difficulty by +1 DC (caps at +4)<br>
-• If healed, they revive with the healed HP amount<br>
-• After ~5 turns, DC penalties make success nearly impossible<br><br>
-<strong>Last Stand Turn counter:</strong><br>
-Turn 1: DC +0 (CONFUSE is DC 16)<br>
-Turn 2: DC +1 (CONFUSE is DC 17)<br>
-Turn 5: DC +4 (CONFUSE is DC 20 - nat 20 required!)<br><br>
-You have a few turns to heal your Last Stand heroes before they become useless!`
+• Each turn in Last Stand increases D20 difficulty by +2 DC<br>
+• CONFUSE caps at DC 20; other gambits keep climbing<br>
+• If healed, they revive with the healed HP amount<br><br>
+<strong>Last Stand Turn counter (CONFUSE example):</strong><br>
+Turn 1: DC +0 (CONFUSE is DC 10)<br>
+Turn 2: DC +2 (CONFUSE is DC 12)<br>
+Turn 3: DC +4 (CONFUSE is DC 14)<br>
+Turn 4: DC +6 (CONFUSE is DC 16)<br>
+Turn 5: DC +8 (CONFUSE is DC 18)<br>
+Turn 6: DC +10 (CONFUSE is DC 20 - nat 20 required!)<br><br>
+You have a few turns to heal your Last Stand heroes before DCs become impossible!`
 },
 {
 q: "How many recruits can I have? What happens to them?",
@@ -18584,6 +18584,7 @@ showErrorOverlay('Unhandled Promise Rejection', String(e.reason));
 })();
 
 
+</script>
 </script>
 </body>
 </html>

@@ -274,6 +274,14 @@ let html = `
 v.insertAdjacentHTML('beforeend', html);
 }
 
+// Toggle toast log visibility in header
+function toggleToastLogVisibility(enabled) {
+S.toastLogVisible = enabled;
+savePermanent();
+render();
+toast(enabled ? '📜 Toast Log: Visible' : '📜 Toast Log: Hidden', 1500);
+}
+
 // Toggle high contrast mode
 function toggleHighContrastMode(enabled) {
 S.highContrastMode = enabled;
@@ -853,14 +861,17 @@ This is intentional! Plan your actions carefully.`
 q: "How does Last Stand work and how long does it last?",
 a: `When a hero reaches 0 HP (and has no Ghost charges), they enter <strong>Last Stand</strong> instead of dying immediately. In Last Stand:<br><br>
 • They can ONLY use D20 gambits (no other actions)<br>
-• Each turn in Last Stand increases D20 difficulty by +1 DC (caps at +4)<br>
-• If healed, they revive with the healed HP amount<br>
-• After ~5 turns, DC penalties make success nearly impossible<br><br>
-<strong>Last Stand Turn counter:</strong><br>
-Turn 1: DC +0 (CONFUSE is DC 16)<br>
-Turn 2: DC +1 (CONFUSE is DC 17)<br>
-Turn 5: DC +4 (CONFUSE is DC 20 - nat 20 required!)<br><br>
-You have a few turns to heal your Last Stand heroes before they become useless!`
+• Each turn in Last Stand increases D20 difficulty by +2 DC<br>
+• CONFUSE caps at DC 20; other gambits keep climbing<br>
+• If healed, they revive with the healed HP amount<br><br>
+<strong>Last Stand Turn counter (CONFUSE example):</strong><br>
+Turn 1: DC +0 (CONFUSE is DC 10)<br>
+Turn 2: DC +2 (CONFUSE is DC 12)<br>
+Turn 3: DC +4 (CONFUSE is DC 14)<br>
+Turn 4: DC +6 (CONFUSE is DC 16)<br>
+Turn 5: DC +8 (CONFUSE is DC 18)<br>
+Turn 6: DC +10 (CONFUSE is DC 20 - nat 20 required!)<br><br>
+You have a few turns to heal your Last Stand heroes before DCs become impossible!`
 },
 {
 q: "How many recruits can I have? What happens to them?",
