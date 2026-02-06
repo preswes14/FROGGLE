@@ -12,7 +12,7 @@ const GamepadController = {
   // Gamepad state
   pollInterval: null,
   lastButtons: {},
-  lastAxes: { lx: 0, ly: 0, rx: 0, ry: 0 },
+  lastAxes: { lx: 0, ly: 0 },
   connected: false,
 
   // Steam Deck input interception detection
@@ -116,11 +116,11 @@ const GamepadController = {
 
     const prev = this.lastButtons;
 
-    // Face buttons
-    if (this.pressed(gp, 0) && !prev[0]) { this.markInputReceived(); this.handleA(); }
-    if (this.pressed(gp, 1) && !prev[1]) { this.markInputReceived(); this.handleB(); }
-    if (this.pressed(gp, 2) && !prev[2]) { this.markInputReceived(); this.handleX(); }
-    if (this.pressed(gp, 3) && !prev[3]) { this.markInputReceived(); this.handleY(); }
+    // Face buttons (debounced to match keyboard behavior)
+    if (this.pressed(gp, 0) && !prev[0]) { this.markInputReceived(); if (this.shouldAllowAction('A')) this.handleA(); }
+    if (this.pressed(gp, 1) && !prev[1]) { this.markInputReceived(); if (this.shouldAllowAction('B')) this.handleB(); }
+    if (this.pressed(gp, 2) && !prev[2]) { this.markInputReceived(); if (this.shouldAllowAction('X')) this.handleX(); }
+    if (this.pressed(gp, 3) && !prev[3]) { this.markInputReceived(); if (this.shouldAllowAction('Y')) this.handleY(); }
 
     // Shoulders
     if (this.pressed(gp, 4) && !prev[4]) { this.markInputReceived(); this.handleLB(); }
@@ -130,9 +130,9 @@ const GamepadController = {
     if (this.pressed(gp, 6) && !prev[6]) { this.markInputReceived(); this.handleLT(); }
     if (this.pressed(gp, 7) && !prev[7]) { this.markInputReceived(); this.handleRT(); }
 
-    // Select/Start
-    if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); this.handleSelect(); }
-    if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); this.handleStart(); }
+    // Select/Start (debounced - these open menus)
+    if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); if (this.shouldAllowAction('Select')) this.handleSelect(); }
+    if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); if (this.shouldAllowAction('Start')) this.handleStart(); }
 
     // Stick clicks
     if (this.pressed(gp, 10) && !prev[10]) { this.markInputReceived(); this.handleL3(); }
@@ -156,22 +156,21 @@ const GamepadController = {
     if (ly < -deadzone && prevLy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
     if (ly > deadzone && prevLy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
 
+    // Right stick: smooth scrolling (more useful than duplicating left stick nav)
     const rx = gp.axes[2] || 0;
     const ry = gp.axes[3] || 0;
-    const prevRx = this.lastAxes.rx;
-    const prevRy = this.lastAxes.ry;
 
-    if (rx < -deadzone && prevRx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
-    if (rx > deadzone && prevRx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
-    if (ry < -deadzone && prevRy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
-    if (ry > deadzone && prevRy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
+    if (Math.abs(ry) > deadzone) {
+      this.markInputReceived();
+      this.scrollSmooth(ry);
+    }
 
     // Save state
     this.lastButtons = {};
     for (let i = 0; i < gp.buttons.length; i++) {
       this.lastButtons[i] = this.pressed(gp, i);
     }
-    this.lastAxes = { lx, ly, rx, ry };
+    this.lastAxes = { lx, ly };
   },
 
   pressed(gp, index) {
@@ -384,6 +383,9 @@ const GamepadController = {
       return;
     }
 
+    // Cooldown after tutorial dismiss to prevent click-through
+    if (window.tutorialDismissTime && Date.now() - window.tutorialDismissTime < 300) return;
+
     // Try focused element first
     if (this.focusedElement && document.body.contains(this.focusedElement)) {
       if (this.focusedElement.hasAttribute('onclick')) {
@@ -444,6 +446,8 @@ const GamepadController = {
     if (ctx === 'targeting' && typeof S !== 'undefined') {
       S.pending = null;
       S.targets = [];
+      S.currentInstanceTargets = [];
+      S.instancesRemaining = 0;
       if (typeof render === 'function') render();
       return;
     }
@@ -696,6 +700,29 @@ const GamepadController = {
 
     if (best) {
       this.setFocus(best);
+    } else {
+      // Wrap around: if no element found in direction, pick the furthest element
+      // in the opposite direction (wraps focus to the other side of the screen)
+      let wrapBest = null;
+      let wrapScore = -Infinity;
+      for (const el of this.focusableElements) {
+        if (el === this.focusedElement) continue;
+        const rect = el.getBoundingClientRect();
+        const ex = rect.left + rect.width / 2;
+        const ey = rect.top + rect.height / 2;
+        let score;
+        switch (dir) {
+          case 'up': score = ey; break;     // Furthest down
+          case 'down': score = -ey; break;  // Furthest up
+          case 'left': score = ex; break;   // Furthest right
+          case 'right': score = -ex; break; // Furthest left
+        }
+        if (score > wrapScore) {
+          wrapScore = score;
+          wrapBest = el;
+        }
+      }
+      if (wrapBest) this.setFocus(wrapBest);
     }
   },
 
@@ -770,8 +797,19 @@ const GamepadController = {
       '.upgrade-option'
     ];
 
+    // Scope to active modal if one exists, preventing focus from jumping behind it
+    let root = document;
+    const ctx = this.getContext();
+    if (ctx === 'tutorial') {
+      root = document.querySelector('.tutorial-modal-backdrop') || document;
+    } else if (ctx === 'confirm') {
+      root = document.querySelector('.confirm-modal') || document;
+    } else if (ctx === 'modal') {
+      root = document.querySelector('.modal-container') || document;
+    }
+
     this.focusableElements = Array.from(
-      document.querySelectorAll(selectors.join(','))
+      root.querySelectorAll(selectors.join(','))
     ).filter(el => {
       const style = getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden') return false;
@@ -908,6 +946,16 @@ const GamepadController = {
     if (gameView) {
       const amount = window.innerHeight * 0.5;
       gameView.scrollBy({ top: dir === 'up' ? -amount : amount, behavior: 'smooth' });
+    }
+  },
+
+  // Smooth per-frame scrolling for right stick (called each poll at 60fps)
+  scrollSmooth(axisValue) {
+    const gameView = document.getElementById('gameView');
+    if (gameView) {
+      // Scale by axis deflection for proportional speed
+      const amount = axisValue * 12;
+      gameView.scrollBy({ top: amount, behavior: 'instant' });
     }
   },
 
