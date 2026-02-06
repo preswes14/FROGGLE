@@ -266,7 +266,7 @@ enemy.rage = true;
 enemy.ragePattern = base.ragePattern;
 enemy.rageIndex = 0; // Start at first level (L1)
 // Start with Attack at first level of pattern
-enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: false});
+enemy.s.push({sig: 'Attack', level: base.ragePattern[0], perm: true});
 }
 return enemy;
 });
@@ -609,7 +609,7 @@ html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">✅ DC 10: CONFUSE</strong><br>
-<span style="font-size:0.95rem">Deal this enemy's POW to all enemies</span>
+<span style="font-size:0.95rem">Target deals its own POW to itself</span>
 </div>`;
 // Show other options greyed out
 const lockedOptions = [
@@ -645,7 +645,7 @@ const lsBonus = h.lst * 2;
 html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
-{dc:10, name:'CONFUSE', desc:'Deal this enemy\'s POW to all enemies'},
+{dc:10, name:'CONFUSE', desc:'Target deals its own POW to itself'},
 {dc:12, name:'MEND', desc:'Heal self for POW'},
 {dc:15, name:'STARTLE', desc:'Stun for 1 turn (doesn\'t stack)'},
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
@@ -910,10 +910,8 @@ render();
 function confirmTargets() {
 if(S.locked) return;
 if(!S.pending) return;
-// Guard against fast tapping causing negative instances
-if(S.instancesRemaining <= 0) return;
 
-// D20_TARGET uses S.targets, not S.currentInstanceTargets - check first
+// D20_TARGET uses S.targets, not S.currentInstanceTargets - check before instancesRemaining guard
 if(S.pending === 'D20_TARGET') {
 if(!S.targets || S.targets.length === 0) {
   toast('Select at least one target first!');
@@ -922,6 +920,9 @@ if(!S.targets || S.targets.length === 0) {
 rollD20();
 return;
 }
+
+// Guard against fast tapping causing negative instances
+if(S.instancesRemaining <= 0) return;
 
 // For other actions, check S.currentInstanceTargets
 if(!S.currentInstanceTargets || S.currentInstanceTargets.length === 0) {
@@ -1543,9 +1544,20 @@ toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction +
 render();
 return;
 } else {
-// All Alpha-granted actions complete
+// All Alpha-granted actions complete - DON'T consume recipient's normal turn
 S.alphaGrantedActions = [];
 S.alphaCurrentAction = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.turnDamage = 0;
+autosave();
+checkTurnEnd();
+render();
+return;
 }
 }
 // Normal action finish
@@ -1588,7 +1600,8 @@ function checkTurnEnd() {
 // First check if combat has ended (all enemies dead or all heroes in last stand)
 // This prevents continuing turn progression after victory/defeat
 if(S.enemies.length === 0 || S.heroes.every(h => h.ls)) {
-return; // Combat ended, don't process turn logic
+checkCombatEnd(); // Trigger defeat/victory handling (e.g., all heroes LS from Grapple recoil)
+return;
 }
 
 // Check if all non-stunned heroes have acted (optimized single-pass)
@@ -1929,17 +1942,20 @@ return;
 // Attack sigil is a marker indicating the enemy attacks, not an additional action
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Attack');
 
-// Filter out suicidal grapples - enemies should never kill themselves
-// NOTE: We filter and execute sigils BEFORE base attack so Grapple works
-// (otherwise base attack might put hero in Last Stand, making Grapple fail)
+// Filter out suicidal grapples - enemies skip grapple if recoil would kill them
+// (after shields absorb), but will spend ghost charges to survive it
 const safeSigils = drawnSigils.filter(sigil => {
 if(sigil.sig === 'Grapple') {
 const target = S.heroes[enemy.li];
 if(target && target.h > 0) {
 const recoilDamage = target.p;
-// Skip grapple if it would kill the enemy
-if(enemy.h <= recoilDamage) {
-toast(`${getEnemyDisplayName(enemy)} considered Grapple but chose to survive instead!`);
+const shieldAbsorb = Math.min(enemy.sh || 0, recoilDamage);
+const hpDamage = recoilDamage - shieldAbsorb;
+// Ghost charges let the enemy survive - they'll spend one on the recoil hit
+if(enemy.g > 0) {
+// Allow grapple - ghost charge will absorb lethal hit via applyDamageToTarget
+} else if(enemy.h <= hpDamage) {
+// Would die from recoil with no ghost charges - sigil falls off
 return false;
 }
 }
@@ -1948,6 +1964,8 @@ return true;
 });
 // Execute drawn sigils first (so Grapple stuns before attack)
 safeSigils.forEach(sigil => executeEnemySigil(enemy, sigil));
+// Check if enemy died from Grapple recoil before executing base attack
+if(enemy.h <= 0 && (!enemy.g || enemy.g === 0)) return;
 // Then execute base attack
 executeEnemyBaseAttack(enemy);
 enemy.s = enemy.s.filter(s => s.perm);
@@ -1979,9 +1997,9 @@ added.add(primaryHero.id);
 }
 if(targets.length >= count) return targets;
 
-// 2. That hero's recruited ally (if present)
+// 2. That hero's recruited ally (if present) - use recruitedBy to match the hero in this lane
 if(S.recruits && S.recruits.length > 0) {
-const primaryRecruit = S.recruits.find(r => r.li === enemy.li && r.h > 0);
+const primaryRecruit = S.recruits.find(r => r.recruitedBy === enemy.li && r.h > 0);
 if(primaryRecruit) {
 targets.push(primaryRecruit);
 added.add(primaryRecruit.id);
@@ -2008,8 +2026,8 @@ if(targets.length >= count) return targets;
 // 5-6. Recruited allies of nearby heroes, then any remaining
 if(S.recruits && S.recruits.length > 0) {
 const aliveRecruits = S.recruits.filter(r => r.h > 0 && !added.has(r.id));
-// Sort by lane distance from enemy
-aliveRecruits.sort((a, b) => Math.abs(a.li - enemy.li) - Math.abs(b.li - enemy.li));
+// Sort by proximity to enemy's lane (using recruitedBy for correct hero association)
+aliveRecruits.sort((a, b) => Math.abs(a.recruitedBy - enemy.li) - Math.abs(b.recruitedBy - enemy.li));
 
 for(const recruit of aliveRecruits) {
 if(targets.length >= count) break;
@@ -2048,7 +2066,8 @@ if(enemy.sh > enemy.m) enemy.sh = enemy.m;
 toast(`${getEnemyDisplayName(enemy)} gained ${shieldAmt} shield!`);
 } else if(sig === 'Heal') {
 const healAmt = 2 * enemy.p * level;
-const allies = S.enemies.filter(e => e.id !== enemy.id && e.h > 0);
+// Include self as heal candidate - heal the most injured ally or self
+const allies = S.enemies.filter(e => e.h > 0 && e.h < e.m);
 if(allies.length > 0) {
 allies.sort((a,b) => a.h - b.h);
 const healTarget = allies[0];
@@ -2060,14 +2079,15 @@ toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} f
 const target = S.heroes[enemy.li];
 if(target && target.h > 0) {
 const dmgToEnemy = target.p;
-enemy.h -= dmgToEnemy;
+// Use applyDamageToTarget so enemy shield/ghost are respected
+applyDamageToTarget(enemy, dmgToEnemy, {isHero: false, skipRewards: true, silent: true});
 toast(`${getEnemyDisplayName(enemy)} grappled ${target.n}!`);
-if(enemy.h <= 0) {
-enemy.h = 0;
+if(enemy.h <= 0 && enemy.g === 0) {
 toast(`${getEnemyDisplayName(enemy)} defeated by grapple recoil!`);
 S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 } else {
-target.st = level;
+// Use Math.max to avoid overwriting a higher existing stun value
+target.st = Math.max(target.st, level);
 toast(`${target.n} stunned for ${level} turns!`);
 }
 }
