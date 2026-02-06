@@ -12,7 +12,7 @@ const GamepadController = {
   // Gamepad state
   pollInterval: null,
   lastButtons: {},
-  lastAxes: { lx: 0, ly: 0, rx: 0, ry: 0 },
+  lastAxes: { lx: 0, ly: 0 },
   connected: false,
 
   // Steam Deck input interception detection
@@ -56,7 +56,8 @@ const GamepadController = {
 
   // Initialize Web Gamepad API
   initGamepad() {
-    window.addEventListener('gamepadconnected', (e) => {
+    // Store bound handlers for cleanup in destroy()
+    this._onGamepadConnected = (e) => {
       debugLog('[CONTROLLER] Gamepad connected:', e.gamepad.id);
       this.connected = true;
       this.connectTime = Date.now();
@@ -66,9 +67,9 @@ const GamepadController = {
       toast('🎮 Controller connected!', 2000);
       this.startPolling();
       this.startInputDetection();
-    });
+    };
 
-    window.addEventListener('gamepaddisconnected', (e) => {
+    this._onGamepadDisconnected = (e) => {
       debugLog('[CONTROLLER] Gamepad disconnected:', e.gamepad.id);
       this.connected = false;
       const gamepads = navigator.getGamepads();
@@ -76,7 +77,10 @@ const GamepadController = {
       if (!anyConnected) {
         this.stopPolling();
       }
-    });
+    };
+
+    window.addEventListener('gamepadconnected', this._onGamepadConnected);
+    window.addEventListener('gamepaddisconnected', this._onGamepadDisconnected);
 
     // Check if gamepad already connected
     const gamepads = navigator.getGamepads();
@@ -112,11 +116,11 @@ const GamepadController = {
 
     const prev = this.lastButtons;
 
-    // Face buttons
-    if (this.pressed(gp, 0) && !prev[0]) { this.markInputReceived(); this.handleA(); }
-    if (this.pressed(gp, 1) && !prev[1]) { this.markInputReceived(); this.handleB(); }
-    if (this.pressed(gp, 2) && !prev[2]) { this.markInputReceived(); this.handleX(); }
-    if (this.pressed(gp, 3) && !prev[3]) { this.markInputReceived(); this.handleY(); }
+    // Face buttons (debounced to match keyboard behavior)
+    if (this.pressed(gp, 0) && !prev[0]) { this.markInputReceived(); if (this.shouldAllowAction('A')) this.handleA(); }
+    if (this.pressed(gp, 1) && !prev[1]) { this.markInputReceived(); if (this.shouldAllowAction('B')) this.handleB(); }
+    if (this.pressed(gp, 2) && !prev[2]) { this.markInputReceived(); if (this.shouldAllowAction('X')) this.handleX(); }
+    if (this.pressed(gp, 3) && !prev[3]) { this.markInputReceived(); if (this.shouldAllowAction('Y')) this.handleY(); }
 
     // Shoulders
     if (this.pressed(gp, 4) && !prev[4]) { this.markInputReceived(); this.handleLB(); }
@@ -126,9 +130,9 @@ const GamepadController = {
     if (this.pressed(gp, 6) && !prev[6]) { this.markInputReceived(); this.handleLT(); }
     if (this.pressed(gp, 7) && !prev[7]) { this.markInputReceived(); this.handleRT(); }
 
-    // Select/Start
-    if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); this.handleSelect(); }
-    if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); this.handleStart(); }
+    // Select/Start (debounced - these open menus)
+    if (this.pressed(gp, 8) && !prev[8]) { this.markInputReceived(); if (this.shouldAllowAction('Select')) this.handleSelect(); }
+    if (this.pressed(gp, 9) && !prev[9]) { this.markInputReceived(); if (this.shouldAllowAction('Start')) this.handleStart(); }
 
     // Stick clicks
     if (this.pressed(gp, 10) && !prev[10]) { this.markInputReceived(); this.handleL3(); }
@@ -152,22 +156,21 @@ const GamepadController = {
     if (ly < -deadzone && prevLy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
     if (ly > deadzone && prevLy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
 
+    // Right stick: smooth scrolling (more useful than duplicating left stick nav)
     const rx = gp.axes[2] || 0;
     const ry = gp.axes[3] || 0;
-    const prevRx = this.lastAxes.rx;
-    const prevRy = this.lastAxes.ry;
 
-    if (rx < -deadzone && prevRx >= -deadzone) { this.markInputReceived(); this.handleDirection('left'); }
-    if (rx > deadzone && prevRx <= deadzone) { this.markInputReceived(); this.handleDirection('right'); }
-    if (ry < -deadzone && prevRy >= -deadzone) { this.markInputReceived(); this.handleDirection('up'); }
-    if (ry > deadzone && prevRy <= deadzone) { this.markInputReceived(); this.handleDirection('down'); }
+    if (Math.abs(ry) > deadzone) {
+      this.markInputReceived();
+      this.scrollSmooth(ry);
+    }
 
     // Save state
     this.lastButtons = {};
     for (let i = 0; i < gp.buttons.length; i++) {
       this.lastButtons[i] = this.pressed(gp, i);
     }
-    this.lastAxes = { lx, ly, rx, ry };
+    this.lastAxes = { lx, ly };
   },
 
   pressed(gp, index) {
@@ -200,7 +203,7 @@ const GamepadController = {
     if (isSteamDeck) {
       toast('⚠️ Controller not responding? Try keyboard mode or check Steam settings', 4000);
       setTimeout(() => {
-        if (!this.firstInputTime) {
+        if (!this.firstInputTime && typeof showSteamDeckHelp === 'function') {
           showSteamDeckHelp();
         }
       }, 2000);
@@ -208,17 +211,18 @@ const GamepadController = {
   },
 
   initTouchDetection() {
-    document.addEventListener('touchstart', () => {
+    this._onTouchStart = () => {
       if (this.active) {
         debugLog('[CONTROLLER] Touch detected, deactivating controller mode');
         this.deactivate();
       }
-    }, { passive: true });
+    };
+    document.addEventListener('touchstart', this._onTouchStart, { passive: true });
   },
 
   // Keyboard handler - primary input for Steam Deck browser mode
   initKeyboard() {
-    document.addEventListener('keydown', e => {
+    this._onKeyDown = e => {
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
@@ -308,7 +312,8 @@ const GamepadController = {
         e.preventDefault();
         if (!this.active) this.activate();
       }
-    });
+    };
+    document.addEventListener('keydown', this._onKeyDown);
   },
 
   // Activate controller mode (show focus ring)
@@ -336,17 +341,17 @@ const GamepadController = {
 
   getContext() {
     const tutorialModal = document.querySelector('.tutorial-modal-backdrop');
-    if (tutorialModal) return 'tutorial';
+    if (tutorialModal && getComputedStyle(tutorialModal).display !== 'none') return 'tutorial';
 
     const confirmModal = document.querySelector('.confirm-modal');
-    if (confirmModal) return 'confirm';
+    if (confirmModal && getComputedStyle(confirmModal).display !== 'none') return 'confirm';
 
     if (typeof S !== 'undefined' && S.suspended) return 'suspend';
 
     const modal = document.querySelector('.modal-container');
     if (modal && getComputedStyle(modal).display !== 'none') return 'modal';
 
-    if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0) {
+    if (typeof S !== 'undefined' && S.heroes?.length > 0 && S.enemies?.length > 0 && S.turn === 'player') {
       return S.pending ? 'targeting' : 'combat';
     }
 
@@ -377,6 +382,9 @@ const GamepadController = {
       if (typeof resumeGame === 'function') resumeGame();
       return;
     }
+
+    // Cooldown after tutorial dismiss to prevent click-through
+    if (window.tutorialDismissTime && Date.now() - window.tutorialDismissTime < 300) return;
 
     // Try focused element first
     if (this.focusedElement && document.body.contains(this.focusedElement)) {
@@ -438,6 +446,8 @@ const GamepadController = {
     if (ctx === 'targeting' && typeof S !== 'undefined') {
       S.pending = null;
       S.targets = [];
+      S.currentInstanceTargets = [];
+      S.instancesRemaining = 0;
       if (typeof render === 'function') render();
       return;
     }
@@ -690,10 +700,87 @@ const GamepadController = {
 
     if (best) {
       this.setFocus(best);
+    } else {
+      // Wrap around: if no element found in direction, pick the furthest element
+      // in the opposite direction (wraps focus to the other side of the screen)
+      let wrapBest = null;
+      let wrapScore = -Infinity;
+      for (const el of this.focusableElements) {
+        if (el === this.focusedElement) continue;
+        const rect = el.getBoundingClientRect();
+        const ex = rect.left + rect.width / 2;
+        const ey = rect.top + rect.height / 2;
+        let score;
+        switch (dir) {
+          case 'up': score = ey; break;     // Furthest down
+          case 'down': score = -ey; break;  // Furthest up
+          case 'left': score = ex; break;   // Furthest right
+          case 'right': score = -ex; break; // Furthest left
+        }
+        if (score > wrapScore) {
+          wrapScore = score;
+          wrapBest = el;
+        }
+      }
+      if (wrapBest) this.setFocus(wrapBest);
     }
   },
 
   // ===== FOCUS MANAGEMENT =====
+
+  // Save focus state before DOM updates (called from render())
+  saveFocusState() {
+    this._savedFocusId = this.focusedElement?.id || null;
+    this._savedFocusClasses = this.focusedElement ?
+      Array.from(this.focusedElement.classList).filter(c => c !== 'controller-focus').join('.') : null;
+    this._savedFocusTag = this.focusedElement?.tagName || null;
+    this._savedFocusText = this.focusedElement?.textContent?.trim()?.substring(0, 30) || null;
+  },
+
+  // Restore focus state after DOM updates (called from render())
+  restoreFocusState() {
+    if (!this.active) return;
+
+    // Try to find element by ID first (most reliable)
+    if (this._savedFocusId) {
+      const el = document.getElementById(this._savedFocusId);
+      if (el) {
+        this.updateFocusableElements();
+        this.setFocus(el);
+        return;
+      }
+    }
+
+    // Try to find by class combination (for cards, sigils, etc.)
+    if (this._savedFocusClasses && this._savedFocusTag) {
+      const selector = this._savedFocusTag.toLowerCase() + '.' + this._savedFocusClasses.split('.').join('.');
+      try {
+        const candidates = document.querySelectorAll(selector);
+        if (candidates.length === 1) {
+          this.updateFocusableElements();
+          this.setFocus(candidates[0]);
+          return;
+        }
+        // Multiple matches - try to match by text content
+        if (candidates.length > 1 && this._savedFocusText) {
+          for (const c of candidates) {
+            if (c.textContent?.trim()?.substring(0, 30) === this._savedFocusText) {
+              this.updateFocusableElements();
+              this.setFocus(c);
+              return;
+            }
+          }
+        }
+      } catch(e) { /* invalid selector, fall through */ }
+    }
+
+    // Fallback: focus best default element
+    this.updateFocusableElements();
+    if (this.focusableElements.length > 0) {
+      const best = this.findBestDefaultFocus();
+      this.setFocus(best || this.focusableElements[0]);
+    }
+  },
 
   updateFocusableElements() {
     const selectors = [
@@ -710,8 +797,19 @@ const GamepadController = {
       '.upgrade-option'
     ];
 
+    // Scope to active modal if one exists, preventing focus from jumping behind it
+    let root = document;
+    const ctx = this.getContext();
+    if (ctx === 'tutorial') {
+      root = document.querySelector('.tutorial-modal-backdrop') || document;
+    } else if (ctx === 'confirm') {
+      root = document.querySelector('.confirm-modal') || document;
+    } else if (ctx === 'modal') {
+      root = document.querySelector('.modal-container') || document;
+    }
+
     this.focusableElements = Array.from(
-      document.querySelectorAll(selectors.join(','))
+      root.querySelectorAll(selectors.join(','))
     ).filter(el => {
       const style = getComputedStyle(el);
       if (style.display === 'none' || style.visibility === 'hidden') return false;
@@ -851,6 +949,16 @@ const GamepadController = {
     }
   },
 
+  // Smooth per-frame scrolling for right stick (called each poll at 60fps)
+  scrollSmooth(axisValue) {
+    const gameView = document.getElementById('gameView');
+    if (gameView) {
+      // Scale by axis deflection for proportional speed
+      const amount = axisValue * 12;
+      gameView.scrollBy({ top: amount, behavior: 'instant' });
+    }
+  },
+
   // ===== UI =====
 
   playClick() {
@@ -864,11 +972,25 @@ const GamepadController = {
   destroy() {
     this.stopPolling();
     this.deactivate();
+    // Remove event listeners to prevent accumulation on reinit
+    if (this._onGamepadConnected) {
+      window.removeEventListener('gamepadconnected', this._onGamepadConnected);
+    }
+    if (this._onGamepadDisconnected) {
+      window.removeEventListener('gamepaddisconnected', this._onGamepadDisconnected);
+    }
+    if (this._onTouchStart) {
+      document.removeEventListener('touchstart', this._onTouchStart);
+    }
+    if (this._onKeyDown) {
+      document.removeEventListener('keydown', this._onKeyDown);
+    }
   }
 };
 
 // Global helpers
 function toggleControllerSupport(enabled) {
+  if (typeof S === 'undefined') return;
   S.controllerDisabled = !enabled;
   if (enabled) {
     toast('🎮 Controller support enabled!', 2000);
@@ -877,22 +999,29 @@ function toggleControllerSupport(enabled) {
     toast('Controller support disabled.', 1200);
     GamepadController.destroy();
   }
-  savePermanent();
+  if (typeof savePermanent === 'function') savePermanent();
 }
 
 function forceReinitController() {
-  S.controllerDisabled = false;
+  if (typeof S !== 'undefined') S.controllerDisabled = false;
   GamepadController.destroy();
   GamepadController.init();
   toast('🎮 Controller re-initialized!', 2500);
-  savePermanent();
-  closeSettingsMenu();
+  if (typeof savePermanent === 'function') savePermanent();
+  if (typeof closeSettingsMenu === 'function') closeSettingsMenu();
 }
 
 function showSteamDeckHelp() {
-  const v = document.getElementById('gameView');
-  const html = `
-<div class="modal-container dark" style="max-width:400px">
+  // Remove existing if already open
+  closeSteamDeckHelp();
+  // Append to body (not gameView) so it survives screen transitions
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay steam-deck-help-overlay';
+  overlay.onclick = closeSteamDeckHelp;
+  const modal = document.createElement('div');
+  modal.className = 'modal-container dark steam-deck-help-modal';
+  modal.style.maxWidth = '400px';
+  modal.innerHTML = `
   <h2 class="modal-title" style="margin-bottom:1rem">🎮 Steam Deck Controls</h2>
   <div style="text-align:left;font-size:0.85rem;line-height:1.5">
     <p style="margin-bottom:0.8rem">In browser mode, Steam converts controller to keyboard. The game handles both.</p>
@@ -905,19 +1034,14 @@ function showSteamDeckHelp() {
     </ul>
     <p style="font-size:0.8rem;opacity:0.8">If Gamepad mode works better for you, try Steam → Controller Settings → "Gamepad" template.</p>
   </div>
-  <button class="btn" onclick="closeSteamDeckHelp()" style="margin-top:1rem">Got it</button>
-</div>
-<div class="modal-overlay steam-deck-help-overlay" onclick="closeSteamDeckHelp()"></div>`;
-  v.insertAdjacentHTML('beforeend', html);
+  <button class="btn" onclick="closeSteamDeckHelp()" style="margin-top:1rem">Got it</button>`;
+  document.body.appendChild(overlay);
+  document.body.appendChild(modal);
 }
 
 function closeSteamDeckHelp() {
   const overlay = document.querySelector('.steam-deck-help-overlay');
-  if (overlay) {
-    const modal = overlay.previousElementSibling;
-    if (modal?.classList.contains('modal-container')) {
-      modal.remove();
-    }
-    overlay.remove();
-  }
+  if (overlay) overlay.remove();
+  const modal = document.querySelector('.steam-deck-help-modal');
+  if (modal) modal.remove();
 }

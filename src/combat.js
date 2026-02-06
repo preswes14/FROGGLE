@@ -2354,8 +2354,10 @@ return false;
  * @param {Function} callback - Function to call during fade (updates screen content)
  */
 function transitionScreen(callback) {
-// Clean up tooltips before screen transition
+// Clean up tooltips and stale modals before screen transition
 if(typeof hideTooltip === 'function') hideTooltip();
+// Remove any body-appended modals that might linger across transitions
+document.querySelectorAll('.steam-deck-help-overlay, .steam-deck-help-modal').forEach(el => el.remove());
 const v = document.getElementById('gameView');
 v.classList.add('fade-out');
 setTimeout(() => {
