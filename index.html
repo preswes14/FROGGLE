@@ -2326,7 +2326,7 @@ body.controller-active .controller-prompts {
 <!-- Early error handler - catches parse errors in main script -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.27';
+const GAME_VERSION = 'S_1.28';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8748,17 +8748,20 @@ return;
 // Attack sigil is a marker indicating the enemy attacks, not an additional action
 const drawnSigils = enemy.s.filter(s => !s.perm && s.sig !== 'Alpha' && s.sig !== 'Attack');
 
-// Filter out suicidal grapples - enemies should never kill themselves
-// NOTE: We filter and execute sigils BEFORE base attack so Grapple works
-// (otherwise base attack might put hero in Last Stand, making Grapple fail)
+// Filter out suicidal grapples - enemies skip grapple if recoil would kill them
+// (after shields absorb), but will spend ghost charges to survive it
 const safeSigils = drawnSigils.filter(sigil => {
 if(sigil.sig === 'Grapple') {
 const target = S.heroes[enemy.li];
 if(target && target.h > 0) {
 const recoilDamage = target.p;
-// Skip grapple if it would kill the enemy
-if(enemy.h <= recoilDamage) {
-toast(`${getEnemyDisplayName(enemy)} considered Grapple but chose to survive instead!`);
+const shieldAbsorb = Math.min(enemy.sh || 0, recoilDamage);
+const hpDamage = recoilDamage - shieldAbsorb;
+// Ghost charges let the enemy survive - they'll spend one on the recoil hit
+if(enemy.g > 0) {
+// Allow grapple - ghost charge will absorb lethal hit via applyDamageToTarget
+} else if(enemy.h <= hpDamage) {
+// Would die from recoil with no ghost charges - sigil falls off
 return false;
 }
 }
@@ -9115,12 +9118,11 @@ SoundFX.play('ribbit'); // Celebratory frog croak!
 
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
-let maxStarLevel = 0;
+let starBonus = 0;
 S.heroes.forEach(h => {
 const starLevel = getLevel('Star', S.heroes.indexOf(h));
-if(starLevel > maxStarLevel) maxStarLevel = starLevel;
+starBonus += starLevel * 0.5;
 });
-const starBonus = maxStarLevel * 0.5;
 const bonusXP = Math.floor(combatXP * (1 + starBonus));
 S.xp += bonusXP;
 S.combatXP = 0; // Reset combat XP
