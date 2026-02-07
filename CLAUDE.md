@@ -200,10 +200,11 @@ Defined in `E` object (constants.js).
    - Stored: 0-4 in `S.sig[name]` and `S.tempSigUpgrades[name]`
    - Displayed: stored + 1 for active sigils (L0 stored = "L1" shown)
    - `getLevel(sigil)` returns the TOTAL (permanent + temp)
-5. **Ghost before Last Stand**: Ghost charges prevent lethal damage BEFORE checking Last Stand
-6. **Last Stand restrictions**: Heroes in Last Stand (`hero.ls === true`) can ONLY use D20. They can only be targeted by Heal (to revive) or Stun — they cannot take damage or gain shields
-7. **Damage goes through shield first**: Shield absorbs before HP reduces
-8. **Multi-instance state**: `S.instancesRemaining` tracks remaining instances, `S.currentInstanceTargets` for current selection
+5. **Ghost fully negates the hit**: Ghost charges prevent lethal damage BEFORE checking Last Stand. When ghost triggers, both HP and shield are fully restored to pre-hit values.
+6. **Last Stand restrictions**: Heroes in Last Stand (`hero.ls === true`) can ONLY use D20. They can only be targeted by Heal (to revive, including by recruits) or Stun — they cannot take damage or gain shields
+7. **Last Stand DC penalty**: D20 DCs increase by `+2 per turn` in Last Stand (`hero.lst * 2`). CONFUSE caps at DC 20 (requires nat 20); other gambits keep climbing past 20.
+8. **Damage goes through shield first**: Shield absorbs before HP reduces
+9. **Multi-instance state**: `S.instancesRemaining` tracks remaining instances, `S.currentInstanceTargets` for current selection
 
 ---
 

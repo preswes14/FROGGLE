@@ -38,9 +38,23 @@ combatGold: 0,      // Gold earned this combat
 selectingEncampmentTargets: false, // Special state for Encampment encounter
 encampmentEarlyKills: 0,           // Number of enemies to kill early
 d20HeroIdx: -1,     // Hero index for D20 action targeting
+d20Action: null,    // Current D20 gambit selected (CONFUSE/STARTLE/MEND/STEAL/RECRUIT)
+d20DC: 0,           // Difficulty class for active D20 action
 grappleRepeats: 0,  // Number of grapple repeats for recoil calculation
 grappleLevel: 0,    // Grapple level for recoil calculation
 turnDamage: 0,      // Damage dealt during current hero's turn (for damage counter)
+inCombat: false,    // Whether player is currently in combat
+combatEnding: false, // Guard flag to prevent double combat-end processing
+combatStartSnapshot: null, // Snapshot of heroes/enemies at combat start (for restart)
+alphaGrantedActions: [],   // Hero IDs receiving Alpha-granted bonus actions
+alphaCurrentAction: 0,     // Current index in alpha granted actions sequence
+alphaLevel: 0,             // Total Alpha actions to grant
+alphaTargetsNeeded: 0,     // Number of targets for Alpha selection
+asteriskD20Repeats: 1,     // Number of D20 repeats due to Asterisk
+asteriskD20Count: 0,       // Current D20 execution count in repeat chain
+enemyTurnCurrent: 0,       // Current enemy index being processed (UI progress)
+enemyTurnTotal: 0,         // Total enemies in turn (UI progress)
+encampmentSelectedTargets: [], // Enemy IDs selected for Encampment pre-combat kill
 
 // ===== NEUTRAL ENCOUNTER STATE (resets each encounter) =====
 neutralDeck: [],    // Deck of neutral encounter IDs
@@ -53,6 +67,16 @@ oracleHero: null,         // Hero chosen at Oracle
 oracleRoll: null,         // Roll result at Oracle
 oracleStat: null,         // Stat chosen at Oracle
 wizardSigil: null,        // Sigil being tested at Wizard
+wizardHero: null,         // Hero index for wizard challenge encounter
+wizardChallenges: null,   // Array of challenge thresholds for wizard
+wizardChallengeIndex: 0,  // Current challenge index (0-3)
+wizardUpgradedSigils: [], // Sigil names upgraded during wizard encounter
+royalQuestActive: false,  // Whether a royal quest is currently active
+royalQuestCompleted: false, // Whether current royal quest was completed
+royalAskerTitle: null,    // Title of noble asking for royal quest
+royalBelovedTitle: null,  // Title of beloved in royal quest
+pendingNewRecruit: null,  // New recruit waiting for slot conflict resolution
+pendingOldRecruitId: null, // ID of existing recruit being replaced
 
 // ===== PERSISTENT STATE (survives death, saved in permanent storage) =====
 ancientStatueDeactivated: false, // Ancient Statue one-time choice made
@@ -810,6 +834,8 @@ if(replace && callbacks && callbacks.onReplace) callbacks.onReplace();
 else if(!replace && callbacks && callbacks.onKeep) callbacks.onKeep();
 }
 
+// LEGACY: Pre-slot save functions. Overridden by slot-based versions below (line ~1270).
+// Kept as fallback for loadPermanent()/loadGame() which read from these keys for migration.
 function savePermanent() {
 try {
 // Create backup of existing save before overwriting
@@ -838,6 +864,8 @@ runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
+toastLogVisible: S.toastLogVisible,
+toastLogLocked: S.toastLogLocked,
 highContrastMode: S.highContrastMode,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
@@ -937,6 +965,8 @@ S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
+S.toastLogLocked = j.toastLogLocked || false;
 S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
@@ -970,6 +1000,7 @@ console.warn('[SAVE] Failed to load permanent data:', e);
 }
 }
 
+// LEGACY: Pre-slot saveGame. Overridden by slot-based version below (line ~1330).
 function saveGame() {
 try {
 localStorage.setItem('froggle8', JSON.stringify({
@@ -1189,6 +1220,8 @@ S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
+S.toastLogLocked = j.toastLogLocked || false;
 S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 // Apply high contrast mode if enabled
@@ -1295,6 +1328,8 @@ runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
+toastLogVisible: S.toastLogVisible,
+toastLogLocked: S.toastLogLocked,
 highContrastMode: S.highContrastMode,
 usedDeathQuotes: S.usedDeathQuotes,
 controllerDisabled: S.controllerDisabled,
