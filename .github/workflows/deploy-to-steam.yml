@@ -27,7 +27,14 @@ jobs:
           gh release download latest --pattern "*.exe" --dir content/windows || echo "No Windows build"
           gh release download latest --pattern "*.AppImage" --dir content/linux || echo "No Linux build"
           gh release download latest --pattern "*.dmg" --dir content/mac || echo "No Mac build"
+          echo "=== Downloaded files ==="
           find content -type f -ls
+          LINUX_COUNT=$(find content/linux -type f | wc -l)
+          echo "Linux builds found: $LINUX_COUNT"
+          if [ "$LINUX_COUNT" -eq 0 ]; then
+            echo "ERROR: No Linux AppImage found in release!"
+            exit 1
+          fi
 
       - name: Install SteamCMD
         uses: CyberAndrii/setup-steamcmd@v1
@@ -38,6 +45,14 @@ jobs:
         run: |
           mkdir -p ~/.steam/config
           echo "$STEAM_CONFIG_VDF" | base64 -d > ~/.steam/config/config.vdf
+
+      - name: Verify content directory
+        run: |
+          echo "=== Content for Steam depot ==="
+          echo "ContentRoot resolves to: $(pwd)/content/"
+          find content -type f -ls
+          TOTAL_SIZE=$(du -sh content | cut -f1)
+          echo "Total content size: $TOTAL_SIZE"
 
       - name: Deploy to Steam
         run: |
