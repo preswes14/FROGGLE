@@ -1,6 +1,16 @@
 const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
 const path = require('path');
 
+// Catch uncaught exceptions in main process to prevent silent crashes
+process.on('uncaughtException', (error) => {
+  console.error('[FROGGLE-MAIN] Uncaught exception:', error);
+  // Don't exit - try to keep the app running
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FROGGLE-MAIN] Unhandled rejection:', reason);
+});
+
 // Enable Gamepad API support in Chromium
 // These flags help with controller detection, especially on Steam Deck
 app.commandLine.appendSwitch('enable-gamepad-extensions');
@@ -276,6 +286,15 @@ function createWindow() {
     if (input.key === 'F12') {
       mainWindow.webContents.toggleDevTools();
     }
+  });
+
+  // Handle renderer crashes - log details instead of silently dying
+  mainWindow.webContents.on('render-process-gone', (event, details) => {
+    console.error('[FROGGLE-MAIN] Renderer process gone:', details.reason, details.exitCode);
+  });
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('[FROGGLE-MAIN] Page failed to load:', errorCode, errorDescription);
   });
 
   // Handle window close

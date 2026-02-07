@@ -56,26 +56,40 @@ const GamepadController = {
 
   // Initialize Web Gamepad API
   initGamepad() {
+    // Guard: Gamepad API may not be available in all Electron/browser configs
+    if (!navigator.getGamepads) {
+      debugLog('[CONTROLLER] Gamepad API not available');
+      return;
+    }
+
     // Store bound handlers for cleanup in destroy()
     this._onGamepadConnected = (e) => {
-      debugLog('[CONTROLLER] Gamepad connected:', e.gamepad.id);
-      this.connected = true;
-      this.connectTime = Date.now();
-      this.firstInputTime = 0;
-      this.inputDetectionShown = false;
-      this.activate();
-      toast('🎮 Controller connected!', 2000);
-      this.startPolling();
-      this.startInputDetection();
+      try {
+        debugLog('[CONTROLLER] Gamepad connected:', e.gamepad.id);
+        this.connected = true;
+        this.connectTime = Date.now();
+        this.firstInputTime = 0;
+        this.inputDetectionShown = false;
+        this.activate();
+        toast('🎮 Controller connected!', 2000);
+        this.startPolling();
+        this.startInputDetection();
+      } catch(err) {
+        console.warn('[CONTROLLER] Error in gamepad connect handler:', err);
+      }
     };
 
     this._onGamepadDisconnected = (e) => {
-      debugLog('[CONTROLLER] Gamepad disconnected:', e.gamepad.id);
-      this.connected = false;
-      const gamepads = navigator.getGamepads();
-      const anyConnected = Array.from(gamepads).some(gp => gp !== null);
-      if (!anyConnected) {
-        this.stopPolling();
+      try {
+        debugLog('[CONTROLLER] Gamepad disconnected:', e.gamepad.id);
+        this.connected = false;
+        var gamepads = navigator.getGamepads();
+        var anyConnected = gamepads && Array.from(gamepads).some(function(gp) { return gp !== null; });
+        if (!anyConnected) {
+          this.stopPolling();
+        }
+      } catch(err) {
+        console.warn('[CONTROLLER] Error in gamepad disconnect handler:', err);
       }
     };
 
@@ -83,14 +97,20 @@ const GamepadController = {
     window.addEventListener('gamepaddisconnected', this._onGamepadDisconnected);
 
     // Check if gamepad already connected
-    const gamepads = navigator.getGamepads();
-    for (const gp of gamepads) {
-      if (gp) {
-        debugLog('[CONTROLLER] Gamepad already connected:', gp.id);
-        this.connected = true;
-        this.startPolling();
-        break;
+    try {
+      var gamepads = navigator.getGamepads();
+      if (gamepads) {
+        for (var i = 0; i < gamepads.length; i++) {
+          if (gamepads[i]) {
+            debugLog('[CONTROLLER] Gamepad already connected:', gamepads[i].id);
+            this.connected = true;
+            this.startPolling();
+            break;
+          }
+        }
       }
+    } catch(err) {
+      console.warn('[CONTROLLER] Error checking existing gamepads:', err);
     }
   },
 
@@ -109,8 +129,10 @@ const GamepadController = {
   },
 
   poll() {
-    const gamepads = navigator.getGamepads();
-    const gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
+    try {
+    var gamepads = navigator.getGamepads();
+    if (!gamepads) return;
+    var gp = gamepads[0] || gamepads[1] || gamepads[2] || gamepads[3];
 
     if (!gp) return;
 
@@ -167,10 +189,17 @@ const GamepadController = {
 
     // Save state
     this.lastButtons = {};
-    for (let i = 0; i < gp.buttons.length; i++) {
+    for (var i = 0; i < gp.buttons.length; i++) {
       this.lastButtons[i] = this.pressed(gp, i);
     }
-    this.lastAxes = { lx, ly };
+    this.lastAxes = { lx: lx, ly: ly };
+    } catch(err) {
+      // Silently handle poll errors to prevent error spam at 60fps
+      if (!this._pollErrorLogged) {
+        console.warn('[CONTROLLER] Poll error:', err);
+        this._pollErrorLogged = true;
+      }
+    }
   },
 
   pressed(gp, index) {
@@ -951,11 +980,11 @@ const GamepadController = {
 
   // Smooth per-frame scrolling for right stick (called each poll at 60fps)
   scrollSmooth(axisValue) {
-    const gameView = document.getElementById('gameView');
+    var gameView = document.getElementById('gameView');
     if (gameView) {
       // Scale by axis deflection for proportional speed
-      const amount = axisValue * 12;
-      gameView.scrollBy({ top: amount, behavior: 'instant' });
+      var amount = axisValue * 12;
+      gameView.scrollBy({ top: amount, behavior: 'auto' });
     }
   },
 
