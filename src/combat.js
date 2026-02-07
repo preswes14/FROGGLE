@@ -1892,7 +1892,7 @@ recruit.h = 0;
 toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
 S.recruits = S.recruits.filter(r => r.id !== recruit.id);
 } else {
-target.st = level;
+target.st = Math.max(target.st, level);
 toast(`${target.n} stunned for ${level} turns!`);
 }
 } else if(sig === 'Ghost') {
@@ -2892,12 +2892,11 @@ function levelUp() {
 // JUICE: Level up sound
 SoundFX.play('levelup');
 
-// Unlock blue portal and award statuette after completing Floor 19 (combat before floor 20)
+// Unlock blue portal after completing Floor 19 (combat before floor 20)
 if(S.floor === 19) {
 S.hasReachedFloor20 = true;
-S.hasAncientStatuette = true;
 savePermanent();
-toast('🗿 Ancient Statuette acquired! The blue portal in Ribbleton has awakened!', 2500);
+toast('The blue portal in Ribbleton has awakened!', 2500);
 // Skip level up menu on floor 19 - no point spending XP before victory
 setTimeout(() => nextFloor(), 2000);
 return;

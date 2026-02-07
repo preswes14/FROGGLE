@@ -5358,7 +5358,6 @@ wizardSigil: null,        // Sigil being tested at Wizard
 ancientStatueDeactivated: false, // Ancient Statue one-time choice made
 ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
-hasAncientStatuette: false,
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
 fuUnlocked: false,
 forcedFUEntry: false,            // True after first Standard win, forces FU run
@@ -6277,7 +6276,6 @@ localStorage.setItem('froggle8', JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-hasAncientStatuette: S.hasAncientStatuette,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx
@@ -6303,7 +6301,6 @@ S.floor=j.f; S.xp=j.x; S.levelUpCount=j.luc || 0;
 S.heroes=j.h;
 S.neutralDeck=j.neutralDeck || [];
 S.lastNeutral=j.lastNeutral || null;
-S.hasAncientStatuette = j.hasAncientStatuette || false;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = j.gameMode || 'Standard';
 S.chosenHeroIdx = j.chosenHeroIdx !== undefined ? j.chosenHeroIdx : -1;
@@ -6518,7 +6515,6 @@ S.levelUpCount = r.luc || 0;
 S.heroes = r.h;
 S.neutralDeck = r.neutralDeck || [];
 S.lastNeutral = r.lastNeutral || null;
-S.hasAncientStatuette = r.hasAncientStatuette || false;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
@@ -6632,7 +6628,6 @@ localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
 f:S.floor, x:S.xp, luc:S.levelUpCount,
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-hasAncientStatuette: S.hasAncientStatuette,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx
@@ -8698,7 +8693,7 @@ recruit.h = 0;
 toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
 S.recruits = S.recruits.filter(r => r.id !== recruit.id);
 } else {
-target.st = level;
+target.st = Math.max(target.st, level);
 toast(`${target.n} stunned for ${level} turns!`);
 }
 } else if(sig === 'Ghost') {
@@ -9698,12 +9693,11 @@ function levelUp() {
 // JUICE: Level up sound
 SoundFX.play('levelup');
 
-// Unlock blue portal and award statuette after completing Floor 19 (combat before floor 20)
+// Unlock blue portal after completing Floor 19 (combat before floor 20)
 if(S.floor === 19) {
 S.hasReachedFloor20 = true;
-S.hasAncientStatuette = true;
 savePermanent();
-toast('🗿 Ancient Statuette acquired! The blue portal in Ribbleton has awakened!', 2500);
+toast('The blue portal in Ribbleton has awakened!', 2500);
 // Skip level up menu on floor 19 - no point spending XP before victory
 setTimeout(() => nextFloor(), 2000);
 return;
@@ -10806,8 +10800,8 @@ S.fuUnlocked = false;
 S.forcedFUEntry = false;
 S.tapoUnlocked = false;
 S.pondHistory = [];
-S.questsCompleted = [];
-S.questsClaimed = [];
+S.questsCompleted = {};
+S.questsClaimed = {};
 S.questProgress = {
   // Combat stats
   enemiesKilled: 0,
@@ -14730,10 +14724,6 @@ ${slotsHTML}
 <p style="margin:0.25rem 0;font-size:0.85rem;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)">${S.gameMode} Mode - ${placedCount}/8 figurines placed</p>
 </div>
 
-${S.hasAncientStatuette ? `<div style="position:absolute;bottom:15%;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;background:rgba(251,191,36,0.95);border-radius:8px;text-align:center;border:3px solid #000;z-index:10">
-<p style="font-weight:bold;margin:0;font-size:0.9rem">🗿 Ancient Statuette Available! Click an empty slot to place.</p>
-</div>` : ''}
-
 <!-- Back button -->
 <div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:10">
 <button class="btn secondary" onclick="showChampionsMenu()" style="padding:0.75rem 2rem">Back to Victory Room</button>
@@ -14763,17 +14753,7 @@ toast('All 8 slots filled! Remove a figurine first.');
 return;
 }
 
-// Use Ancient Statuette if available (can go in any slot)
-if(S.hasAncientStatuette) {
-S.pedestal.push({hero, stat, mode: S.gameMode, source: 'statuette'});
-S.hasAncientStatuette = false;
-savePermanent();
-toast(`Ancient Statuette placed on ${hero} ${stat}!`, 1800);
-showPedestal();
-return;
-}
-
-// Otherwise, check if this hero can have a figurine (max 2 per hero per mode)
+// Check if this hero can have a figurine (max 2 per hero per mode)
 const existingCount = S.pedestal.filter(p => p.hero === hero && p.mode === S.gameMode).length;
 if(existingCount >= 2) {
 toast(`${hero} already has 2 figurines in ${S.gameMode} mode!`, 1800);
@@ -14906,7 +14886,7 @@ return;
 }
 
 // SUBSEQUENT VICTORIES: Go directly to Pedestal if figurines earned
-if(earnedFigurines.length > 0 || S.hasAncientStatuette) {
+if(earnedFigurines.length > 0) {
 showStatueRoom();
 return;
 }
@@ -18586,7 +18566,6 @@ showErrorOverlay('Unhandled Promise Rejection', String(e.reason));
 })();
 
 
-</script>
 </script>
 </body>
 </html>

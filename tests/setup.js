@@ -231,7 +231,6 @@ global.S = {
   ancientStatueDeactivated: false,
   ghostBoysConverted: false,
   pedestal: [],
-  hasAncientStatuette: false,
   hasReachedFloor20: false,
   fuUnlocked: false,
   forcedFUEntry: false,

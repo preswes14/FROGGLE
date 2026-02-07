@@ -31,7 +31,6 @@ describe('Save System', () => {
         h: S.heroes,
         neutralDeck: S.neutralDeck,
         lastNeutral: S.lastNeutral,
-        hasAncientStatuette: S.hasAncientStatuette,
         tempSigUpgrades: S.tempSigUpgrades,
         gameMode: S.gameMode,
         chosenHeroIdx: S.chosenHeroIdx
@@ -187,7 +186,6 @@ describe('Save System', () => {
       S.heroes = j.h;
       S.neutralDeck = j.neutralDeck || [];
       S.lastNeutral = j.lastNeutral || null;
-      S.hasAncientStatuette = j.hasAncientStatuette || false;
       S.tempSigUpgrades = j.tempSigUpgrades || {};
       S.gameMode = j.gameMode || 'Standard';
       S.chosenHeroIdx = j.chosenHeroIdx !== undefined ? j.chosenHeroIdx : -1;

@@ -23,15 +23,16 @@ The monolith is now split into modular source files that concatenate back to `in
 
 ```
 src/
-├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (953 lines)
-├── sounds.js         # SoundFX Web Audio API system (286 lines)
-├── state.js          # Game state `S`, upd(), animations, toast, save/load (866 lines)
-├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (2838 lines)
-├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (2899 lines)
-├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (1121 lines)
-├── settings.js       # Debug, Settings, FAQ (720 lines)
-├── controller.js     # GamepadController for Steam Deck (761 lines)
-└── main.js           # Init and window.onload (67 lines)
+├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (1343 lines)
+├── steam.js          # Steam integration: achievements, stats, cloud save (315 lines)
+├── sounds.js         # SoundFX Web Audio API system (1312 lines)
+├── state.js          # Game state `S`, upd(), animations, toast, save/load (1505 lines)
+├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (3596 lines)
+├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (3440 lines)
+├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (2222 lines)
+├── settings.js       # Debug, Settings, FAQ (1252 lines)
+├── controller.js     # GamepadController for Steam Deck (1047 lines)
+└── main.js           # Init and window.onload (219 lines)
 
 build/
 ├── template_head.html  # HTML/CSS before <script>
@@ -56,14 +57,15 @@ extract.sh            # Extract modules from index.html
 
 ### Module Dependency Order
 1. constants.js (no deps)
-2. sounds.js (no deps)
-3. state.js (needs constants, sounds)
-4. combat.js (needs all above)
-5. neutrals.js (needs all above)
-6. screens.js (needs all above)
-7. settings.js (needs all above)
-8. controller.js (needs state)
-9. main.js (init, must be last)
+2. steam.js (no deps)
+3. sounds.js (no deps)
+4. state.js (needs constants, sounds)
+5. combat.js (needs all above)
+6. neutrals.js (needs all above)
+7. screens.js (needs all above)
+8. settings.js (needs all above)
+9. controller.js (needs state)
+10. main.js (init, must be last)
 
 ### Editing Workflow
 1. Edit files in `src/`
@@ -106,6 +108,16 @@ Enemy Turn:
 
 **Stun Timing**: Stun counters decrement at END of enemy turn, AFTER that unit's team has acted. This ensures "stun for 1 turn" actually skips 1 turn.
 
+**Stun Application Asymmetry**:
+| Source | Behavior | Code |
+|--------|----------|------|
+| Player Grapple on enemy | **Stacks** (`st += duration`) | Intentional player advantage |
+| D20 STARTLE on enemy | **Max only** (`Math.max(st, 1)`) | Weaker, non-stacking |
+| Enemy Grapple on hero | **Max only** (`Math.max(st, level)`) | Prevents enemy stun-lock |
+| Recruit Grapple on enemy | **Max only** (`Math.max(st, level)`) | Matches enemy behavior |
+
+**Stunned enemies still progress**: Stun skips the action but does NOT pause sigil cycling (Cave Troll rage advances, Orc alternating continues, `turnsSinceGain` increments).
+
 **Enemy Sigil Draw**: Enemies draw sigils at the START of player turn (after Round++), so players can see and strategize against new enemy abilities.
 
 ### Heroes
@@ -135,7 +147,7 @@ Enemy Turn:
 |-------|--------|
 | Expand | Total targets = 1 + Expand level. Mage/Healer always have +1 Expand level vs base. |
 | Asterisk | First action per combat triggers additional times (L1: +1 extra, L2: +2 extra, etc.) |
-| Star | Multiply combat XP (1.5×, 2×, 2.5×, 3× by level) |
+| Star | Each hero adds 0.5× per Star level to XP multiplier (stacks across all heroes) |
 
 ### Enemies
 Defined in `E` object (constants.js).
@@ -149,9 +161,9 @@ Defined in `E` object (constants.js).
 | Giant | 3 | 12 | 6 | 12 | 1 turn | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | Shield L1 |
 | Cave Troll | 4 | 15 | 10 | 15 | special | Expand, Shield, Grapple, Alpha, Heal, Ghost | **RAGE:** Attack L1→L2→L3→L1 |
 | Dragon | 5 | 20 | 20 | 25 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L1 |
-| Flydra | 5 | 25 | 150† | 50/head | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
+| Flydra | 5 | 25 | 0† | 50/head | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
 
-†Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2.
+†Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2. Flydra `goldDrop` is 0 per-head; 150G total is awarded at combat completion when ALL heads are defeated.
 
 **Special Mechanics:**
 - **Fly**: Tutorial only, never draws sigils, awards no rewards
@@ -281,7 +293,98 @@ S.hasReachedFloor20, S.fuUnlocked, S.tapoUnlocked  // Unlock flags
 | `saveGame()` | state.js | Persist to localStorage |
 | `startFloor(f)` | combat.js | Initialize floor (combat or neutral) |
 | `neutral(f)` | neutrals.js | Handle neutral encounters |
-| `T(ms)` | state.js | Adjust timing for animation speed |
+| `T(ms)` | constants.js | Adjust timing for animation speed |
+
+---
+
+## Death Screen Economy
+
+### Going Rate
+- Starts at **1G**
+- Increases each time a sigil upgrade is purchased
+- Rate increase = `5 * (tier + 1)` where `tier = floor(totalUpgradesBefore / 5)`
+  - Upgrades 1-5: +5G per purchase
+  - Upgrades 6-10: +10G per purchase
+  - Upgrades 11-15: +15G per purchase
+  - Upgrades 16-20: +20G per purchase
+
+### Sigil Upgrade Pricing
+Each sigil has per-sigil escalation on top of the Going Rate:
+
+| Times Upgraded | Escalation | Total Cost |
+|----------------|------------|------------|
+| 0 (first) | +0G | goingRate |
+| 1 | +25G | goingRate + 25 |
+| 2 | +50G | goingRate + 50 |
+| 3 | +100G | goingRate + 100 |
+| 4 | +150G | goingRate + 150 |
+
+Max permanent level: 4 for actives (displays as L5), 5 for passives (displays as L5).
+
+### Category Unlocks (do NOT increase Going Rate)
+- **Advanced Sigils** (Ghost, Alpha, Grapple): **20G**
+- **Passive Sigils** (Expand, Asterisk, Star): **50G**
+
+### Death Boys (unlocked when `S.ghostBoysConverted` is true)
+- **Sell Back**: Remove one permanent sigil level, receive gold = Going Rate. Going Rate unchanged.
+- **Sacrifice**: Remove one permanent sigil level, gain Starting XP = Going Rate permanently. Going Rate decreases by 5G (min 1G).
+
+`S.startingXP` accumulates permanently. At run start, if > 0, a spending screen is shown before Floor 1.
+
+---
+
+## Quest Board
+
+Accessible from the Ribbleton hub. 8 categories of quests that award gold on completion.
+
+### Quest Categories
+| Category | Name | Example Quests |
+|----------|------|----------------|
+| learning | Getting Started | First Blood (5G), Shield Bearer (5G), Survivor (5G) |
+| heroes | Hero Exploration | Play each hero (5G), win with each (20G), Army of Frogs (20G) |
+| neutrals | Neutral Encounters | Complete each neutral type (5G), Neutral Explorer (20G) |
+| milestones | Milestones | Dragon Slayer (10G), First Victory (20G), All sigils L1 (20G) |
+| combat | Combat Mastery | 10+ dmg one action (10G), Ghost Walk (10G), Last Stand Hero (10G) |
+| repeatable | Ongoing Challenges | Slayer I-V (20G each), Gold Digger I-III (20G), Veteran I-III (20G) |
+| fu | Frogged Up | FU Floor 1 (20G), Recruiter (10G), FU Champion (20G) |
+| secret | Secrets | Tapo's Hero (20G), Bruce & Willis (10G), True Champion (20G) |
+
+### Quest Progress Tracking
+Progress is tracked via `S.questProgress` object (kills, damage, floors reached, gold earned, etc.). NOT tracked during tutorial (Floor 0). Each `trackQuestProgress()` call persists immediately via `savePermanent()`.
+
+### Repeatable Quest Tiers
+Three chains with sequential tiers (claim one to unlock the next):
+- **Slayer**: 25 / 100 / 250 / 500 / 1000 enemies killed (5 tiers, 20G each)
+- **Gold Digger**: 250G / 1000G / 2500G total earned (3 tiers, 20G each)
+- **Veteran**: 5 / 15 / 30 runs completed (3 tiers, 20G each)
+
+---
+
+## Pedestal / Champions System
+
+### Figurine Earning
+On victory, each surviving hero (HP > 0, not in Last Stand) earns a figurine IF they have fewer than 2 figurines for the current game mode. Maxed heroes (already 2 figurines) award **25G compensation** instead.
+
+### Figurine Placement
+- **8 total slots per mode** (4 heroes x 2 stats: POW and HP)
+- **Max 2 figurines per hero per mode**
+- **1 figurine per hero per victory** (can't double-slot same hero)
+
+### Figurine Effects (applied at run start)
+- **POW figurine**: +1 POW
+- **HP figurine**: +5 max HP and +5 current HP
+
+### Cross-Mode Rules
+- **Standard figurines** apply in BOTH Standard and Frogged Up modes
+- **Frogged Up figurines** apply ONLY in Frogged Up mode
+- In FU mode, a hero can benefit from up to 4 figurines (2 Standard + 2 FU)
+
+### Victory Flow Branching
+1. **First Standard Victory**: Cutscene + pedestal + forced FU mode entry
+2. **First Frogged Up Victory**: Credits + Tapo unlock
+3. **First Tapo-Alive Victory**: Developer thank-you message
+4. **Subsequent with figurines earned**: Straight to pedestal
+5. **Subsequent with no figurines**: Simple victory screen (shows 25G compensation if applicable)
 
 ---
 

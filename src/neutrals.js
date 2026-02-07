@@ -403,8 +403,8 @@ S.fuUnlocked = false;
 S.forcedFUEntry = false;
 S.tapoUnlocked = false;
 S.pondHistory = [];
-S.questsCompleted = [];
-S.questsClaimed = [];
+S.questsCompleted = {};
+S.questsClaimed = {};
 S.questProgress = {
   // Combat stats
   enemiesKilled: 0,
