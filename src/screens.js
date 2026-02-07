@@ -886,10 +886,6 @@ ${slotsHTML}
 <p style="margin:0.25rem 0;font-size:0.85rem;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)">${S.gameMode} Mode - ${placedCount}/8 figurines placed</p>
 </div>
 
-${S.hasAncientStatuette ? `<div style="position:absolute;bottom:15%;left:50%;transform:translateX(-50%);padding:0.75rem 1.5rem;background:rgba(251,191,36,0.95);border-radius:8px;text-align:center;border:3px solid #000;z-index:10">
-<p style="font-weight:bold;margin:0;font-size:0.9rem">🗿 Ancient Statuette Available! Click an empty slot to place.</p>
-</div>` : ''}
-
 <!-- Back button -->
 <div style="position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);z-index:10">
 <button class="btn secondary" onclick="showChampionsMenu()" style="padding:0.75rem 2rem">Back to Victory Room</button>
@@ -919,17 +915,7 @@ toast('All 8 slots filled! Remove a figurine first.');
 return;
 }
 
-// Use Ancient Statuette if available (can go in any slot)
-if(S.hasAncientStatuette) {
-S.pedestal.push({hero, stat, mode: S.gameMode, source: 'statuette'});
-S.hasAncientStatuette = false;
-savePermanent();
-toast(`Ancient Statuette placed on ${hero} ${stat}!`, 1800);
-showPedestal();
-return;
-}
-
-// Otherwise, check if this hero can have a figurine (max 2 per hero per mode)
+// Check if this hero can have a figurine (max 2 per hero per mode)
 const existingCount = S.pedestal.filter(p => p.hero === hero && p.mode === S.gameMode).length;
 if(existingCount >= 2) {
 toast(`${hero} already has 2 figurines in ${S.gameMode} mode!`, 1800);
@@ -1062,7 +1048,7 @@ return;
 }
 
 // SUBSEQUENT VICTORIES: Go directly to Pedestal if figurines earned
-if(earnedFigurines.length > 0 || S.hasAncientStatuette) {
+if(earnedFigurines.length > 0) {
 showStatueRoom();
 return;
 }

@@ -1868,14 +1868,25 @@ if(recruit.sh > recruit.m) recruit.sh = recruit.m;
 toast(`${recruit.n} (Recruit) gained ${shieldAmt} shield!`);
 } else if(sig === 'Heal') {
 const healAmt = 2 * recruit.p * level;
-// Heal lowest HP hero
-const targets = S.heroes.filter(h => h.h > 0 && !h.ls);
+// Heal lowest HP hero (prioritize Last Stand heroes for revive)
+const targets = S.heroes.filter(h => (h.h > 0 && !h.ls) || h.ls);
 if(targets.length > 0) {
-targets.sort((a, b) => a.h - b.h);
+targets.sort((a, b) => {
+if(a.ls && !b.ls) return -1;
+if(!a.ls && b.ls) return 1;
+return a.h - b.h;
+});
 const healTarget = targets[0];
+if(healTarget.ls) {
+healTarget.ls = false;
+healTarget.lst = 0;
+healTarget.h = Math.min(healAmt, healTarget.m);
+toast(`${recruit.n} (Recruit) revived ${healTarget.n}!`);
+} else {
 healTarget.h += healAmt;
 if(healTarget.h > healTarget.m) healTarget.h = healTarget.m;
 toast(`${recruit.n} (Recruit) healed ${healTarget.n} for ${healAmt}!`);
+}
 }
 } else if(sig === 'Grapple') {
 if(S.enemies.length === 0) return;
@@ -1892,7 +1903,7 @@ recruit.h = 0;
 toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
 S.recruits = S.recruits.filter(r => r.id !== recruit.id);
 } else {
-target.st = level;
+target.st = Math.max(target.st, level);
 toast(`${target.n} stunned for ${level} turns!`);
 }
 } else if(sig === 'Ghost') {
@@ -2892,12 +2903,11 @@ function levelUp() {
 // JUICE: Level up sound
 SoundFX.play('levelup');
 
-// Unlock blue portal and award statuette after completing Floor 19 (combat before floor 20)
+// Unlock blue portal after completing Floor 19 (combat before floor 20)
 if(S.floor === 19) {
 S.hasReachedFloor20 = true;
-S.hasAncientStatuette = true;
 savePermanent();
-toast('🗿 Ancient Statuette acquired! The blue portal in Ribbleton has awakened!', 2500);
+toast('The blue portal in Ribbleton has awakened!', 2500);
 // Skip level up menu on floor 19 - no point spending XP before victory
 setTimeout(() => nextFloor(), 2000);
 return;

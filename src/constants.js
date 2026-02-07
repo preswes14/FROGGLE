@@ -143,7 +143,7 @@ const ENEMY_EMOJI = {
 'Wolf': '🐺',
 'Orc': '👹',
 'Giant': '🗿',
-'Cave Troll': '👹',
+'Cave Troll': '🧌',
 'Dragon': '🐉',
 'Flydra': '🐲'
 };
@@ -581,10 +581,12 @@ showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0
 // Handle lethal damage
 if(target.h <= 0) {
 if(target.g > 0) {
-// Ghost charge cancels death
+// Ghost charge fully negates the hit (restores HP and shield)
 target.g--;
 target.h += dmg;
-hpLost = 0; // Ghost prevented the HP loss
+target.sh += shieldLost;
+hpLost = 0;
+shieldLost = 0;
 // QUEST TRACKING: Ghost blocked damage
 if(options.isHero && typeof trackQuestProgress === 'function') trackQuestProgress('ghostBlock');
 if(!options.silent) {
