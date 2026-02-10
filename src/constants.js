@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.28';
+const GAME_VERSION = 'S_1.29';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -222,6 +222,16 @@ const SIGIL_DESCRIPTIONS = {
 // Top row (actives): Attack, Shield, Heal, Grapple, D20 (D20 always top right)
 // Bottom row: Alpha (bottom left), Ghost, Expand, Star, Asterisk (bottom right, passive)
 const SIGIL_ORDER = ['Attack', 'Shield', 'Heal', 'Grapple', 'D20', 'Alpha', 'Ghost', 'Expand', 'Star', 'Asterisk'];
+
+// ===== TUTORIAL FLAG CATEGORIES =====
+// Used by settings toggles to independently reset/disable popup categories
+const TUTORIAL_FLAG_CATEGORIES = {
+narrative: ['death_intro', 'first_victory_sequence', 'first_fu_victory', 'tapo_victory_message', 'tutorial_fly_munched'],
+tutorial: ['tapo_first_attack', 'ribbleton_warrior_attack', 'ribbleton_targeting', 'ribbleton_healer_d20',
+  'ribbleton_d20_menu', 'ribbleton_enemy_turn', 'ribbleton_healer_heal', 'enemies_get_sigils',
+  'ribbleton_handoff', 'ribbleton_expand']
+// Everything else is a help tip (checked by exclusion)
+};
 
 function sortSigils(sigils) {
 if (!Array.isArray(sigils)) return sigils;

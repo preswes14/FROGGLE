@@ -147,7 +147,9 @@ toastHistory: [],               // Array of recent toast messages
 toastLogLocked: false,          // Whether toast log is locked open (persistent)
 toastLogVisible: true,          // Whether toast log button is shown in header
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
-helpTipsDisabled: false,        // Whether tutorial help tips are disabled
+helpTipsDisabled: false,        // Whether help tip popups are disabled
+tutorialDisabled: false,        // Whether tutorial walkthrough popups are disabled
+cutsceneDisabled: false,        // Whether narrative cutscenes are disabled
 highContrastMode: false,        // Whether high contrast accessibility mode is enabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
 masterVolume: 1.0,              // Master volume (0-1) - scales all audio
@@ -735,7 +737,11 @@ log.innerHTML = html;
 
 function showTutorialPop(flagName, message, onDismiss) {
 debugLog('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
-if(S.helpTipsDisabled || S.tutorialFlags[flagName]) {
+// Check category-specific disable flag
+const isCategoryDisabled = TUTORIAL_FLAG_CATEGORIES.narrative.includes(flagName) ? S.cutsceneDisabled :
+  TUTORIAL_FLAG_CATEGORIES.tutorial.includes(flagName) ? S.tutorialDisabled :
+  S.helpTipsDisabled;
+if(isCategoryDisabled || S.tutorialFlags[flagName]) {
 debugLog('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
 if(onDismiss) onDismiss();
 return;
@@ -863,6 +869,8 @@ runNumber: S.runNumber,
 runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
+tutorialDisabled: S.tutorialDisabled,
+cutsceneDisabled: S.cutsceneDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 toastLogVisible: S.toastLogVisible,
 toastLogLocked: S.toastLogLocked,
@@ -987,6 +995,8 @@ S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tutorialDisabled = j.tutorialDisabled || false;
+S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
 S.toastLogLocked = j.toastLogLocked || false;
@@ -1242,6 +1252,8 @@ S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
 S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tutorialDisabled = j.tutorialDisabled || false;
+S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
 S.toastLogLocked = j.toastLogLocked || false;
@@ -1350,6 +1362,8 @@ passiveSigilsUnlocked: S.passiveSigilsUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
+tutorialDisabled: S.tutorialDisabled,
+cutsceneDisabled: S.cutsceneDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 toastLogVisible: S.toastLogVisible,
 toastLogLocked: S.toastLogLocked,

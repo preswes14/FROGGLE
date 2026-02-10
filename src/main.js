@@ -127,6 +127,8 @@ S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tutorialDisabled = j.tutorialDisabled || false;
+S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
@@ -161,7 +163,7 @@ loadPermanent(); // No slot data, use old format
 } else {
 loadPermanent(); // No last slot, use old format
 }
-debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
+debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'helpTips:', S.helpTipsDisabled, 'tutorial:', S.tutorialDisabled, 'cutscene:', S.cutsceneDisabled);
 
 try { applyVolumeSettings(); } catch(e) { console.warn('[FROGGLE] applyVolumeSettings failed:', e); }
 try { initToastLog(); } catch(e) { console.warn('[FROGGLE] initToastLog failed:', e); }

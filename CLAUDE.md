@@ -127,7 +127,7 @@ Enemy Turn:
 | Tank | 1 | 10 | Attack, Shield, D20 | Defensive, high HP |
 | Mage | 1 | 5 | Attack, D20, Expand | Multi-target (Expand always +1 level higher) |
 | Healer | 1 | 5 | Heal, D20, Expand | Support (Expand always +1 level higher) |
-| Tapo | 1 | 1 | D20 (+ upgraded passives) | Unlockable, versatile |
+| Tapo | 1 | 1 | D20 (+ any gold-upgraded sigils) | Unlockable, versatile |
 
 ### Sigils (10 Types)
 
