@@ -831,6 +831,10 @@ const ProceduralMusic = {
       return buffer;
     };
 
+    // Pre-create noise buffers (reused each beat to avoid GC pressure)
+    const snareNoiseBuffer = createNoise(0.15);
+    const hatNoiseBuffer = createNoise(0.04);
+
     // 16-step patterns (two measures of 8)
     // Kick pattern: same as combat but extended to 16 steps
     const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0];
@@ -880,7 +884,7 @@ const ProceduralMusic = {
 
         // Noise rattle
         const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = createNoise(0.15);
+        snareNoise.buffer = snareNoiseBuffer;
         const snareNoiseGain = this.ctx.createGain();
         const snareNoiseFilter = this.ctx.createBiquadFilter();
         snareNoiseFilter.type = 'highpass';
@@ -896,7 +900,7 @@ const ProceduralMusic = {
       // Hi-hat - quiet tick (quieter than combat for more chill vibe)
       if (hatPattern[step]) {
         const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = createNoise(0.04);
+        hatNoise.buffer = hatNoiseBuffer;
         const hatGain = this.ctx.createGain();
         const hatFilter = this.ctx.createBiquadFilter();
         hatFilter.type = 'highpass';
@@ -956,6 +960,10 @@ const ProceduralMusic = {
       return buffer;
     };
 
+    // Pre-create noise buffers (reused each beat to avoid GC pressure)
+    const snareNoiseBuffer = createNoise(0.08);
+    const hatNoiseBuffer = createNoise(0.02);
+
     // 16-step pattern (two measures) - simplified and more spacious
     //                        steps: 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
     // Simpler kick: just 1, 4, 9, 12 (four-on-the-floor with slight syncopation)
@@ -1008,7 +1016,7 @@ const ProceduralMusic = {
 
         // Light noise brush
         const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = createNoise(0.08);
+        snareNoise.buffer = snareNoiseBuffer;
         const snareNoiseGain = this.ctx.createGain();
         const snareNoiseFilter = this.ctx.createBiquadFilter();
         snareNoiseFilter.type = 'highpass';
@@ -1024,7 +1032,7 @@ const ProceduralMusic = {
       // Soft hi-hat tick
       if (hatPattern[step]) {
         const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = createNoise(0.02);
+        hatNoise.buffer = hatNoiseBuffer;
         const hatGain = this.ctx.createGain();
         const hatFilter = this.ctx.createBiquadFilter();
         hatFilter.type = 'highpass';
@@ -1087,6 +1095,11 @@ const ProceduralMusic = {
       return buffer;
     };
 
+    // Pre-create noise buffers (reused each beat to avoid GC pressure)
+    const kickNoiseBuffer = createNoise(0.03);
+    const snareNoiseBuffer = createNoise(0.15);
+    const hatNoiseBuffer = createNoise(0.04);
+
     // Kick pattern: 1-0-0-1-0-1-0-0 (8 steps) - punchy drum hits
     const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0];
     // Snare on beats 3 and 7 (backbeat)
@@ -1117,7 +1130,7 @@ const ProceduralMusic = {
 
         // Noise click for attack
         const kickNoise = this.ctx.createBufferSource();
-        kickNoise.buffer = createNoise(0.03);
+        kickNoise.buffer = kickNoiseBuffer;
         const kickNoiseGain = this.ctx.createGain();
         const kickNoiseFilter = this.ctx.createBiquadFilter();
         kickNoiseFilter.type = 'lowpass';
@@ -1147,7 +1160,7 @@ const ProceduralMusic = {
 
         // Noise rattle
         const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = createNoise(0.15);
+        snareNoise.buffer = snareNoiseBuffer;
         const snareNoiseGain = this.ctx.createGain();
         const snareNoiseFilter = this.ctx.createBiquadFilter();
         snareNoiseFilter.type = 'highpass';
@@ -1163,7 +1176,7 @@ const ProceduralMusic = {
       // Hi-hat - quiet tick for steady metronome pulse
       if (hatPattern[step]) {
         const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = createNoise(0.04);
+        hatNoise.buffer = hatNoiseBuffer;
         const hatGain = this.ctx.createGain();
         const hatFilter = this.ctx.createBiquadFilter();
         hatFilter.type = 'highpass';

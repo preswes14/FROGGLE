@@ -216,7 +216,8 @@ const GamepadController = {
   },
 
   startInputDetection() {
-    setTimeout(() => {
+    this._inputDetectionTimeout = setTimeout(() => {
+      this._inputDetectionTimeout = null;
       if (this.connected && !this.firstInputTime && !this.inputDetectionShown) {
         this.inputDetectionShown = true;
         this.showSteamDeckWarning();
@@ -230,8 +231,9 @@ const GamepadController = {
                         (typeof window.electronInfo !== 'undefined');
 
     if (isSteamDeck) {
-      toast('⚠️ Controller not responding? Try keyboard mode or check Steam settings', 4000);
-      setTimeout(() => {
+      toast('Controller not responding? Try keyboard mode or check Steam settings', 4000);
+      this._steamDeckHelpTimeout = setTimeout(() => {
+        this._steamDeckHelpTimeout = null;
         if (!this.firstInputTime && typeof showSteamDeckHelp === 'function') {
           showSteamDeckHelp();
         }
@@ -1001,6 +1003,9 @@ const GamepadController = {
   destroy() {
     this.stopPolling();
     this.deactivate();
+    // Clear pending timeouts to prevent stale callbacks
+    if (this._inputDetectionTimeout) { clearTimeout(this._inputDetectionTimeout); this._inputDetectionTimeout = null; }
+    if (this._steamDeckHelpTimeout) { clearTimeout(this._steamDeckHelpTimeout); this._steamDeckHelpTimeout = null; }
     // Remove event listeners to prevent accumulation on reinit
     if (this._onGamepadConnected) {
       window.removeEventListener('gamepadconnected', this._onGamepadConnected);

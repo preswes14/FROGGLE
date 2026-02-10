@@ -83,6 +83,10 @@ window.location.reload();
 // ===== INIT =====
 window.onload = function() {
 try {
+// Verify critical cross-module functions loaded correctly
+['render', 'getLevel', 'toast', 'saveGame', 'savePermanent', 'startFloor'].forEach(function(fn) {
+  if (typeof window[fn] !== 'function') console.error('[FROGGLE] Missing critical function: ' + fn);
+});
 debugLog('[FROGGLE] window.onload fired');
 // Check for last used slot
 var lastSlot = localStorage.getItem('froggle8_current_slot');

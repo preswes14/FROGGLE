@@ -2216,8 +2216,8 @@ const heroNonStarters = nonStarterPool.filter(sig => h.s.includes(sig) || (h.ts 
 
 let chosenSigil;
 if(heroNonStarters.length > 0) {
-// Prioritize passives (Star, Asterisk, Ghost) if hero has any
-const heroPassives = heroNonStarters.filter(sig => ['Star', 'Asterisk', 'Ghost'].includes(sig));
+// Prioritize passives (Star, Asterisk) if hero has any
+const heroPassives = heroNonStarters.filter(sig => ['Star', 'Asterisk'].includes(sig));
 if(heroPassives.length > 0) {
 // On natural 20, prioritize lower level sigils
 if(best === 20) {
@@ -2515,7 +2515,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function showOracle2() {
-if(S.oracleHero === null || S.oracleRoll === null) {
+if(S.oracleHero == null || S.oracleRoll == null) {
 nextFloor();
 return;
 }
@@ -3191,6 +3191,7 @@ buttons: `<button class="btn danger" onclick="attemptGhostEscape()">Try to Escap
 
 function showGhost2() {
 S.ghostBoysConverted = true;
+savePermanent();
 toast('Ghost Boys permanently converted to Empty Playroom!', 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({

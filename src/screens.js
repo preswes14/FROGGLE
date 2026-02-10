@@ -384,12 +384,12 @@ const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha']
 const isActive = actives.includes(sig);
 const currentLevel = isActive ? permLevel + 1 : permLevel;
 const nextLevel = currentLevel + 1;
-const maxLevel = isActive ? 4 : 5; // Actives max at perm 4 (display 5), passives at perm 5
+const maxLevel = 4; // All sigils max at perm 4 (Expand can reach effective L5 for Mage/Healer via built-in +1)
 
 // Show SOLD OUT card for maxed sigils instead of hiding
-if(currentLevel >= 5) {
+if(permLevel >= maxLevel) {
 const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
-const maxColor = colors[5];
+const maxColor = colors[Math.min(currentLevel, colors.length - 1)];
 cards += `
 <div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,255,0.3)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
@@ -552,11 +552,9 @@ v.innerHTML = html;
 function purchaseSigilUpgrade(sig, cost) {
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 
-// Check max level: actives max at perm L4 (displays as L5), passives max at perm L5
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-const isActive = actives.includes(sig);
+// Check max level: all sigils max at perm L4 (Expand reaches effective L5 for Mage/Healer via built-in +1)
 const permLevel = S.sig[sig] || 0;
-const maxLevel = isActive ? 4 : 5;
+const maxLevel = 4;
 
 if(permLevel >= maxLevel) {
 toast('Already at maximum level!', 1800);
@@ -679,7 +677,7 @@ return;
 
 savePermanent();
 // Clear run-specific save (slot-specific)
-if(S.currentSlot) {
+if(S.currentSlot != null) {
 localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 }
 // Also clear old save format for backwards compatibility

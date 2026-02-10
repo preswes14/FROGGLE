@@ -210,7 +210,7 @@ const SIGIL_DESCRIPTIONS = {
 'Heal': 'Restore <b class="sig-scale">2×POW</b> HP to target. L2: 4×. L3: 6×. L4: 8×. Cannot exceed max HP.',
 'D20': 'Attempt a gambit! Roll <b class="sig-scale">ONE</b> d20. L2: 2 dice (take best). L3: 3 dice. L4: 4 dice.',
 'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in.',
-'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW. Stun stacks with existing stun!',
+'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW.',
 'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
 'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
 'Star': 'PASSIVE (works automatically): Multiply combat XP by <b class="sig-scale">1.5×</b>. L2: 2×. L3: 2.5×. L4: 3×. Stacks across all heroes!',
@@ -1197,14 +1197,14 @@ const ANIMATION_TIMINGS = {
 // Helper function to apply animation speed multiplier
 // Speed: 1 = normal, 2 = 2x faster, 4 = 4x faster, 0 = instant
 function T(baseTime) {
-  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  const speed = (typeof S !== 'undefined' && typeof S.animationSpeed === 'number') ? S.animationSpeed : 1;
   if (speed === 0) return 1; // Instant mode: 1ms minimum
   return Math.max(1, Math.round(baseTime / speed));
 }
 
 // Get current animation speed label
 function getSpeedLabel() {
-  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  const speed = (typeof S !== 'undefined' && typeof S.animationSpeed === 'number') ? S.animationSpeed : 1;
   switch(speed) {
     case 0: return 'Instant';
     case 2: return '2x';

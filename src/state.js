@@ -45,6 +45,7 @@ grappleLevel: 0,    // Grapple level for recoil calculation
 turnDamage: 0,      // Damage dealt during current hero's turn (for damage counter)
 inCombat: false,    // Whether player is currently in combat
 combatEnding: false, // Guard flag to prevent double combat-end processing
+autoSelectInProgress: false, // Guard flag to prevent double auto-confirm during target selection
 combatStartSnapshot: null, // Snapshot of heroes/enemies at combat start (for restart)
 alphaGrantedActions: [],   // Hero IDs receiving Alpha-granted bonus actions
 alphaCurrentAction: 0,     // Current index in alpha granted actions sequence
@@ -209,9 +210,8 @@ usedDeathQuotes: [], // Track which death quotes have been shown
 
 // ===== SUSPEND/AUTOSAVE STATE =====
 suspended: false,         // Whether game is currently suspended
-lastAutosave: 0,          // Timestamp of last autosave
-inCombat: false,          // Whether player is in active combat (for autosave)
-combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
+lastAutosave: 0           // Timestamp of last autosave
+// NOTE: inCombat and combatEnding are defined in COMBAT STATE section above
 };
 
 let sel = [];
@@ -897,11 +897,34 @@ if(type === 'permanent') {
 // Check core permanent data structure
 if(data.sig && typeof data.sig !== 'object') throw new Error('Invalid sig structure');
 if(data.pedestal && !Array.isArray(data.pedestal)) throw new Error('Invalid pedestal structure');
+// Validate sig keys are known sigil names
+if(data.sig) {
+const validSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+for(const key of Object.keys(data.sig)) {
+if(!validSigils.includes(key)) throw new Error('Unknown sigil in save: ' + key);
+if(typeof data.sig[key] !== 'number' || data.sig[key] < 0 || data.sig[key] > 5) throw new Error('Invalid sigil level for ' + key);
+}
+}
+// Validate pedestal entries have required shape
+if(data.pedestal) {
+for(const fig of data.pedestal) {
+if(!fig || typeof fig.hero !== 'string' || typeof fig.mode !== 'string') throw new Error('Invalid pedestal figurine');
+}
+}
+// Validate quest progress sub-objects
+if(data.questProgress && typeof data.questProgress !== 'object') throw new Error('Invalid questProgress structure');
 }
 if(type === 'run') {
 // Check core run data structure
 if(typeof data.f !== 'number') throw new Error('Invalid floor value');
 if(data.h && !Array.isArray(data.h)) throw new Error('Invalid heroes structure');
+// Validate hero entries have required fields
+if(data.h) {
+for(const hero of data.h) {
+if(!hero || typeof hero.n !== 'string') throw new Error('Invalid hero in save');
+if(typeof hero.h !== 'number' || typeof hero.m !== 'number') throw new Error('Invalid hero HP values');
+}
+}
 }
 return true;
 }
@@ -1524,9 +1547,14 @@ debugLog('[PAGEHIDE] Game saved before unload');
 });
 
 // Also handle beforeunload for older browsers
-window.addEventListener('beforeunload', () => {
+window.addEventListener('beforeunload', (e) => {
 if(S.currentSlot && S.heroes.length > 0) {
 saveGame();
+}
+// Warn during tutorial since tutorial progress isn't saved
+if(S.floor === 0 && S.heroes.length > 0) {
+e.preventDefault();
+e.returnValue = ''; // Required for Chrome/Edge to show confirmation dialog
 }
 });
 
