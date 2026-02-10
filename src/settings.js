@@ -569,7 +569,7 @@ document.addEventListener('keydown', keyHandler, true); // capture phase
 // Update loop
 const updateDebug = () => {
 if (!document.getElementById('controller-debug-overlay')) {
-document.removeEventListener('keydown', keyHandler);
+document.removeEventListener('keydown', keyHandler, true);
 return;
 }
 
@@ -628,7 +628,7 @@ statusEl.innerHTML = `<span style="color:#f00">✗ NO GAMEPAD</span><br>
 <span style="font-size:10px;color:#888">
 API: ${hasAPI} | Array len: ${gpLen}<br>
 gameControl: ${gcLib} (${gcGps} gps)<br>
-GamepadController: ${typeof GamepadController !== 'undefined' ? (GamepadController.currentGamepad ? 'Connected' : 'No GP') : 'Missing'}
+GamepadController: ${typeof GamepadController !== 'undefined' ? (GamepadController.connected ? 'Connected' : 'No GP') : 'Missing'}
 </span>`;
 buttonsEl.innerHTML = '<span style="color:#ff0">Press controller buttons...</span>';
 axesEl.innerHTML = '<span style="font-size:10px;color:#888">If using Steam Deck, check Steam Input config</span>';

@@ -1421,7 +1421,8 @@ targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 totalDmg += e.p;
-e.st = Math.max(e.st, stunDuration);
+// Player Grapple STACKS stun (intentional player advantage per spec)
+e.st += stunDuration;
 targetNames.push(e.n);
 // Show stun tutorial popup first time
 showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
@@ -1440,6 +1441,7 @@ trackQuestProgress('targets', targetNames.length);
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
+const hpBefore = h.h;
 const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
 let msg = `${h.n} took Grapple recoil:`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
@@ -1450,6 +1452,10 @@ msg += ` -${damage.shieldLost}🛡️`;
 msg += ` -${damage.hpLost}❤️`;
 }
 toast(msg);
+// Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
+if(h.ls && hpBefore > 0) {
+toast(`${h.n} entered Last Stand from Grapple recoil!`, 3000);
+}
 }
 }
 

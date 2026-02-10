@@ -439,6 +439,10 @@ S.questProgress = {
   goldDiggerTier: 0,
   veteranTier: 0
 };
+S.ghostBoysConverted = false;
+S.advancedSigilsUnlocked = false;
+S.passiveSigilsUnlocked = false;
+S.ancientStatueDeactivated = false;
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
 S.runsAttempted = 1;
@@ -1860,7 +1864,9 @@ S.sig[sig] = (S.sig[sig] || 0) + 1;
 // NOTE: Going Rate does NOT increase for Death's Bargain!
 upd();
 savePermanent();
-toast(`${sig} permanently upgraded to L${S.sig[sig]}! (GR unchanged)`, 3000);
+const bargainActives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const bargainDisplayLvl = bargainActives.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+toast(`${sig} permanently upgraded to L${bargainDisplayLvl}! (GR unchanged)`, 3000);
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
@@ -3303,12 +3309,14 @@ const sigil2 = eligible[1] || 'Shield';
 removeNeutralFromDeck('royal');
 S.royalQuestActive = false;
 
+const royalActives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const royalDisplayLevel = (sig) => royalActives.includes(sig) ? (S.sig[sig] || 0) + 1 : (S.sig[sig] || 0);
 let buttons = '';
 buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil1}')">
-<strong>${sigilIcon(sigil1)}</strong> <span style="opacity:0.7">L${S.sig[sigil1] || 0} → L${(S.sig[sigil1] || 0) + 1}</span>
+<strong>${sigilIcon(sigil1)}</strong> <span style="opacity:0.7">L${royalDisplayLevel(sigil1)} → L${royalDisplayLevel(sigil1) + 1}</span>
 </div>`;
 buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil2}')">
-<strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
+<strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${royalDisplayLevel(sigil2)} → L${royalDisplayLevel(sigil2) + 1}</span>
 </div>`;
 
 v.innerHTML = buildNeutralHTML({

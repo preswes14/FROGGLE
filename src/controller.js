@@ -87,6 +87,7 @@ const GamepadController = {
         var anyConnected = gamepads && Array.from(gamepads).some(function(gp) { return gp !== null; });
         if (!anyConnected) {
           this.stopPolling();
+          this.deactivate();
         }
       } catch(err) {
         console.warn('[CONTROLLER] Error in gamepad disconnect handler:', err);
@@ -475,11 +476,16 @@ const GamepadController = {
     }
 
     if (ctx === 'targeting' && typeof S !== 'undefined') {
-      S.pending = null;
-      S.targets = [];
-      S.currentInstanceTargets = [];
-      S.instancesRemaining = 0;
-      if (typeof render === 'function') render();
+      if (typeof cancelAction === 'function') {
+        cancelAction();
+      } else {
+        S.pending = null;
+        S.targets = [];
+        S.currentInstanceTargets = [];
+        S.instancesRemaining = 0;
+        S.totalInstances = 0;
+        if (typeof render === 'function') render();
+      }
       return;
     }
 
