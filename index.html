@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="A tactical turn-based roguelike where frogs fight with sigils and dice. Save Tapo the Tadpole!"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="FROGGLE"/>
@@ -16,7 +17,8 @@
 <title>FROGGLE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, sans-serif; background: #1a1a1a; color: #f0f0f0; position: fixed; width: 100%; height: 100%; overflow: hidden; touch-action: manipulation; }
+body { font-family: -apple-system, sans-serif; background: #1a1a1a; color: #f0f0f0; position: fixed; width: 100%; height: 100dvh; overflow: hidden; touch-action: manipulation; }
+@supports not (height: 100dvh) { body { height: 100%; } }
 /* Hide cursor on Steam Deck / touch devices in Electron */
 body.electron-app { cursor: none; }
 body.electron-app * { cursor: none; }
@@ -226,7 +228,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
 .header { padding: 0.5rem; background: linear-gradient(#1f2937, #111827); border-bottom: 2px solid #22c55e; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #f0f0f0; }
 .header button { display: inline-flex; align-items: center; justify-content: center; line-height: 1; height: 28px; min-width: 28px; box-sizing: border-box; }
-.game-area { height: calc(100vh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
+.game-area { height: calc(100dvh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
+@supports not (height: 100dvh) { .game-area { height: calc(100vh - 44px); } }
 .game-area.no-scroll { overflow: hidden; padding: 0; }
 .game-area.fade-out { animation: fadeOut 0.2s ease forwards; }
 .game-area.fade-in { animation: fadeIn 0.2s ease forwards; }
@@ -285,7 +288,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .neutral-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 .neutral-container {
   width: 100%;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: row;
   background: #1a1a1a;
@@ -773,7 +776,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
   .game-area {
     padding: 1rem;
-    height: calc(100vh - 52px);
+    height: calc(100dvh - 52px);
   }
 
   /* Cards medium scaling */
@@ -871,7 +874,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
   .game-area {
     padding: 1.5rem;
-    height: calc(100vh - 56px);
+    height: calc(100dvh - 56px);
   }
 
   /* Hero and Enemy Cards - Much larger on desktop */
@@ -1674,15 +1677,15 @@ body.controller-active * {
 
 /* Global game area adjustment for controller bar (all screen sizes) */
 body.controller-active .game-area {
-  height: calc(100vh - 44px - 56px); /* Account for header (44px) + controller prompts bar (~56px) */
+  height: calc(100dvh - 44px - 56px); /* Account for header (44px) + controller prompts bar (~56px) */
 }
 
 /* Full-screen content (like Ribbleton hub) - adjusts for controller bar */
 .full-screen-content {
-  height: calc(100vh - 44px);
+  height: calc(100dvh - 44px);
 }
 body.controller-active .full-screen-content {
-  height: calc(100vh - 44px - 56px); /* Account for header + controller prompts bar */
+  height: calc(100dvh - 44px - 56px); /* Account for header + controller prompts bar */
 }
 
 /* Toast notification adjustment when controller bar is visible */
@@ -2565,7 +2568,7 @@ const SIGIL_DESCRIPTIONS = {
 'Heal': 'Restore <b class="sig-scale">2×POW</b> HP to target. L2: 4×. L3: 6×. L4: 8×. Cannot exceed max HP.',
 'D20': 'Attempt a gambit! Roll <b class="sig-scale">ONE</b> d20. L2: 2 dice (take best). L3: 3 dice. L4: 4 dice.',
 'Expand': 'PASSIVE (works automatically): Add <b class="sig-scale">+1</b> target per level to multi-target actions (Attack, Shield, Heal, Alpha, Grapple). Mage/Healer get +1 built-in.',
-'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW. Stun stacks with existing stun!',
+'Grapple': 'Stun target for <b class="sig-scale">ONE</b> turn. L2: 2 turns. L3: 3 turns. User takes recoil damage equal to target\'s POW.',
 'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
 'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
 'Star': 'PASSIVE (works automatically): Multiply combat XP by <b class="sig-scale">1.5×</b>. L2: 2×. L3: 2.5×. L4: 3×. Stacks across all heroes!',
@@ -3552,14 +3555,14 @@ const ANIMATION_TIMINGS = {
 // Helper function to apply animation speed multiplier
 // Speed: 1 = normal, 2 = 2x faster, 4 = 4x faster, 0 = instant
 function T(baseTime) {
-  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  const speed = (typeof S !== 'undefined' && typeof S.animationSpeed === 'number') ? S.animationSpeed : 1;
   if (speed === 0) return 1; // Instant mode: 1ms minimum
   return Math.max(1, Math.round(baseTime / speed));
 }
 
 // Get current animation speed label
 function getSpeedLabel() {
-  const speed = (typeof S !== 'undefined' && S.animationSpeed) || 1;
+  const speed = (typeof S !== 'undefined' && typeof S.animationSpeed === 'number') ? S.animationSpeed : 1;
   switch(speed) {
     case 0: return 'Instant';
     case 2: return '2x';
@@ -4848,6 +4851,10 @@ const ProceduralMusic = {
       return buffer;
     };
 
+    // Pre-create noise buffers (reused each beat to avoid GC pressure)
+    const snareNoiseBuffer = createNoise(0.15);
+    const hatNoiseBuffer = createNoise(0.04);
+
     // 16-step patterns (two measures of 8)
     // Kick pattern: same as combat but extended to 16 steps
     const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0];
@@ -4897,7 +4904,7 @@ const ProceduralMusic = {
 
         // Noise rattle
         const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = createNoise(0.15);
+        snareNoise.buffer = snareNoiseBuffer;
         const snareNoiseGain = this.ctx.createGain();
         const snareNoiseFilter = this.ctx.createBiquadFilter();
         snareNoiseFilter.type = 'highpass';
@@ -4913,7 +4920,7 @@ const ProceduralMusic = {
       // Hi-hat - quiet tick (quieter than combat for more chill vibe)
       if (hatPattern[step]) {
         const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = createNoise(0.04);
+        hatNoise.buffer = hatNoiseBuffer;
         const hatGain = this.ctx.createGain();
         const hatFilter = this.ctx.createBiquadFilter();
         hatFilter.type = 'highpass';
@@ -4973,6 +4980,10 @@ const ProceduralMusic = {
       return buffer;
     };
 
+    // Pre-create noise buffers (reused each beat to avoid GC pressure)
+    const snareNoiseBuffer = createNoise(0.08);
+    const hatNoiseBuffer = createNoise(0.02);
+
     // 16-step pattern (two measures) - simplified and more spacious
     //                        steps: 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
     // Simpler kick: just 1, 4, 9, 12 (four-on-the-floor with slight syncopation)
@@ -5025,7 +5036,7 @@ const ProceduralMusic = {
 
         // Light noise brush
         const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = createNoise(0.08);
+        snareNoise.buffer = snareNoiseBuffer;
         const snareNoiseGain = this.ctx.createGain();
         const snareNoiseFilter = this.ctx.createBiquadFilter();
         snareNoiseFilter.type = 'highpass';
@@ -5041,7 +5052,7 @@ const ProceduralMusic = {
       // Soft hi-hat tick
       if (hatPattern[step]) {
         const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = createNoise(0.02);
+        hatNoise.buffer = hatNoiseBuffer;
         const hatGain = this.ctx.createGain();
         const hatFilter = this.ctx.createBiquadFilter();
         hatFilter.type = 'highpass';
@@ -5104,6 +5115,11 @@ const ProceduralMusic = {
       return buffer;
     };
 
+    // Pre-create noise buffers (reused each beat to avoid GC pressure)
+    const kickNoiseBuffer = createNoise(0.03);
+    const snareNoiseBuffer = createNoise(0.15);
+    const hatNoiseBuffer = createNoise(0.04);
+
     // Kick pattern: 1-0-0-1-0-1-0-0 (8 steps) - punchy drum hits
     const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0];
     // Snare on beats 3 and 7 (backbeat)
@@ -5134,7 +5150,7 @@ const ProceduralMusic = {
 
         // Noise click for attack
         const kickNoise = this.ctx.createBufferSource();
-        kickNoise.buffer = createNoise(0.03);
+        kickNoise.buffer = kickNoiseBuffer;
         const kickNoiseGain = this.ctx.createGain();
         const kickNoiseFilter = this.ctx.createBiquadFilter();
         kickNoiseFilter.type = 'lowpass';
@@ -5164,7 +5180,7 @@ const ProceduralMusic = {
 
         // Noise rattle
         const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = createNoise(0.15);
+        snareNoise.buffer = snareNoiseBuffer;
         const snareNoiseGain = this.ctx.createGain();
         const snareNoiseFilter = this.ctx.createBiquadFilter();
         snareNoiseFilter.type = 'highpass';
@@ -5180,7 +5196,7 @@ const ProceduralMusic = {
       // Hi-hat - quiet tick for steady metronome pulse
       if (hatPattern[step]) {
         const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = createNoise(0.04);
+        hatNoise.buffer = hatNoiseBuffer;
         const hatGain = this.ctx.createGain();
         const hatFilter = this.ctx.createBiquadFilter();
         hatFilter.type = 'highpass';
@@ -5375,6 +5391,7 @@ grappleLevel: 0,    // Grapple level for recoil calculation
 turnDamage: 0,      // Damage dealt during current hero's turn (for damage counter)
 inCombat: false,    // Whether player is currently in combat
 combatEnding: false, // Guard flag to prevent double combat-end processing
+autoSelectInProgress: false, // Guard flag to prevent double auto-confirm during target selection
 combatStartSnapshot: null, // Snapshot of heroes/enemies at combat start (for restart)
 alphaGrantedActions: [],   // Hero IDs receiving Alpha-granted bonus actions
 alphaCurrentAction: 0,     // Current index in alpha granted actions sequence
@@ -5539,9 +5556,8 @@ usedDeathQuotes: [], // Track which death quotes have been shown
 
 // ===== SUSPEND/AUTOSAVE STATE =====
 suspended: false,         // Whether game is currently suspended
-lastAutosave: 0,          // Timestamp of last autosave
-inCombat: false,          // Whether player is in active combat (for autosave)
-combatEnding: false       // Guard flag to prevent multiple checkCombatEnd calls
+lastAutosave: 0           // Timestamp of last autosave
+// NOTE: inCombat and combatEnding are defined in COMBAT STATE section above
 };
 
 let sel = [];
@@ -6227,11 +6243,34 @@ if(type === 'permanent') {
 // Check core permanent data structure
 if(data.sig && typeof data.sig !== 'object') throw new Error('Invalid sig structure');
 if(data.pedestal && !Array.isArray(data.pedestal)) throw new Error('Invalid pedestal structure');
+// Validate sig keys are known sigil names
+if(data.sig) {
+const validSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+for(const key of Object.keys(data.sig)) {
+if(!validSigils.includes(key)) throw new Error('Unknown sigil in save: ' + key);
+if(typeof data.sig[key] !== 'number' || data.sig[key] < 0 || data.sig[key] > 5) throw new Error('Invalid sigil level for ' + key);
+}
+}
+// Validate pedestal entries have required shape
+if(data.pedestal) {
+for(const fig of data.pedestal) {
+if(!fig || typeof fig.hero !== 'string' || typeof fig.mode !== 'string') throw new Error('Invalid pedestal figurine');
+}
+}
+// Validate quest progress sub-objects
+if(data.questProgress && typeof data.questProgress !== 'object') throw new Error('Invalid questProgress structure');
 }
 if(type === 'run') {
 // Check core run data structure
 if(typeof data.f !== 'number') throw new Error('Invalid floor value');
 if(data.h && !Array.isArray(data.h)) throw new Error('Invalid heroes structure');
+// Validate hero entries have required fields
+if(data.h) {
+for(const hero of data.h) {
+if(!hero || typeof hero.n !== 'string') throw new Error('Invalid hero in save');
+if(typeof hero.h !== 'number' || typeof hero.m !== 'number') throw new Error('Invalid hero HP values');
+}
+}
 }
 return true;
 }
@@ -6854,9 +6893,13 @@ debugLog('[PAGEHIDE] Game saved before unload');
 });
 
 // Also handle beforeunload for older browsers
-window.addEventListener('beforeunload', () => {
+window.addEventListener('beforeunload', (e) => {
 if(S.currentSlot && S.heroes.length > 0) {
 saveGame();
+}
+// Warn during tutorial since tutorial progress isn't saved
+if(S.floor === 0 && S.heroes.length > 0) {
+e.preventDefault();
 }
 });
 
@@ -8281,7 +8324,7 @@ targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 totalDmg += e.p;
-e.st += stunDuration;
+e.st = Math.max(e.st, stunDuration);
 targetNames.push(e.n);
 // Show stun tutorial popup first time
 showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
@@ -12689,8 +12732,8 @@ const heroNonStarters = nonStarterPool.filter(sig => h.s.includes(sig) || (h.ts 
 
 let chosenSigil;
 if(heroNonStarters.length > 0) {
-// Prioritize passives (Star, Asterisk, Ghost) if hero has any
-const heroPassives = heroNonStarters.filter(sig => ['Star', 'Asterisk', 'Ghost'].includes(sig));
+// Prioritize passives (Star, Asterisk) if hero has any
+const heroPassives = heroNonStarters.filter(sig => ['Star', 'Asterisk'].includes(sig));
 if(heroPassives.length > 0) {
 // On natural 20, prioritize lower level sigils
 if(best === 20) {
@@ -12988,7 +13031,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function showOracle2() {
-if(S.oracleHero === null || S.oracleRoll === null) {
+if(S.oracleHero == null || S.oracleRoll == null) {
 nextFloor();
 return;
 }
@@ -13664,6 +13707,7 @@ buttons: `<button class="btn danger" onclick="attemptGhostEscape()">Try to Escap
 
 function showGhost2() {
 S.ghostBoysConverted = true;
+savePermanent();
 toast('Ghost Boys permanently converted to Empty Playroom!', 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
@@ -14298,10 +14342,10 @@ const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha']
 const isActive = actives.includes(sig);
 const currentLevel = isActive ? permLevel + 1 : permLevel;
 const nextLevel = currentLevel + 1;
-const maxLevel = isActive ? 4 : 5; // Actives max at perm 4 (display 5), passives at perm 5
+const maxLevel = 4; // All sigils max at perm 4 (Expand can reach effective L5 for Mage/Healer via built-in +1)
 
 // Show SOLD OUT card for maxed sigils instead of hiding
-if(currentLevel >= 5) {
+if(permLevel >= maxLevel) {
 const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const maxColor = colors[5];
 cards += `
@@ -14466,11 +14510,9 @@ v.innerHTML = html;
 function purchaseSigilUpgrade(sig, cost) {
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 
-// Check max level: actives max at perm L4 (displays as L5), passives max at perm L5
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-const isActive = actives.includes(sig);
+// Check max level: all sigils max at perm L4 (Expand reaches effective L5 for Mage/Healer via built-in +1)
 const permLevel = S.sig[sig] || 0;
-const maxLevel = isActive ? 4 : 5;
+const maxLevel = 4;
 
 if(permLevel >= maxLevel) {
 toast('Already at maximum level!', 1800);
@@ -14593,7 +14635,7 @@ return;
 
 savePermanent();
 // Clear run-specific save (slot-specific)
-if(S.currentSlot) {
+if(S.currentSlot != null) {
 localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 }
 // Also clear old save format for backwards compatibility
@@ -17592,7 +17634,8 @@ const GamepadController = {
   },
 
   startInputDetection() {
-    setTimeout(() => {
+    this._inputDetectionTimeout = setTimeout(() => {
+      this._inputDetectionTimeout = null;
       if (this.connected && !this.firstInputTime && !this.inputDetectionShown) {
         this.inputDetectionShown = true;
         this.showSteamDeckWarning();
@@ -17606,8 +17649,9 @@ const GamepadController = {
                         (typeof window.electronInfo !== 'undefined');
 
     if (isSteamDeck) {
-      toast('⚠️ Controller not responding? Try keyboard mode or check Steam settings', 4000);
-      setTimeout(() => {
+      toast('Controller not responding? Try keyboard mode or check Steam settings', 4000);
+      this._steamDeckHelpTimeout = setTimeout(() => {
+        this._steamDeckHelpTimeout = null;
         if (!this.firstInputTime && typeof showSteamDeckHelp === 'function') {
           showSteamDeckHelp();
         }
@@ -18377,6 +18421,9 @@ const GamepadController = {
   destroy() {
     this.stopPolling();
     this.deactivate();
+    // Clear pending timeouts to prevent stale callbacks
+    if (this._inputDetectionTimeout) { clearTimeout(this._inputDetectionTimeout); this._inputDetectionTimeout = null; }
+    if (this._steamDeckHelpTimeout) { clearTimeout(this._steamDeckHelpTimeout); this._steamDeckHelpTimeout = null; }
     // Remove event listeners to prevent accumulation on reinit
     if (this._onGamepadConnected) {
       window.removeEventListener('gamepadconnected', this._onGamepadConnected);
@@ -18536,6 +18583,10 @@ window.location.reload();
 // ===== INIT =====
 window.onload = function() {
 try {
+// Verify critical cross-module functions loaded correctly
+['render', 'getLevel', 'toast', 'saveGame', 'savePermanent', 'startFloor'].forEach(function(fn) {
+  if (typeof window[fn] !== 'function') console.error('[FROGGLE] Missing critical function: ' + fn);
+});
 debugLog('[FROGGLE] window.onload fired');
 // Check for last used slot
 var lastSlot = localStorage.getItem('froggle8_current_slot');

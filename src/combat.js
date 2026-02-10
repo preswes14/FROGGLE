@@ -1415,7 +1415,7 @@ targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 totalDmg += e.p;
-e.st += stunDuration;
+e.st = Math.max(e.st, stunDuration);
 targetNames.push(e.n);
 // Show stun tutorial popup first time
 showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
