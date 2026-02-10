@@ -451,7 +451,7 @@ function newGameInSlot(slot) {
 S.currentSlot = slot;
 localStorage.setItem('froggle8_current_slot', slot.toString());
 S.runNumber = (S.runsAttempted || 1);
-if(S.runNumber === 1 && !S.helpTipsDisabled) {
+if(S.runNumber === 1 && !S.tutorialDisabled) {
 showTutorialStory();
 } else {
 // Go to Ribbleton hub first, player clicks red portal to start run
@@ -476,8 +476,8 @@ toast('Delete failed. Browser storage may be locked.');
 function newGame() {
 // Reset runNumber to 1 for new game (allows tutorial to show)
 S.runNumber = 1;
-debugLog('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
-if(S.runNumber === 1 && !S.helpTipsDisabled) {
+debugLog('[FROGGLE] newGame called - runNumber:', S.runNumber, 'tutorialDisabled:', S.tutorialDisabled);
+if(S.runNumber === 1 && !S.tutorialDisabled) {
 debugLog('[FROGGLE] Showing tutorial story');
 showTutorialStory();
 } else {
@@ -840,8 +840,9 @@ S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asteri
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // Reset tutorial-specific flags to ensure popups show for fresh tutorial
 S.tutorialFlags.tapo_first_attack = false;
-// Force help tips enabled for tutorial (critical popups must show)
+// Force tips and tutorial enabled for tutorial (critical popups must show)
 S.helpTipsDisabled = false;
+S.tutorialDisabled = false;
 S.heroes = [
 {id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
@@ -1536,6 +1537,16 @@ if(permLevel > 0 && !hero.s.includes(passive)) {
 hero.s.push(passive);
 }
 });
+// Tapo also gets any active sigils that have been permanently upgraded with gold
+if(hero.n === 'Tapo') {
+const activeSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'Alpha'];
+activeSigils.forEach(sigil => {
+const permLevel = S.sig[sigil] || 0;
+if(permLevel > 0 && !hero.s.includes(sigil)) {
+hero.s.push(sigil);
+}
+});
+}
 });
 
 // Apply pedestal buffs

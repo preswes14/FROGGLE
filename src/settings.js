@@ -252,9 +252,19 @@ let html = `
 </label>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)">
-<span>💡 Show Help/Tips</span>
+<span>💡 Help Tips</span>
 </label>
-<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">Turning this on resets all tutorial popups</p>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Mechanic explanation popups</p>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.tutorialDisabled ? 'checked' : ''} onchange="toggleTutorialWalkthrough(this.checked)">
+<span>📖 Tutorial Walkthrough</span>
+</label>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Guided tutorial popups</p>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.cutsceneDisabled ? 'checked' : ''} onchange="toggleCutscenes(this.checked)">
+<span>🎬 Story Cutscenes</span>
+</label>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">One-time narrative events</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
 <span>🔍 Show Sigil Tooltips</span>
@@ -412,25 +422,48 @@ mainTitlePage();
 
 function toggleHelpTips(enabled) {
 S.helpTipsDisabled = !enabled;
-// If turning ON, reset all tutorial flags so they show again
 if(enabled) {
-// Preserve narrative/progression flags while resetting tip popups
-const narrativeFlags = ['death_intro', 'first_victory_sequence', 'first_fu_victory',
-  'tapo_victory_message', 'death_exit_warning', 'tutorial_fly_munched'];
-const preserved = {};
-narrativeFlags.forEach(flag => { if(S.tutorialFlags[flag]) preserved[flag] = S.tutorialFlags[flag]; });
-S.tutorialFlags = preserved;
-toast('Help/Tips enabled! All tips reset and will show again.', 2000);
-// Re-trigger current screen to show relevant popups immediately
+// Reset only help tip flags (not tutorial or narrative)
+const tipsToReset = Object.keys(S.tutorialFlags).filter(flag =>
+  !TUTORIAL_FLAG_CATEGORIES.narrative.includes(flag) &&
+  !TUTORIAL_FLAG_CATEGORIES.tutorial.includes(flag)
+);
+tipsToReset.forEach(flag => { delete S.tutorialFlags[flag]; });
+toast('Help tips re-enabled! Tips will show again.', 2000);
 if(typeof render === 'function') {
 try { render(); } catch(e) { /* render() not applicable in current state */ }
 }
-// If in Ribbleton hub, re-show to trigger ribbleton_hub_intro popup
 if(document.querySelector('h1')?.textContent?.includes('Welcome Home to Ribbleton')) {
 setTimeout(() => showRibbleton(), 100);
 }
 } else {
-toast('Help/Tips disabled. No more popups!', 1200);
+toast('Help tips disabled.', 1200);
+}
+savePermanent();
+}
+
+function toggleTutorialWalkthrough(enabled) {
+S.tutorialDisabled = !enabled;
+if(enabled) {
+// Reset only tutorial walkthrough flags
+TUTORIAL_FLAG_CATEGORIES.tutorial.forEach(flag => { delete S.tutorialFlags[flag]; });
+toast('Tutorial popups re-enabled! They will show again next playthrough.', 2000);
+} else {
+toast('Tutorial popups disabled.', 1200);
+}
+savePermanent();
+}
+
+function toggleCutscenes(enabled) {
+S.cutsceneDisabled = !enabled;
+if(enabled) {
+// Reset only narrative/cutscene flags (except tutorial_fly_munched which is quest-linked)
+TUTORIAL_FLAG_CATEGORIES.narrative.forEach(flag => {
+  if(flag !== 'tutorial_fly_munched') delete S.tutorialFlags[flag];
+});
+toast('Cutscenes re-enabled! Story events will replay.', 2000);
+} else {
+toast('Cutscenes disabled.', 1200);
 }
 savePermanent();
 }

@@ -285,7 +285,7 @@ savePermanent(); // Save gold, goingRate, sig upgrades
 trackQuestProgress('runComplete');
 
 // Check if this is the first time meeting Death
-if(!S.tutorialFlags.death_intro) {
+if(!S.tutorialFlags.death_intro && !S.cutsceneDisabled) {
 showDeathIntroDialogue();
 return;
 }
@@ -1003,7 +1003,7 @@ window.maxedHeroesGold = null;
 }
 
 // Unlock Frogged Up mode if Standard victory
-const firstStandardVictory = S.gameMode === 'Standard' && !S.tutorialFlags.first_victory_sequence;
+const firstStandardVictory = S.gameMode === 'Standard' && !S.tutorialFlags.first_victory_sequence && !S.cutsceneDisabled;
 if(S.gameMode === 'Standard') {
 S.fuUnlocked = true;
 if(firstStandardVictory) {
@@ -1011,7 +1011,7 @@ S.tutorialFlags.first_victory_sequence = true;
 }
 }
 
-const firstFU = S.gameMode === 'fu' && !S.tutorialFlags.first_fu_victory;
+const firstFU = S.gameMode === 'fu' && !S.tutorialFlags.first_fu_victory && !S.cutsceneDisabled;
 if(firstFU) {
 S.tutorialFlags.first_fu_victory = true;
 // Note: Tapo is now unlocked at Floor 20 via Old Tapo encounter
@@ -1038,7 +1038,7 @@ return;
 
 // TAPO IN PARTY: Show heartfelt thank you (only if Tapo is alive)
 const tapoInParty = S.heroes.some(h => h.n === 'Tapo' && h.h > 0 && !h.ls);
-if(tapoInParty && !S.tutorialFlags.tapo_victory_message) {
+if(tapoInParty && !S.tutorialFlags.tapo_victory_message && !S.cutsceneDisabled) {
 S.tutorialFlags.tapo_victory_message = true;
 savePermanent();
 showTapoVictoryMessage();

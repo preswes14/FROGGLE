@@ -2361,7 +2361,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.28';
+const GAME_VERSION = 'S_1.29';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2584,6 +2584,16 @@ const SIGIL_DESCRIPTIONS = {
 // Top row (actives): Attack, Shield, Heal, Grapple, D20 (D20 always top right)
 // Bottom row: Alpha (bottom left), Ghost, Expand, Star, Asterisk (bottom right, passive)
 const SIGIL_ORDER = ['Attack', 'Shield', 'Heal', 'Grapple', 'D20', 'Alpha', 'Ghost', 'Expand', 'Star', 'Asterisk'];
+
+// ===== TUTORIAL FLAG CATEGORIES =====
+// Used by settings toggles to independently reset/disable popup categories
+const TUTORIAL_FLAG_CATEGORIES = {
+narrative: ['death_intro', 'first_victory_sequence', 'first_fu_victory', 'tapo_victory_message', 'tutorial_fly_munched'],
+tutorial: ['tapo_first_attack', 'ribbleton_warrior_attack', 'ribbleton_targeting', 'ribbleton_healer_d20',
+  'ribbleton_d20_menu', 'ribbleton_enemy_turn', 'ribbleton_healer_heal', 'enemies_get_sigils',
+  'ribbleton_handoff', 'ribbleton_expand']
+// Everything else is a help tip (checked by exclusion)
+};
 
 function sortSigils(sigils) {
 if (!Array.isArray(sigils)) return sigils;
@@ -5497,7 +5507,9 @@ toastHistory: [],               // Array of recent toast messages
 toastLogLocked: false,          // Whether toast log is locked open (persistent)
 toastLogVisible: true,          // Whether toast log button is shown in header
 tooltipsDisabled: false,        // Whether sigil tooltips are disabled
-helpTipsDisabled: false,        // Whether tutorial help tips are disabled
+helpTipsDisabled: false,        // Whether help tip popups are disabled
+tutorialDisabled: false,        // Whether tutorial walkthrough popups are disabled
+cutsceneDisabled: false,        // Whether narrative cutscenes are disabled
 highContrastMode: false,        // Whether high contrast accessibility mode is enabled
 animationSpeed: 1,              // Animation speed: 1 (normal), 2 (fast), 4 (faster), 0 (instant)
 masterVolume: 1.0,              // Master volume (0-1) - scales all audio
@@ -6085,7 +6097,11 @@ log.innerHTML = html;
 
 function showTutorialPop(flagName, message, onDismiss) {
 debugLog('[TUTORIAL] showTutorialPop called:', flagName, 'Already shown:', S.tutorialFlags[flagName]);
-if(S.helpTipsDisabled || S.tutorialFlags[flagName]) {
+// Check category-specific disable flag
+const isCategoryDisabled = TUTORIAL_FLAG_CATEGORIES.narrative.includes(flagName) ? S.cutsceneDisabled :
+  TUTORIAL_FLAG_CATEGORIES.tutorial.includes(flagName) ? S.tutorialDisabled :
+  S.helpTipsDisabled;
+if(isCategoryDisabled || S.tutorialFlags[flagName]) {
 debugLog('[TUTORIAL] Skipping pop (disabled or already shown), calling callback directly');
 if(onDismiss) onDismiss();
 return;
@@ -6213,6 +6229,8 @@ runNumber: S.runNumber,
 runsAttempted: S.runsAttempted,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
+tutorialDisabled: S.tutorialDisabled,
+cutsceneDisabled: S.cutsceneDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 toastLogVisible: S.toastLogVisible,
 toastLogLocked: S.toastLogLocked,
@@ -6337,6 +6355,8 @@ S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tutorialDisabled = j.tutorialDisabled || false;
+S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
 S.toastLogLocked = j.toastLogLocked || false;
@@ -6592,6 +6612,8 @@ S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
 S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tutorialDisabled = j.tutorialDisabled || false;
+S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
 S.toastLogLocked = j.toastLogLocked || false;
@@ -6700,6 +6722,8 @@ passiveSigilsUnlocked: S.passiveSigilsUnlocked,
 runNumber: S.runNumber,
 tutorialFlags: S.tutorialFlags,
 helpTipsDisabled: S.helpTipsDisabled,
+tutorialDisabled: S.tutorialDisabled,
+cutsceneDisabled: S.cutsceneDisabled,
 tooltipsDisabled: S.tooltipsDisabled,
 toastLogVisible: S.toastLogVisible,
 toastLogLocked: S.toastLogLocked,
@@ -10978,7 +11002,7 @@ function newGameInSlot(slot) {
 S.currentSlot = slot;
 localStorage.setItem('froggle8_current_slot', slot.toString());
 S.runNumber = (S.runsAttempted || 1);
-if(S.runNumber === 1 && !S.helpTipsDisabled) {
+if(S.runNumber === 1 && !S.tutorialDisabled) {
 showTutorialStory();
 } else {
 // Go to Ribbleton hub first, player clicks red portal to start run
@@ -11003,8 +11027,8 @@ toast('Delete failed. Browser storage may be locked.');
 function newGame() {
 // Reset runNumber to 1 for new game (allows tutorial to show)
 S.runNumber = 1;
-debugLog('[FROGGLE] newGame called - runNumber:', S.runNumber, 'helpTipsDisabled:', S.helpTipsDisabled);
-if(S.runNumber === 1 && !S.helpTipsDisabled) {
+debugLog('[FROGGLE] newGame called - runNumber:', S.runNumber, 'tutorialDisabled:', S.tutorialDisabled);
+if(S.runNumber === 1 && !S.tutorialDisabled) {
 debugLog('[FROGGLE] Showing tutorial story');
 showTutorialStory();
 } else {
@@ -11367,8 +11391,9 @@ S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asteri
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // Reset tutorial-specific flags to ensure popups show for fresh tutorial
 S.tutorialFlags.tapo_first_attack = false;
-// Force help tips enabled for tutorial (critical popups must show)
+// Force tips and tutorial enabled for tutorial (critical popups must show)
 S.helpTipsDisabled = false;
+S.tutorialDisabled = false;
 S.heroes = [
 {id:'h_tutorial_mage', n:'Mage', p:1, h:5, m:5, s:['Attack', 'Expand'], sh:0, g:0, ls:false, lst:0, ts:[], st:0}
 ];
@@ -12063,6 +12088,16 @@ if(permLevel > 0 && !hero.s.includes(passive)) {
 hero.s.push(passive);
 }
 });
+// Tapo also gets any active sigils that have been permanently upgraded with gold
+if(hero.n === 'Tapo') {
+const activeSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'Alpha'];
+activeSigils.forEach(sigil => {
+const permLevel = S.sig[sigil] || 0;
+if(permLevel > 0 && !hero.s.includes(sigil)) {
+hero.s.push(sigil);
+}
+});
+}
 });
 
 // Apply pedestal buffs
@@ -14254,7 +14289,7 @@ savePermanent(); // Save gold, goingRate, sig upgrades
 trackQuestProgress('runComplete');
 
 // Check if this is the first time meeting Death
-if(!S.tutorialFlags.death_intro) {
+if(!S.tutorialFlags.death_intro && !S.cutsceneDisabled) {
 showDeathIntroDialogue();
 return;
 }
@@ -14972,7 +15007,7 @@ window.maxedHeroesGold = null;
 }
 
 // Unlock Frogged Up mode if Standard victory
-const firstStandardVictory = S.gameMode === 'Standard' && !S.tutorialFlags.first_victory_sequence;
+const firstStandardVictory = S.gameMode === 'Standard' && !S.tutorialFlags.first_victory_sequence && !S.cutsceneDisabled;
 if(S.gameMode === 'Standard') {
 S.fuUnlocked = true;
 if(firstStandardVictory) {
@@ -14980,7 +15015,7 @@ S.tutorialFlags.first_victory_sequence = true;
 }
 }
 
-const firstFU = S.gameMode === 'fu' && !S.tutorialFlags.first_fu_victory;
+const firstFU = S.gameMode === 'fu' && !S.tutorialFlags.first_fu_victory && !S.cutsceneDisabled;
 if(firstFU) {
 S.tutorialFlags.first_fu_victory = true;
 // Note: Tapo is now unlocked at Floor 20 via Old Tapo encounter
@@ -15007,7 +15042,7 @@ return;
 
 // TAPO IN PARTY: Show heartfelt thank you (only if Tapo is alive)
 const tapoInParty = S.heroes.some(h => h.n === 'Tapo' && h.h > 0 && !h.ls);
-if(tapoInParty && !S.tutorialFlags.tapo_victory_message) {
+if(tapoInParty && !S.tutorialFlags.tapo_victory_message && !S.cutsceneDisabled) {
 S.tutorialFlags.tapo_victory_message = true;
 savePermanent();
 showTapoVictoryMessage();
@@ -16428,9 +16463,19 @@ let html = `
 </label>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)">
-<span>💡 Show Help/Tips</span>
+<span>💡 Help Tips</span>
 </label>
-<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">Turning this on resets all tutorial popups</p>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Mechanic explanation popups</p>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.tutorialDisabled ? 'checked' : ''} onchange="toggleTutorialWalkthrough(this.checked)">
+<span>📖 Tutorial Walkthrough</span>
+</label>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Guided tutorial popups</p>
+<label class="modal-checkbox-label">
+<input type="checkbox" ${!S.cutsceneDisabled ? 'checked' : ''} onchange="toggleCutscenes(this.checked)">
+<span>🎬 Story Cutscenes</span>
+</label>
+<p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">One-time narrative events</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
 <span>🔍 Show Sigil Tooltips</span>
@@ -16588,25 +16633,48 @@ mainTitlePage();
 
 function toggleHelpTips(enabled) {
 S.helpTipsDisabled = !enabled;
-// If turning ON, reset all tutorial flags so they show again
 if(enabled) {
-// Preserve narrative/progression flags while resetting tip popups
-const narrativeFlags = ['death_intro', 'first_victory_sequence', 'first_fu_victory',
-  'tapo_victory_message', 'death_exit_warning', 'tutorial_fly_munched'];
-const preserved = {};
-narrativeFlags.forEach(flag => { if(S.tutorialFlags[flag]) preserved[flag] = S.tutorialFlags[flag]; });
-S.tutorialFlags = preserved;
-toast('Help/Tips enabled! All tips reset and will show again.', 2000);
-// Re-trigger current screen to show relevant popups immediately
+// Reset only help tip flags (not tutorial or narrative)
+const tipsToReset = Object.keys(S.tutorialFlags).filter(flag =>
+  !TUTORIAL_FLAG_CATEGORIES.narrative.includes(flag) &&
+  !TUTORIAL_FLAG_CATEGORIES.tutorial.includes(flag)
+);
+tipsToReset.forEach(flag => { delete S.tutorialFlags[flag]; });
+toast('Help tips re-enabled! Tips will show again.', 2000);
 if(typeof render === 'function') {
 try { render(); } catch(e) { /* render() not applicable in current state */ }
 }
-// If in Ribbleton hub, re-show to trigger ribbleton_hub_intro popup
 if(document.querySelector('h1')?.textContent?.includes('Welcome Home to Ribbleton')) {
 setTimeout(() => showRibbleton(), 100);
 }
 } else {
-toast('Help/Tips disabled. No more popups!', 1200);
+toast('Help tips disabled.', 1200);
+}
+savePermanent();
+}
+
+function toggleTutorialWalkthrough(enabled) {
+S.tutorialDisabled = !enabled;
+if(enabled) {
+// Reset only tutorial walkthrough flags
+TUTORIAL_FLAG_CATEGORIES.tutorial.forEach(flag => { delete S.tutorialFlags[flag]; });
+toast('Tutorial popups re-enabled! They will show again next playthrough.', 2000);
+} else {
+toast('Tutorial popups disabled.', 1200);
+}
+savePermanent();
+}
+
+function toggleCutscenes(enabled) {
+S.cutsceneDisabled = !enabled;
+if(enabled) {
+// Reset only narrative/cutscene flags (except tutorial_fly_munched which is quest-linked)
+TUTORIAL_FLAG_CATEGORIES.narrative.forEach(flag => {
+  if(flag !== 'tutorial_fly_munched') delete S.tutorialFlags[flag];
+});
+toast('Cutscenes re-enabled! Story events will replay.', 2000);
+} else {
+toast('Cutscenes disabled.', 1200);
 }
 savePermanent();
 }
@@ -18638,6 +18706,8 @@ S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
+S.tutorialDisabled = j.tutorialDisabled || false;
+S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
@@ -18672,7 +18742,7 @@ loadPermanent(); // No slot data, use old format
 } else {
 loadPermanent(); // No last slot, use old format
 }
-debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'S.helpTipsDisabled:', S.helpTipsDisabled);
+debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'helpTips:', S.helpTipsDisabled, 'tutorial:', S.tutorialDisabled, 'cutscene:', S.cutsceneDisabled);
 
 try { applyVolumeSettings(); } catch(e) { console.warn('[FROGGLE] applyVolumeSettings failed:', e); }
 try { initToastLog(); } catch(e) { console.warn('[FROGGLE] initToastLog failed:', e); }
