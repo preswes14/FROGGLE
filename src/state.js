@@ -1554,6 +1554,7 @@ saveGame();
 // Warn during tutorial since tutorial progress isn't saved
 if(S.floor === 0 && S.heroes.length > 0) {
 e.preventDefault();
+e.returnValue = ''; // Required for Chrome/Edge to show confirmation dialog
 }
 });
 

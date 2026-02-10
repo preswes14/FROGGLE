@@ -17,8 +17,7 @@
 <title>FROGGLE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, sans-serif; background: #1a1a1a; color: #f0f0f0; position: fixed; width: 100%; height: 100dvh; overflow: hidden; touch-action: manipulation; }
-@supports not (height: 100dvh) { body { height: 100%; } }
+body { font-family: -apple-system, sans-serif; background: #1a1a1a; color: #f0f0f0; position: fixed; width: 100%; height: 100%; height: 100dvh; overflow: hidden; touch-action: manipulation; }
 /* Hide cursor on Steam Deck / touch devices in Electron */
 body.electron-app { cursor: none; }
 body.electron-app * { cursor: none; }
@@ -228,8 +227,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
 .header { padding: 0.5rem; background: linear-gradient(#1f2937, #111827); border-bottom: 2px solid #22c55e; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #f0f0f0; }
 .header button { display: inline-flex; align-items: center; justify-content: center; line-height: 1; height: 28px; min-width: 28px; box-sizing: border-box; }
-.game-area { height: calc(100dvh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
-@supports not (height: 100dvh) { .game-area { height: calc(100vh - 44px); } }
+.game-area { height: calc(100vh - 44px); height: calc(100dvh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
 .game-area.no-scroll { overflow: hidden; padding: 0; }
 .game-area.fade-out { animation: fadeOut 0.2s ease forwards; }
 .game-area.fade-in { animation: fadeIn 0.2s ease forwards; }
@@ -288,6 +286,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .neutral-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 .neutral-container {
   width: 100%;
+  height: 100vh;
   height: 100dvh;
   display: flex;
   flex-direction: row;
@@ -776,6 +775,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
   .game-area {
     padding: 1rem;
+    height: calc(100vh - 52px);
     height: calc(100dvh - 52px);
   }
 
@@ -874,6 +874,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
   .game-area {
     padding: 1.5rem;
+    height: calc(100vh - 56px);
     height: calc(100dvh - 56px);
   }
 
@@ -1677,15 +1678,18 @@ body.controller-active * {
 
 /* Global game area adjustment for controller bar (all screen sizes) */
 body.controller-active .game-area {
-  height: calc(100dvh - 44px - 56px); /* Account for header (44px) + controller prompts bar (~56px) */
+  height: calc(100vh - 44px - 56px); /* Account for header (44px) + controller prompts bar (~56px) */
+  height: calc(100dvh - 44px - 56px);
 }
 
 /* Full-screen content (like Ribbleton hub) - adjusts for controller bar */
 .full-screen-content {
+  height: calc(100vh - 44px);
   height: calc(100dvh - 44px);
 }
 body.controller-active .full-screen-content {
-  height: calc(100dvh - 44px - 56px); /* Account for header + controller prompts bar */
+  height: calc(100vh - 44px - 56px); /* Account for header + controller prompts bar */
+  height: calc(100dvh - 44px - 56px);
 }
 
 /* Toast notification adjustment when controller bar is visible */
@@ -6900,6 +6904,7 @@ saveGame();
 // Warn during tutorial since tutorial progress isn't saved
 if(S.floor === 0 && S.heroes.length > 0) {
 e.preventDefault();
+e.returnValue = ''; // Required for Chrome/Edge to show confirmation dialog
 }
 });
 
@@ -7447,12 +7452,15 @@ if (['Attack', 'Grapple'].includes(S.pending)) {
   });
 
   const toTarget = aliveEnemies.slice(0, targetsNeeded);
+  S.autoSelectInProgress = true;
   for (const enemy of toTarget) {
     const card = document.getElementById(enemy.id);
     if (card) card.click();
   }
+  S.autoSelectInProgress = false;
   if (toTarget.length > 0) {
     toast(`Auto-targeted ${toTarget.length} enem${toTarget.length === 1 ? 'y' : 'ies'}!`, 1200);
+    confirmTargets();
   }
 
 } else if (['Heal', 'Shield', 'Alpha'].includes(S.pending)) {
@@ -7477,12 +7485,15 @@ if (['Attack', 'Grapple'].includes(S.pending)) {
   }
 
   const toTarget = aliveHeroes.slice(0, targetsNeeded);
+  S.autoSelectInProgress = true;
   for (const h of toTarget) {
     const card = document.getElementById(h.id);
     if (card) card.click();
   }
+  S.autoSelectInProgress = false;
   if (toTarget.length > 0) {
     toast(`Auto-targeted ${toTarget.length} hero${toTarget.length === 1 ? '' : 'es'}!`, 1200);
+    confirmTargets();
   }
 }
 }, 50);
@@ -14347,7 +14358,7 @@ const maxLevel = 4; // All sigils max at perm 4 (Expand can reach effective L5 f
 // Show SOLD OUT card for maxed sigils instead of hiding
 if(permLevel >= maxLevel) {
 const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
-const maxColor = colors[5];
+const maxColor = colors[Math.min(currentLevel, colors.length - 1)];
 cards += `
 <div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,255,0.3)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
