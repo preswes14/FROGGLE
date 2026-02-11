@@ -11,6 +11,7 @@ S.lastNeutral = null;
 function getNeutralEncounter() {
 // FIRST RUN ONLY: Floor 2 gets Oracle Stage 1 as a safe intro to neutrals
 if(S.floor === 2 && S.runsAttempted === 1) {
+S.lastNeutral = 'oracle1';
 return 'oracle1';
 }
 
@@ -432,6 +433,8 @@ S.questProgress = {
   totalRunsCompleted: 0,
   standardWins: 0,
   fuWins: 0,
+  tapoFUWins: 0,
+  allTapoWins: 0,
   maxRecruitsHeld: 0,
   purchasedUpgrade: false,
   // Repeatable quest tiers
@@ -443,6 +446,7 @@ S.ghostBoysConverted = false;
 S.advancedSigilsUnlocked = false;
 S.passiveSigilsUnlocked = false;
 S.ancientStatueDeactivated = false;
+S.gameMode = 'Standard';
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
 S.runsAttempted = 1;
@@ -1341,8 +1345,12 @@ v.innerHTML = `
 ${S.tapoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
 <button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
-🎉 View Tapo (UNLOCKED!) 🎉
+🎉 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'} 🎉
 </button>
+${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 && S.gameMode === 'fu' ? `
+<button class="btn" onclick="selectAllTapos()" style="background:linear-gradient(135deg,#f59e0b 0%,#22c55e 100%);padding:0.5rem 1rem;font-size:0.9rem;font-weight:bold;border:3px solid #000;margin-top:0.5rem">
+🐸 ALL TAPOS 🐸
+</button>` : ''}
 </div>` : ''}
 
 <!-- Selection display with X/Y counter -->
@@ -1438,7 +1446,22 @@ function toggleHeroSelection(heroType) {
 // Toggle selection
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 const isSelected = sel.includes(heroType);
-if(isSelected) {
+
+// Multi-Tapo: after winning FU with Tapo alive, can fill all slots with Tapo
+const multiTapoUnlocked = heroType === 'tapo' && S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1;
+
+if(multiTapoUnlocked) {
+// Tapo doesn't toggle off — add more, or remove one if at max
+if(sel.length < requiredHeroes) {
+sel.push('tapo');
+SoundFX.play('hop');
+} else if(isSelected) {
+// At max — remove last tapo to make room
+const lastIdx = sel.lastIndexOf('tapo');
+if(lastIdx !== -1) sel.splice(lastIdx, 1);
+SoundFX.play('click');
+}
+} else if(isSelected) {
 sel = sel.filter(h => h !== heroType);
 SoundFX.play('click');
 } else {
@@ -1453,6 +1476,14 @@ updateHeroCards();
 updateSelectionDisplay();
 }
 
+function selectAllTapos() {
+const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
+sel = [];
+for(let i = 0; i < requiredHeroes; i++) sel.push('tapo');
+SoundFX.play('hop');
+updateHeroCards();
+updateSelectionDisplay();
+}
 
 function updateSelectionDisplay() {
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
@@ -1464,7 +1495,16 @@ if(sel.length === 0) {
 display.textContent = 'None';
 display.style.color = '#6b7280';
 } else {
-const heroNames = sel.map(h => H[h].n);
+// Name multiple Tapos A, B, C in the display
+const letters = ['A', 'B', 'C'];
+let tapoIdx = 0;
+const heroNames = sel.map(h => {
+const name = H[h].n;
+if(h === 'tapo' && sel.filter(s => s === 'tapo').length > 1) {
+return `${name} ${letters[tapoIdx++]}`;
+}
+return name;
+});
 display.textContent = heroNames.join(' + ');
 display.style.color = '#2563eb';
 }
@@ -1527,9 +1567,18 @@ S.recruits = [];
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
 id:`h-${crypto.randomUUID()}`,
-n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
+n:H[t].n, base:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
 }));
+// Name multiple Tapos: A, B, C
+const tapoCount = S.heroes.filter(h => h.base === 'Tapo').length;
+if(tapoCount > 1) {
+const letters = ['A', 'B', 'C'];
+let idx = 0;
+S.heroes.forEach(h => {
+if(h.base === 'Tapo') h.n = `Tapo ${letters[idx++]}`;
+});
+}
 
 // Add permanently upgraded passives (Expand, Asterisk, Star) to all heroes
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
@@ -1542,7 +1591,7 @@ hero.s.push(passive);
 }
 });
 // Tapo also gets any active sigils that have been permanently upgraded with gold
-if(hero.n === 'Tapo') {
+if((hero.base || hero.n) === 'Tapo') {
 const activeSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'Alpha'];
 activeSigils.forEach(sigil => {
 const permLevel = S.sig[sigil] || 0;
@@ -1598,7 +1647,7 @@ upd();
 
 // QUEST TRACKING: Track heroes played this run
 S.heroes.forEach(hero => {
-  trackQuestProgress('heroPlayed', hero.n);
+  trackQuestProgress('heroPlayed', hero.base || hero.n);
 });
 
 // Show chosen hero tutorial on first occurrence (run 2)
@@ -1771,6 +1820,7 @@ buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderSho
 function applySmallPotion(idx) {
 S.gold -= 3;
 const h = S.heroes[idx];
+if(h.ls) { h.ls = false; h.lst = 0; }
 h.h = Math.min(h.h + 3, h.m);
 upd();
 toast(`${h.n} restored 3 HP!`);
@@ -1800,6 +1850,7 @@ buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderSho
 function applyLargePotion(idx) {
 S.gold -= 5;
 const h = S.heroes[idx];
+if(h.ls) { h.ls = false; h.lst = 0; }
 h.h = Math.min(h.h + 8, h.m);
 upd();
 toast(`${h.n} restored 8 HP!`);
@@ -1968,11 +2019,19 @@ nextFloor();
 
 function applyWellDamage(heroIdx, hpLoss, goldGain) {
 const hero = S.heroes[heroIdx];
-hero.h -= hpLoss;
+// Apply damage through shields first (consistent with combat)
+let remaining = hpLoss;
+if(hero.sh > 0) {
+const absorbed = Math.min(hero.sh, remaining);
+hero.sh -= absorbed;
+remaining -= absorbed;
+}
+hero.h -= remaining;
 if(hero.h <= 0 && !hero.ls) {
 if(hero.g > 0) {
 hero.g--;
-hero.h += hpLoss;
+hero.h += remaining;
+hero.sh += (hpLoss - remaining); // Restore shield too
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
 hero.h = 0;
@@ -2146,11 +2205,19 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 
 function finishChestOpen(heroIdx, trapDmg, goldGain) {
 const hero = S.heroes[heroIdx];
-hero.h -= trapDmg;
+// Apply damage through shields first (consistent with combat)
+let remaining = trapDmg;
+if(hero.sh > 0) {
+const absorbed = Math.min(hero.sh, remaining);
+hero.sh -= absorbed;
+remaining -= absorbed;
+}
+hero.h -= remaining;
 if(hero.h <= 0 && !hero.ls) {
 if(hero.g > 0) {
 hero.g--;
-hero.h += trapDmg;
+hero.h += remaining;
+hero.sh += (trapDmg - remaining); // Restore shield too
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
 hero.h = 0;
@@ -2290,7 +2357,7 @@ S.wizardHero = heroIdx;
 S.wizardSigil = chosenSigil;
 
 const critText = best === 20 ? ` <span style="color:#3b82f6;font-weight:bold">(CRITICAL!)</span>` : '';
-toast(`${chosenSigil} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
+toast(`${chosenSigil} temporarily upgraded to L${newTotalLevel} for all heroes!`, 1800);
 
 replaceStage1WithStage2('wizard');
 setTimeout(() => {
@@ -2300,7 +2367,7 @@ title: 'The Hieroglyphs',
 diceRoll: rollText + critText,
 outcomes: [
 `The hieroglyph reveals itself as the symbol for ${chosenSigil}! "Yes! YES! You see! You understand!" The wizard touches the sigil, then reaches towards ${h.n}.`,
-`${h.n} feels power surge through them. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels}!`,
+`${h.n} feels power surge through the party. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels} for all heroes!`,
 '"Your journey has just begun... Seek me again this night." He disappears.'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -2422,7 +2489,7 @@ S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newTotalLevel = oldTotalLevel + 1;
 
 S.wizardUpgradedSigils.push(sig);
-toast(`${sig} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
+toast(`${sig} temporarily upgraded to L${newTotalLevel} for all heroes!`, 1800);
 
 S.wizardChallengeIndex++;
 
@@ -2836,18 +2903,21 @@ nextFloor();
 
 // ===== 6b. ENCAMPMENT STAGE 2 =====
 function showEncampment2() {
-const healAmt = Math.floor(S.heroes[0].m * 0.5);
 const goldGain = 2 * S.heroes.length;
 
+// Heal each hero 50% of their own max HP
+const healResults = [];
 S.heroes.forEach(h => {
 if(!h.ls) {
+const healAmt = Math.floor(h.m * 0.5);
 h.h = Math.min(h.h + healAmt, h.m);
+healResults.push(`${h.n} restored ${healAmt} HP`);
 }
 });
 
 S.gold += goldGain;
 upd();
-toast(`All heroes healed ${healAmt} HP!`, 1200);
+toast(`All heroes healed 50% HP!`, 1200);
 toast(`Gained ${goldGain} Gold!`, 1200);
 
 removeNeutralFromDeck('encampment');
@@ -2858,7 +2928,7 @@ bgImage: 'assets/neutrals/encampment2.png',
 title: 'Abandoned Encampment',
 description: 'You spy another enemy encampment from a distance, but this one appears abandoned. The bedrolls stink and the tack is stale, but you are able to enter and rest safely.',
 outcomes: [
-`All heroes restored ${healAmt} HP!`,
+healResults.join(', ') + '!',
 `Found ${goldGain} Gold in supplies!`
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -3128,9 +3198,10 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 return;
 }
 
-// Failed - show hero selection
+// Failed - show hero selection (exclude Last Stand heroes - they can't take damage)
 let heroButtons = '';
 S.heroes.forEach((h, idx) => {
+if(h.ls) return; // Last Stand heroes can't take damage
 heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
@@ -3147,6 +3218,33 @@ function applyGhostDamage(heroIdx) {
 const hero = S.heroes[heroIdx];
 const hadGhostCharge = hero.g > 0;
 
+// Apply damage through shields first (consistent with combat)
+if(hero.sh > 0) {
+hero.sh -= 1;
+toast(`${hero.n}'s shield absorbed the damage!`);
+ghostEscapeAttempts++;
+ghostEscapeDC -= 2;
+upd();
+if(ghostEscapeAttempts >= 9) {
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Finally Free',
+outcomes: ['After many attempts, the ghost boys grow bored and fade away.'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+} else {
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Try Again',
+description: `<div style="font-size:0.9rem;margin:1rem 0">Attempts: ${ghostEscapeAttempts}/9 | Next DC: ${ghostEscapeDC}</div>`,
+outcomes: [`${hero.n}'s shield absorbed the damage!`],
+buttons: `<button class="btn danger" onclick="attemptGhostEscape()">Try to Escape (DC ${ghostEscapeDC})</button>`
+});
+}
+return;
+}
 hero.h -= 1;
 if(hero.h <= 0) {
 hero.h = 0;
@@ -3330,7 +3428,9 @@ buttons
 
 function chooseRoyalSigil(sig) {
 S.sig[sig] = (S.sig[sig] || 0) + 1;
-toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 1800);
+const activesSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Grapple', 'Ghost', 'Alpha'];
+const displayLvl = activesSigils.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+toast(`${sig} permanently upgraded to L${displayLvl}!`, 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal2.png',

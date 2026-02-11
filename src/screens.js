@@ -721,7 +721,7 @@ Visit the <strong style="color:#3b82f6">Statue Room</strong> via the blue portal
 
 function continueFUIntro() {
 // Clear run-specific save
-if(S.currentSlot) {
+if(S.currentSlot != null) {
 localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 }
 localStorage.removeItem('froggle8');
@@ -969,9 +969,16 @@ if(S.gameMode === 'fu') {
 } else {
   trackQuestProgress('standardWin');
 }
+const hasTapo = S.heroes.some(h => (h.base || h.n) === 'Tapo');
+const allTapo = S.heroes.every(h => (h.base || h.n) === 'Tapo');
 S.heroes.forEach(hero => {
-  trackQuestProgress('heroWin', hero.n);
+  trackQuestProgress('heroWin', hero.base || hero.n);
 });
+// Track Tapo-specific achievements
+if(hasTapo) {
+  if(S.gameMode === 'fu') trackQuestProgress('tapoFUWin');
+  if(allTapo) trackQuestProgress('allTapoWin');
+}
 
 // Reset run state on victory (gold persists between runs)
 S.xp = 0; // Clear XP earned this run
@@ -981,10 +988,13 @@ S.recruits = []; // Clear recruits
 savePermanent();
 
 // Award figurines for heroes who survived (HP > 0, not Last Stand)
+// Tapo has no pedestal slots, so give 25G compensation instead
 const survivedHeroes = S.heroes.filter(h => h.h > 0 && !h.ls);
 const earnedFigurines = [];
 const maxedHeroes = [];
 survivedHeroes.forEach(h => {
+// Tapo can't place figurines - always treat as maxed for compensation
+if((h.base || h.n) === 'Tapo') { maxedHeroes.push(h.n); return; }
 // Check if this hero already has 2 figurines for this mode
 const existingCount = S.pedestal.filter(slot => slot.hero === h.n && slot.mode === S.gameMode).length;
 if(existingCount < 2) {
@@ -1038,7 +1048,7 @@ return;
 }
 
 // TAPO IN PARTY: Show heartfelt thank you (only if Tapo is alive)
-const tapoInParty = S.heroes.some(h => h.n === 'Tapo' && h.h > 0 && !h.ls);
+const tapoInParty = S.heroes.some(h => (h.base || h.n) === 'Tapo' && h.h > 0 && !h.ls);
 if(tapoInParty && !S.tutorialFlags.tapo_victory_message && !S.cutsceneDisabled) {
 S.tutorialFlags.tapo_victory_message = true;
 savePermanent();
@@ -1261,7 +1271,7 @@ function showFUVictoryCredits() {
 const v = document.getElementById('gameView');
 
 // Check if this is a Tapo victory (gated behind beating FU with Tapo)
-const tapoInParty = S.heroes.some(h => h.n === 'Tapo');
+const tapoInParty = S.heroes.some(h => (h.base || h.n) === 'Tapo');
 
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #22c55e;color:#fff">
@@ -1876,7 +1886,15 @@ const QUESTS = {
     reward: 20,
     category: 'secret',
     unlock: () => S.tapoUnlocked,
-    check: () => S.questProgress.heroWins.Tapo >= 1 && S.questProgress.fuWins >= 1
+    check: () => S.questProgress.tapoFUWins >= 1
+  },
+  all_tapo: {
+    name: "Tapo's Triumph",
+    desc: 'Win with all 3 heroes as Tapo',
+    reward: 20,
+    category: 'secret',
+    unlock: () => S.questProgress.heroWins.Tapo >= 1,
+    check: () => S.questProgress.allTapoWins >= 1
   }
 };
 
