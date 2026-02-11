@@ -784,54 +784,101 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   50% { opacity: 0.7; }
 }
 
-/* Turn Banner - animated overlay for turn transitions */
+/* Turn Banner - center-screen flash for turn transitions */
 .turn-banner {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   z-index: 9999;
   display: flex;
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  animation: bannerSlideIn 0.4s ease-out forwards;
+  animation: bannerFlash 0.6s ease-out forwards;
 }
 .turn-banner-inner {
-  padding: 0.5rem 2rem;
-  border-radius: 0 0 12px 12px;
+  padding: 0.75rem 3rem;
+  border-radius: 8px;
   font-weight: 900;
-  font-size: 1.1rem;
-  letter-spacing: 0.05em;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5);
 }
 .turn-banner.player-turn .turn-banner-inner {
   background: linear-gradient(135deg, #166534, #15803d);
   border: 2px solid #22c55e;
-  border-top: none;
   color: #bbf7d0;
 }
 .turn-banner.enemy-turn .turn-banner-inner {
   background: linear-gradient(135deg, #7f1d1d, #991b1b);
   border: 2px solid #ef4444;
-  border-top: none;
   color: #fecaca;
 }
-.turn-banner.round-banner .turn-banner-inner {
-  background: linear-gradient(135deg, #1e3a5f, #1e40af);
-  border: 2px solid #3b82f6;
-  border-top: none;
-  color: #bfdbfe;
-  font-size: 0.9rem;
+@keyframes bannerFlash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
 }
-@keyframes bannerSlideIn {
-  0% { transform: translateY(-100%); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
+
+/* Ghost block flash */
+.card.ghost-block-flash {
+  animation: ghostBlockFlash 0.6s ease-out;
 }
-@keyframes bannerSlideOut {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
+@keyframes ghostBlockFlash {
+  0% { box-shadow: 0 0 0 0 rgba(168,85,247,0); filter: brightness(1); }
+  25% { box-shadow: 0 0 25px rgba(168,85,247,0.8), 0 0 50px rgba(168,85,247,0.4); filter: brightness(1.5); }
+  100% { box-shadow: 0 0 0 0 rgba(168,85,247,0); filter: brightness(1); }
+}
+
+/* D20 visual dice roll overlay */
+.d20-roll-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  background: rgba(0,0,0,0.3);
+  animation: d20OverlayFade 1.2s ease-out forwards;
+}
+.d20-dice-spin {
+  font-size: 3rem;
+  animation: d20Spin 0.4s ease-out;
+}
+.d20-result-number {
+  font-size: 3.5rem;
+  font-weight: 900;
+  text-shadow: 0 4px 8px rgba(0,0,0,0.8), 0 0 30px currentColor;
+  animation: d20ResultPop 0.5s ease-out;
+  margin-top: 0.25rem;
+}
+.d20-result-number.success { color: #22c55e; }
+.d20-result-number.fail { color: #ef4444; }
+.d20-result-number.nat20 { color: #fbbf24; text-shadow: 0 4px 8px rgba(0,0,0,0.8), 0 0 40px #fbbf24, 0 0 80px rgba(251,191,36,0.5); }
+.d20-result-number.nat1 { color: #6b7280; }
+@keyframes d20Spin {
+  0% { transform: rotate(0deg) scale(0.5); opacity: 0; }
+  50% { transform: rotate(360deg) scale(1.2); opacity: 1; }
+  100% { transform: rotate(720deg) scale(1); opacity: 1; }
+}
+@keyframes d20ResultPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes d20OverlayFade {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Critical Toast - for important events */
@@ -1688,11 +1735,11 @@ img[src*="tankfull"] {
 
 /* Enhanced status effects */
 .card.stunned {
-  animation: stunPulse 1s ease-in-out infinite;
+  animation: stunPulse 1.2s ease-in-out infinite;
 }
 @keyframes stunPulse {
-  0%, 100% { filter: brightness(1) saturate(0.7); }
-  50% { filter: brightness(0.8) saturate(0.5); }
+  0%, 100% { filter: brightness(1) saturate(0.7); box-shadow: 0 0 0 2px rgba(239,68,68,0.3); }
+  50% { filter: brightness(0.75) saturate(0.4); box-shadow: 0 0 12px rgba(239,68,68,0.6), 0 0 24px rgba(239,68,68,0.2); }
 }
 
 .card.ghosted {
@@ -1727,14 +1774,15 @@ img[src*="tankfull"] {
 }
 
 
-/* Death/knockout animation */
+/* Death/knockout animation - brightness flash then blur dissolve */
 .card.knockout {
-  animation: knockout 0.6s ease-out forwards;
+  animation: knockout 0.7s ease-out forwards;
 }
 @keyframes knockout {
-  0% { transform: scale(1) rotate(0deg); opacity: 1; }
-  30% { transform: scale(1.1) rotate(-5deg); }
-  100% { transform: scale(0.5) rotate(15deg) translateY(20px); opacity: 0; }
+  0% { transform: scale(1) rotate(0deg); opacity: 1; filter: brightness(1) blur(0); }
+  15% { transform: scale(1.15) rotate(-3deg); opacity: 1; filter: brightness(2.5) blur(0); }
+  40% { transform: scale(1.05) rotate(-5deg); opacity: 0.8; filter: brightness(1.5) blur(1px); }
+  100% { transform: scale(0.4) rotate(12deg) translateY(25px); opacity: 0; filter: brightness(0.5) blur(4px); }
 }
 
 /* Level up glow effect */
@@ -3078,7 +3126,15 @@ shieldLost = 0;
 // QUEST TRACKING: Ghost blocked damage
 if(options.isHero && typeof trackQuestProgress === 'function') trackQuestProgress('ghostBlock');
 if(!options.silent) {
+SoundFX.play('ghostBlock');
 toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+// Visual: purple flash + floating GHOST! text
+const card = document.getElementById(target.id);
+if(card) {
+card.classList.add('ghost-block-flash');
+setTimeout(() => card.classList.remove('ghost-block-flash'), 600);
+showFloatingNumber(target.id, 'GHOST!', 'shield');
+}
 }
 } else {
 // Death/Last Stand
@@ -4888,6 +4944,38 @@ const SoundFX = {
         osc.start(now);
         osc.stop(now + 0.15);
         break;
+
+      case 'ghostBlock':
+        // Ghost charge saves from lethal - ethereal chime
+        [800, 1200, 1600].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.08);
+          g.gain.setValueAtTime(this.volume * 0.4, now + i * 0.08);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.25);
+          o.type = 'sine';
+          o.start(now + i * 0.08);
+          o.stop(now + i * 0.08 + 0.25);
+        });
+        break;
+
+      case 'victoryFanfare':
+        // Triumphant ascending fanfare for floor clear
+        [400, 500, 600, 700, 800, 1000].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.1);
+          g.gain.setValueAtTime(this.volume * 0.5, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+          o.type = i < 4 ? 'triangle' : 'sine';
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.2);
+        });
+        break;
     }
   }
 };
@@ -6127,7 +6215,7 @@ repositionToasts();
 }, dur);
 }
 
-// Turn/Round banner display
+// Turn/Round banner display - center-screen flash
 function showTurnBanner(type, text) {
   // Remove any existing banner
   const existing = document.querySelector('.turn-banner');
@@ -6138,11 +6226,8 @@ function showTurnBanner(type, text) {
   banner.innerHTML = `<div class="turn-banner-inner">${text}</div>`;
   document.body.appendChild(banner);
 
-  // Auto-remove with slide-out
-  setTimeout(() => {
-    banner.style.animation = 'bannerSlideOut 0.3s ease-in forwards';
-    setTimeout(() => banner.remove(), 300);
-  }, T(1200));
+  // Auto-remove after animation completes (respects animation speed)
+  setTimeout(() => banner.remove(), T(800));
 }
 
 // Controller-friendly confirm modal to replace browser confirm()
@@ -7558,6 +7643,7 @@ if(!h) return;
 if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 S.activeIdx = idx;
+SoundFX.play('click');
 // Show happy reaction when hero is selected for their turn
 if(!h.ls) setHeroReaction(h.id, 'happy', 1200);
 if(h.ls) toast(`${h.n} in Last Stand - D20 only!`);
@@ -7595,6 +7681,7 @@ if(S.acted.includes(heroIdx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 if(h.ls && sig !== 'D20') { toast('Last Stand - D20 only!'); return; }
 S.activeIdx = heroIdx;
+SoundFX.play('select');
 
 // PASSIVE ASTERISK: Auto-apply on first action per combat
 const asteriskLevel = getLevel('Asterisk', heroIdx);
@@ -7925,6 +8012,29 @@ GamepadController.setFocus(heroCards[heroIdx] || heroCards[0]);
 }, 100);
 }
 
+// Show animated D20 roll result overlay
+function showD20RollVisual(best, dc) {
+const isNat20 = best === 20;
+const isNat1 = best === 1;
+const success = best >= dc;
+const resultClass = isNat20 ? 'nat20' : isNat1 ? 'nat1' : success ? 'success' : 'fail';
+
+const overlay = document.createElement('div');
+overlay.className = 'd20-roll-overlay';
+overlay.innerHTML = `
+<div class="d20-dice-spin">🎲</div>
+<div class="d20-result-number ${resultClass}">${best}</div>
+`;
+document.body.appendChild(overlay);
+
+// Play appropriate sound
+if(isNat20) SoundFX.play('nat20');
+else if(isNat1) SoundFX.play('nat1');
+else SoundFX.play('d20roll');
+
+setTimeout(() => overlay.remove(), T(1200));
+}
+
 function rollD20() {
 if(S.locked) return;
 const heroIdx = S.d20HeroIdx;
@@ -7945,6 +8055,9 @@ best = fudgedRoll;
 const rollText = formatD20Compact(rolls, best);
 // QUEST TRACKING: D20 used
 trackQuestProgress('d20');
+
+// JUICE: Visual dice roll animation
+showD20RollVisual(best, dc);
 
 if(best >= dc) {
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span>`, 1800);
@@ -7992,6 +8105,7 @@ toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = Math.max(enemy.st, 1);
+SoundFX.play('stun');
 // Show stun tutorial popup first time
 showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
@@ -8168,6 +8282,7 @@ lastTargetTime = now;
 lastTargetId = id;
 
 if(S.locked) { toast('Wait for enemy turn!'); return; }
+SoundFX.play('hop');
 if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
 const maxTargets = 1 + getLevel('Expand', heroIdx);
@@ -8265,6 +8380,7 @@ lastTargetId = id;
 
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(!S.pending || !needsHeroTarget(S.pending)) return;
+SoundFX.play('hop');
 const heroIdx = S.activeIdx;
 const h = S.heroes[heroIdx];
 const target = S.heroes.find(x => x.id === id);
@@ -9290,6 +9406,7 @@ S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 } else {
 // Use Math.max to avoid overwriting a higher existing stun value
 target.st = Math.max(target.st, level);
+SoundFX.play('stun');
 toast(`${target.n} stunned for ${level} turns!`);
 }
 }
@@ -9510,7 +9627,12 @@ return true;
 // JUICE: Victory celebration!
 spawnConfetti(60);
 ProceduralMusic.playVictory(); // Victory fanfare!
-SoundFX.play('ribbit'); // Celebratory frog croak!
+SoundFX.play('victoryFanfare'); // Triumphant ascending fanfare!
+setTimeout(() => SoundFX.play('ribbit'), 300); // Celebratory frog croak after fanfare
+// Show happy reactions on all surviving heroes for 3 seconds
+S.heroes.forEach(h => {
+if(h.h > 0 && !h.ls) setHeroReaction(h.id, 'happy', 3000);
+});
 
 setTimeout(() => {
 const combatXP = S.combatXP || 0;

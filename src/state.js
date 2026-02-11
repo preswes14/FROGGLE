@@ -599,7 +599,7 @@ repositionToasts();
 }, dur);
 }
 
-// Turn/Round banner display
+// Turn/Round banner display - center-screen flash
 function showTurnBanner(type, text) {
   // Remove any existing banner
   const existing = document.querySelector('.turn-banner');
@@ -610,11 +610,8 @@ function showTurnBanner(type, text) {
   banner.innerHTML = `<div class="turn-banner-inner">${text}</div>`;
   document.body.appendChild(banner);
 
-  // Auto-remove with slide-out
-  setTimeout(() => {
-    banner.style.animation = 'bannerSlideOut 0.3s ease-in forwards';
-    setTimeout(() => banner.remove(), 300);
-  }, T(1200));
+  // Auto-remove after animation completes (respects animation speed)
+  setTimeout(() => banner.remove(), T(800));
 }
 
 // Controller-friendly confirm modal to replace browser confirm()

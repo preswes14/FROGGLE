@@ -737,6 +737,38 @@ const SoundFX = {
         osc.start(now);
         osc.stop(now + 0.15);
         break;
+
+      case 'ghostBlock':
+        // Ghost charge saves from lethal - ethereal chime
+        [800, 1200, 1600].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.08);
+          g.gain.setValueAtTime(this.volume * 0.4, now + i * 0.08);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.25);
+          o.type = 'sine';
+          o.start(now + i * 0.08);
+          o.stop(now + i * 0.08 + 0.25);
+        });
+        break;
+
+      case 'victoryFanfare':
+        // Triumphant ascending fanfare for floor clear
+        [400, 500, 600, 700, 800, 1000].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.1);
+          g.gain.setValueAtTime(this.volume * 0.5, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+          o.type = i < 4 ? 'triangle' : 'sine';
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.2);
+        });
+        break;
     }
   }
 };

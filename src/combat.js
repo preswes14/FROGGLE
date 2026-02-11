@@ -402,6 +402,7 @@ if(!h) return;
 if(S.acted.includes(idx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 S.activeIdx = idx;
+SoundFX.play('click');
 // Show happy reaction when hero is selected for their turn
 if(!h.ls) setHeroReaction(h.id, 'happy', 1200);
 if(h.ls) toast(`${h.n} in Last Stand - D20 only!`);
@@ -439,6 +440,7 @@ if(S.acted.includes(heroIdx)) { toast(`${h.n} already acted!`); return; }
 if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 if(h.ls && sig !== 'D20') { toast('Last Stand - D20 only!'); return; }
 S.activeIdx = heroIdx;
+SoundFX.play('select');
 
 // PASSIVE ASTERISK: Auto-apply on first action per combat
 const asteriskLevel = getLevel('Asterisk', heroIdx);
@@ -769,6 +771,29 @@ GamepadController.setFocus(heroCards[heroIdx] || heroCards[0]);
 }, 100);
 }
 
+// Show animated D20 roll result overlay
+function showD20RollVisual(best, dc) {
+const isNat20 = best === 20;
+const isNat1 = best === 1;
+const success = best >= dc;
+const resultClass = isNat20 ? 'nat20' : isNat1 ? 'nat1' : success ? 'success' : 'fail';
+
+const overlay = document.createElement('div');
+overlay.className = 'd20-roll-overlay';
+overlay.innerHTML = `
+<div class="d20-dice-spin">🎲</div>
+<div class="d20-result-number ${resultClass}">${best}</div>
+`;
+document.body.appendChild(overlay);
+
+// Play appropriate sound
+if(isNat20) SoundFX.play('nat20');
+else if(isNat1) SoundFX.play('nat1');
+else SoundFX.play('d20roll');
+
+setTimeout(() => overlay.remove(), T(1200));
+}
+
 function rollD20() {
 if(S.locked) return;
 const heroIdx = S.d20HeroIdx;
@@ -789,6 +814,9 @@ best = fudgedRoll;
 const rollText = formatD20Compact(rolls, best);
 // QUEST TRACKING: D20 used
 trackQuestProgress('d20');
+
+// JUICE: Visual dice roll animation
+showD20RollVisual(best, dc);
 
 if(best >= dc) {
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span>`, 1800);
@@ -836,6 +864,7 @@ toast(`Confuse: ${getEnemyDisplayName(enemy)} hits itself for ${dmg}!`, 1800);
 dealDamageToEnemy(enemy, dmg);
 } else if(action === 'STARTLE') {
 enemy.st = Math.max(enemy.st, 1);
+SoundFX.play('stun');
 // Show stun tutorial popup first time
 showTutorialPop('stun_intro', "Nice stun! Enemies won't attack when stunned, and any other sigils they have are wasted while stunned!");
 // Check royal quest completion
@@ -1012,6 +1041,7 @@ lastTargetTime = now;
 lastTargetId = id;
 
 if(S.locked) { toast('Wait for enemy turn!'); return; }
+SoundFX.play('hop');
 if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
 const maxTargets = 1 + getLevel('Expand', heroIdx);
@@ -1109,6 +1139,7 @@ lastTargetId = id;
 
 if(S.locked) { toast('Wait for enemy turn!'); return; }
 if(!S.pending || !needsHeroTarget(S.pending)) return;
+SoundFX.play('hop');
 const heroIdx = S.activeIdx;
 const h = S.heroes[heroIdx];
 const target = S.heroes.find(x => x.id === id);
@@ -2134,6 +2165,7 @@ S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 } else {
 // Use Math.max to avoid overwriting a higher existing stun value
 target.st = Math.max(target.st, level);
+SoundFX.play('stun');
 toast(`${target.n} stunned for ${level} turns!`);
 }
 }
@@ -2354,7 +2386,12 @@ return true;
 // JUICE: Victory celebration!
 spawnConfetti(60);
 ProceduralMusic.playVictory(); // Victory fanfare!
-SoundFX.play('ribbit'); // Celebratory frog croak!
+SoundFX.play('victoryFanfare'); // Triumphant ascending fanfare!
+setTimeout(() => SoundFX.play('ribbit'), 300); // Celebratory frog croak after fanfare
+// Show happy reactions on all surviving heroes for 3 seconds
+S.heroes.forEach(h => {
+if(h.h > 0 && !h.ls) setHeroReaction(h.id, 'happy', 3000);
+});
 
 setTimeout(() => {
 const combatXP = S.combatXP || 0;
