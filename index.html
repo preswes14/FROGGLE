@@ -2361,7 +2361,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.34';
+const GAME_VERSION = 'S_1.35';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -6410,7 +6410,11 @@ h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
-chosenHeroIdx: S.chosenHeroIdx
+chosenHeroIdx: S.chosenHeroIdx,
+royalQuestActive: S.royalQuestActive || false,
+royalQuestCompleted: S.royalQuestCompleted || false,
+royalAskerTitle: S.royalAskerTitle || null,
+royalBelovedTitle: S.royalBelovedTitle || null
 }));
 savePermanent();
 } catch(e) {
@@ -6436,6 +6440,10 @@ S.lastNeutral=j.lastNeutral || null;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = j.gameMode || 'Standard';
 S.chosenHeroIdx = j.chosenHeroIdx !== undefined ? j.chosenHeroIdx : -1;
+S.royalQuestActive = j.royalQuestActive || false;
+S.royalQuestCompleted = j.royalQuestCompleted || false;
+S.royalAskerTitle = j.royalAskerTitle || null;
+S.royalBelovedTitle = j.royalBelovedTitle || null;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -6630,8 +6638,10 @@ S.sfxVolume = j.sfxVolume !== undefined ? j.sfxVolume : 1.0;
 S.musicVolume = j.musicVolume !== undefined ? j.musicVolume : 1.0;
 S.pondHistory = j.pondHistory || [];
 S.usedDeathQuotes = j.usedDeathQuotes || [];
-// Apply high contrast mode if enabled
-if(S.highContrastMode) document.body.classList.add('high-contrast');
+// Apply high contrast mode (toggle to handle slot switches)
+document.body.classList.toggle('high-contrast', !!S.highContrastMode);
+// Apply volume settings to audio system
+if(typeof applyVolumeSettings === 'function') applyVolumeSettings();
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 // Load quest data with defaults
 S.questsCompleted = j.questsCompleted || {};
@@ -6658,6 +6668,10 @@ S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Exp
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
 S.silverKeyHeld = r.silverKeyHeld || false;
+S.royalQuestActive = r.royalQuestActive || false;
+S.royalQuestCompleted = r.royalQuestCompleted || false;
+S.royalAskerTitle = r.royalAskerTitle || null;
+S.royalBelovedTitle = r.royalBelovedTitle || null;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -6775,7 +6789,11 @@ neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
-silverKeyHeld: S.silverKeyHeld || false
+silverKeyHeld: S.silverKeyHeld || false,
+royalQuestActive: S.royalQuestActive || false,
+royalQuestCompleted: S.royalQuestCompleted || false,
+royalAskerTitle: S.royalAskerTitle || null,
+royalBelovedTitle: S.royalBelovedTitle || null
 }));
 savePermanent();
 } catch(e) {
@@ -7134,13 +7152,17 @@ if(S.ambushed) h.st = 1;
 // Save combat start snapshot for restart functionality
 S.combatStartSnapshot = {
 heroes: S.heroes.map(h => ({
-id: h.id, n: h.n, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
+id: h.id, n: h.n, c: h.c, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
 st: h.st, ls: h.ls, lst: h.lst, s: [...h.s], ts: [...(h.ts || [])],
-firstActionUsed: h.firstActionUsed
+firstActionUsed: h.firstActionUsed, base: h.base
 })),
 recruits: S.recruits ? S.recruits.map(r => ({...r, s: [...r.s]})) : [],
 floor: f,
-ambushed: S.ambushed
+ambushed: S.ambushed,
+gold: S.gold,
+xp: S.xp,
+combatXP: S.combatXP || 0,
+combatGold: S.combatGold || 0
 };
 
 let comp = getEnemyComp(f);
@@ -7268,6 +7290,10 @@ S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
 
 // Restore ambush state
 S.ambushed = S.combatStartSnapshot.ambushed;
+
+// Restore gold/XP to prevent farming exploit
+S.gold = S.combatStartSnapshot.gold;
+S.xp = S.combatStartSnapshot.xp;
 
 // Clear any pending actions
 S.pending = null;
@@ -7674,7 +7700,7 @@ S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
 S.pending = null;
 render();
-setTimeout(() => d20Menu(heroIdx), ANIMATION_TIMINGS.TUTORIAL_DELAY);
+setTimeout(() => d20Menu(heroIdx), T(ANIMATION_TIMINGS.TUTORIAL_DELAY));
 return;
 }
 }
@@ -7749,7 +7775,7 @@ S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
 S.pending = null; S.targets = [];
 render();
-setTimeout(() => d20Menu(heroIdx), ANIMATION_TIMINGS.TUTORIAL_DELAY);
+setTimeout(() => d20Menu(heroIdx), T(ANIMATION_TIMINGS.TUTORIAL_DELAY));
 return;
 }
 }
@@ -7761,7 +7787,7 @@ S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
 S.pending = null; S.targets = [];
 render();
-setTimeout(() => d20Menu(heroIdx), ANIMATION_TIMINGS.TUTORIAL_DELAY);
+setTimeout(() => d20Menu(heroIdx), T(ANIMATION_TIMINGS.TUTORIAL_DELAY));
 return;
 }
 }
@@ -8219,6 +8245,8 @@ debugLog('[ATTACK] Processing target:', tgtId);
 const e = S.enemies.find(x => x.id === tgtId);
 debugLog('[ATTACK] Found enemy:', e ? e.n : 'NOT FOUND', e ? `HP: ${e.h}/${e.m}` : '');
 if(!e) return;
+// Guard: skip already-dead enemies (prevents double-award from race condition)
+if(e.h <= 0 && (!e.g || e.g === 0)) return;
 const hpBefore = e.h;
 damagedEnemyIds.push(e.id);
 // Apply damage (without animation yet)
@@ -8254,7 +8282,7 @@ showDamageCounter(S.turnDamage);
 // Show happy reaction when hero lands a hit
 setHeroReaction(h.id, 'happy', 1000);
 }
-}, ANIMATION_TIMINGS.ATTACK_IMPACT);
+}, T(ANIMATION_TIMINGS.ATTACK_IMPACT));
 // Third pass: Handle deaths and cleanup
 const deadEnemies = [];
 const dyingFlydras = [];
@@ -8291,7 +8319,7 @@ S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
 render();
 // Check combat end AFTER enemies are removed
 checkCombatEnd();
-}, 200);
+}, T(200));
 }
 // FLYDRA: Check if all heads are now dying (victory condition)
 if(dyingFlydras.length > 0 && isFlydraDefeated()) {
@@ -8301,7 +8329,7 @@ setTimeout(() => {
 S.enemies = S.enemies.filter(e => !e.isFlydra);
 render();
 checkCombatEnd();
-}, 300);
+}, T(300));
 } else if(dyingFlydras.length > 0) {
 render(); // Re-render to show flipped cards
 }
@@ -8564,6 +8592,8 @@ render();
 }
 
 function checkTurnEnd() {
+// Guard: if combat is already ending, don't interfere
+if(S.combatEnding) return;
 // First check if combat has ended (all enemies dead or all heroes in last stand)
 // This prevents continuing turn progression after victory/defeat
 if(S.enemies.length === 0 || S.heroes.every(h => h.ls)) {
@@ -8640,6 +8670,7 @@ triggerHealAnimation(flydra.id, reviveHP);
 const flydraGold = 150 * (S.gameMode === 'fu' ? 3 : 1); // Frogged Up multiplier
 S.gold += flydraGold;
 S.combatGold += flydraGold;
+trackQuestProgress('goldEarned', flydraGold);
 SoundFX.play('coinDrop');
 upd();
 dyingFlydras.forEach(flydra => {
@@ -8692,7 +8723,7 @@ if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
 });
 }
-setTimeout(() => executeAlphaPhase(), ANIMATION_TIMINGS.ALPHA_PHASE_START);
+setTimeout(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
 }
 
 function drawEnemyStartSigil(enemy, base, forceLevel1 = false) {
@@ -8862,16 +8893,15 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 const dmgToRecruit = target.p;
+// Apply stun BEFORE recoil check (consistent with player Grapple behavior)
+target.st = Math.max(target.st, level);
+toast(`${recruit.n} (Recruit) grappled ${target.n}! Stunned for ${level} turn${level > 1 ? 's' : ''}!`);
 // Use applyDamageToTarget so shields/ghost are respected
 const recoil = applyDamageToTarget(recruit, dmgToRecruit, {isHero: false, skipRewards: true, silent: true});
-toast(`${recruit.n} (Recruit) grappled ${target.n}!`);
 if(recruit.h <= 0) {
 recruit.h = 0;
 toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
 S.recruits = S.recruits.filter(r => r.id !== recruit.id);
-} else {
-target.st = Math.max(target.st, level);
-toast(`${target.n} stunned for ${level} turns!`);
 }
 } else if(sig === 'Ghost') {
 recruit.g = (recruit.g || 0) + level;
@@ -9218,7 +9248,7 @@ S.enemyTurnTotal = 0;
 upd();
 
 // Show "Your turn!" toast to indicate player can act again
-const aliveHeroes = S.heroes.filter(h => h.h > 0);
+const aliveHeroes = S.heroes.filter(h => h.h > 0 || h.ls);
 if(aliveHeroes.length > 0) {
 toast('Your turn!', ANIMATION_TIMINGS.TOAST_SHORT);
 }
@@ -9876,7 +9906,7 @@ S.hasReachedFloor20 = true;
 savePermanent();
 toast('The blue portal in Ribbleton has awakened!', 2500);
 // Skip level up menu on floor 19 - no point spending XP before victory
-setTimeout(() => nextFloor(), 2000);
+setTimeout(() => nextFloor(), T(2000));
 return;
 }
 
@@ -10594,6 +10624,7 @@ if(S.floor === 18) {
 const stage2s = S.neutralDeck.filter(n => n.includes('2'));
 if(stage2s.length > 0) {
 const pick = stage2s[Math.floor(Math.random() * stage2s.length)];
+S.lastNeutral = pick;
 return pick;
 }
 }
@@ -11085,8 +11116,9 @@ window.close();
 }
 
 function exportSave() {
-const saveData = localStorage.getItem('froggle8');
-const permanentData = localStorage.getItem('froggle8_permanent');
+const slot = S.currentSlot != null ? S.currentSlot : 1;
+const saveData = localStorage.getItem(`froggle8_slot${slot}`) || localStorage.getItem('froggle8');
+const permanentData = localStorage.getItem(`froggle8_permanent_slot${slot}`) || localStorage.getItem('froggle8_permanent');
 if(!saveData && !permanentData) {
 toast('No save data to export!');
 return;
@@ -11094,6 +11126,7 @@ return;
 const exportData = {
 save: saveData ? JSON.parse(saveData) : null,
 permanent: permanentData ? JSON.parse(permanentData) : null,
+slot: slot,
 exportDate: new Date().toISOString(),
 version: GAME_VERSION
 };
@@ -11102,7 +11135,7 @@ const blob = new Blob([dataStr], {type: 'application/json'});
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
 a.href = url;
-a.download = `froggle-save-${new Date().toISOString().split('T')[0]}.json`;
+a.download = `froggle-save-slot${slot}-${new Date().toISOString().split('T')[0]}.json`;
 document.body.appendChild(a);
 a.click();
 document.body.removeChild(a);
@@ -11121,10 +11154,15 @@ const reader = new FileReader();
 reader.onload = (event) => {
 try {
 const importData = JSON.parse(event.target.result);
+const slot = S.currentSlot != null ? S.currentSlot : 1;
 if(importData.save) {
+localStorage.setItem(`froggle8_slot${slot}`, JSON.stringify(importData.save));
+// Also write to legacy key for backwards compatibility
 localStorage.setItem('froggle8', JSON.stringify(importData.save));
 }
 if(importData.permanent) {
+localStorage.setItem(`froggle8_permanent_slot${slot}`, JSON.stringify(importData.permanent));
+// Also write to legacy key for backwards compatibility
 localStorage.setItem('froggle8_permanent', JSON.stringify(importData.permanent));
 }
 toast('Save imported successfully!');
@@ -12181,7 +12219,7 @@ hero.s.push(sigil);
 S.pedestal.forEach(slot => {
 // Standard mode statues apply universally, FU statues only in FU mode
 if(slot.mode === 'fu' && S.gameMode !== 'fu') return;
-const hero = S.heroes.find(h => h.n === slot.hero);
+const hero = S.heroes.find(h => (h.base || h.n) === slot.hero);
 if(!hero) return;
 if(slot.stat === 'POW') {
 hero.p += 1;
@@ -12950,7 +12988,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function showWizard2() {
-if(S.wizardHero === undefined || !S.wizardSigil) {
+if(S.wizardHero === undefined || S.wizardHero === null || !S.wizardSigil || S.wizardHero >= S.heroes.length) {
 nextFloor();
 return;
 }
@@ -13778,6 +13816,16 @@ S.heroes.forEach((h, idx) => {
 if(h.ls) return; // Last Stand heroes can't take damage
 heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
+// Safety: if all heroes are in Last Stand, let them escape (prevents soft-lock)
+if(!heroButtons) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'The Ghost Boys Let You Go',
+outcomes: ['The boys notice your whole party is on the brink of collapse. "We... we didn\'t mean to hurt you this badly. You should go." They fade into the mist, looking genuinely sorry.'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+return;
+}
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Trapped with the Ghost Boys',
@@ -13819,12 +13867,13 @@ buttons: `<button class="btn danger" onclick="attemptGhostEscape()">Try to Escap
 }
 return;
 }
+const preHitHP = hero.h;
 hero.h -= 1;
 if(hero.h <= 0) {
 hero.h = 0;
 if(hero.g > 0) {
 hero.g--;
-hero.h = hero.m;
+hero.h = preHitHP; // Restore to pre-hit value (ghost fully negates the hit)
 // EASTER EGG: Ghost charge consumed during Ghost encounter triggers conversion
 if(hadGhostCharge) {
 replaceStage1WithStage2('ghost');
@@ -14004,6 +14053,8 @@ function chooseRoyalSigil(sig) {
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 const activesSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Grapple', 'Ghost', 'Alpha'];
 const displayLvl = activesSigils.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+upd();
+savePermanent();
 toast(`${sig} permanently upgraded to L${displayLvl}!`, 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
@@ -14949,6 +15000,7 @@ setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COM
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
+savePermanent();
 showChampionsMenu();
 }
 
@@ -16096,7 +16148,7 @@ function claimQuest(questId) {
   }
 
   savePermanent();
-  SoundFX.play('coin');
+  SoundFX.play('coinDrop');
   toast(`+${quest.reward}G from "${quest.name}"!`);
 
   // Refresh quest board
@@ -18825,6 +18877,8 @@ newWorker.postMessage({ type: 'SKIP_WAITING' });
 // Reload page when new service worker takes control
 navigator.serviceWorker.addEventListener('controllerchange', function() {
 debugLog('[SW] Controller changed, reloading for update...');
+// Save before reloading to prevent data loss
+try { saveGame(); } catch(e) { console.warn('[SW] Failed to save before reload:', e); }
 window.location.reload();
 });
 }

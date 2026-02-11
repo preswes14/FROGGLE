@@ -183,13 +183,17 @@ if(S.ambushed) h.st = 1;
 // Save combat start snapshot for restart functionality
 S.combatStartSnapshot = {
 heroes: S.heroes.map(h => ({
-id: h.id, n: h.n, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
+id: h.id, n: h.n, c: h.c, p: h.p, h: h.h, m: h.m, sh: h.sh, g: h.g,
 st: h.st, ls: h.ls, lst: h.lst, s: [...h.s], ts: [...(h.ts || [])],
-firstActionUsed: h.firstActionUsed
+firstActionUsed: h.firstActionUsed, base: h.base
 })),
 recruits: S.recruits ? S.recruits.map(r => ({...r, s: [...r.s]})) : [],
 floor: f,
-ambushed: S.ambushed
+ambushed: S.ambushed,
+gold: S.gold,
+xp: S.xp,
+combatXP: S.combatXP || 0,
+combatGold: S.combatGold || 0
 };
 
 let comp = getEnemyComp(f);
@@ -317,6 +321,10 @@ S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
 
 // Restore ambush state
 S.ambushed = S.combatStartSnapshot.ambushed;
+
+// Restore gold/XP to prevent farming exploit
+S.gold = S.combatStartSnapshot.gold;
+S.xp = S.combatStartSnapshot.xp;
 
 // Clear any pending actions
 S.pending = null;
@@ -723,7 +731,7 @@ S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
 S.pending = null;
 render();
-setTimeout(() => d20Menu(heroIdx), ANIMATION_TIMINGS.TUTORIAL_DELAY);
+setTimeout(() => d20Menu(heroIdx), T(ANIMATION_TIMINGS.TUTORIAL_DELAY));
 return;
 }
 }
@@ -798,7 +806,7 @@ S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
 S.pending = null; S.targets = [];
 render();
-setTimeout(() => d20Menu(heroIdx), ANIMATION_TIMINGS.TUTORIAL_DELAY);
+setTimeout(() => d20Menu(heroIdx), T(ANIMATION_TIMINGS.TUTORIAL_DELAY));
 return;
 }
 }
@@ -810,7 +818,7 @@ S.asteriskD20Count++;
 if(S.asteriskD20Count < S.asteriskD20Repeats) {
 S.pending = null; S.targets = [];
 render();
-setTimeout(() => d20Menu(heroIdx), ANIMATION_TIMINGS.TUTORIAL_DELAY);
+setTimeout(() => d20Menu(heroIdx), T(ANIMATION_TIMINGS.TUTORIAL_DELAY));
 return;
 }
 }
@@ -1268,6 +1276,8 @@ debugLog('[ATTACK] Processing target:', tgtId);
 const e = S.enemies.find(x => x.id === tgtId);
 debugLog('[ATTACK] Found enemy:', e ? e.n : 'NOT FOUND', e ? `HP: ${e.h}/${e.m}` : '');
 if(!e) return;
+// Guard: skip already-dead enemies (prevents double-award from race condition)
+if(e.h <= 0 && (!e.g || e.g === 0)) return;
 const hpBefore = e.h;
 damagedEnemyIds.push(e.id);
 // Apply damage (without animation yet)
@@ -1303,7 +1313,7 @@ showDamageCounter(S.turnDamage);
 // Show happy reaction when hero lands a hit
 setHeroReaction(h.id, 'happy', 1000);
 }
-}, ANIMATION_TIMINGS.ATTACK_IMPACT);
+}, T(ANIMATION_TIMINGS.ATTACK_IMPACT));
 // Third pass: Handle deaths and cleanup
 const deadEnemies = [];
 const dyingFlydras = [];
@@ -1340,7 +1350,7 @@ S.enemies = S.enemies.filter(enemy => enemy.id !== e.id);
 render();
 // Check combat end AFTER enemies are removed
 checkCombatEnd();
-}, 200);
+}, T(200));
 }
 // FLYDRA: Check if all heads are now dying (victory condition)
 if(dyingFlydras.length > 0 && isFlydraDefeated()) {
@@ -1350,7 +1360,7 @@ setTimeout(() => {
 S.enemies = S.enemies.filter(e => !e.isFlydra);
 render();
 checkCombatEnd();
-}, 300);
+}, T(300));
 } else if(dyingFlydras.length > 0) {
 render(); // Re-render to show flipped cards
 }
@@ -1613,6 +1623,8 @@ render();
 }
 
 function checkTurnEnd() {
+// Guard: if combat is already ending, don't interfere
+if(S.combatEnding) return;
 // First check if combat has ended (all enemies dead or all heroes in last stand)
 // This prevents continuing turn progression after victory/defeat
 if(S.enemies.length === 0 || S.heroes.every(h => h.ls)) {
@@ -1689,6 +1701,7 @@ triggerHealAnimation(flydra.id, reviveHP);
 const flydraGold = 150 * (S.gameMode === 'fu' ? 3 : 1); // Frogged Up multiplier
 S.gold += flydraGold;
 S.combatGold += flydraGold;
+trackQuestProgress('goldEarned', flydraGold);
 SoundFX.play('coinDrop');
 upd();
 dyingFlydras.forEach(flydra => {
@@ -1741,7 +1754,7 @@ if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
 });
 }
-setTimeout(() => executeAlphaPhase(), ANIMATION_TIMINGS.ALPHA_PHASE_START);
+setTimeout(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
 }
 
 function drawEnemyStartSigil(enemy, base, forceLevel1 = false) {
@@ -1911,16 +1924,15 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 const dmgToRecruit = target.p;
+// Apply stun BEFORE recoil check (consistent with player Grapple behavior)
+target.st = Math.max(target.st, level);
+toast(`${recruit.n} (Recruit) grappled ${target.n}! Stunned for ${level} turn${level > 1 ? 's' : ''}!`);
 // Use applyDamageToTarget so shields/ghost are respected
 const recoil = applyDamageToTarget(recruit, dmgToRecruit, {isHero: false, skipRewards: true, silent: true});
-toast(`${recruit.n} (Recruit) grappled ${target.n}!`);
 if(recruit.h <= 0) {
 recruit.h = 0;
 toast(`${recruit.n} (Recruit) defeated by grapple recoil!`);
 S.recruits = S.recruits.filter(r => r.id !== recruit.id);
-} else {
-target.st = Math.max(target.st, level);
-toast(`${target.n} stunned for ${level} turns!`);
 }
 } else if(sig === 'Ghost') {
 recruit.g = (recruit.g || 0) + level;
@@ -2267,7 +2279,7 @@ S.enemyTurnTotal = 0;
 upd();
 
 // Show "Your turn!" toast to indicate player can act again
-const aliveHeroes = S.heroes.filter(h => h.h > 0);
+const aliveHeroes = S.heroes.filter(h => h.h > 0 || h.ls);
 if(aliveHeroes.length > 0) {
 toast('Your turn!', ANIMATION_TIMINGS.TOAST_SHORT);
 }
@@ -2925,7 +2937,7 @@ S.hasReachedFloor20 = true;
 savePermanent();
 toast('The blue portal in Ribbleton has awakened!', 2500);
 // Skip level up menu on floor 19 - no point spending XP before victory
-setTimeout(() => nextFloor(), 2000);
+setTimeout(() => nextFloor(), T(2000));
 return;
 }
 

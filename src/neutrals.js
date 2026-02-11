@@ -20,6 +20,7 @@ if(S.floor === 18) {
 const stage2s = S.neutralDeck.filter(n => n.includes('2'));
 if(stage2s.length > 0) {
 const pick = stage2s[Math.floor(Math.random() * stage2s.length)];
+S.lastNeutral = pick;
 return pick;
 }
 }
@@ -511,8 +512,9 @@ window.close();
 }
 
 function exportSave() {
-const saveData = localStorage.getItem('froggle8');
-const permanentData = localStorage.getItem('froggle8_permanent');
+const slot = S.currentSlot != null ? S.currentSlot : 1;
+const saveData = localStorage.getItem(`froggle8_slot${slot}`) || localStorage.getItem('froggle8');
+const permanentData = localStorage.getItem(`froggle8_permanent_slot${slot}`) || localStorage.getItem('froggle8_permanent');
 if(!saveData && !permanentData) {
 toast('No save data to export!');
 return;
@@ -520,6 +522,7 @@ return;
 const exportData = {
 save: saveData ? JSON.parse(saveData) : null,
 permanent: permanentData ? JSON.parse(permanentData) : null,
+slot: slot,
 exportDate: new Date().toISOString(),
 version: GAME_VERSION
 };
@@ -528,7 +531,7 @@ const blob = new Blob([dataStr], {type: 'application/json'});
 const url = URL.createObjectURL(blob);
 const a = document.createElement('a');
 a.href = url;
-a.download = `froggle-save-${new Date().toISOString().split('T')[0]}.json`;
+a.download = `froggle-save-slot${slot}-${new Date().toISOString().split('T')[0]}.json`;
 document.body.appendChild(a);
 a.click();
 document.body.removeChild(a);
@@ -547,10 +550,15 @@ const reader = new FileReader();
 reader.onload = (event) => {
 try {
 const importData = JSON.parse(event.target.result);
+const slot = S.currentSlot != null ? S.currentSlot : 1;
 if(importData.save) {
+localStorage.setItem(`froggle8_slot${slot}`, JSON.stringify(importData.save));
+// Also write to legacy key for backwards compatibility
 localStorage.setItem('froggle8', JSON.stringify(importData.save));
 }
 if(importData.permanent) {
+localStorage.setItem(`froggle8_permanent_slot${slot}`, JSON.stringify(importData.permanent));
+// Also write to legacy key for backwards compatibility
 localStorage.setItem('froggle8_permanent', JSON.stringify(importData.permanent));
 }
 toast('Save imported successfully!');
@@ -1607,7 +1615,7 @@ hero.s.push(sigil);
 S.pedestal.forEach(slot => {
 // Standard mode statues apply universally, FU statues only in FU mode
 if(slot.mode === 'fu' && S.gameMode !== 'fu') return;
-const hero = S.heroes.find(h => h.n === slot.hero);
+const hero = S.heroes.find(h => (h.base || h.n) === slot.hero);
 if(!hero) return;
 if(slot.stat === 'POW') {
 hero.p += 1;
@@ -2376,7 +2384,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function showWizard2() {
-if(S.wizardHero === undefined || !S.wizardSigil) {
+if(S.wizardHero === undefined || S.wizardHero === null || !S.wizardSigil || S.wizardHero >= S.heroes.length) {
 nextFloor();
 return;
 }
@@ -3204,6 +3212,16 @@ S.heroes.forEach((h, idx) => {
 if(h.ls) return; // Last Stand heroes can't take damage
 heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
+// Safety: if all heroes are in Last Stand, let them escape (prevents soft-lock)
+if(!heroButtons) {
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'The Ghost Boys Let You Go',
+outcomes: ['The boys notice your whole party is on the brink of collapse. "We... we didn\'t mean to hurt you this badly. You should go." They fade into the mist, looking genuinely sorry.'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+return;
+}
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Trapped with the Ghost Boys',
@@ -3245,12 +3263,13 @@ buttons: `<button class="btn danger" onclick="attemptGhostEscape()">Try to Escap
 }
 return;
 }
+const preHitHP = hero.h;
 hero.h -= 1;
 if(hero.h <= 0) {
 hero.h = 0;
 if(hero.g > 0) {
 hero.g--;
-hero.h = hero.m;
+hero.h = preHitHP; // Restore to pre-hit value (ghost fully negates the hit)
 // EASTER EGG: Ghost charge consumed during Ghost encounter triggers conversion
 if(hadGhostCharge) {
 replaceStage1WithStage2('ghost');
@@ -3430,6 +3449,8 @@ function chooseRoyalSigil(sig) {
 S.sig[sig] = (S.sig[sig] || 0) + 1;
 const activesSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Grapple', 'Ghost', 'Alpha'];
 const displayLvl = activesSigils.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+upd();
+savePermanent();
 toast(`${sig} permanently upgraded to L${displayLvl}!`, 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
