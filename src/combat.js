@@ -166,7 +166,7 @@ S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
 // Clear Alpha state from any previous combat
-S.alphaGrantedActions = null; S.alphaCurrentAction = 0; S.alphaLevel = 0;
+S.alphaGrantedActions = []; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -330,7 +330,7 @@ S.xp = S.combatStartSnapshot.xp;
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
-S.alphaGrantedActions = null;
+S.alphaGrantedActions = [];
 S.alphaCurrentAction = 0;
 
 toast('Restarting battle...', 800);
