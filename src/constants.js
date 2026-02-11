@@ -482,10 +482,6 @@ return html;
 // Render combat status header
 function renderCombatStatusHeader() {
 let html = '<div class="combat-header">';
-// Round counter badge
-if(S.round > 0 && S.floor > 0) {
-html += `<div style="font-size:0.7rem;opacity:0.6;margin-bottom:2px;letter-spacing:0.05em">ROUND ${S.round} · FLOOR ${S.floor}</div>`;
-}
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
 html += `<div class="combat-header-title">Enemy Turn</div>`;
