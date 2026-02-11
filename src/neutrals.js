@@ -2310,7 +2310,7 @@ S.wizardHero = heroIdx;
 S.wizardSigil = chosenSigil;
 
 const critText = best === 20 ? ` <span style="color:#3b82f6;font-weight:bold">(CRITICAL!)</span>` : '';
-toast(`${chosenSigil} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
+toast(`${chosenSigil} temporarily upgraded to L${newTotalLevel} for all heroes!`, 1800);
 
 replaceStage1WithStage2('wizard');
 setTimeout(() => {
@@ -2320,7 +2320,7 @@ title: 'The Hieroglyphs',
 diceRoll: rollText + critText,
 outcomes: [
 `The hieroglyph reveals itself as the symbol for ${chosenSigil}! "Yes! YES! You see! You understand!" The wizard touches the sigil, then reaches towards ${h.n}.`,
-`${h.n} feels power surge through them. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels}!`,
+`${h.n} feels power surge through the party. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels} for all heroes!`,
 '"Your journey has just begun... Seek me again this night." He disappears.'
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
@@ -2442,7 +2442,7 @@ S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newTotalLevel = oldTotalLevel + 1;
 
 S.wizardUpgradedSigils.push(sig);
-toast(`${sig} temporarily upgraded to L${newTotalLevel} for ${h.n}!`, 1800);
+toast(`${sig} temporarily upgraded to L${newTotalLevel} for all heroes!`, 1800);
 
 S.wizardChallengeIndex++;
 
@@ -2856,18 +2856,21 @@ nextFloor();
 
 // ===== 6b. ENCAMPMENT STAGE 2 =====
 function showEncampment2() {
-const healAmt = Math.floor(S.heroes[0].m * 0.5);
 const goldGain = 2 * S.heroes.length;
 
+// Heal each hero 50% of their own max HP
+const healResults = [];
 S.heroes.forEach(h => {
 if(!h.ls) {
+const healAmt = Math.floor(h.m * 0.5);
 h.h = Math.min(h.h + healAmt, h.m);
+healResults.push(`${h.n} restored ${healAmt} HP`);
 }
 });
 
 S.gold += goldGain;
 upd();
-toast(`All heroes healed ${healAmt} HP!`, 1200);
+toast(`All heroes healed 50% HP!`, 1200);
 toast(`Gained ${goldGain} Gold!`, 1200);
 
 removeNeutralFromDeck('encampment');
@@ -2878,7 +2881,7 @@ bgImage: 'assets/neutrals/encampment2.png',
 title: 'Abandoned Encampment',
 description: 'You spy another enemy encampment from a distance, but this one appears abandoned. The bedrolls stink and the tack is stale, but you are able to enter and rest safely.',
 outcomes: [
-`All heroes restored ${healAmt} HP!`,
+healResults.join(', ') + '!',
 `Found ${goldGain} Gold in supplies!`
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
