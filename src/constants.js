@@ -601,7 +601,15 @@ shieldLost = 0;
 // QUEST TRACKING: Ghost blocked damage
 if(options.isHero && typeof trackQuestProgress === 'function') trackQuestProgress('ghostBlock');
 if(!options.silent) {
+SoundFX.play('ghostBlock');
 toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+// Visual: purple flash + floating GHOST! text
+const card = document.getElementById(target.id);
+if(card) {
+card.classList.add('ghost-block-flash');
+setTimeout(() => card.classList.remove('ghost-block-flash'), 600);
+showFloatingNumber(target.id, 'GHOST!', 'shield');
+}
 }
 } else {
 // Death/Last Stand
