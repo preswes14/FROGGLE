@@ -482,7 +482,7 @@ autoFocusTargetForController(heroIdx, 'hero');
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
 // Grapple tutorial: show first time player clicks Grapple
-showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Worth it... sometimes.");
+showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Stun doesn't stack - a new stun only matters if it's longer than the remaining one.");
 S.pending = 'Grapple';
 S.grappleRepeats = repeats;
 S.grappleLevel = level;
@@ -1421,6 +1421,7 @@ targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 totalDmg += e.p;
+// Uniform stun rule: Math.max prevents stun-lock for all sources
 e.st = Math.max(e.st, stunDuration);
 targetNames.push(e.n);
 // Show stun tutorial popup first time
@@ -1440,6 +1441,7 @@ trackQuestProgress('targets', targetNames.length);
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
+const hpBefore = h.h;
 const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
 let msg = `${h.n} took Grapple recoil:`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
@@ -1450,6 +1452,10 @@ msg += ` -${damage.shieldLost}🛡️`;
 msg += ` -${damage.hpLost}❤️`;
 }
 toast(msg);
+// Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
+if(h.ls && hpBefore > 0) {
+toast(`${h.n} entered Last Stand from Grapple recoil!`, 3000);
+}
 }
 }
 

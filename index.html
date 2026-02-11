@@ -7420,7 +7420,7 @@ autoFocusTargetForController(heroIdx, 'hero');
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
 // Grapple tutorial: show first time player clicks Grapple
-showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Worth it... sometimes.");
+showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Stun doesn't stack - a new stun only matters if it's longer than the remaining one.");
 S.pending = 'Grapple';
 S.grappleRepeats = repeats;
 S.grappleLevel = level;
@@ -8359,6 +8359,7 @@ targets.forEach(tgtId => {
 const e = S.enemies.find(x => x.id === tgtId);
 if(!e) return;
 totalDmg += e.p;
+// Uniform stun rule: Math.max prevents stun-lock for all sources
 e.st = Math.max(e.st, stunDuration);
 targetNames.push(e.n);
 // Show stun tutorial popup first time
@@ -8378,6 +8379,7 @@ trackQuestProgress('targets', targetNames.length);
 if(totalDmg > 0) {
 // Hero takes recoil damage - trigger hit animation
 triggerHitAnimation(h.id);
+const hpBefore = h.h;
 const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
 let msg = `${h.n} took Grapple recoil:`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
@@ -8388,6 +8390,10 @@ msg += ` -${damage.shieldLost}🛡️`;
 msg += ` -${damage.hpLost}❤️`;
 }
 toast(msg);
+// Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
+if(h.ls && hpBefore > 0) {
+toast(`${h.n} entered Last Stand from Grapple recoil!`, 3000);
+}
 }
 }
 
@@ -10990,6 +10996,10 @@ S.questProgress = {
   goldDiggerTier: 0,
   veteranTier: 0
 };
+S.ghostBoysConverted = false;
+S.advancedSigilsUnlocked = false;
+S.passiveSigilsUnlocked = false;
+S.ancientStatueDeactivated = false;
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
 S.runsAttempted = 1;
@@ -12411,7 +12421,9 @@ S.sig[sig] = (S.sig[sig] || 0) + 1;
 // NOTE: Going Rate does NOT increase for Death's Bargain!
 upd();
 savePermanent();
-toast(`${sig} permanently upgraded to L${S.sig[sig]}! (GR unchanged)`, 3000);
+const bargainActives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const bargainDisplayLvl = bargainActives.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+toast(`${sig} permanently upgraded to L${bargainDisplayLvl}! (GR unchanged)`, 3000);
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
@@ -13854,12 +13866,14 @@ const sigil2 = eligible[1] || 'Shield';
 removeNeutralFromDeck('royal');
 S.royalQuestActive = false;
 
+const royalActives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const royalDisplayLevel = (sig) => royalActives.includes(sig) ? (S.sig[sig] || 0) + 1 : (S.sig[sig] || 0);
 let buttons = '';
 buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil1}')">
-<strong>${sigilIcon(sigil1)}</strong> <span style="opacity:0.7">L${S.sig[sigil1] || 0} → L${(S.sig[sigil1] || 0) + 1}</span>
+<strong>${sigilIcon(sigil1)}</strong> <span style="opacity:0.7">L${royalDisplayLevel(sigil1)} → L${royalDisplayLevel(sigil1) + 1}</span>
 </div>`;
 buttons += `<div class="choice" onclick="chooseRoyalSigil('${sigil2}')">
-<strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${S.sig[sigil2] || 0} → L${(S.sig[sigil2] || 0) + 1}</span>
+<strong>${sigilIcon(sigil2)}</strong> <span style="opacity:0.7">L${royalDisplayLevel(sigil2)} → L${royalDisplayLevel(sigil2) + 1}</span>
 </div>`;
 
 v.innerHTML = buildNeutralHTML({
@@ -14577,7 +14591,8 @@ S.goingRate += rateIncrease;
 trackQuestProgress('upgrade');
 // JUICE: Power up sound for sigil upgrade
 SoundFX.play('powerUp');
-const displayLevel = actives.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+const activesList = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const displayLevel = activesList.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
 toast(`${sig} upgraded to L${displayLevel}!`, 1200);
 savePermanent();
 showDeathScreen(); // Refresh
@@ -16780,7 +16795,7 @@ document.addEventListener('keydown', keyHandler, true); // capture phase
 // Update loop
 const updateDebug = () => {
 if (!document.getElementById('controller-debug-overlay')) {
-document.removeEventListener('keydown', keyHandler);
+document.removeEventListener('keydown', keyHandler, true);
 return;
 }
 
@@ -16839,7 +16854,7 @@ statusEl.innerHTML = `<span style="color:#f00">✗ NO GAMEPAD</span><br>
 <span style="font-size:10px;color:#888">
 API: ${hasAPI} | Array len: ${gpLen}<br>
 gameControl: ${gcLib} (${gcGps} gps)<br>
-GamepadController: ${typeof GamepadController !== 'undefined' ? (GamepadController.currentGamepad ? 'Connected' : 'No GP') : 'Missing'}
+GamepadController: ${typeof GamepadController !== 'undefined' ? (GamepadController.connected ? 'Connected' : 'No GP') : 'Missing'}
 </span>`;
 buttonsEl.innerHTML = '<span style="color:#ff0">Press controller buttons...</span>';
 axesEl.innerHTML = '<span style="font-size:10px;color:#888">If using Steam Deck, check Steam Input config</span>';
@@ -17116,6 +17131,20 @@ Turn 4: DC +6 (CONFUSE is DC 16)<br>
 Turn 5: DC +8 (CONFUSE is DC 18)<br>
 Turn 6: DC +10 (CONFUSE is DC 20 - nat 20 required!)<br><br>
 You have a few turns to heal your Last Stand heroes before DCs become impossible!`
+},
+{
+q: "How do Grapple and stun work?",
+a: `<strong>Grapple</strong> stuns a target for a number of turns equal to the Grapple level (L1 = 1 turn, L2 = 2 turns, etc.). The user takes recoil damage equal to the target's POW.<br><br>
+<strong>Stun rules (same for everyone):</strong><br>
+• Stun never stacks. If a target is already stunned for 2 turns and gets stunned for 1, nothing changes<br>
+• A new stun only takes effect if its duration exceeds the remaining stun<br>
+• Stunned units skip their action but still progress (enemies draw sigils, rage cycles, etc.)<br>
+• All stun counters decrement at the end of each enemy turn<br><br>
+<strong>Sources of stun:</strong><br>
+• Player Grapple: stun for Grapple level turns<br>
+• D20 STARTLE: stun for 1 turn<br>
+• Enemy Grapple: stun for sigil level turns<br>
+• Floor 11 Ambush: all heroes stunned for 1 turn`
 },
 {
 q: "How many recruits can I have? What happens to them?",
@@ -17584,6 +17613,7 @@ const GamepadController = {
         var anyConnected = gamepads && Array.from(gamepads).some(function(gp) { return gp !== null; });
         if (!anyConnected) {
           this.stopPolling();
+          this.deactivate();
         }
       } catch(err) {
         console.warn('[CONTROLLER] Error in gamepad disconnect handler:', err);
@@ -17972,11 +18002,16 @@ const GamepadController = {
     }
 
     if (ctx === 'targeting' && typeof S !== 'undefined') {
-      S.pending = null;
-      S.targets = [];
-      S.currentInstanceTargets = [];
-      S.instancesRemaining = 0;
-      if (typeof render === 'function') render();
+      if (typeof cancelAction === 'function') {
+        cancelAction();
+      } else {
+        S.pending = null;
+        S.targets = [];
+        S.currentInstanceTargets = [];
+        S.instancesRemaining = 0;
+        S.totalInstances = 0;
+        if (typeof render === 'function') render();
+      }
       return;
     }
 
