@@ -686,6 +686,57 @@ const SoundFX = {
           o.stop(now + i * 0.05 + 0.1);
         });
         break;
+
+      case 'lastStand':
+        // Hero entering Last Stand - dramatic descending alarm
+        [500, 400, 300, 200].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.12);
+          o.frequency.exponentialRampToValueAtTime(freq * 0.6, now + i * 0.12 + 0.1);
+          g.gain.setValueAtTime(this.volume * 0.8, now + i * 0.12);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.12);
+          o.type = 'square';
+          o.start(now + i * 0.12);
+          o.stop(now + i * 0.12 + 0.12);
+        });
+        break;
+
+      case 'shieldBreak':
+        // Shield absorbing damage - crystalline crack
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.12);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.type = 'triangle';
+        osc.start(now);
+        osc.stop(now + 0.18);
+        // High shimmer overtone
+        const shieldHarm = this.ctx.createOscillator();
+        const shieldGain = this.ctx.createGain();
+        shieldHarm.connect(shieldGain);
+        shieldGain.connect(this.ctx.destination);
+        shieldHarm.frequency.setValueAtTime(2000, now);
+        shieldHarm.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+        shieldGain.gain.setValueAtTime(this.volume * 0.2, now);
+        shieldGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        shieldHarm.type = 'sine';
+        shieldHarm.start(now);
+        shieldHarm.stop(now + 0.1);
+        break;
+
+      case 'enemyDraw':
+        // Enemy drawing a new sigil - ominous short tone
+        osc.frequency.setValueAtTime(250, now);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.1);
+        gain.gain.setValueAtTime(this.volume * 0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.type = 'triangle';
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
     }
   }
 };

@@ -570,7 +570,7 @@ currentBottom += t.offsetHeight + gap;
 });
 }
 
-function toast(msg, dur=1800) {
+function toast(msg, dur=1800, priority='normal') {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
 S.toastHistory.unshift(textMsg);
@@ -578,7 +578,8 @@ if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20); // 
 updateToastLog();
 // Show toast popup (supports HTML)
 const t = document.createElement('div');
-t.className = 'toast';
+const priorityClass = priority === 'critical' ? ' toast-critical' : priority === 'warning' ? ' toast-warning' : priority === 'success' ? ' toast-success' : '';
+t.className = 'toast' + priorityClass;
 t.innerHTML = msg;
 t.style.bottom = '-100px'; // Start off-screen
 document.body.appendChild(t);
@@ -596,6 +597,24 @@ activeToasts = activeToasts.filter(toast => toast !== t);
 repositionToasts();
 }, ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
+}
+
+// Turn/Round banner display
+function showTurnBanner(type, text) {
+  // Remove any existing banner
+  const existing = document.querySelector('.turn-banner');
+  if(existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.className = `turn-banner ${type}`;
+  banner.innerHTML = `<div class="turn-banner-inner">${text}</div>`;
+  document.body.appendChild(banner);
+
+  // Auto-remove with slide-out
+  setTimeout(() => {
+    banner.style.animation = 'bannerSlideOut 0.3s ease-in forwards';
+    setTimeout(() => banner.remove(), 300);
+  }, T(1200));
 }
 
 // Controller-friendly confirm modal to replace browser confirm()
