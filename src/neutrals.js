@@ -2040,12 +2040,12 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (hpLoss - remaining); // Restore shield too
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000);
+toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
 toast(`${hero.n} took ${hpLoss} damage!`);
@@ -2226,12 +2226,12 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (trapDmg - remaining); // Restore shield too
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000);
+toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
 toast(`${hero.n} took ${trapDmg} damage!`);
@@ -2717,7 +2717,7 @@ if(best >= 1 && best <= 10) {
 outcome = `Well, that's why the enemies set up a trip wire. It worked. It's an ambush!`;
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
-toast('Next combat will be AMBUSHED!', 1800);
+toast('Next combat will be AMBUSHED!', 2400, 'critical');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
@@ -2905,7 +2905,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function finishEncampmentFail() {
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
-toast('Next combat will be AMBUSHED!', 1800);
+toast('Next combat will be AMBUSHED!', 2400, 'critical');
 nextFloor();
 }
 

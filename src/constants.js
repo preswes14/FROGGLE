@@ -482,6 +482,10 @@ return html;
 // Render combat status header
 function renderCombatStatusHeader() {
 let html = '<div class="combat-header">';
+// Round counter badge
+if(S.round > 0 && S.floor > 0) {
+html += `<div style="font-size:0.7rem;opacity:0.6;margin-bottom:2px;letter-spacing:0.05em">ROUND ${S.round} · FLOOR ${S.floor}</div>`;
+}
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
 html += `<div class="combat-header-title">Enemy Turn</div>`;
@@ -573,6 +577,7 @@ shieldLost = target.sh;
 dmg = rawDamage - target.sh;
 target.sh = 0;
 }
+if(shieldLost > 0 && !options.silent) SoundFX.play('shieldBreak');
 }
 
 // Apply damage to HP
@@ -600,7 +605,7 @@ shieldLost = 0;
 // QUEST TRACKING: Ghost blocked damage
 if(options.isHero && typeof trackQuestProgress === 'function') trackQuestProgress('ghostBlock');
 if(!options.silent) {
-toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
+toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 }
 } else {
 // Death/Last Stand
@@ -622,9 +627,10 @@ if(!target.ls) {
 target.ls = true;
 target.lst = 0;
 triggerScreenShake(true); // Heavy shake on entering last stand
+SoundFX.play('lastStand'); // Dramatic alarm sound
 if(!options.silent) {
 // LAYER 2: Extended toast duration (3000ms instead of default)
-toast(`${target.n} entered Last Stand!`, 3000);
+toast(`${target.n} entered Last Stand!`, 3000, 'critical');
 // Skip Last Stand explanation during tutorial - Tapo intervention prevents it
 if(!(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");

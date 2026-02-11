@@ -280,7 +280,7 @@ const j = Math.floor(Math.random() * (i + 1));
 [S.enemies[i], S.enemies[j]] = [S.enemies[j], S.enemies[i]];
 }
 if(S.ambushed) {
-toast('AMBUSHED! All heroes stunned Turn 1!', 1800);
+toast('AMBUSHED! All heroes stunned Turn 1!', 2400, 'critical');
 S.ambushed = false; // Clear flag after use
 }
 // Check if we need to show Encampment enemy selection
@@ -1468,7 +1468,7 @@ msg += ` -${damage.hpLost}❤️`;
 toast(msg);
 // Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
 if(h.ls && hpBefore > 0) {
-toast(`${h.n} entered Last Stand from Grapple recoil!`, 3000);
+toast(`${h.n} entered Last Stand from Grapple recoil!`, 3000, 'critical');
 }
 }
 }
@@ -1741,6 +1741,7 @@ return;
 S.turn = 'enemy';
 S.acted = [];
 S.activeIdx = -1;
+showTurnBanner('enemy-turn', '⚔️ Enemy Turn');
 render();
 S.enemies.forEach(e => {
 // NOTE: Stun decrement moved to endEnemyTurn() so enemies actually skip their turn
@@ -1796,8 +1797,14 @@ level = enemy.flydraLevel || S.heroes.length;
 const maxLvl = (enemy.sigilLevels && enemy.sigilLevels[sig]) || enemy.maxLevel || 1;
 level = maxLvl === 1 ? 1 : 1 + Math.floor(Math.random() * maxLvl);
 }
-enemy.s.push({sig, level, perm:false});
-toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`);
+enemy.s.push({sig, level, perm:false, newlyDrawn:true});
+SoundFX.play('enemyDraw');
+toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`, 1800, 'warning');
+// Clear newly-drawn flag after animation completes
+setTimeout(() => {
+const drawnSigil = enemy.s.find(s => s.sig === sig && s.newlyDrawn);
+if(drawnSigil) drawnSigil.newlyDrawn = false;
+}, 1000);
 }
 
 /**
@@ -2278,10 +2285,10 @@ S.enemyTurnCurrent = 0; // Clear enemy turn progress tracking
 S.enemyTurnTotal = 0;
 upd();
 
-// Show "Your turn!" toast to indicate player can act again
+// Show round + turn banner
 const aliveHeroes = S.heroes.filter(h => h.h > 0 || h.ls);
 if(aliveHeroes.length > 0) {
-toast('Your turn!', ANIMATION_TIMINGS.TOAST_SHORT);
+showTurnBanner('player-turn', `Round ${S.round} — Your Turn`);
 }
 
 // Auto-skip stunned heroes
@@ -2327,7 +2334,7 @@ if(S.floor === 0) {
 S.combatXP = 0;
 S.combatGold = 0;
 setTimeout(() => {
-toast('Victory!');
+toast('Victory!', 2400, 'success');
 if(tutorialState && tutorialState.phase === 1) {
 // Phase 1 complete: Transition to Phase 2
 setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -2360,11 +2367,11 @@ const bonusXP = Math.floor(combatXP * (1 + starBonus));
 S.xp += bonusXP;
 S.combatXP = 0; // Reset combat XP
 // Recruits persist until killed - don't clear here
-if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000);
+if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000, 'success');
 // JUICE: Counter pop for XP gain
 animateCounterPop('xp');
 upd();
-toast('Victory!');
+toast('Victory!', 2400, 'success');
 // Reset the level up warning flag for this new level up session
 S.levelUpWarningShown = false;
 setTimeout(levelUp, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -2390,7 +2397,7 @@ recordPondHistory('defeat', killedBy);
 ProceduralMusic.playDefeat();
 SoundFX.play('death');
 setTimeout(() => {
-toast('Defeated!');
+toast('Defeated!', 2400, 'critical');
 setTimeout(() => transitionScreen(showDeathScreen), T(ANIMATION_TIMINGS.DEFEAT_DELAY));
 }, ANIMATION_TIMINGS.ACTION_COMPLETE);
 return true;
@@ -2578,6 +2585,10 @@ html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
+// HP bar - visual health indicator
+const hpPct = Math.min(100, (h.h / h.m) * 100);
+const hpClass = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
+html += `<div class="hp-bar-container"><div class="hp-bar ${hpClass}" style="width:${hpPct}%"></div></div>`;
 // Shield bar (if shielded) - placed below HP, above sigils
 if(h.sh > 0) {
 const shieldPct = Math.min(100, (h.sh / h.m) * 100);
@@ -2761,6 +2772,10 @@ html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">$
 }
 // HP
 html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
+// HP bar for recruit
+const rHpPct = Math.min(100, (recruit.h / recruit.m) * 100);
+const rHpClass = rHpPct > 50 ? 'hp-high' : rHpPct > 25 ? 'hp-mid' : 'hp-low';
+html += `<div class="hp-bar-container"><div class="hp-bar ${rHpClass}" style="width:${rHpPct}%"></div></div>`;
 // Shield bar (if shielded)
 if(recruit.sh > 0) {
 const shieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
@@ -2845,6 +2860,10 @@ html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
 html += `<div style="min-width:65px;text-align:center"><div style="font-size:0.8rem">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
+// HP bar - visual health indicator for enemies
+const eHpPct = Math.min(100, (e.h / e.m) * 100);
+const eHpClass = eHpPct > 50 ? 'hp-high' : eHpPct > 25 ? 'hp-mid' : 'hp-low';
+html += `<div class="hp-bar-container"><div class="hp-bar ${eHpClass}" style="width:${eHpPct}%"></div></div>`;
 // Shield bar (if shielded)
 if(e.sh > 0) {
 const shieldPct = Math.min(100, (e.sh / e.m) * 100);
@@ -2865,7 +2884,8 @@ html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
+const newClass = sigil.newlyDrawn ? ' newly-drawn' : '';
+html += `<span class="sigil ${cl}${newClass}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 });

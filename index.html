@@ -761,6 +761,105 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 }
 .shield-bar.full { background: linear-gradient(90deg, #22d3ee, #06b6d4); box-shadow: 0 0 8px rgba(34,211,238,0.8); }
 
+/* HP Bar - visual health indicator */
+.hp-bar-container {
+  width: 100%;
+  height: 5px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 3px;
+  margin-top: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.hp-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+.hp-bar.hp-high { background: linear-gradient(90deg, #22c55e, #16a34a); box-shadow: 0 0 4px rgba(34,197,94,0.5); }
+.hp-bar.hp-mid { background: linear-gradient(90deg, #f59e0b, #d97706); box-shadow: 0 0 4px rgba(245,158,11,0.5); }
+.hp-bar.hp-low { background: linear-gradient(90deg, #ef4444, #dc2626); box-shadow: 0 0 6px rgba(239,68,68,0.6); animation: pulse-hp-low 1s infinite; }
+@keyframes pulse-hp-low {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Turn Banner - animated overlay for turn transitions */
+.turn-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  animation: bannerSlideIn 0.4s ease-out forwards;
+}
+.turn-banner-inner {
+  padding: 0.5rem 2rem;
+  border-radius: 0 0 12px 12px;
+  font-weight: 900;
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.turn-banner.player-turn .turn-banner-inner {
+  background: linear-gradient(135deg, #166534, #15803d);
+  border: 2px solid #22c55e;
+  border-top: none;
+  color: #bbf7d0;
+}
+.turn-banner.enemy-turn .turn-banner-inner {
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+  border: 2px solid #ef4444;
+  border-top: none;
+  color: #fecaca;
+}
+.turn-banner.round-banner .turn-banner-inner {
+  background: linear-gradient(135deg, #1e3a5f, #1e40af);
+  border: 2px solid #3b82f6;
+  border-top: none;
+  color: #bfdbfe;
+  font-size: 0.9rem;
+}
+@keyframes bannerSlideIn {
+  0% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes bannerSlideOut {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+/* Critical Toast - for important events */
+.toast.toast-critical {
+  border-color: #ef4444;
+  background: linear-gradient(#3b0a0a, #1f0505);
+  box-shadow: 0 4px 12px rgba(239,68,68,0.3), 0 0 20px rgba(239,68,68,0.15);
+}
+.toast.toast-warning {
+  border-color: #f59e0b;
+  background: linear-gradient(#3b2a06, #1f1603);
+  box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+}
+.toast.toast-success {
+  border-color: #22c55e;
+  box-shadow: 0 4px 12px rgba(34,197,94,0.3), 0 0 15px rgba(34,197,94,0.15);
+}
+
+/* Enemy New Sigil Glow */
+.sigil.newly-drawn {
+  animation: newSigilGlow 0.8s ease-out;
+}
+@keyframes newSigilGlow {
+  0% { box-shadow: 0 0 12px #fbbf24, 0 0 24px rgba(251,191,36,0.5); transform: scale(1.15); }
+  50% { box-shadow: 0 0 8px #fbbf24, 0 0 16px rgba(251,191,36,0.3); transform: scale(1.05); }
+  100% { box-shadow: none; transform: scale(1); }
+}
+
 /* Shield glow effect on cards */
 .card.has-shield { box-shadow: 0 0 0 2px rgba(59,130,246,0.5), inset 0 0 15px rgba(59,130,246,0.15); }
 .card.has-shield.hero { box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 2px rgba(59,130,246,0.6), inset 0 0 20px rgba(59,130,246,0.2); }
@@ -1865,6 +1964,16 @@ body.high-contrast .toast {
   border: 2px solid var(--accent-green);
   color: var(--text-primary);
 }
+body.high-contrast .toast.toast-critical {
+  border-color: var(--accent-red);
+}
+body.high-contrast .toast.toast-warning {
+  border-color: #fbbf24;
+}
+body.high-contrast .hp-bar.hp-high { background: var(--accent-green); }
+body.high-contrast .hp-bar.hp-mid { background: #fbbf24; }
+body.high-contrast .hp-bar.hp-low { background: var(--accent-red); }
+body.high-contrast .turn-banner-inner { border-width: 3px; }
 
 body.high-contrast *:focus-visible {
   outline: 4px solid var(--accent-blue);
@@ -2850,6 +2959,10 @@ return html;
 // Render combat status header
 function renderCombatStatusHeader() {
 let html = '<div class="combat-header">';
+// Round counter badge
+if(S.round > 0 && S.floor > 0) {
+html += `<div style="font-size:0.7rem;opacity:0.6;margin-bottom:2px;letter-spacing:0.05em">ROUND ${S.round} · FLOOR ${S.floor}</div>`;
+}
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
 html += `<div class="combat-header-title">Enemy Turn</div>`;
@@ -2941,6 +3054,7 @@ shieldLost = target.sh;
 dmg = rawDamage - target.sh;
 target.sh = 0;
 }
+if(shieldLost > 0 && !options.silent) SoundFX.play('shieldBreak');
 }
 
 // Apply damage to HP
@@ -2968,7 +3082,7 @@ shieldLost = 0;
 // QUEST TRACKING: Ghost blocked damage
 if(options.isHero && typeof trackQuestProgress === 'function') trackQuestProgress('ghostBlock');
 if(!options.silent) {
-toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1200);
+toast(`${target.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 }
 } else {
 // Death/Last Stand
@@ -2990,9 +3104,10 @@ if(!target.ls) {
 target.ls = true;
 target.lst = 0;
 triggerScreenShake(true); // Heavy shake on entering last stand
+SoundFX.play('lastStand'); // Dramatic alarm sound
 if(!options.silent) {
 // LAYER 2: Extended toast duration (3000ms instead of default)
-toast(`${target.n} entered Last Stand!`, 3000);
+toast(`${target.n} entered Last Stand!`, 3000, 'critical');
 // Skip Last Stand explanation during tutorial - Tapo intervention prevents it
 if(!(tutorialState && S.floor === 0)) {
 showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
@@ -4726,6 +4841,57 @@ const SoundFX = {
           o.stop(now + i * 0.05 + 0.1);
         });
         break;
+
+      case 'lastStand':
+        // Hero entering Last Stand - dramatic descending alarm
+        [500, 400, 300, 200].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.12);
+          o.frequency.exponentialRampToValueAtTime(freq * 0.6, now + i * 0.12 + 0.1);
+          g.gain.setValueAtTime(this.volume * 0.8, now + i * 0.12);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.12);
+          o.type = 'square';
+          o.start(now + i * 0.12);
+          o.stop(now + i * 0.12 + 0.12);
+        });
+        break;
+
+      case 'shieldBreak':
+        // Shield absorbing damage - crystalline crack
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.12);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.type = 'triangle';
+        osc.start(now);
+        osc.stop(now + 0.18);
+        // High shimmer overtone
+        const shieldHarm = this.ctx.createOscillator();
+        const shieldGain = this.ctx.createGain();
+        shieldHarm.connect(shieldGain);
+        shieldGain.connect(this.ctx.destination);
+        shieldHarm.frequency.setValueAtTime(2000, now);
+        shieldHarm.frequency.exponentialRampToValueAtTime(600, now + 0.08);
+        shieldGain.gain.setValueAtTime(this.volume * 0.2, now);
+        shieldGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        shieldHarm.type = 'sine';
+        shieldHarm.start(now);
+        shieldHarm.stop(now + 0.1);
+        break;
+
+      case 'enemyDraw':
+        // Enemy drawing a new sigil - ominous short tone
+        osc.frequency.setValueAtTime(250, now);
+        osc.frequency.exponentialRampToValueAtTime(350, now + 0.1);
+        gain.gain.setValueAtTime(this.volume * 0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.type = 'triangle';
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
     }
   }
 };
@@ -5936,7 +6102,7 @@ currentBottom += t.offsetHeight + gap;
 });
 }
 
-function toast(msg, dur=1800) {
+function toast(msg, dur=1800, priority='normal') {
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
 S.toastHistory.unshift(textMsg);
@@ -5944,7 +6110,8 @@ if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20); // 
 updateToastLog();
 // Show toast popup (supports HTML)
 const t = document.createElement('div');
-t.className = 'toast';
+const priorityClass = priority === 'critical' ? ' toast-critical' : priority === 'warning' ? ' toast-warning' : priority === 'success' ? ' toast-success' : '';
+t.className = 'toast' + priorityClass;
 t.innerHTML = msg;
 t.style.bottom = '-100px'; // Start off-screen
 document.body.appendChild(t);
@@ -5962,6 +6129,24 @@ activeToasts = activeToasts.filter(toast => toast !== t);
 repositionToasts();
 }, ANIMATION_TIMINGS.TOAST_FADE);
 }, dur);
+}
+
+// Turn/Round banner display
+function showTurnBanner(type, text) {
+  // Remove any existing banner
+  const existing = document.querySelector('.turn-banner');
+  if(existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.className = `turn-banner ${type}`;
+  banner.innerHTML = `<div class="turn-banner-inner">${text}</div>`;
+  document.body.appendChild(banner);
+
+  // Auto-remove with slide-out
+  setTimeout(() => {
+    banner.style.animation = 'bannerSlideOut 0.3s ease-in forwards';
+    setTimeout(() => banner.remove(), 300);
+  }, T(1200));
 }
 
 // Controller-friendly confirm modal to replace browser confirm()
@@ -7255,7 +7440,7 @@ const j = Math.floor(Math.random() * (i + 1));
 [S.enemies[i], S.enemies[j]] = [S.enemies[j], S.enemies[i]];
 }
 if(S.ambushed) {
-toast('AMBUSHED! All heroes stunned Turn 1!', 1800);
+toast('AMBUSHED! All heroes stunned Turn 1!', 2400, 'critical');
 S.ambushed = false; // Clear flag after use
 }
 // Check if we need to show Encampment enemy selection
@@ -8443,7 +8628,7 @@ msg += ` -${damage.hpLost}❤️`;
 toast(msg);
 // Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
 if(h.ls && hpBefore > 0) {
-toast(`${h.n} entered Last Stand from Grapple recoil!`, 3000);
+toast(`${h.n} entered Last Stand from Grapple recoil!`, 3000, 'critical');
 }
 }
 }
@@ -8716,6 +8901,7 @@ return;
 S.turn = 'enemy';
 S.acted = [];
 S.activeIdx = -1;
+showTurnBanner('enemy-turn', '⚔️ Enemy Turn');
 render();
 S.enemies.forEach(e => {
 // NOTE: Stun decrement moved to endEnemyTurn() so enemies actually skip their turn
@@ -8771,8 +8957,14 @@ level = enemy.flydraLevel || S.heroes.length;
 const maxLvl = (enemy.sigilLevels && enemy.sigilLevels[sig]) || enemy.maxLevel || 1;
 level = maxLvl === 1 ? 1 : 1 + Math.floor(Math.random() * maxLvl);
 }
-enemy.s.push({sig, level, perm:false});
-toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`);
+enemy.s.push({sig, level, perm:false, newlyDrawn:true});
+SoundFX.play('enemyDraw');
+toast(`${getEnemyDisplayName(enemy)} drew ${sig} L${level}!`, 1800, 'warning');
+// Clear newly-drawn flag after animation completes
+setTimeout(() => {
+const drawnSigil = enemy.s.find(s => s.sig === sig && s.newlyDrawn);
+if(drawnSigil) drawnSigil.newlyDrawn = false;
+}, 1000);
 }
 
 /**
@@ -9253,10 +9445,10 @@ S.enemyTurnCurrent = 0; // Clear enemy turn progress tracking
 S.enemyTurnTotal = 0;
 upd();
 
-// Show "Your turn!" toast to indicate player can act again
+// Show round + turn banner
 const aliveHeroes = S.heroes.filter(h => h.h > 0 || h.ls);
 if(aliveHeroes.length > 0) {
-toast('Your turn!', ANIMATION_TIMINGS.TOAST_SHORT);
+showTurnBanner('player-turn', `Round ${S.round} — Your Turn`);
 }
 
 // Auto-skip stunned heroes
@@ -9302,7 +9494,7 @@ if(S.floor === 0) {
 S.combatXP = 0;
 S.combatGold = 0;
 setTimeout(() => {
-toast('Victory!');
+toast('Victory!', 2400, 'success');
 if(tutorialState && tutorialState.phase === 1) {
 // Phase 1 complete: Transition to Phase 2
 setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -9335,11 +9527,11 @@ const bonusXP = Math.floor(combatXP * (1 + starBonus));
 S.xp += bonusXP;
 S.combatXP = 0; // Reset combat XP
 // Recruits persist until killed - don't clear here
-if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000);
+if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000, 'success');
 // JUICE: Counter pop for XP gain
 animateCounterPop('xp');
 upd();
-toast('Victory!');
+toast('Victory!', 2400, 'success');
 // Reset the level up warning flag for this new level up session
 S.levelUpWarningShown = false;
 setTimeout(levelUp, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -9365,7 +9557,7 @@ recordPondHistory('defeat', killedBy);
 ProceduralMusic.playDefeat();
 SoundFX.play('death');
 setTimeout(() => {
-toast('Defeated!');
+toast('Defeated!', 2400, 'critical');
 setTimeout(() => transitionScreen(showDeathScreen), T(ANIMATION_TIMINGS.DEFEAT_DELAY));
 }, ANIMATION_TIMINGS.ACTION_COMPLETE);
 return true;
@@ -9553,6 +9745,10 @@ html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align
 if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
 html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
+// HP bar - visual health indicator
+const hpPct = Math.min(100, (h.h / h.m) * 100);
+const hpClass = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
+html += `<div class="hp-bar-container"><div class="hp-bar ${hpClass}" style="width:${hpPct}%"></div></div>`;
 // Shield bar (if shielded) - placed below HP, above sigils
 if(h.sh > 0) {
 const shieldPct = Math.min(100, (h.sh / h.m) * 100);
@@ -9736,6 +9932,10 @@ html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">$
 }
 // HP
 html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
+// HP bar for recruit
+const rHpPct = Math.min(100, (recruit.h / recruit.m) * 100);
+const rHpClass = rHpPct > 50 ? 'hp-high' : rHpPct > 25 ? 'hp-mid' : 'hp-low';
+html += `<div class="hp-bar-container"><div class="hp-bar ${rHpClass}" style="width:${rHpPct}%"></div></div>`;
 // Shield bar (if shielded)
 if(recruit.sh > 0) {
 const shieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
@@ -9820,6 +10020,10 @@ html += `<div style="font-size:2rem">${enemyEmoji}</div>`;
 }
 html += `<div style="min-width:65px;text-align:center"><div style="font-size:0.8rem">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
+// HP bar - visual health indicator for enemies
+const eHpPct = Math.min(100, (e.h / e.m) * 100);
+const eHpClass = eHpPct > 50 ? 'hp-high' : eHpPct > 25 ? 'hp-mid' : 'hp-low';
+html += `<div class="hp-bar-container"><div class="hp-bar ${eHpClass}" style="width:${eHpPct}%"></div></div>`;
 // Shield bar (if shielded)
 if(e.sh > 0) {
 const shieldPct = Math.min(100, (e.sh / e.m) * 100);
@@ -9840,7 +10044,8 @@ html += `<span class="sigil l1">${sigilIconOnly('Attack')}</span>`;
 }
 e.s.forEach(sigil => {
 const cl = sigil.level===0?'l0':sigil.level===1?'l1':sigil.level===2?'l2':sigil.level===3?'l3':sigil.level===4?'l4':'l5';
-html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
+const newClass = sigil.newlyDrawn ? ' newly-drawn' : '';
+html += `<span class="sigil ${cl}${newClass}" onmouseenter="showTooltip('${sigil.sig}', this)" onmouseleave="hideTooltip()" ontouchstart="if(tooltipTimeout)clearTimeout(tooltipTimeout);tooltipTimeout=setTimeout(()=>showTooltip('${sigil.sig}',this),ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip();if(tooltipTimeout)clearTimeout(tooltipTimeout)">${sigilIconOnly(sigil.sig, sigil.level)}</span>`;
 });
 html += '</div></div>';
 });
@@ -12650,12 +12855,12 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (hpLoss - remaining); // Restore shield too
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000);
+toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
 toast(`${hero.n} took ${hpLoss} damage!`);
@@ -12836,12 +13041,12 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (trapDmg - remaining); // Restore shield too
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
+toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
 hero.ls = true;
 hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000);
+toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
 toast(`${hero.n} took ${trapDmg} damage!`);
@@ -13327,7 +13532,7 @@ if(best >= 1 && best <= 10) {
 outcome = `Well, that's why the enemies set up a trip wire. It worked. It's an ambush!`;
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
-toast('Next combat will be AMBUSHED!', 1800);
+toast('Next combat will be AMBUSHED!', 2400, 'critical');
 
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
@@ -13515,7 +13720,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function finishEncampmentFail() {
 replaceStage1WithStage2('encampment');
 S.ambushed = true;
-toast('Next combat will be AMBUSHED!', 1800);
+toast('Next combat will be AMBUSHED!', 2400, 'critical');
 nextFloor();
 }
 
