@@ -969,9 +969,16 @@ if(S.gameMode === 'fu') {
 } else {
   trackQuestProgress('standardWin');
 }
+const hasTapo = S.heroes.some(h => h.n === 'Tapo');
 S.heroes.forEach(hero => {
   trackQuestProgress('heroWin', hero.n);
 });
+// Track Tapo-specific achievements
+if(hasTapo) {
+  if(S.gameMode === 'fu') trackQuestProgress('tapoFUWin');
+  const allAlive = S.heroes.every(h => h.h > 0 && !h.ls);
+  if(allAlive) trackQuestProgress('tapoPerfectWin');
+}
 
 // Reset run state on victory (gold persists between runs)
 S.xp = 0; // Clear XP earned this run
@@ -1879,7 +1886,15 @@ const QUESTS = {
     reward: 20,
     category: 'secret',
     unlock: () => S.tapoUnlocked,
-    check: () => S.questProgress.heroWins.Tapo >= 1 && S.questProgress.fuWins >= 1
+    check: () => S.questProgress.tapoFUWins >= 1
+  },
+  tapo_perfect: {
+    name: "Tapo's Triumph",
+    desc: 'Win with all heroes alive (including Tapo)',
+    reward: 20,
+    category: 'secret',
+    unlock: () => S.tapoUnlocked,
+    check: () => S.questProgress.tapoPerfectWins >= 1
   }
 };
 

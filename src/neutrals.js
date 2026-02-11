@@ -433,6 +433,8 @@ S.questProgress = {
   totalRunsCompleted: 0,
   standardWins: 0,
   fuWins: 0,
+  tapoFUWins: 0,
+  tapoPerfectWins: 0,
   maxRecruitsHeld: 0,
   purchasedUpgrade: false,
   // Repeatable quest tiers

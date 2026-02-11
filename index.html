@@ -2361,7 +2361,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.32';
+const GAME_VERSION = 'S_1.33';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -5493,6 +5493,8 @@ questProgress: {
   totalRunsCompleted: 0,
   standardWins: 0,
   fuWins: 0,
+  tapoFUWins: 0,
+  tapoPerfectWins: 0,
   maxRecruitsHeld: 0,
   purchasedUpgrade: false,
 
@@ -5653,6 +5655,12 @@ function trackQuestProgress(type, value) {
       break;
     case 'fuWin':
       S.questProgress.fuWins++;
+      break;
+    case 'tapoFUWin':
+      S.questProgress.tapoFUWins++;
+      break;
+    case 'tapoPerfectWin':
+      S.questProgress.tapoPerfectWins++;
       break;
     case 'heroPlayed':
       if(value && S.questProgress.heroesPlayed.hasOwnProperty(value)) {
@@ -10999,6 +11007,8 @@ S.questProgress = {
   totalRunsCompleted: 0,
   standardWins: 0,
   fuWins: 0,
+  tapoFUWins: 0,
+  tapoPerfectWins: 0,
   maxRecruitsHeld: 0,
   purchasedUpgrade: false,
   // Repeatable quest tiers
@@ -15049,9 +15059,16 @@ if(S.gameMode === 'fu') {
 } else {
   trackQuestProgress('standardWin');
 }
+const hasTapo = S.heroes.some(h => h.n === 'Tapo');
 S.heroes.forEach(hero => {
   trackQuestProgress('heroWin', hero.n);
 });
+// Track Tapo-specific achievements
+if(hasTapo) {
+  if(S.gameMode === 'fu') trackQuestProgress('tapoFUWin');
+  const allAlive = S.heroes.every(h => h.h > 0 && !h.ls);
+  if(allAlive) trackQuestProgress('tapoPerfectWin');
+}
 
 // Reset run state on victory (gold persists between runs)
 S.xp = 0; // Clear XP earned this run
@@ -15959,7 +15976,15 @@ const QUESTS = {
     reward: 20,
     category: 'secret',
     unlock: () => S.tapoUnlocked,
-    check: () => S.questProgress.heroWins.Tapo >= 1 && S.questProgress.fuWins >= 1
+    check: () => S.questProgress.tapoFUWins >= 1
+  },
+  tapo_perfect: {
+    name: "Tapo's Triumph",
+    desc: 'Win with all heroes alive (including Tapo)',
+    reward: 20,
+    category: 'secret',
+    unlock: () => S.tapoUnlocked,
+    check: () => S.questProgress.tapoPerfectWins >= 1
   }
 };
 
