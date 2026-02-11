@@ -53,6 +53,13 @@ if (isFUVictory) {
   border = '3px solid #fcd34d';
   glow = '0 0 12px rgba(251,191,36,0.6)';
   animation = '';
+} else if (floorProgress >= 0.75) {
+  // Deep run lily pad (floor 15+) - green-to-teal gradient with subtle glow
+  const intensity = 0.7 + (floorProgress * 0.25);
+  background = `linear-gradient(135deg, rgba(16,185,129,${intensity}) 0%, rgba(6,182,212,${intensity}) 100%)`;
+  border = '2px solid rgba(6,182,212,0.8)';
+  glow = `0 0 8px rgba(6,182,212,0.4), 0 2px 8px rgba(0,0,0,0.3)`;
+  animation = '';
 } else {
   // Green lily pad (defeat) - brighter green for higher floors
   const greenIntensity = 0.5 + (floorProgress * 0.4);
@@ -571,8 +578,12 @@ const rateIncrease = 5 * (tier + 1);
 S.goingRate += rateIncrease;
 // QUEST TRACKING: Upgrade purchased
 trackQuestProgress('upgrade');
-// JUICE: Power up sound for sigil upgrade
+// JUICE: Power up sound + screen flash for sigil upgrade
 SoundFX.play('powerUp');
+const flash = document.createElement('div');
+flash.className = 'upgrade-flash';
+document.body.appendChild(flash);
+setTimeout(() => flash.remove(), 600);
 const activesList = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const displayLevel = activesList.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
 toast(`${sig} upgraded to L${displayLevel}!`, 1200);
@@ -587,6 +598,10 @@ if(!cost) { toast('Invalid category!'); return; }
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 
 S.gold -= cost;
+const unlockFlash = document.createElement('div');
+unlockFlash.className = 'upgrade-flash';
+document.body.appendChild(unlockFlash);
+setTimeout(() => unlockFlash.remove(), 600);
 if(category === 'advanced') {
 S.advancedSigilsUnlocked = true;
 SoundFX.play('powerUp');
@@ -616,6 +631,7 @@ S.sig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
 const newPermLevel = S.sig[sig];
 const newLevel = isActive ? newPermLevel + 1 : newPermLevel;
+SoundFX.play('coinDrop');
 toast(`Sold ${sig} L${oldLevel}→L${newLevel} for ${S.goingRate}G!`, 1800);
 savePermanent();
 showDeathScreen(); // Refresh
@@ -642,6 +658,7 @@ S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
 S.goingRate = Math.max(1, S.goingRate - 5);
 const newPermLevel = S.sig[sig];
 const newLevel = isActive ? newPermLevel + 1 : newPermLevel;
+SoundFX.play('stun');
 toast(`Sacrificed ${sig} L${oldLevel}→L${newLevel} for +${xpGained}XP permanently!`, 1800);
 savePermanent();
 showDeathScreen(); // Refresh

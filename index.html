@@ -801,10 +801,12 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .turn-banner-inner {
   padding: 0.75rem 3rem;
   border-radius: 8px;
+  font-family: 'Fredoka One', cursive;
   font-weight: 900;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
   box-shadow: 0 4px 30px rgba(0,0,0,0.5);
 }
 .turn-banner.player-turn .turn-banner-inner {
@@ -822,6 +824,31 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   15% { opacity: 1; }
   70% { opacity: 1; }
   100% { opacity: 0; }
+}
+
+/* Upgrade flash effect for death screen purchases */
+.upgrade-flash {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(34,197,94,0.4) 0%, transparent 70%);
+  animation: upgradeFlash 0.5s ease-out forwards;
+}
+@keyframes upgradeFlash {
+  0% { opacity: 0; transform: scale(0.8); }
+  20% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+/* Death screen sigil cards - hover polish */
+.death-screen-sigil-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-align: center;
+}
+.death-screen-sigil-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2) !important;
 }
 
 /* Ghost block flash */
@@ -2524,7 +2551,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.35';
+const GAME_VERSION = 'S_1.37';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -7407,7 +7434,7 @@ S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
 // Clear Alpha state from any previous combat
-S.alphaGrantedActions = null; S.alphaCurrentAction = 0; S.alphaLevel = 0;
+S.alphaGrantedActions = []; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
 if(!S.recruits) S.recruits = [];
 S.heroes.forEach(h => {
@@ -7571,7 +7598,7 @@ S.xp = S.combatStartSnapshot.xp;
 S.pending = null;
 S.targets = [];
 S.currentInstanceTargets = [];
-S.alphaGrantedActions = null;
+S.alphaGrantedActions = [];
 S.alphaCurrentAction = 0;
 
 toast('Restarting battle...', 800);
@@ -14568,6 +14595,13 @@ if (isFUVictory) {
   border = '3px solid #fcd34d';
   glow = '0 0 12px rgba(251,191,36,0.6)';
   animation = '';
+} else if (floorProgress >= 0.75) {
+  // Deep run lily pad (floor 15+) - green-to-teal gradient with subtle glow
+  const intensity = 0.7 + (floorProgress * 0.25);
+  background = `linear-gradient(135deg, rgba(16,185,129,${intensity}) 0%, rgba(6,182,212,${intensity}) 100%)`;
+  border = '2px solid rgba(6,182,212,0.8)';
+  glow = `0 0 8px rgba(6,182,212,0.4), 0 2px 8px rgba(0,0,0,0.3)`;
+  animation = '';
 } else {
   // Green lily pad (defeat) - brighter green for higher floors
   const greenIntensity = 0.5 + (floorProgress * 0.4);
@@ -15086,8 +15120,12 @@ const rateIncrease = 5 * (tier + 1);
 S.goingRate += rateIncrease;
 // QUEST TRACKING: Upgrade purchased
 trackQuestProgress('upgrade');
-// JUICE: Power up sound for sigil upgrade
+// JUICE: Power up sound + screen flash for sigil upgrade
 SoundFX.play('powerUp');
+const flash = document.createElement('div');
+flash.className = 'upgrade-flash';
+document.body.appendChild(flash);
+setTimeout(() => flash.remove(), 600);
 const activesList = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
 const displayLevel = activesList.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
 toast(`${sig} upgraded to L${displayLevel}!`, 1200);
@@ -15102,6 +15140,10 @@ if(!cost) { toast('Invalid category!'); return; }
 if(S.gold < cost) { toast('Not enough Gold!'); return; }
 
 S.gold -= cost;
+const unlockFlash = document.createElement('div');
+unlockFlash.className = 'upgrade-flash';
+document.body.appendChild(unlockFlash);
+setTimeout(() => unlockFlash.remove(), 600);
 if(category === 'advanced') {
 S.advancedSigilsUnlocked = true;
 SoundFX.play('powerUp');
@@ -15131,6 +15173,7 @@ S.sig[sig]--;
 S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
 const newPermLevel = S.sig[sig];
 const newLevel = isActive ? newPermLevel + 1 : newPermLevel;
+SoundFX.play('coinDrop');
 toast(`Sold ${sig} L${oldLevel}→L${newLevel} for ${S.goingRate}G!`, 1800);
 savePermanent();
 showDeathScreen(); // Refresh
@@ -15157,6 +15200,7 @@ S.sigUpgradeCounts[sig] = Math.max(0, (S.sigUpgradeCounts[sig] || 0) - 1);
 S.goingRate = Math.max(1, S.goingRate - 5);
 const newPermLevel = S.sig[sig];
 const newLevel = isActive ? newPermLevel + 1 : newPermLevel;
+SoundFX.play('stun');
 toast(`Sacrificed ${sig} L${oldLevel}→L${newLevel} for +${xpGained}XP permanently!`, 1800);
 savePermanent();
 showDeathScreen(); // Refresh
