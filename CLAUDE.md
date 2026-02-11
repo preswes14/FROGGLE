@@ -4,7 +4,7 @@
 FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all game logic runs in the browser with vanilla JavaScript. Think Balatro/Inscryption vibes, not mobile retention loops.
 
 ## Tech Stack
-- Single HTML file (~12,200 lines) with embedded JS/CSS
+- Single HTML file (~18,800 lines) with embedded JS/CSS
 - localStorage for saves (no backend/cloud sync)
 - Mobile-first, PWA installable
 - Steam Deck controller support
@@ -23,16 +23,16 @@ The monolith is now split into modular source files that concatenate back to `in
 
 ```
 src/
-├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (1343 lines)
+├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (1355 lines)
 ├── steam.js          # Steam integration: achievements, stats, cloud save (315 lines)
-├── sounds.js         # SoundFX Web Audio API system (1312 lines)
-├── state.js          # Game state `S`, upd(), animations, toast, save/load (1505 lines)
-├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (3596 lines)
-├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (3440 lines)
-├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (2222 lines)
-├── settings.js       # Debug, Settings, FAQ (1252 lines)
-├── controller.js     # GamepadController for Steam Deck (1047 lines)
-└── main.js           # Init and window.onload (219 lines)
+├── sounds.js         # SoundFX Web Audio API system (1325 lines)
+├── state.js          # Game state `S`, upd(), animations, toast, save/load (1577 lines)
+├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (3618 lines)
+├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (3460 lines)
+├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (2207 lines)
+├── settings.js       # Debug, Settings, FAQ (1285 lines)
+├── controller.js     # GamepadController for Steam Deck (1087 lines)
+└── main.js           # Init and window.onload (229 lines)
 
 build/
 ├── template_head.html  # HTML/CSS before <script>
@@ -108,13 +108,15 @@ Enemy Turn:
 
 **Stun Timing**: Stun counters decrement at END of enemy turn, AFTER that unit's team has acted. This ensures "stun for 1 turn" actually skips 1 turn.
 
-**Stun Application Asymmetry**:
+**Stun Application (uniform `Math.max` for all sources)**:
 | Source | Behavior | Code |
 |--------|----------|------|
-| Player Grapple on enemy | **Stacks** (`st += duration`) | Intentional player advantage |
-| D20 STARTLE on enemy | **Max only** (`Math.max(st, 1)`) | Weaker, non-stacking |
-| Enemy Grapple on hero | **Max only** (`Math.max(st, level)`) | Prevents enemy stun-lock |
-| Recruit Grapple on enemy | **Max only** (`Math.max(st, level)`) | Matches enemy behavior |
+| Player Grapple on enemy | `Math.max(st, duration)` | Same rule for all |
+| D20 STARTLE on enemy | `Math.max(st, 1)` | Always 1 turn |
+| Enemy Grapple on hero | `Math.max(st, level)` | Same rule for all |
+| Recruit Grapple on enemy | `Math.max(st, level)` | Same rule for all |
+
+Stun never stacks from any source. A new stun only takes effect if its duration exceeds the remaining stun. This prevents stun-lock cheese for both players and enemies.
 
 **Stunned enemies still progress**: Stun skips the action but does NOT pause sigil cycling (Cave Troll rage advances, Orc alternating continues, `turnsSinceGain` increments).
 
@@ -223,6 +225,10 @@ Defined in `E` object (constants.js).
 | Ignoring Asterisk multiplier | First action triggers `1 + getLevel('Asterisk')` total times (L1 = 2 total) |
 | Not handling recruits | `S.recruits` array contains recruited enemies |
 | Forgetting animation timing | Use `T(ANIMATION_TIMINGS.X)` for speed-adjusted delays |
+| Displaying raw sigil level for actives | Active sigils display stored + 1 (e.g. `S.sig['Attack'] = 0` shows "L1") |
+| Using `if(S.currentSlot)` for slot check | Use `if(S.currentSlot != null)` — slot could be 0 (falsy) |
+| Not resetting unlock flags in `createNewSlot()` | Reset `ghostBoysConverted`, `advancedSigilsUnlocked`, `passiveSigilsUnlocked`, `ancientStatueDeactivated` |
+| Assuming stun stacks | ALL stun uses `Math.max(st, duration)` — never stacks from any source |
 
 ---
 
@@ -276,6 +282,19 @@ S.pedestal         // Champion figurines
 S.pondHistory      // Run history
 S.tutorialFlags    // Tutorial completion tracking
 S.hasReachedFloor20, S.fuUnlocked, S.tapoUnlocked  // Unlock flags
+S.ghostBoysConverted, S.advancedSigilsUnlocked, S.passiveSigilsUnlocked  // Feature unlocks
+S.ancientStatueDeactivated  // Ancient Statue encounter state
+```
+
+### Settings State
+```javascript
+S.helpTipsDisabled    // Mechanic explanation popups (e.g. stun_intro, shield_persistence)
+S.tutorialDisabled    // Guided walkthrough popups (e.g. ribbleton_warrior_attack)
+S.cutsceneDisabled    // One-time narrative events (e.g. death_intro, first_victory_sequence)
+S.tooltipsDisabled    // Hover/longpress sigil tooltips
+S.animationSpeed      // 0 = instant, 0.5 = fast, 1 = normal, 2 = slow
+S.highContrastMode    // Accessibility high contrast
+S.controllerDisabled  // Disable gamepad input
 ```
 
 ---
@@ -320,7 +339,7 @@ Each sigil has per-sigil escalation on top of the Going Rate:
 | 3 | +100G | goingRate + 100 |
 | 4 | +150G | goingRate + 150 |
 
-Max permanent level: 4 for actives (displays as L5), 5 for passives (displays as L5).
+Max permanent level: 4 for all sigils (displays as L5 for actives, L4 for passives). Mage/Healer Expand reaches effective L5 via built-in +1.
 
 ### Category Unlocks (do NOT increase Going Rate)
 - **Advanced Sigils** (Ghost, Alpha, Grapple): **20G**

@@ -907,6 +907,20 @@ Turn 6: DC +10 (CONFUSE is DC 20 - nat 20 required!)<br><br>
 You have a few turns to heal your Last Stand heroes before DCs become impossible!`
 },
 {
+q: "How does Grapple and stun work?",
+a: `<strong>Grapple</strong> stuns a target for a number of turns equal to the Grapple level (L1 = 1 turn, L2 = 2 turns, etc.). The user takes recoil damage equal to the target's POW.<br><br>
+<strong>Stun rules (same for everyone):</strong><br>
+• Stun never stacks. If a target is already stunned for 2 turns and gets stunned for 1, nothing changes<br>
+• A new stun only takes effect if its duration exceeds the remaining stun<br>
+• Stunned units skip their action but still progress (enemies draw sigils, rage cycles, etc.)<br>
+• All stun counters decrement at the end of each enemy turn<br><br>
+<strong>Sources of stun:</strong><br>
+• Player Grapple: stun for Grapple level turns<br>
+• D20 STARTLE: stun for 1 turn<br>
+• Enemy Grapple: stun for sigil level turns<br>
+• Floor 11 Ambush: all heroes stunned for 1 turn`
+},
+{
 q: "How many recruits can I have? What happens to them?",
 a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<br><br>
 • Each hero can have <strong>1 recruit</strong> (recruiting another replaces the first)<br>
