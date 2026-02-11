@@ -814,6 +814,7 @@ setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COM
 function toggleModeFromChampions() {
 S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
+savePermanent();
 showChampionsMenu();
 }
 
@@ -1961,7 +1962,7 @@ function claimQuest(questId) {
   }
 
   savePermanent();
-  SoundFX.play('coin');
+  SoundFX.play('coinDrop');
   toast(`+${quest.reward}G from "${quest.name}"!`);
 
   // Refresh quest board

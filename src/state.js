@@ -1050,7 +1050,11 @@ h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
-chosenHeroIdx: S.chosenHeroIdx
+chosenHeroIdx: S.chosenHeroIdx,
+royalQuestActive: S.royalQuestActive || false,
+royalQuestCompleted: S.royalQuestCompleted || false,
+royalAskerTitle: S.royalAskerTitle || null,
+royalBelovedTitle: S.royalBelovedTitle || null
 }));
 savePermanent();
 } catch(e) {
@@ -1076,6 +1080,10 @@ S.lastNeutral=j.lastNeutral || null;
 S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = j.gameMode || 'Standard';
 S.chosenHeroIdx = j.chosenHeroIdx !== undefined ? j.chosenHeroIdx : -1;
+S.royalQuestActive = j.royalQuestActive || false;
+S.royalQuestCompleted = j.royalQuestCompleted || false;
+S.royalAskerTitle = j.royalAskerTitle || null;
+S.royalBelovedTitle = j.royalBelovedTitle || null;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -1270,8 +1278,10 @@ S.sfxVolume = j.sfxVolume !== undefined ? j.sfxVolume : 1.0;
 S.musicVolume = j.musicVolume !== undefined ? j.musicVolume : 1.0;
 S.pondHistory = j.pondHistory || [];
 S.usedDeathQuotes = j.usedDeathQuotes || [];
-// Apply high contrast mode if enabled
-if(S.highContrastMode) document.body.classList.add('high-contrast');
+// Apply high contrast mode (toggle to handle slot switches)
+document.body.classList.toggle('high-contrast', !!S.highContrastMode);
+// Apply volume settings to audio system
+if(typeof applyVolumeSettings === 'function') applyVolumeSettings();
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
 // Load quest data with defaults
 S.questsCompleted = j.questsCompleted || {};
@@ -1298,6 +1308,10 @@ S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Exp
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
 S.silverKeyHeld = r.silverKeyHeld || false;
+S.royalQuestActive = r.royalQuestActive || false;
+S.royalQuestCompleted = r.royalQuestCompleted || false;
+S.royalAskerTitle = r.royalAskerTitle || null;
+S.royalBelovedTitle = r.royalBelovedTitle || null;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -1415,7 +1429,11 @@ neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
-silverKeyHeld: S.silverKeyHeld || false
+silverKeyHeld: S.silverKeyHeld || false,
+royalQuestActive: S.royalQuestActive || false,
+royalQuestCompleted: S.royalQuestCompleted || false,
+royalAskerTitle: S.royalAskerTitle || null,
+royalBelovedTitle: S.royalBelovedTitle || null
 }));
 savePermanent();
 } catch(e) {

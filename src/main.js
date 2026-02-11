@@ -76,6 +76,8 @@ newWorker.postMessage({ type: 'SKIP_WAITING' });
 // Reload page when new service worker takes control
 navigator.serviceWorker.addEventListener('controllerchange', function() {
 debugLog('[SW] Controller changed, reloading for update...');
+// Save before reloading to prevent data loss
+try { saveGame(); } catch(e) { console.warn('[SW] Failed to save before reload:', e); }
 window.location.reload();
 });
 }
