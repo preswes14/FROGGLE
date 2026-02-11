@@ -134,7 +134,7 @@ questProgress: {
   standardWins: 0,
   fuWins: 0,
   tapoFUWins: 0,
-  tapoPerfectWins: 0,
+  allTapoWins: 0,
   maxRecruitsHeld: 0,
   purchasedUpgrade: false,
 
@@ -299,8 +299,8 @@ function trackQuestProgress(type, value) {
     case 'tapoFUWin':
       S.questProgress.tapoFUWins++;
       break;
-    case 'tapoPerfectWin':
-      S.questProgress.tapoPerfectWins++;
+    case 'allTapoWin':
+      S.questProgress.allTapoWins++;
       break;
     case 'heroPlayed':
       if(value && S.questProgress.heroesPlayed.hasOwnProperty(value)) {

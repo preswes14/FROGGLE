@@ -434,7 +434,7 @@ S.questProgress = {
   standardWins: 0,
   fuWins: 0,
   tapoFUWins: 0,
-  tapoPerfectWins: 0,
+  allTapoWins: 0,
   maxRecruitsHeld: 0,
   purchasedUpgrade: false,
   // Repeatable quest tiers
@@ -1345,8 +1345,12 @@ v.innerHTML = `
 ${S.tapoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
 <button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
-🎉 View Tapo (UNLOCKED!) 🎉
+🎉 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'} 🎉
 </button>
+${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 && S.gameMode === 'fu' ? `
+<button class="btn" onclick="selectAllTapos()" style="background:linear-gradient(135deg,#f59e0b 0%,#22c55e 100%);padding:0.5rem 1rem;font-size:0.9rem;font-weight:bold;border:3px solid #000;margin-top:0.5rem">
+🐸 ALL TAPOS 🐸
+</button>` : ''}
 </div>` : ''}
 
 <!-- Selection display with X/Y counter -->
@@ -1442,7 +1446,22 @@ function toggleHeroSelection(heroType) {
 // Toggle selection
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 const isSelected = sel.includes(heroType);
-if(isSelected) {
+
+// Multi-Tapo: after winning FU with Tapo alive, can fill all slots with Tapo
+const multiTapoUnlocked = heroType === 'tapo' && S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1;
+
+if(multiTapoUnlocked) {
+// Tapo doesn't toggle off — add more, or remove one if at max
+if(sel.length < requiredHeroes) {
+sel.push('tapo');
+SoundFX.play('hop');
+} else if(isSelected) {
+// At max — remove last tapo to make room
+const lastIdx = sel.lastIndexOf('tapo');
+if(lastIdx !== -1) sel.splice(lastIdx, 1);
+SoundFX.play('click');
+}
+} else if(isSelected) {
 sel = sel.filter(h => h !== heroType);
 SoundFX.play('click');
 } else {
@@ -1457,6 +1476,14 @@ updateHeroCards();
 updateSelectionDisplay();
 }
 
+function selectAllTapos() {
+const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
+sel = [];
+for(let i = 0; i < requiredHeroes; i++) sel.push('tapo');
+SoundFX.play('hop');
+updateHeroCards();
+updateSelectionDisplay();
+}
 
 function updateSelectionDisplay() {
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
@@ -1468,7 +1495,16 @@ if(sel.length === 0) {
 display.textContent = 'None';
 display.style.color = '#6b7280';
 } else {
-const heroNames = sel.map(h => H[h].n);
+// Name multiple Tapos A, B, C in the display
+const letters = ['A', 'B', 'C'];
+let tapoIdx = 0;
+const heroNames = sel.map(h => {
+const name = H[h].n;
+if(h === 'tapo' && sel.filter(s => s === 'tapo').length > 1) {
+return `${name} ${letters[tapoIdx++]}`;
+}
+return name;
+});
 display.textContent = heroNames.join(' + ');
 display.style.color = '#2563eb';
 }
@@ -1531,9 +1567,18 @@ S.recruits = [];
 // NOTE: Gold persists between runs! Only reset on victory or spent at Death Screen
 S.heroes = sel.map((t,i) => ({
 id:`h-${crypto.randomUUID()}`,
-n:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
+n:H[t].n, base:H[t].n, p:H[t].p, h:H[t].h, m:H[t].m,
 s:[...H[t].s], sh:0, g:0, ls:false, lst:0, ts:[], st:0
 }));
+// Name multiple Tapos: A, B, C
+const tapoCount = S.heroes.filter(h => h.base === 'Tapo').length;
+if(tapoCount > 1) {
+const letters = ['A', 'B', 'C'];
+let idx = 0;
+S.heroes.forEach(h => {
+if(h.base === 'Tapo') h.n = `Tapo ${letters[idx++]}`;
+});
+}
 
 // Add permanently upgraded passives (Expand, Asterisk, Star) to all heroes
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
@@ -1546,7 +1591,7 @@ hero.s.push(passive);
 }
 });
 // Tapo also gets any active sigils that have been permanently upgraded with gold
-if(hero.n === 'Tapo') {
+if((hero.base || hero.n) === 'Tapo') {
 const activeSigils = ['Attack', 'Shield', 'Heal', 'Grapple', 'Ghost', 'Alpha'];
 activeSigils.forEach(sigil => {
 const permLevel = S.sig[sigil] || 0;
@@ -1602,7 +1647,7 @@ upd();
 
 // QUEST TRACKING: Track heroes played this run
 S.heroes.forEach(hero => {
-  trackQuestProgress('heroPlayed', hero.n);
+  trackQuestProgress('heroPlayed', hero.base || hero.n);
 });
 
 // Show chosen hero tutorial on first occurrence (run 2)
