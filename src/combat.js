@@ -551,6 +551,10 @@ if (['Attack', 'Grapple'].includes(S.pending)) {
 
 } else if (['Heal', 'Shield', 'Alpha'].includes(S.pending)) {
   let aliveHeroes = S.heroes.filter(h => h.h > 0 || h.ls);
+  // Filter out Last Stand heroes for Shield and Alpha (they can't receive these)
+  if (S.pending === 'Shield' || S.pending === 'Alpha') {
+    aliveHeroes = aliveHeroes.filter(h => !h.ls);
+  }
   if (aliveHeroes.length === 0) return;
 
   if (S.pending === 'Heal') {
@@ -1806,7 +1810,7 @@ if(alphaEnemies.length === 0) { setTimeout(executeRecruitPhase, T(ANIMATION_TIMI
 let delay = 0;
 alphaEnemies.forEach((alphaEnemy, idx) => {
 setTimeout(() => {
-const allies = S.enemies.filter(e => e.id !== alphaEnemy.id && e.h > 0 && !e.s.some(s => s.sig === 'Alpha' && !s.perm));
+const allies = S.enemies.filter(e => e.id !== alphaEnemy.id && e.h > 0 && e.st === 0 && !e.s.some(s => s.sig === 'Alpha' && !s.perm));
 if(allies.length === 0) { toast(`${alphaEnemy.n}'s Alpha has no valid allies!`); alphaEnemy.alphaActed = true; return; }
 allies.sort((a, b) => { if(b.p !== a.p) return b.p - a.p; return b.s.length - a.s.length; });
 const bestAlly = allies[0];
@@ -2363,7 +2367,7 @@ S.inCombat = false; // Combat ended - disable autosave
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // CRITICAL: Clear run save immediately to prevent loading into invalid state
 // This ensures player can't reload into a battle where all heroes are in Last Stand
-if(S.currentSlot) {
+if(S.currentSlot != null) {
 localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 }
 localStorage.removeItem('froggle8'); // Also clear old format for backwards compatibility

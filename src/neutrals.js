@@ -11,6 +11,7 @@ S.lastNeutral = null;
 function getNeutralEncounter() {
 // FIRST RUN ONLY: Floor 2 gets Oracle Stage 1 as a safe intro to neutrals
 if(S.floor === 2 && S.runsAttempted === 1) {
+S.lastNeutral = 'oracle1';
 return 'oracle1';
 }
 
@@ -443,6 +444,7 @@ S.ghostBoysConverted = false;
 S.advancedSigilsUnlocked = false;
 S.passiveSigilsUnlocked = false;
 S.ancientStatueDeactivated = false;
+S.gameMode = 'Standard';
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
 S.runsAttempted = 1;
@@ -1771,6 +1773,7 @@ buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderSho
 function applySmallPotion(idx) {
 S.gold -= 3;
 const h = S.heroes[idx];
+if(h.ls) { h.ls = false; h.lst = 0; }
 h.h = Math.min(h.h + 3, h.m);
 upd();
 toast(`${h.n} restored 3 HP!`);
@@ -1800,6 +1803,7 @@ buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderSho
 function applyLargePotion(idx) {
 S.gold -= 5;
 const h = S.heroes[idx];
+if(h.ls) { h.ls = false; h.lst = 0; }
 h.h = Math.min(h.h + 8, h.m);
 upd();
 toast(`${h.n} restored 8 HP!`);
@@ -1968,11 +1972,19 @@ nextFloor();
 
 function applyWellDamage(heroIdx, hpLoss, goldGain) {
 const hero = S.heroes[heroIdx];
-hero.h -= hpLoss;
+// Apply damage through shields first (consistent with combat)
+let remaining = hpLoss;
+if(hero.sh > 0) {
+const absorbed = Math.min(hero.sh, remaining);
+hero.sh -= absorbed;
+remaining -= absorbed;
+}
+hero.h -= remaining;
 if(hero.h <= 0 && !hero.ls) {
 if(hero.g > 0) {
 hero.g--;
-hero.h += hpLoss;
+hero.h += remaining;
+hero.sh += (hpLoss - remaining); // Restore shield too
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
 hero.h = 0;
@@ -2146,11 +2158,19 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 
 function finishChestOpen(heroIdx, trapDmg, goldGain) {
 const hero = S.heroes[heroIdx];
-hero.h -= trapDmg;
+// Apply damage through shields first (consistent with combat)
+let remaining = trapDmg;
+if(hero.sh > 0) {
+const absorbed = Math.min(hero.sh, remaining);
+hero.sh -= absorbed;
+remaining -= absorbed;
+}
+hero.h -= remaining;
 if(hero.h <= 0 && !hero.ls) {
 if(hero.g > 0) {
 hero.g--;
-hero.h += trapDmg;
+hero.h += remaining;
+hero.sh += (trapDmg - remaining); // Restore shield too
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`);
 } else {
 hero.h = 0;
@@ -3128,9 +3148,10 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 return;
 }
 
-// Failed - show hero selection
+// Failed - show hero selection (exclude Last Stand heroes - they can't take damage)
 let heroButtons = '';
 S.heroes.forEach((h, idx) => {
+if(h.ls) return; // Last Stand heroes can't take damage
 heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
@@ -3147,6 +3168,33 @@ function applyGhostDamage(heroIdx) {
 const hero = S.heroes[heroIdx];
 const hadGhostCharge = hero.g > 0;
 
+// Apply damage through shields first (consistent with combat)
+if(hero.sh > 0) {
+hero.sh -= 1;
+toast(`${hero.n}'s shield absorbed the damage!`);
+ghostEscapeAttempts++;
+ghostEscapeDC -= 2;
+upd();
+if(ghostEscapeAttempts >= 9) {
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Finally Free',
+outcomes: ['After many attempts, the ghost boys grow bored and fade away.'],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+} else {
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Try Again',
+description: `<div style="font-size:0.9rem;margin:1rem 0">Attempts: ${ghostEscapeAttempts}/9 | Next DC: ${ghostEscapeDC}</div>`,
+outcomes: [`${hero.n}'s shield absorbed the damage!`],
+buttons: `<button class="btn danger" onclick="attemptGhostEscape()">Try to Escape (DC ${ghostEscapeDC})</button>`
+});
+}
+return;
+}
 hero.h -= 1;
 if(hero.h <= 0) {
 hero.h = 0;
@@ -3330,7 +3378,9 @@ buttons
 
 function chooseRoyalSigil(sig) {
 S.sig[sig] = (S.sig[sig] || 0) + 1;
-toast(`${sig} permanently upgraded to L${S.sig[sig]}!`, 1800);
+const activesSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Grapple', 'Ghost', 'Alpha'];
+const displayLvl = activesSigils.includes(sig) ? S.sig[sig] + 1 : S.sig[sig];
+toast(`${sig} permanently upgraded to L${displayLvl}!`, 1800);
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/royal2.png',

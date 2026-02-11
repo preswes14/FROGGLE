@@ -1168,12 +1168,9 @@ const j = JSON.parse(oldPerm);
 const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
 if(j.sig) {
 starterActives.forEach(sig => {
-if(j.sig[sig] === 1) {
+if(j.sig[sig] === 1 && (!j.sigUpgradeCounts || j.sigUpgradeCounts[sig] === 0)) {
+// Starter active at L1 with no upgrades = old format, fix it
 j.sig[sig] = 0;
-// Also adjust sigUpgradeCounts if it exists
-if(j.sigUpgradeCounts && j.sigUpgradeCounts[sig] > 0) {
-j.sigUpgradeCounts[sig] = Math.max(0, j.sigUpgradeCounts[sig] - 1);
-}
 }
 });
 }
@@ -1258,6 +1255,12 @@ S.tooltipsDisabled = j.tooltipsDisabled || false;
 S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
 S.toastLogLocked = j.toastLogLocked || false;
 S.highContrastMode = j.highContrastMode || false;
+S.controllerDisabled = j.controllerDisabled || false;
+S.animationSpeed = j.animationSpeed !== undefined ? j.animationSpeed : 1;
+S.masterVolume = j.masterVolume !== undefined ? j.masterVolume : 1.0;
+S.sfxVolume = j.sfxVolume !== undefined ? j.sfxVolume : 1.0;
+S.musicVolume = j.musicVolume !== undefined ? j.musicVolume : 1.0;
+S.pondHistory = j.pondHistory || [];
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 // Apply high contrast mode if enabled
 if(S.highContrastMode) document.body.classList.add('high-contrast');
@@ -1286,6 +1289,7 @@ S.lastNeutral = r.lastNeutral || null;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
+S.silverKeyHeld = r.silverKeyHeld || false;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -1402,7 +1406,8 @@ h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
-chosenHeroIdx: S.chosenHeroIdx
+chosenHeroIdx: S.chosenHeroIdx,
+silverKeyHeld: S.silverKeyHeld || false
 }));
 savePermanent();
 } catch(e) {

@@ -721,7 +721,7 @@ Visit the <strong style="color:#3b82f6">Statue Room</strong> via the blue portal
 
 function continueFUIntro() {
 // Clear run-specific save
-if(S.currentSlot) {
+if(S.currentSlot != null) {
 localStorage.removeItem(`froggle8_slot${S.currentSlot}`);
 }
 localStorage.removeItem('froggle8');
@@ -981,10 +981,13 @@ S.recruits = []; // Clear recruits
 savePermanent();
 
 // Award figurines for heroes who survived (HP > 0, not Last Stand)
+// Tapo has no pedestal slots, so give 25G compensation instead
 const survivedHeroes = S.heroes.filter(h => h.h > 0 && !h.ls);
 const earnedFigurines = [];
 const maxedHeroes = [];
 survivedHeroes.forEach(h => {
+// Tapo can't place figurines - always treat as maxed for compensation
+if(h.n === 'Tapo') { maxedHeroes.push(h.n); return; }
 // Check if this hero already has 2 figurines for this mode
 const existingCount = S.pedestal.filter(slot => slot.hero === h.n && slot.mode === S.gameMode).length;
 if(existingCount < 2) {
