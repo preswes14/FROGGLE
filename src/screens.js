@@ -2194,8 +2194,9 @@ let html = `
 <!-- Lilypad Pond (bottom-left) - Blue circle portal, same size as red portal -->
 ${S.pondHistory && S.pondHistory.length > 0 ? `
 <div style="position:absolute;bottom:1rem;left:1rem;z-index:10">
-<div onclick="showPond()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+<div onclick="showPond()" role="button" aria-label="The Pond - Reflect on your adventures" tabindex="0" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+     onkeydown="if(event.key==='Enter')showPond()"
      title="Reflect on your adventures at the Lilypad Pond">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 40px #3b82f6">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">🪷</div>
@@ -2207,8 +2208,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
 
 <!-- Red Portal (bottom-right) - Always Available -->
 <div style="position:absolute;bottom:1rem;right:1rem;z-index:10">
-<div onclick="enterRedPortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+<div onclick="enterRedPortal()" role="button" aria-label="Save Tapo - Begin your adventure" tabindex="0" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+     onkeydown="if(event.key==='Enter')enterRedPortal()"
      title="Click to begin your adventure and save Tapo!">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:ribbleton-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">👺</div>
@@ -2219,8 +2221,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
 
 <!-- Quest Board in bottom-center -->
 <div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:10">
-  <div onclick="showQuestBoard()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+  <div onclick="showQuestBoard()" role="button" aria-label="Quest Board - View quests and claim rewards" tabindex="0" style="cursor:pointer;transition:transform 0.2s;text-align:center"
        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+       onkeydown="if(event.key==='Enter')showQuestBoard()"
        title="View available quests and claim rewards">
     <div style="width:80px;height:80px;position:relative;background:linear-gradient(135deg, #92400e, #78350f);border-radius:8px;border:4px solid #451a03;box-shadow:0 4px 16px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center">
       <span style="font-size:3rem">🪧</span>

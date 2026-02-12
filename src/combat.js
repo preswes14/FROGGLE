@@ -2518,7 +2518,7 @@ S.heroes.forEach((h,i) => {
 // Add class for crowded lanes (many enemies)
 const laneEnemyCount = (enemyLanes[i] || []).length;
 const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
-html += `<div class="combat-lane ${crowdedClass}">`;
+html += `<div class="combat-lane ${crowdedClass}" role="region" aria-label="Lane ${i+1}: ${h.n}">`;
 html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 
 // Hero section (right side of their zone, 38% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
@@ -2541,7 +2541,7 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
-html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
+html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand turn ${h.lst+1}${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost charges' : ''}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
@@ -2607,7 +2607,8 @@ const isHealTargetable = S.pending === 'Heal' && isTargetable;
 const isShieldTargetable = S.pending === 'Shield' && isTargetable;
 const healHoverEvents = isHealTargetable ? `onmouseenter="showHealPreview('${h.id}', this)" onmouseleave="hideHealPreview()"` : '';
 const shieldHoverEvents = isShieldTargetable ? `onmouseenter="showShieldPreview('${h.id}', this)" onmouseleave="hideShieldPreview()"` : '';
-html += `<div id="${h.id}" class="${cardClasses}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
+const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
+html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
@@ -2880,7 +2881,8 @@ if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 // Add damage preview hover for Attack targeting
 const hoverEvents = isAttackTargetable ? `onmouseenter="showDamagePreview('${e.id}', this)" onmouseleave="hideDamagePreview()"` : '';
-html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} ${hoverEvents}>`;
+const enemyAriaLabel = `${getEnemyDisplayName(e)} - ${e.h}/${e.m} HP, ${e.p} Power${e.sh > 0 ? ', '+e.sh+' shield' : ''}${e.g > 0 ? ', '+e.g+' ghost' : ''}${e.st > 0 ? ', stunned '+e.st+' turns' : ''}`;
+html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} ${hoverEvents}>`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
 // POW - image/emoji - HP row (horizontal)

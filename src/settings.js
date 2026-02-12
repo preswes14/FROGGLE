@@ -31,7 +31,7 @@ const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghos
 const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Debug menu">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
 
 <h3 class="modal-section-title green">Resources</h3>
@@ -88,7 +88,7 @@ ${inCombat ? `
 
 <button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
-<div class="modal-overlay" onclick="closeDebugMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeDebugMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -107,7 +107,7 @@ const inTutorial = S.heroes && S.heroes.length > 0 && S.floor === 0;
 const inRibbleton = S.inRibbleton;
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">⚙️ SETTINGS ⚙️</h2>
 
 ${inGame ? `
@@ -131,9 +131,9 @@ ${inGame ? `
 ` : ''}
 
 <button class="settings-back-btn" onclick="closeSettingsMenu()">Return</button>
-<div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.5;text-align:center">Press Ⓑ to close menu</div>
+<div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.5;text-align:center" aria-hidden="true">Press Ⓑ to close menu</div>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -149,7 +149,7 @@ const sfxPct = Math.round((S.sfxVolume || 1) * 100);
 const musicPct = Math.round((S.musicVolume || 1) * 100);
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Audio settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🔊 AUDIO</h2>
 
 <div style="display:flex;flex-direction:column;gap:1.25rem">
@@ -159,7 +159,7 @@ let html = `
 <label style="font-weight:bold;color:#fbbf24">🔈 Master Volume</label>
 <span id="master-vol-display" style="font-size:0.9rem;color:#fbbf24">${masterPct}%</span>
 </div>
-<input type="range" min="0" max="100" value="${masterPct}"
+<input type="range" min="0" max="100" value="${masterPct}" aria-label="Master volume"
   oninput="updateVolumeDisplay('master', this.value); setMasterVolume(this.value / 100)"
   style="width:100%;height:8px;cursor:pointer;accent-color:#fbbf24">
 </div>
@@ -169,7 +169,7 @@ let html = `
 <label style="font-weight:bold;color:#22c55e">💥 Sound Effects</label>
 <span id="sfx-vol-display" style="font-size:0.9rem;color:#22c55e">${sfxPct}%</span>
 </div>
-<input type="range" min="0" max="100" value="${sfxPct}"
+<input type="range" min="0" max="100" value="${sfxPct}" aria-label="Sound effects volume"
   oninput="updateVolumeDisplay('sfx', this.value); setSfxVolume(this.value / 100)"
   style="width:100%;height:8px;cursor:pointer;accent-color:#22c55e">
 </div>
@@ -179,7 +179,7 @@ let html = `
 <label style="font-weight:bold;color:#8b5cf6">🎵 Music</label>
 <span id="music-vol-display" style="font-size:0.9rem;color:#8b5cf6">${musicPct}%</span>
 </div>
-<input type="range" min="0" max="100" value="${musicPct}"
+<input type="range" min="0" max="100" value="${musicPct}" aria-label="Music volume"
   oninput="updateVolumeDisplay('music', this.value); setMusicVolume(this.value / 100)"
   style="width:100%;height:8px;cursor:pointer;accent-color:#8b5cf6">
 </div>
@@ -190,7 +190,7 @@ let html = `
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -212,7 +212,7 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Gameplay settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY</h2>
 
 <h3 class="modal-section-title green">Animation Speed</h3>
@@ -232,7 +232,7 @@ ${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu(
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -243,7 +243,7 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Display settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY</h2>
 
 <label class="modal-checkbox-label">
@@ -279,7 +279,7 @@ let html = `
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -310,7 +310,7 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Controller settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER</h2>
 
 <label class="modal-checkbox-label">
@@ -323,7 +323,7 @@ let html = `
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }

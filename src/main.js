@@ -117,7 +117,6 @@ needsFix = true;
 if(needsFix) {
 debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 }
-S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;

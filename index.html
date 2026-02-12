@@ -2497,6 +2497,15 @@ body.controller-active .controller-prompts {
     font-size: 1.25rem;
   }
 }
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -2507,7 +2516,7 @@ body.controller-active .controller-prompts {
 <div class="rotate-submessage">FROGGLE plays best in landscape mode</div>
 </div>
 
-<div class="header" id="gameHeader">
+<div class="header" id="gameHeader" role="banner" aria-live="polite">
 <div id="locationInfo"><span id="locationLabel">Floor</span> <span id="floor">1</span><span id="roundInfo"> | Round <span id="round">1</span></span></div>
 <div style="display:flex;gap:0.25rem">
 <button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Sigilarium">🌀</button>
@@ -2518,7 +2527,7 @@ body.controller-active .controller-prompts {
 </div>
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
-<div class="game-area" id="gameView"></div>
+<div class="game-area" id="gameView" role="main" aria-label="Game view"></div>
 
 <!-- Early error handler - catches parse errors in main script -->
 <script>
@@ -5723,7 +5732,6 @@ pendingNewRecruit: null,  // New recruit waiting for slot conflict resolution
 pendingOldRecruitId: null, // ID of existing recruit being replaced
 
 // ===== PERSISTENT STATE (survives death, saved in permanent storage) =====
-ancientStatueDeactivated: false, // Ancient Statue one-time choice made
 ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
@@ -6223,6 +6231,8 @@ updateToastLog();
 const t = document.createElement('div');
 const priorityClass = priority === 'critical' ? ' toast-critical' : priority === 'warning' ? ' toast-warning' : priority === 'success' ? ' toast-success' : '';
 t.className = 'toast' + priorityClass;
+t.setAttribute('role', priority === 'critical' ? 'alert' : 'status');
+t.setAttribute('aria-live', priority === 'critical' ? 'assertive' : 'polite');
 t.innerHTML = msg;
 t.style.bottom = '-100px'; // Start off-screen
 document.body.appendChild(t);
@@ -6250,6 +6260,8 @@ function showTurnBanner(type, text) {
 
   const banner = document.createElement('div');
   banner.className = `turn-banner ${type}`;
+  banner.setAttribute('role', 'status');
+  banner.setAttribute('aria-live', 'assertive');
   banner.innerHTML = `<div class="turn-banner-inner">${text}</div>`;
   document.body.appendChild(banner);
 
@@ -6269,10 +6281,14 @@ function showConfirmModal(message, onConfirm, onCancel) {
   // Create overlay
   const overlay = document.createElement('div');
   overlay.className = 'confirm-modal-overlay';
+  overlay.setAttribute('role', 'presentation');
 
   // Create modal
   const modal = document.createElement('div');
   modal.className = 'confirm-modal';
+  modal.setAttribute('role', 'alertdialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-label', 'Confirm action');
   modal.innerHTML = `
     <h3>Confirm</h3>
     <p>${message}</p>
@@ -6358,6 +6374,8 @@ if(existing) return;
 const log = document.createElement('div');
 log.id = 'toastLog';
 log.className = 'toast-log';
+log.setAttribute('role', 'log');
+log.setAttribute('aria-label', 'Combat log');
 document.body.appendChild(log);
 updateToastLog();
 }
@@ -6389,7 +6407,7 @@ const log = document.getElementById('toastLog');
 if(!log) return;
 let html = `<div class="toast-log-header">
 <span style="font-size:1rem">🪵 Combat Log</span>
-<button onclick="minimizeToastLog()" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
+<button onclick="minimizeToastLog()" aria-label="Close combat log" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
 </div>`;
 html += '<div class="toast-log-entries">';
 S.toastHistory.forEach((msg, idx) => {
@@ -6433,12 +6451,13 @@ updateToastLog();
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
+backdrop.setAttribute('role', 'presentation');
 backdrop.innerHTML = `
-<div class="tutorial-modal">
+<div class="tutorial-modal" role="alertdialog" aria-modal="true" aria-label="Tip">
 <h2>Tip!</h2>
 <p>${message}</p>
 <button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
-<div class="controller-hint" style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7">Ⓐ to continue</div>
+<div class="controller-hint" style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7" aria-hidden="true">Ⓐ to continue</div>
 </div>`;
 document.body.appendChild(backdrop);
 debugLog('[TUTORIAL] Backdrop created and appended');
@@ -6486,8 +6505,9 @@ console.error('[TUTORIAL] Callback error:', error);
 function showRecruitReplaceConfirm(oldName, newName, onKeep, onReplace) {
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
+backdrop.setAttribute('role', 'presentation');
 backdrop.innerHTML = `
-<div class="tutorial-modal">
+<div class="tutorial-modal" role="alertdialog" aria-modal="true" aria-label="Replace recruit">
 <h2>Replace Recruit?</h2>
 <p>You already have <strong>${oldName}</strong>. Replace with <strong>${newName}</strong>?</p>
 <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem">
@@ -6523,7 +6543,6 @@ goingRate: S.goingRate,
 startingXP: S.startingXP,
 sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
-ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
@@ -6650,7 +6669,6 @@ if(needsFix) {
 debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 savePermanent(); // Save the fix
 }
-S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
@@ -6913,7 +6931,6 @@ if(needsFix) {
 debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 savePermanent(); // Save the fix
 }
-S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
@@ -7035,7 +7052,6 @@ runsAttempted: S.runsAttempted,
 startingXP: S.startingXP,
 sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
-ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
@@ -7175,6 +7191,9 @@ hideSuspendOverlay();
 
 const overlay = document.createElement('div');
 overlay.id = 'suspend-overlay';
+overlay.setAttribute('role', 'alertdialog');
+overlay.setAttribute('aria-modal', 'true');
+overlay.setAttribute('aria-label', 'Game suspended');
 overlay.style.cssText = `
 position: fixed;
 top: 0;
@@ -9786,7 +9805,7 @@ S.heroes.forEach((h,i) => {
 // Add class for crowded lanes (many enemies)
 const laneEnemyCount = (enemyLanes[i] || []).length;
 const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
-html += `<div class="combat-lane ${crowdedClass}">`;
+html += `<div class="combat-lane ${crowdedClass}" role="region" aria-label="Lane ${i+1}: ${h.n}">`;
 html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 
 // Hero section (right side of their zone, 38% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
@@ -9809,7 +9828,7 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
-html += `<div id="${h.id}" class="${lsClasses}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
+html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand turn ${h.lst+1}${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost charges' : ''}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
@@ -9875,7 +9894,8 @@ const isHealTargetable = S.pending === 'Heal' && isTargetable;
 const isShieldTargetable = S.pending === 'Shield' && isTargetable;
 const healHoverEvents = isHealTargetable ? `onmouseenter="showHealPreview('${h.id}', this)" onmouseleave="hideHealPreview()"` : '';
 const shieldHoverEvents = isShieldTargetable ? `onmouseenter="showShieldPreview('${h.id}', this)" onmouseleave="hideShieldPreview()"` : '';
-html += `<div id="${h.id}" class="${cardClasses}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
+const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
+html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
@@ -10148,7 +10168,8 @@ if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 // Add damage preview hover for Attack targeting
 const hoverEvents = isAttackTargetable ? `onmouseenter="showDamagePreview('${e.id}', this)" onmouseleave="hideDamagePreview()"` : '';
-html += `<div id="${e.id}" class="${cardClasses}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} ${hoverEvents}>`;
+const enemyAriaLabel = `${getEnemyDisplayName(e)} - ${e.h}/${e.m} HP, ${e.p} Power${e.sh > 0 ? ', '+e.sh+' shield' : ''}${e.g > 0 ? ', '+e.g+' ghost' : ''}${e.st > 0 ? ', stunned '+e.st+' turns' : ''}`;
+html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} ${hoverEvents}>`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
 // POW - image/emoji - HP row (horizontal)
@@ -11406,7 +11427,6 @@ S.questProgress = {
 S.ghostBoysConverted = false;
 S.advancedSigilsUnlocked = false;
 S.passiveSigilsUnlocked = false;
-S.ancientStatueDeactivated = false;
 S.gameMode = 'Standard';
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
@@ -16736,8 +16756,9 @@ let html = `
 <!-- Lilypad Pond (bottom-left) - Blue circle portal, same size as red portal -->
 ${S.pondHistory && S.pondHistory.length > 0 ? `
 <div style="position:absolute;bottom:1rem;left:1rem;z-index:10">
-<div onclick="showPond()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+<div onclick="showPond()" role="button" aria-label="The Pond - Reflect on your adventures" tabindex="0" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+     onkeydown="if(event.key==='Enter')showPond()"
      title="Reflect on your adventures at the Lilypad Pond">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 40px #3b82f6">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">🪷</div>
@@ -16749,8 +16770,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
 
 <!-- Red Portal (bottom-right) - Always Available -->
 <div style="position:absolute;bottom:1rem;right:1rem;z-index:10">
-<div onclick="enterRedPortal()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+<div onclick="enterRedPortal()" role="button" aria-label="Save Tapo - Begin your adventure" tabindex="0" style="cursor:pointer;transition:transform 0.2s;text-align:center"
      onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+     onkeydown="if(event.key==='Enter')enterRedPortal()"
      title="Click to begin your adventure and save Tapo!">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:ribbleton-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626">
     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">👺</div>
@@ -16761,8 +16783,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
 
 <!-- Quest Board in bottom-center -->
 <div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:10">
-  <div onclick="showQuestBoard()" style="cursor:pointer;transition:transform 0.2s;text-align:center"
+  <div onclick="showQuestBoard()" role="button" aria-label="Quest Board - View quests and claim rewards" tabindex="0" style="cursor:pointer;transition:transform 0.2s;text-align:center"
        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+       onkeydown="if(event.key==='Enter')showQuestBoard()"
        title="View available quests and claim rewards">
     <div style="width:80px;height:80px;position:relative;background:linear-gradient(135deg, #92400e, #78350f);border-radius:8px;border:4px solid #451a03;box-shadow:0 4px 16px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center">
       <span style="font-size:3rem">🪧</span>
@@ -16817,7 +16840,7 @@ const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghos
 const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Debug menu">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
 
 <h3 class="modal-section-title green">Resources</h3>
@@ -16874,7 +16897,7 @@ ${inCombat ? `
 
 <button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
 </div>
-<div class="modal-overlay" onclick="closeDebugMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeDebugMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -16893,7 +16916,7 @@ const inTutorial = S.heroes && S.heroes.length > 0 && S.floor === 0;
 const inRibbleton = S.inRibbleton;
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">⚙️ SETTINGS ⚙️</h2>
 
 ${inGame ? `
@@ -16917,9 +16940,9 @@ ${inGame ? `
 ` : ''}
 
 <button class="settings-back-btn" onclick="closeSettingsMenu()">Return</button>
-<div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.5;text-align:center">Press Ⓑ to close menu</div>
+<div style="margin-top:0.5rem;font-size:0.8rem;opacity:0.5;text-align:center" aria-hidden="true">Press Ⓑ to close menu</div>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -16935,7 +16958,7 @@ const sfxPct = Math.round((S.sfxVolume || 1) * 100);
 const musicPct = Math.round((S.musicVolume || 1) * 100);
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Audio settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🔊 AUDIO</h2>
 
 <div style="display:flex;flex-direction:column;gap:1.25rem">
@@ -16945,7 +16968,7 @@ let html = `
 <label style="font-weight:bold;color:#fbbf24">🔈 Master Volume</label>
 <span id="master-vol-display" style="font-size:0.9rem;color:#fbbf24">${masterPct}%</span>
 </div>
-<input type="range" min="0" max="100" value="${masterPct}"
+<input type="range" min="0" max="100" value="${masterPct}" aria-label="Master volume"
   oninput="updateVolumeDisplay('master', this.value); setMasterVolume(this.value / 100)"
   style="width:100%;height:8px;cursor:pointer;accent-color:#fbbf24">
 </div>
@@ -16955,7 +16978,7 @@ let html = `
 <label style="font-weight:bold;color:#22c55e">💥 Sound Effects</label>
 <span id="sfx-vol-display" style="font-size:0.9rem;color:#22c55e">${sfxPct}%</span>
 </div>
-<input type="range" min="0" max="100" value="${sfxPct}"
+<input type="range" min="0" max="100" value="${sfxPct}" aria-label="Sound effects volume"
   oninput="updateVolumeDisplay('sfx', this.value); setSfxVolume(this.value / 100)"
   style="width:100%;height:8px;cursor:pointer;accent-color:#22c55e">
 </div>
@@ -16965,7 +16988,7 @@ let html = `
 <label style="font-weight:bold;color:#8b5cf6">🎵 Music</label>
 <span id="music-vol-display" style="font-size:0.9rem;color:#8b5cf6">${musicPct}%</span>
 </div>
-<input type="range" min="0" max="100" value="${musicPct}"
+<input type="range" min="0" max="100" value="${musicPct}" aria-label="Music volume"
   oninput="updateVolumeDisplay('music', this.value); setMusicVolume(this.value / 100)"
   style="width:100%;height:8px;cursor:pointer;accent-color:#8b5cf6">
 </div>
@@ -16976,7 +16999,7 @@ let html = `
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -16998,7 +17021,7 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Gameplay settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY</h2>
 
 <h3 class="modal-section-title green">Animation Speed</h3>
@@ -17018,7 +17041,7 @@ ${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu(
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -17029,7 +17052,7 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Display settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY</h2>
 
 <label class="modal-checkbox-label">
@@ -17065,7 +17088,7 @@ let html = `
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -17096,7 +17119,7 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 let html = `
-<div class="modal-container dark">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Controller settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER</h2>
 
 <label class="modal-checkbox-label">
@@ -17109,7 +17132,7 @@ let html = `
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
-<div class="modal-overlay" onclick="closeSettingsMenu();showSettingsMenu()"></div>
+<div class="modal-overlay" role="presentation" onclick="closeSettingsMenu();showSettingsMenu()"></div>
 `;
 v.insertAdjacentHTML('beforeend', html);
 }
@@ -19291,7 +19314,6 @@ needsFix = true;
 if(needsFix) {
 debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 }
-S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;

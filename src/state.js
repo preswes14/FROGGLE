@@ -80,7 +80,6 @@ pendingNewRecruit: null,  // New recruit waiting for slot conflict resolution
 pendingOldRecruitId: null, // ID of existing recruit being replaced
 
 // ===== PERSISTENT STATE (survives death, saved in permanent storage) =====
-ancientStatueDeactivated: false, // Ancient Statue one-time choice made
 ghostBoysConverted: false,       // Ghost Boys converted (no longer hostile)
 pedestal: [],                    // Champion hero figurines [{hero, mode, stats}]
 hasReachedFloor20: false,        // Unlocks blue portal in Ribbleton
@@ -580,6 +579,8 @@ updateToastLog();
 const t = document.createElement('div');
 const priorityClass = priority === 'critical' ? ' toast-critical' : priority === 'warning' ? ' toast-warning' : priority === 'success' ? ' toast-success' : '';
 t.className = 'toast' + priorityClass;
+t.setAttribute('role', priority === 'critical' ? 'alert' : 'status');
+t.setAttribute('aria-live', priority === 'critical' ? 'assertive' : 'polite');
 t.innerHTML = msg;
 t.style.bottom = '-100px'; // Start off-screen
 document.body.appendChild(t);
@@ -607,6 +608,8 @@ function showTurnBanner(type, text) {
 
   const banner = document.createElement('div');
   banner.className = `turn-banner ${type}`;
+  banner.setAttribute('role', 'status');
+  banner.setAttribute('aria-live', 'assertive');
   banner.innerHTML = `<div class="turn-banner-inner">${text}</div>`;
   document.body.appendChild(banner);
 
@@ -626,10 +629,14 @@ function showConfirmModal(message, onConfirm, onCancel) {
   // Create overlay
   const overlay = document.createElement('div');
   overlay.className = 'confirm-modal-overlay';
+  overlay.setAttribute('role', 'presentation');
 
   // Create modal
   const modal = document.createElement('div');
   modal.className = 'confirm-modal';
+  modal.setAttribute('role', 'alertdialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-label', 'Confirm action');
   modal.innerHTML = `
     <h3>Confirm</h3>
     <p>${message}</p>
@@ -715,6 +722,8 @@ if(existing) return;
 const log = document.createElement('div');
 log.id = 'toastLog';
 log.className = 'toast-log';
+log.setAttribute('role', 'log');
+log.setAttribute('aria-label', 'Combat log');
 document.body.appendChild(log);
 updateToastLog();
 }
@@ -746,7 +755,7 @@ const log = document.getElementById('toastLog');
 if(!log) return;
 let html = `<div class="toast-log-header">
 <span style="font-size:1rem">🪵 Combat Log</span>
-<button onclick="minimizeToastLog()" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
+<button onclick="minimizeToastLog()" aria-label="Close combat log" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
 </div>`;
 html += '<div class="toast-log-entries">';
 S.toastHistory.forEach((msg, idx) => {
@@ -790,12 +799,13 @@ updateToastLog();
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
+backdrop.setAttribute('role', 'presentation');
 backdrop.innerHTML = `
-<div class="tutorial-modal">
+<div class="tutorial-modal" role="alertdialog" aria-modal="true" aria-label="Tip">
 <h2>Tip!</h2>
 <p>${message}</p>
 <button onclick="dismissTutorialPop('${flagName}')">Got it!</button>
-<div class="controller-hint" style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7">Ⓐ to continue</div>
+<div class="controller-hint" style="margin-top:0.5rem;font-size:0.8rem;opacity:0.7" aria-hidden="true">Ⓐ to continue</div>
 </div>`;
 document.body.appendChild(backdrop);
 debugLog('[TUTORIAL] Backdrop created and appended');
@@ -843,8 +853,9 @@ console.error('[TUTORIAL] Callback error:', error);
 function showRecruitReplaceConfirm(oldName, newName, onKeep, onReplace) {
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
+backdrop.setAttribute('role', 'presentation');
 backdrop.innerHTML = `
-<div class="tutorial-modal">
+<div class="tutorial-modal" role="alertdialog" aria-modal="true" aria-label="Replace recruit">
 <h2>Replace Recruit?</h2>
 <p>You already have <strong>${oldName}</strong>. Replace with <strong>${newName}</strong>?</p>
 <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem">
@@ -880,7 +891,6 @@ goingRate: S.goingRate,
 startingXP: S.startingXP,
 sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
-ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
@@ -1007,7 +1017,6 @@ if(needsFix) {
 debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 savePermanent(); // Save the fix
 }
-S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
@@ -1270,7 +1279,6 @@ if(needsFix) {
 debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
 savePermanent(); // Save the fix
 }
-S.ancientStatueDeactivated = j.ancientStatueDeactivated || false;
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
@@ -1392,7 +1400,6 @@ runsAttempted: S.runsAttempted,
 startingXP: S.startingXP,
 sig: S.sig,
 sigUpgradeCounts: S.sigUpgradeCounts,
-ancientStatueDeactivated: S.ancientStatueDeactivated,
 ghostBoysConverted: S.ghostBoysConverted,
 pedestal: S.pedestal,
 hasReachedFloor20: S.hasReachedFloor20,
@@ -1532,6 +1539,9 @@ hideSuspendOverlay();
 
 const overlay = document.createElement('div');
 overlay.id = 'suspend-overlay';
+overlay.setAttribute('role', 'alertdialog');
+overlay.setAttribute('aria-modal', 'true');
+overlay.setAttribute('aria-label', 'Game suspended');
 overlay.style.cssText = `
 position: fixed;
 top: 0;

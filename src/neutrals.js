@@ -446,7 +446,6 @@ S.questProgress = {
 S.ghostBoysConverted = false;
 S.advancedSigilsUnlocked = false;
 S.passiveSigilsUnlocked = false;
-S.ancientStatueDeactivated = false;
 S.gameMode = 'Standard';
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];
