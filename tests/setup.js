@@ -228,7 +228,6 @@ global.S = {
   oracleRoll: null,
   oracleStat: null,
   wizardSigil: null,
-  ancientStatueDeactivated: false,
   ghostBoysConverted: false,
   pedestal: [],
   hasReachedFloor20: false,

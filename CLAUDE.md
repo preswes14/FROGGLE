@@ -229,7 +229,7 @@ Defined in `E` object (constants.js).
 | Forgetting animation timing | Use `T(ANIMATION_TIMINGS.X)` for speed-adjusted delays |
 | Displaying raw sigil level for actives | Active sigils display stored + 1 (e.g. `S.sig['Attack'] = 0` shows "L1") |
 | Using `if(S.currentSlot)` for slot check | Use `if(S.currentSlot != null)` — slot could be 0 (falsy) |
-| Not resetting unlock flags in `createNewSlot()` | Reset `ghostBoysConverted`, `advancedSigilsUnlocked`, `passiveSigilsUnlocked`, `ancientStatueDeactivated` |
+| Not resetting unlock flags in `createNewSlot()` | Reset `ghostBoysConverted`, `advancedSigilsUnlocked`, `passiveSigilsUnlocked` |
 | Assuming stun stacks | ALL stun uses `Math.max(st, duration)` — never stacks from any source |
 
 ---
@@ -285,7 +285,6 @@ S.pondHistory      // Run history
 S.tutorialFlags    // Tutorial completion tracking
 S.hasReachedFloor20, S.fuUnlocked, S.tapoUnlocked  // Unlock flags
 S.ghostBoysConverted, S.advancedSigilsUnlocked, S.passiveSigilsUnlocked  // Feature unlocks
-S.ancientStatueDeactivated  // Ancient Statue encounter state
 ```
 
 ### Settings State
