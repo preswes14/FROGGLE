@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="FROGGLE"/>
 <meta name="theme-color" content="#22c55e"/>
+<meta name="color-scheme" content="dark"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="apple-touch-icon" href="assets/tapo-icon-180.png"/>
 <link rel="icon" type="image/png" href="assets/tapo-icon.png"/>
@@ -13020,6 +13021,7 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (hpLoss - remaining); // Restore shield too
+if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
@@ -13206,6 +13208,7 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (trapDmg - remaining); // Restore shield too
+if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
