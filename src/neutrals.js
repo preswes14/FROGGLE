@@ -2039,6 +2039,7 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (hpLoss - remaining); // Restore shield too
+if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
@@ -2225,6 +2226,7 @@ if(hero.g > 0) {
 hero.g--;
 hero.h += remaining;
 hero.sh += (trapDmg - remaining); // Restore shield too
+if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
 } else {
 hero.h = 0;
