@@ -159,7 +159,7 @@ const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
 // JUICE: Start combat music
-ProceduralMusic.startCombat();
+if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.startCombat();
 S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
@@ -2385,7 +2385,7 @@ return true;
 // Normal combat victory
 // JUICE: Victory celebration!
 spawnConfetti(60);
-ProceduralMusic.playVictory(); // Victory fanfare!
+if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playVictory(); // Victory fanfare!
 SoundFX.play('victoryFanfare'); // Triumphant ascending fanfare!
 setTimeout(() => SoundFX.play('ribbit'), 300); // Celebratory frog croak after fanfare
 // Show happy reactions on all surviving heroes for 3 seconds
@@ -2431,7 +2431,7 @@ localStorage.removeItem('froggle8'); // Also clear old format for backwards comp
 const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
 recordPondHistory('defeat', killedBy);
 // JUICE: Defeat sound and music
-ProceduralMusic.playDefeat();
+if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playDefeat();
 SoundFX.play('death');
 setTimeout(() => {
 toast('Defeated!', 2400, 'critical');
@@ -2602,13 +2602,8 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
-// Heal/Shield preview on hover during targeting
-const isHealTargetable = S.pending === 'Heal' && isTargetable;
-const isShieldTargetable = S.pending === 'Shield' && isTargetable;
-const healHoverEvents = isHealTargetable ? `onmouseenter="showHealPreview('${h.id}', this)" onmouseleave="hideHealPreview()"` : '';
-const shieldHoverEvents = isShieldTargetable ? `onmouseenter="showShieldPreview('${h.id}', this)" onmouseleave="hideShieldPreview()"` : '';
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
-html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
+html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
@@ -2879,10 +2874,8 @@ if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`💥${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-// Add damage preview hover for Attack targeting
-const hoverEvents = isAttackTargetable ? `onmouseenter="showDamagePreview('${e.id}', this)" onmouseleave="hideDamagePreview()"` : '';
 const enemyAriaLabel = `${getEnemyDisplayName(e)} - ${e.h}/${e.m} HP, ${e.p} Power${e.sh > 0 ? ', '+e.sh+' shield' : ''}${e.g > 0 ? ', '+e.g+' ghost' : ''}${e.st > 0 ? ', stunned '+e.st+' turns' : ''}`;
-html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} ${hoverEvents}>`;
+html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} >`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
 // POW - image/emoji - HP row (horizontal)

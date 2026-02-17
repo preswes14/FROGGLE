@@ -2,14 +2,14 @@
 
 // VISIBLE error overlay for debugging (especially Steam Deck where console isn't accessible)
 function showErrorOverlay(title, details) {
-  var overlay = document.getElementById('errorOverlay');
+  let overlay = document.getElementById('errorOverlay');
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.id = 'errorOverlay';
     overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);color:#ff6b6b;padding:2rem;z-index:999999;overflow:auto;font-family:monospace;font-size:14px;';
     document.body.appendChild(overlay);
   }
-  var version = typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'unknown';
+  const version = typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'unknown';
   overlay.innerHTML =
     '<div style="max-width:800px;margin:0 auto;">' +
     '<h1 style="color:#ff6b6b;margin-bottom:1rem;">FROGGLE: ' + title + '</h1>' +
@@ -60,7 +60,7 @@ reg.waiting.postMessage({ type: 'SKIP_WAITING' });
 
 // Listen for new service worker installing
 reg.addEventListener('updatefound', function() {
-var newWorker = reg.installing;
+const newWorker = reg.installing;
 debugLog('[SW] Update found, installing...');
 
 newWorker.addEventListener('statechange', function() {
@@ -91,23 +91,23 @@ try {
 });
 debugLog('[FROGGLE] window.onload fired');
 // Check for last used slot
-var lastSlot = localStorage.getItem('froggle8_current_slot');
+const lastSlot = localStorage.getItem('froggle8_current_slot');
 if(lastSlot) {
-var slot = parseInt(lastSlot);
+const slot = parseInt(lastSlot);
 debugLog('[FROGGLE] Found last used slot:', slot);
 // Try to load slot-specific permanent data
-var permData = localStorage.getItem('froggle8_permanent_slot' + slot);
+const permData = localStorage.getItem('froggle8_permanent_slot' + slot);
 if(permData) {
 try {
-var j = JSON.parse(permData);
+const j = JSON.parse(permData);
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
-var starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
-var needsFix = false;
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
 starterActives.forEach(function(sig) {
 if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
 S.sig[sig] = 0;
@@ -182,22 +182,22 @@ showErrorOverlay('Startup Crash', 'window.onload failed:\n\n' + (e.stack || e.me
 // ===== MOBILE DOUBLE-TAP FOR AUTO-TARGET =====
 // Only on touch devices: double-tap a sigil = select + auto-target
 (function() {
-  var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   if (!isTouchDevice) return;
 
-  var lastTapTime = 0;
-  var lastTapTarget = null;
+  let lastTapTime = 0;
+  let lastTapTarget = null;
 
   document.addEventListener('touchend', function(e) {
     // Find if we tapped on a clickable sigil
-    var sigil = e.target.closest('.sigil.clickable');
+    const sigil = e.target.closest('.sigil.clickable');
     if (!sigil) {
       lastTapTarget = null;
       return;
     }
 
-    var now = Date.now();
-    var timeSinceLastTap = now - lastTapTime;
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime;
 
     // Check for double-tap (same sigil, within 300ms)
     if (lastTapTarget === sigil && timeSinceLastTap < 300) {
@@ -206,13 +206,13 @@ showErrorOverlay('Startup Crash', 'window.onload failed:\n\n' + (e.stack || e.me
       e.stopPropagation();
 
       // Extract sigil name and hero index from onclick attribute
-      var onclick = sigil.getAttribute('onclick');
+      const onclick = sigil.getAttribute('onclick');
       if (onclick && onclick.startsWith("act('")) {
         // Parse: act('Attack', 0) -> sig='Attack', heroIdx=0
-        var match = onclick.match(/act\('(\w+)',\s*(\d+)\)/);
+        const match = onclick.match(/act\('(\w+)',\s*(\d+)\)/);
         if (match && typeof actAndAutoTarget === 'function') {
-          var sig = match[1];
-          var heroIdx = parseInt(match[2]);
+          const sig = match[1];
+          const heroIdx = parseInt(match[2]);
           debugLog('[TOUCH] Double-tap detected on sigil:', sig, 'hero:', heroIdx);
           actAndAutoTarget(sig, heroIdx);
         }
