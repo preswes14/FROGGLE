@@ -25,16 +25,16 @@ The monolith is now split into modular source files that concatenate back to `in
 
 ```
 src/
-├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (1355 lines)
+├── constants.js      # Version, HERO_IMAGES, H, E, SIGIL_*, ANIMATION_TIMINGS (1161 lines)
 ├── steam.js          # Steam integration: achievements, stats, cloud save (315 lines)
-├── sounds.js         # SoundFX Web Audio API system (1325 lines)
-├── state.js          # Game state `S`, upd(), animations, toast, save/load (1577 lines)
-├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (3618 lines)
-├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (3460 lines)
-├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (2207 lines)
-├── settings.js       # Debug, Settings, FAQ (1285 lines)
+├── sounds.js         # SoundFX Web Audio API system (1408 lines)
+├── state.js          # Game state `S`, upd(), animations, toast, save/load (1634 lines)
+├── combat.js         # Floor management, combat engine, render(), level up, XP/gold (3686 lines)
+├── neutrals.js       # Neutral deck, title/hero select, tutorials, neutral encounters (3582 lines)
+├── screens.js        # The Pond, Death screen, Champions, Pedestal, Win, Ribbleton hub (2246 lines)
+├── settings.js       # Debug, Settings, FAQ (1299 lines)
 ├── controller.js     # GamepadController for Steam Deck (1087 lines)
-└── main.js           # Init and window.onload (229 lines)
+└── main.js           # Init and window.onload (230 lines)
 
 build/
 ├── template_head.html  # HTML/CSS before <script>

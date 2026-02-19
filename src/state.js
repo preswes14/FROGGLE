@@ -1380,7 +1380,7 @@ return false;
 
 // Update save functions to use current slot
 savePermanent = function() {
-if(!S.currentSlot) {
+if(S.currentSlot == null) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
 S.currentSlot = 1;
 localStorage.setItem('froggle8_current_slot', '1');
@@ -1439,7 +1439,7 @@ toast('Save failed. Check browser storage in Settings > Privacy.', 2500);
 };
 
 saveGame = function() {
-if(!S.currentSlot) {
+if(S.currentSlot == null) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
 S.currentSlot = 1;
 localStorage.setItem('froggle8_current_slot', '1');
@@ -1474,7 +1474,7 @@ const AUTOSAVE_THROTTLE = 5000; // Minimum 5 seconds between autosaves
 
 function autosave() {
 // Only autosave if we have an active slot and are in combat (not during tutorial)
-if(!S.currentSlot || !S.inCombat || S.floor === 0) return;
+if(S.currentSlot == null || !S.inCombat || S.floor === 0) return;
 
 // Throttle autosaves
 const now = Date.now();
@@ -1506,7 +1506,7 @@ if(S.suspended) return;
 S.suspended = true;
 
 // Immediately save if we have an active run
-if(S.currentSlot && S.heroes.length > 0) {
+if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 debugLog('[SUSPEND] Game saved on suspend');
 }
@@ -1611,7 +1611,7 @@ resumeGame();
 
 // Handle page unload (close tab, navigate away)
 window.addEventListener('pagehide', () => {
-if(S.currentSlot && S.heroes.length > 0) {
+if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 debugLog('[PAGEHIDE] Game saved before unload');
 }
@@ -1619,7 +1619,7 @@ debugLog('[PAGEHIDE] Game saved before unload');
 
 // Also handle beforeunload for older browsers
 window.addEventListener('beforeunload', (e) => {
-if(S.currentSlot && S.heroes.length > 0) {
+if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 }
 // Warn during tutorial since tutorial progress isn't saved

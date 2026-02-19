@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.37';
+const GAME_VERSION = 'S_1.38';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3493,210 +3493,6 @@ currentTooltip = null;
 }
 }
 
-// Damage preview calculation - shows expected damage breakdown on hover
-function calcDamagePreview(heroIdx, targetId) {
-const h = S.heroes[heroIdx];
-const target = S.enemies.find(e => e.id === targetId);
-if(!h || !target) return null;
-
-const attackLevel = getLevel('Attack', heroIdx);
-const damagePerHit = h.p; // POW damage per hit
-const hitsRemaining = S.instancesRemaining || attackLevel; // Instances left
-const totalDamage = damagePerHit; // Single instance damage
-
-// Calculate shield absorption
-let shieldDmg = 0;
-let hpDmg = 0;
-if(target.sh > 0) {
-if(target.sh >= totalDamage) {
-shieldDmg = totalDamage;
-hpDmg = 0;
-} else {
-shieldDmg = target.sh;
-hpDmg = totalDamage - target.sh;
-}
-} else {
-hpDmg = totalDamage;
-}
-
-return { totalDamage, shieldDmg, hpDmg, hitsRemaining, targetHp: target.h, targetSh: target.sh };
-}
-
-// Show damage preview tooltip on enemy hover during targeting
-// DISABLED: Players can do the math themselves
-let currentDmgPreview = null;
-function showDamagePreview(targetId, element) {
-return; // Disabled per user request
-if(!S.pending || S.pending !== 'Attack' || S.activeIdx < 0) return;
-hideDamagePreview();
-
-const preview = calcDamagePreview(S.activeIdx, targetId);
-if(!preview) return;
-
-const tooltip = document.createElement('div');
-tooltip.className = 'damage-preview';
-
-let content = `<div class="dmg-total">-${preview.totalDamage}</div>`;
-if(preview.shieldDmg > 0) {
-content += `<div class="dmg-shield">-${preview.shieldDmg} shield</div>`;
-}
-if(preview.hpDmg > 0) {
-content += `<div class="dmg-hp">-${preview.hpDmg} HP</div>`;
-} else if(preview.shieldDmg > 0) {
-content += `<div class="dmg-blocked">Blocked!</div>`;
-}
-
-tooltip.innerHTML = content;
-document.body.appendChild(tooltip);
-currentDmgPreview = tooltip;
-
-// Position near element
-const rect = element.getBoundingClientRect();
-const tooltipRect = tooltip.getBoundingClientRect();
-let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
-let top = rect.top - tooltipRect.height - 8;
-
-// Keep on screen
-if(left < 5) left = 5;
-if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
-if(top < 5) top = rect.bottom + 8;
-
-tooltip.style.left = left + 'px';
-tooltip.style.top = top + 'px';
-setTimeout(() => tooltip.classList.add('show'), 10);
-}
-
-function hideDamagePreview() {
-if(currentDmgPreview) {
-currentDmgPreview.remove();
-currentDmgPreview = null;
-}
-}
-
-// Heal preview calculation - shows expected heal breakdown on hover
-function calcHealPreview(heroIdx, targetId) {
-const h = S.heroes[heroIdx];
-const target = S.heroes.find(hero => hero.id === targetId);
-if(!h || !target) return null;
-
-const healPerInstance = h.p * 2; // Heal is 2×POW
-const currentHp = target.h;
-const maxHp = target.m;
-const actualHeal = Math.min(healPerInstance, maxHp - currentHp);
-const overHeal = healPerInstance - actualHeal;
-
-return { totalHeal: healPerInstance, actualHeal, overHeal, targetHp: currentHp, targetMaxHp: maxHp };
-}
-
-// Show heal preview tooltip on hero hover during targeting
-// DISABLED: Players can do the math themselves
-let currentHealPreview = null;
-function showHealPreview(targetId, element) {
-return; // Disabled per user request
-if(!S.pending || S.pending !== 'Heal' || S.activeIdx < 0) return;
-hideHealPreview();
-
-const preview = calcHealPreview(S.activeIdx, targetId);
-if(!preview) return;
-
-const tooltip = document.createElement('div');
-tooltip.className = 'heal-preview';
-
-let content = `<div class="heal-total">+${preview.actualHeal}</div>`;
-if(preview.targetHp === preview.targetMaxHp) {
-content += `<div class="heal-full">Already full!</div>`;
-}
-
-tooltip.innerHTML = content;
-document.body.appendChild(tooltip);
-currentHealPreview = tooltip;
-
-// Position near element
-const rect = element.getBoundingClientRect();
-const tooltipRect = tooltip.getBoundingClientRect();
-let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
-let top = rect.top - tooltipRect.height - 8;
-
-// Keep on screen
-if(left < 5) left = 5;
-if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
-if(top < 5) top = rect.bottom + 8;
-
-tooltip.style.left = left + 'px';
-tooltip.style.top = top + 'px';
-setTimeout(() => tooltip.classList.add('show'), 10);
-}
-
-function hideHealPreview() {
-if(currentHealPreview) {
-currentHealPreview.remove();
-currentHealPreview = null;
-}
-}
-
-// Shield preview calculation - shows expected shield breakdown on hover
-function calcShieldPreview(heroIdx, targetId) {
-const h = S.heroes[heroIdx];
-const target = S.heroes.find(hero => hero.id === targetId);
-if(!h || !target) return null;
-
-const shieldPerInstance = h.p * 2; // Shield is 2×POW
-const currentShield = target.sh || 0;
-const maxHp = target.m;
-const maxShieldSpace = Math.max(0, maxHp - currentShield);
-const actualShield = Math.min(shieldPerInstance, maxShieldSpace);
-const overShield = shieldPerInstance - actualShield;
-
-return { totalShield: shieldPerInstance, actualShield, overShield, currentShield, targetMaxHp: maxHp };
-}
-
-// Show shield preview tooltip on hero hover during targeting
-// DISABLED: Players can do the math themselves
-let currentShieldPreview = null;
-function showShieldPreview(targetId, element) {
-return; // Disabled per user request
-if(!S.pending || S.pending !== 'Shield' || S.activeIdx < 0) return;
-hideShieldPreview();
-
-const preview = calcShieldPreview(S.activeIdx, targetId);
-if(!preview) return;
-
-const tooltip = document.createElement('div');
-tooltip.className = 'shield-preview';
-
-let content = `<div class="shield-total">+${preview.actualShield}🛡</div>`;
-if(preview.overShield > 0) {
-content += `<div class="shield-capped">+${preview.overShield} capped</div>`;
-} else if(preview.currentShield >= preview.targetMaxHp) {
-content += `<div class="shield-full">Shield maxed!</div>`;
-}
-
-tooltip.innerHTML = content;
-document.body.appendChild(tooltip);
-currentShieldPreview = tooltip;
-
-// Position near element
-const rect = element.getBoundingClientRect();
-const tooltipRect = tooltip.getBoundingClientRect();
-let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
-let top = rect.top - tooltipRect.height - 8;
-
-// Keep on screen
-if(left < 5) left = 5;
-if(left + tooltipRect.width > window.innerWidth - 5) left = window.innerWidth - tooltipRect.width - 5;
-if(top < 5) top = rect.bottom + 8;
-
-tooltip.style.left = left + 'px';
-tooltip.style.top = top + 'px';
-setTimeout(() => tooltip.classList.add('show'), 10);
-}
-
-function hideShieldPreview() {
-if(currentShieldPreview) {
-currentShieldPreview.remove();
-currentShieldPreview = null;
-}
-}
 
 // Helper to create sigil with tooltip (for death screen with longer hover time)
 function sigilIconWithTooltip(sig, level = 1, hoverDelay = 500) {
@@ -7033,7 +6829,7 @@ return false;
 
 // Update save functions to use current slot
 savePermanent = function() {
-if(!S.currentSlot) {
+if(S.currentSlot == null) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
 S.currentSlot = 1;
 localStorage.setItem('froggle8_current_slot', '1');
@@ -7092,7 +6888,7 @@ toast('Save failed. Check browser storage in Settings > Privacy.', 2500);
 };
 
 saveGame = function() {
-if(!S.currentSlot) {
+if(S.currentSlot == null) {
 console.warn('[SAVE] No currentSlot set, defaulting to slot 1');
 S.currentSlot = 1;
 localStorage.setItem('froggle8_current_slot', '1');
@@ -7127,7 +6923,7 @@ const AUTOSAVE_THROTTLE = 5000; // Minimum 5 seconds between autosaves
 
 function autosave() {
 // Only autosave if we have an active slot and are in combat (not during tutorial)
-if(!S.currentSlot || !S.inCombat || S.floor === 0) return;
+if(S.currentSlot == null || !S.inCombat || S.floor === 0) return;
 
 // Throttle autosaves
 const now = Date.now();
@@ -7159,7 +6955,7 @@ if(S.suspended) return;
 S.suspended = true;
 
 // Immediately save if we have an active run
-if(S.currentSlot && S.heroes.length > 0) {
+if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 debugLog('[SUSPEND] Game saved on suspend');
 }
@@ -7264,7 +7060,7 @@ resumeGame();
 
 // Handle page unload (close tab, navigate away)
 window.addEventListener('pagehide', () => {
-if(S.currentSlot && S.heroes.length > 0) {
+if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 debugLog('[PAGEHIDE] Game saved before unload');
 }
@@ -7272,7 +7068,7 @@ debugLog('[PAGEHIDE] Game saved before unload');
 
 // Also handle beforeunload for older browsers
 window.addEventListener('beforeunload', (e) => {
-if(S.currentSlot && S.heroes.length > 0) {
+if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 }
 // Warn during tutorial since tutorial progress isn't saved
@@ -7447,7 +7243,7 @@ const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
 // JUICE: Start combat music
-ProceduralMusic.startCombat();
+if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.startCombat();
 S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
@@ -9673,7 +9469,7 @@ return true;
 // Normal combat victory
 // JUICE: Victory celebration!
 spawnConfetti(60);
-ProceduralMusic.playVictory(); // Victory fanfare!
+if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playVictory(); // Victory fanfare!
 SoundFX.play('victoryFanfare'); // Triumphant ascending fanfare!
 setTimeout(() => SoundFX.play('ribbit'), 300); // Celebratory frog croak after fanfare
 // Show happy reactions on all surviving heroes for 3 seconds
@@ -9719,7 +9515,7 @@ localStorage.removeItem('froggle8'); // Also clear old format for backwards comp
 const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
 recordPondHistory('defeat', killedBy);
 // JUICE: Defeat sound and music
-ProceduralMusic.playDefeat();
+if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playDefeat();
 SoundFX.play('death');
 setTimeout(() => {
 toast('Defeated!', 2400, 'critical');
@@ -9890,13 +9686,8 @@ let onclick = '';
 if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
-// Heal/Shield preview on hover during targeting
-const isHealTargetable = S.pending === 'Heal' && isTargetable;
-const isShieldTargetable = S.pending === 'Shield' && isTargetable;
-const healHoverEvents = isHealTargetable ? `onmouseenter="showHealPreview('${h.id}', this)" onmouseleave="hideHealPreview()"` : '';
-const shieldHoverEvents = isShieldTargetable ? `onmouseenter="showShieldPreview('${h.id}', this)" onmouseleave="hideShieldPreview()"` : '';
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
-html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick} ${healHoverEvents} ${shieldHoverEvents}>`;
+html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
@@ -10167,10 +9958,8 @@ if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
 if(e.st > 0) extra.push(`💥${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
-// Add damage preview hover for Attack targeting
-const hoverEvents = isAttackTargetable ? `onmouseenter="showDamagePreview('${e.id}', this)" onmouseleave="hideDamagePreview()"` : '';
 const enemyAriaLabel = `${getEnemyDisplayName(e)} - ${e.h}/${e.m} HP, ${e.p} Power${e.sh > 0 ? ', '+e.sh+' shield' : ''}${e.g > 0 ? ', '+e.g+' ghost' : ''}${e.st > 0 ? ', stunned '+e.st+' turns' : ''}`;
-html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} ${hoverEvents}>`;
+html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} >`;
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${getEnemyDisplayName(e)}</div>`;
 // POW - image/emoji - HP row (horizontal)
@@ -19202,14 +18991,14 @@ function closeSteamDeckHelp() {
 
 // VISIBLE error overlay for debugging (especially Steam Deck where console isn't accessible)
 function showErrorOverlay(title, details) {
-  var overlay = document.getElementById('errorOverlay');
+  let overlay = document.getElementById('errorOverlay');
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.id = 'errorOverlay';
     overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);color:#ff6b6b;padding:2rem;z-index:999999;overflow:auto;font-family:monospace;font-size:14px;';
     document.body.appendChild(overlay);
   }
-  var version = typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'unknown';
+  const version = typeof GAME_VERSION !== 'undefined' ? GAME_VERSION : 'unknown';
   overlay.innerHTML =
     '<div style="max-width:800px;margin:0 auto;">' +
     '<h1 style="color:#ff6b6b;margin-bottom:1rem;">FROGGLE: ' + title + '</h1>' +
@@ -19260,7 +19049,7 @@ reg.waiting.postMessage({ type: 'SKIP_WAITING' });
 
 // Listen for new service worker installing
 reg.addEventListener('updatefound', function() {
-var newWorker = reg.installing;
+const newWorker = reg.installing;
 debugLog('[SW] Update found, installing...');
 
 newWorker.addEventListener('statechange', function() {
@@ -19291,23 +19080,23 @@ try {
 });
 debugLog('[FROGGLE] window.onload fired');
 // Check for last used slot
-var lastSlot = localStorage.getItem('froggle8_current_slot');
+const lastSlot = localStorage.getItem('froggle8_current_slot');
 if(lastSlot) {
-var slot = parseInt(lastSlot);
+const slot = parseInt(lastSlot);
 debugLog('[FROGGLE] Found last used slot:', slot);
 // Try to load slot-specific permanent data
-var permData = localStorage.getItem('froggle8_permanent_slot' + slot);
+const permData = localStorage.getItem('froggle8_permanent_slot' + slot);
 if(permData) {
 try {
-var j = JSON.parse(permData);
+const j = JSON.parse(permData);
 S.gold = j.gold || 0;
 S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
-var starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
-var needsFix = false;
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
 starterActives.forEach(function(sig) {
 if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
 S.sig[sig] = 0;
@@ -19382,22 +19171,22 @@ showErrorOverlay('Startup Crash', 'window.onload failed:\n\n' + (e.stack || e.me
 // ===== MOBILE DOUBLE-TAP FOR AUTO-TARGET =====
 // Only on touch devices: double-tap a sigil = select + auto-target
 (function() {
-  var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   if (!isTouchDevice) return;
 
-  var lastTapTime = 0;
-  var lastTapTarget = null;
+  let lastTapTime = 0;
+  let lastTapTarget = null;
 
   document.addEventListener('touchend', function(e) {
     // Find if we tapped on a clickable sigil
-    var sigil = e.target.closest('.sigil.clickable');
+    const sigil = e.target.closest('.sigil.clickable');
     if (!sigil) {
       lastTapTarget = null;
       return;
     }
 
-    var now = Date.now();
-    var timeSinceLastTap = now - lastTapTime;
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapTime;
 
     // Check for double-tap (same sigil, within 300ms)
     if (lastTapTarget === sigil && timeSinceLastTap < 300) {
@@ -19406,13 +19195,13 @@ showErrorOverlay('Startup Crash', 'window.onload failed:\n\n' + (e.stack || e.me
       e.stopPropagation();
 
       // Extract sigil name and hero index from onclick attribute
-      var onclick = sigil.getAttribute('onclick');
+      const onclick = sigil.getAttribute('onclick');
       if (onclick && onclick.startsWith("act('")) {
         // Parse: act('Attack', 0) -> sig='Attack', heroIdx=0
-        var match = onclick.match(/act\('(\w+)',\s*(\d+)\)/);
+        const match = onclick.match(/act\('(\w+)',\s*(\d+)\)/);
         if (match && typeof actAndAutoTarget === 'function') {
-          var sig = match[1];
-          var heroIdx = parseInt(match[2]);
+          const sig = match[1];
+          const heroIdx = parseInt(match[2]);
           debugLog('[TOUCH] Double-tap detected on sigil:', sig, 'hero:', heroIdx);
           actAndAutoTarget(sig, heroIdx);
         }
