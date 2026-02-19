@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.38';
+const GAME_VERSION = 'S_1.45';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -2637,7 +2637,7 @@ function setHeroReaction(heroId, reaction, duration = 800) {
                 hero.reaction = null;
                 render();
             }
-        }, duration);
+        }, T(duration));
     }
 }
 
@@ -2937,7 +2937,8 @@ setTimeout(() => {
 damagedIds.forEach((id, idx) => {
 triggerHitAnimation(id);
 // JUICE: Floating damage numbers for hero damage
-showFloatingNumber(id, `-${dmg}`, dmg >= 5 ? 'critical' : 'damage', idx * 15);
+const totalLoss = (targetDetails[idx].shieldLost || 0) + (targetDetails[idx].hpLost || 0);
+showFloatingNumber(id, `-${totalLoss}`, totalLoss >= 5 ? 'critical' : 'damage', idx * 15);
 // Show pained reaction when hero takes damage
 const hero = S.heroes.find(h => h.id === id);
 if(hero) setHeroReaction(id, 'pained', hero.ls ? 0 : 600);
@@ -3139,7 +3140,7 @@ if(shieldLost > 0 && !options.silent) SoundFX.play('shieldBreak');
 }
 
 // Apply damage to HP
-hpLost = dmg;
+hpLost = Math.min(dmg, target.h);
 target.h -= dmg;
 
 // LAYER 1: Warning when hero drops below 30% HP (preventive Last Stand warning)
@@ -5851,12 +5852,16 @@ locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = 'none';
 }
 
-document.getElementById('gold').textContent = S.gold;
+const goldEl = document.getElementById('gold');
+if(goldEl) goldEl.textContent = S.gold;
+const xpEl = document.getElementById('xp');
+if(xpEl) {
 // Show combat XP during combat, cumulative XP otherwise
 if(S.combatXP !== undefined && S.combatXP > 0) {
-document.getElementById('xp').textContent = `${S.xp} (+${S.combatXP})`;
+xpEl.textContent = `${S.xp} (+${S.combatXP})`;
 } else {
-document.getElementById('xp').textContent = S.xp;
+xpEl.textContent = S.xp;
+}
 }
 // Show/hide debug button
 const debugBtn = document.getElementById('debugBtn');
@@ -5875,7 +5880,7 @@ card.classList.add('hit-flash');
 setTimeout(() => {
 const el = document.getElementById(targetId);
 if(el) el.classList.remove('hit-flash');
-}, ANIMATION_TIMINGS.DAMAGE_FLASH);
+}, T(ANIMATION_TIMINGS.DAMAGE_FLASH));
 }
 }
 
@@ -5886,7 +5891,7 @@ card.classList.add('attack-slide');
 setTimeout(() => {
 const el = document.getElementById(attackerId);
 if(el) el.classList.remove('attack-slide');
-}, ANIMATION_TIMINGS.ATTACK_SLIDE);
+}, T(ANIMATION_TIMINGS.ATTACK_SLIDE));
 }
 }
 
@@ -5897,7 +5902,7 @@ card.classList.add('enemy-attack-slide');
 setTimeout(() => {
 const el = document.getElementById(attackerId);
 if(el) el.classList.remove('enemy-attack-slide');
-}, ANIMATION_TIMINGS.ATTACK_SLIDE);
+}, T(ANIMATION_TIMINGS.ATTACK_SLIDE));
 }
 }
 
@@ -5907,7 +5912,7 @@ if(card) {
 card.classList.add('heal-flash');
 // JUICE: Sound effects - froggy gulp + heal chime
 SoundFX.play('gulp');
-setTimeout(() => SoundFX.play('heal'), 100);
+setTimeout(() => SoundFX.play('heal'), T(100));
 // JUICE: Floating heal number
 if (healAmount > 0) {
   showFloatingNumber(targetId, `+${healAmount}`, 'heal');
@@ -5921,7 +5926,7 @@ setTimeout(() => {
 const el = document.getElementById(targetId);
 if(el) el.classList.remove('heal-flash');
 if(cross.parentNode) cross.remove();
-}, ANIMATION_TIMINGS.HEAL_FLASH);
+}, T(ANIMATION_TIMINGS.HEAL_FLASH));
 }
 }
 
@@ -5931,7 +5936,7 @@ if(card) {
 card.classList.add('shield-flash');
 // JUICE: Sound effects - froggy bubble + shield chime
 SoundFX.play('bubble');
-setTimeout(() => SoundFX.play('shield'), 80);
+setTimeout(() => SoundFX.play('shield'), T(80));
 // JUICE: Floating shield number
 if (shieldAmount > 0) {
   showFloatingNumber(targetId, `+${shieldAmount}🛡`, 'shield');
@@ -5939,7 +5944,7 @@ if (shieldAmount > 0) {
 setTimeout(() => {
 const el = document.getElementById(targetId);
 if(el) el.classList.remove('shield-flash');
-}, ANIMATION_TIMINGS.SHIELD_FLASH);
+}, T(ANIMATION_TIMINGS.SHIELD_FLASH));
 }
 }
 
@@ -6393,7 +6398,7 @@ if(data.sig) {
 const validSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
 for(const key of Object.keys(data.sig)) {
 if(!validSigils.includes(key)) throw new Error('Unknown sigil in save: ' + key);
-if(typeof data.sig[key] !== 'number' || data.sig[key] < 0 || data.sig[key] > 5) throw new Error('Invalid sigil level for ' + key);
+if(typeof data.sig[key] !== 'number' || data.sig[key] < 0 || data.sig[key] > 4) throw new Error('Invalid sigil level for ' + key);
 }
 }
 // Validate pedestal entries have required shape
@@ -6525,6 +6530,15 @@ neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
+silverKeyHeld: S.silverKeyHeld || false,
+oracleHero: S.oracleHero,
+oracleRoll: S.oracleRoll,
+oracleStat: S.oracleStat,
+wizardHero: S.wizardHero,
+wizardSigil: S.wizardSigil,
+wizardChallenges: S.wizardChallenges,
+wizardChallengeIndex: S.wizardChallengeIndex || 0,
+wizardUpgradedSigils: S.wizardUpgradedSigils || [],
 royalQuestActive: S.royalQuestActive || false,
 royalQuestCompleted: S.royalQuestCompleted || false,
 royalAskerTitle: S.royalAskerTitle || null,
@@ -6558,6 +6572,14 @@ S.royalQuestActive = j.royalQuestActive || false;
 S.royalQuestCompleted = j.royalQuestCompleted || false;
 S.royalAskerTitle = j.royalAskerTitle || null;
 S.royalBelovedTitle = j.royalBelovedTitle || null;
+S.oracleHero = j.oracleHero || null;
+S.oracleRoll = j.oracleRoll || null;
+S.oracleStat = j.oracleStat || null;
+S.wizardHero = j.wizardHero || null;
+S.wizardSigil = j.wizardSigil || null;
+S.wizardChallenges = j.wizardChallenges || null;
+S.wizardChallengeIndex = j.wizardChallengeIndex || 0;
+S.wizardUpgradedSigils = j.wizardUpgradedSigils || [];
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -6781,6 +6803,14 @@ S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Exp
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
 S.silverKeyHeld = r.silverKeyHeld || false;
+S.oracleHero = r.oracleHero || null;
+S.oracleRoll = r.oracleRoll || null;
+S.oracleStat = r.oracleStat || null;
+S.wizardHero = r.wizardHero || null;
+S.wizardSigil = r.wizardSigil || null;
+S.wizardChallenges = r.wizardChallenges || null;
+S.wizardChallengeIndex = r.wizardChallengeIndex || 0;
+S.wizardUpgradedSigils = r.wizardUpgradedSigils || [];
 S.royalQuestActive = r.royalQuestActive || false;
 S.royalQuestCompleted = r.royalQuestCompleted || false;
 S.royalAskerTitle = r.royalAskerTitle || null;
@@ -6815,6 +6845,7 @@ debugLog('[SAVE] Detected invalid tutorial save: floor 0, advancing to floor 1')
 S.floor = 1;
 // Clear the corrupted save and re-save with correct floor
 localStorage.removeItem(`froggle8_slot${slot}`);
+saveGame();
 }
 upd();
 startFloor(S.floor);
@@ -6902,6 +6933,14 @@ tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
 silverKeyHeld: S.silverKeyHeld || false,
+oracleHero: S.oracleHero,
+oracleRoll: S.oracleRoll,
+oracleStat: S.oracleStat,
+wizardHero: S.wizardHero,
+wizardSigil: S.wizardSigil,
+wizardChallenges: S.wizardChallenges,
+wizardChallengeIndex: S.wizardChallengeIndex || 0,
+wizardUpgradedSigils: S.wizardUpgradedSigils || [],
 royalQuestActive: S.royalQuestActive || false,
 royalQuestCompleted: S.royalQuestCompleted || false,
 royalAskerTitle: S.royalAskerTitle || null,
@@ -8325,8 +8364,29 @@ S.alphaCurrentAction = 0;
 // Start first granted action
 if(S.alphaGrantedActions.length > 0) {
 const nextHeroIdx = S.alphaGrantedActions[0];
+const nextHero = S.heroes[nextHeroIdx];
+// Auto-skip stunned heroes receiving Alpha-granted turns
+if(nextHero && nextHero.st > 0) {
+toast(`${nextHero.n} is stunned - Alpha-granted turn skipped!`);
+S.alphaCurrentAction++;
+// Skip all granted turns for this stunned hero
+while(S.alphaCurrentAction < S.alphaGrantedActions.length && S.alphaGrantedActions[S.alphaCurrentAction] === nextHeroIdx) {
+S.alphaCurrentAction++;
+}
+if(S.alphaCurrentAction >= S.alphaGrantedActions.length) {
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+checkTurnEnd();
+render();
+return;
+}
+const actualNext = S.alphaGrantedActions[S.alphaCurrentAction];
+S.activeIdx = actualNext;
+toast(`${S.heroes[actualNext].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+} else {
 S.activeIdx = nextHeroIdx;
-toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+toast(`${nextHero.n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+}
 }
 render();
 }
@@ -8628,7 +8688,7 @@ setTimeout(() => {
 S.enemies = S.enemies.filter(e => !e.isFlydra);
 render();
 checkCombatEnd();
-}, 300);
+}, T(300));
 } else {
 render(); // Re-render to show flipped card
 }
@@ -8657,7 +8717,7 @@ setTimeout(() => {
   S.enemies = S.enemies.filter(e => e.id !== enemy.id);
   render();
   checkCombatEnd();
-}, 300);
+}, T(300));
 }
 }
 }
@@ -9076,6 +9136,8 @@ allEnemies.forEach((enemy, idx) => {
 setTimeout(() => {
 S.enemyTurnCurrent = idx + 1;
 render(); // Update header to show progress
+// Guard: skip if enemy died mid-turn (e.g., from Alpha phase or Grapple recoil)
+if(enemy.h <= 0 || !S.enemies.includes(enemy)) return;
 executeEnemyTurn(enemy);
 }, delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Just enough stagger for visual clarity (was 600ms)
@@ -9238,7 +9300,7 @@ toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} f
 }
 } else if(sig === 'Grapple') {
 const target = S.heroes[enemy.li];
-if(target && target.h > 0) {
+if(target && (target.h > 0 || target.ls)) {
 const dmgToEnemy = target.p;
 // Use applyDamageToTarget so enemy shield/ghost are respected
 applyDamageToTarget(enemy, dmgToEnemy, {isHero: false, skipRewards: true, silent: true});
@@ -9359,7 +9421,7 @@ render();
 // Normal sigil drawing for other enemies
 else if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
 e.turnsSinceGain = 0;
-// Draw multiple sigils per turn if specified (Dragons draw 2)
+// Draw multiple sigils per turn if specified
 const draws = e.drawsPerTurn || 1;
 for(let i = 0; i < draws; i++) {
 drawEnemySigil(e);
@@ -11266,15 +11328,6 @@ showRibbleton();
 }
 }
 
-function loadGameFromTitle() {
-const s = localStorage.getItem('froggle8');
-if(s) {
-loadGame();
-} else {
-toast('No saved game found!');
-}
-}
-
 function exitGame() {
 showConfirmModal('Thanks for playing FROGGLE! Close the window to exit.', () => {
 window.close();
@@ -12081,7 +12134,6 @@ setTimeout(proceed, 2500);
 }
 
 // ===== TITLE & HERO SELECT =====
-let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
 debugLog('[FROGGLE] title() called - Hero selection screen');
@@ -12312,22 +12364,6 @@ S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 savePermanent();
 title();
-}
-
-function pick(t) {
-const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
-const i = sel.indexOf(t);
-if(i>=0) {
-sel.splice(i,1);
-} else if(sel.length<requiredHeroes) {
-sel.push(t);
-} else {
-toast(`Maximum ${requiredHeroes} heroes!`);
-return;
-}
-
-// Update selection display
-updateSelectionDisplay();
 }
 
 function start() {
@@ -12799,6 +12835,7 @@ function applyWellDamage(heroIdx, hpLoss, goldGain) {
 const hero = S.heroes[heroIdx];
 // Apply damage through shields first (consistent with combat)
 let remaining = hpLoss;
+let ghostBlocked = false;
 if(hero.sh > 0) {
 const absorbed = Math.min(hero.sh, remaining);
 hero.sh -= absorbed;
@@ -12812,6 +12849,7 @@ hero.h += remaining;
 hero.sh += (hpLoss - remaining); // Restore shield too
 if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+ghostBlocked = true;
 } else {
 hero.h = 0;
 hero.ls = true;
@@ -12819,7 +12857,7 @@ hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
-toast(`${hero.n} took ${hpLoss} damage!`);
+if(!ghostBlocked) toast(`${hero.n} took ${hpLoss} damage!`);
 
 S.gold += goldGain;
 if(S.gold < 0) S.gold = 0;
@@ -12986,6 +13024,7 @@ function finishChestOpen(heroIdx, trapDmg, goldGain) {
 const hero = S.heroes[heroIdx];
 // Apply damage through shields first (consistent with combat)
 let remaining = trapDmg;
+let ghostBlocked = false;
 if(hero.sh > 0) {
 const absorbed = Math.min(hero.sh, remaining);
 hero.sh -= absorbed;
@@ -12999,6 +13038,7 @@ hero.h += remaining;
 hero.sh += (trapDmg - remaining); // Restore shield too
 if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+ghostBlocked = true;
 } else {
 hero.h = 0;
 hero.ls = true;
@@ -13006,7 +13046,7 @@ hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
-toast(`${hero.n} took ${trapDmg} damage!`);
+if(!ghostBlocked) toast(`${hero.n} took ${trapDmg} damage!`);
 
 S.gold += goldGain;
 upd();
@@ -15316,6 +15356,7 @@ showPedestal();
 }
 
 function removeFigurine(hero, stat) {
+showConfirmModal('Remove this figurine from the pedestal?', () => {
 const idx = S.pedestal.findIndex(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
 if(idx >= 0) {
 S.pedestal.splice(idx, 1);
@@ -15323,6 +15364,7 @@ savePermanent();
 toast(`${hero} ${stat} figurine removed!`);
 showPedestal();
 }
+});
 }
 
 // ===== WIN =====
@@ -16320,6 +16362,7 @@ function claimQuest(questId) {
 
   // Award gold
   S.gold += quest.reward;
+  trackQuestProgress('gold', quest.reward);
   S.questsClaimed[questId] = true;
   S.questsCompleted[questId] = true;
 
@@ -16745,9 +16788,9 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 // Convert 0-1 to percentage for display
-const masterPct = Math.round((S.masterVolume || 1) * 100);
-const sfxPct = Math.round((S.sfxVolume || 1) * 100);
-const musicPct = Math.round((S.musicVolume || 1) * 100);
+const masterPct = Math.round((S.masterVolume ?? 1) * 100);
+const sfxPct = Math.round((S.sfxVolume ?? 1) * 100);
+const musicPct = Math.round((S.musicVolume ?? 1) * 100);
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Audio settings">
@@ -16948,7 +16991,7 @@ toast('Restarting floor...', 1200);
 setTimeout(() => {
 if(S.floor % 2 === 1) {
 // Odd floor = combat
-combat(S.floor);
+startFloor(S.floor);
 } else {
 // Even floor = neutral
 startFloor(S.floor);
@@ -16969,6 +17012,20 @@ S.enemies = [];
 S.recruits = [];
 S.combatXP = 0;
 S.combatGold = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.turn = 'player';
+S.locked = false;
+S.inCombat = false;
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.inRibbleton = true;
 setTimeout(() => {
 showRibbleton();
@@ -16990,6 +17047,20 @@ S.enemies = [];
 S.recruits = [];
 S.combatXP = 0;
 S.combatGold = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.turn = 'player';
+S.locked = false;
+S.inCombat = false;
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.inRibbleton = true;
 S.inTutorial = false;
 setTimeout(() => {
@@ -17010,6 +17081,20 @@ S.enemies = [];
 S.recruits = [];
 S.combatXP = 0;
 S.combatGold = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.turn = 'player';
+S.locked = false;
+S.inCombat = false;
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.inRibbleton = false;
 S.inTutorial = false;
 // Save permanent progress
@@ -17077,17 +17162,6 @@ toast('Sigil tooltips enabled!', 1200);
 toast('Sigil tooltips disabled!', 1200);
 }
 savePermanent();
-}
-
-function toggleSoundFX(enabled) {
-SoundFX.enabled = enabled;
-if(enabled) {
-SoundFX.init();
-SoundFX.play('select');
-toast('Sound effects enabled!', 1200);
-} else {
-toast('Sound effects disabled!', 1200);
-}
 }
 
 function setAnimationSpeed(speed, fromSubmenu = false) {
@@ -17251,9 +17325,9 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 const controls = [
-{ section: '🕹️ Sticks (Combat)', items: [
-  { btn: 'Right Stick', desc: 'Cycle between characters (heroes ↔ enemies)', highlight: true },
-  { btn: 'Left Stick', desc: 'Cycle sigils on current character', highlight: true }
+{ section: '🕹️ Sticks', items: [
+  { btn: 'Left Stick', desc: 'Navigate (D-pad equivalent)', highlight: true },
+  { btn: 'Right Stick', desc: 'Scroll vertically in menus', highlight: true }
 ]},
 { section: '🎮 Bumpers & Triggers (Combat)', items: [
   { btn: 'LB / RB', desc: 'Previous / Next character (same as right stick)' },
@@ -17277,13 +17351,12 @@ const controls = [
   { btn: 'R3 (right click)', desc: 'Toggle Controller Debug overlay' }
 ]},
 { section: '⌨️ Keyboard Fallback', items: [
-  { btn: 'Arrow Keys / WASD', desc: 'Navigate (D-pad equivalent)' },
-  { btn: 'Q / E', desc: 'Previous / Next character (LB / RB)' },
-  { btn: 'Z / C', desc: 'Previous / Next sigil (LT / RT)' },
+  { btn: 'Arrow Keys', desc: 'Navigate (D-pad equivalent)' },
   { btn: 'Enter / Space', desc: 'Confirm (A button)' },
   { btn: 'Escape', desc: 'Back / Cancel (B button)' },
-  { btn: 'X / T', desc: 'Switch sides / Toggle tooltip' },
-  { btn: 'R', desc: 'Auto-target (SELECT)' }
+  { btn: 'Tab', desc: 'Cycle focus forward' },
+  { btn: 'X', desc: 'Switch sides (X button)' },
+  { btn: 'Y', desc: 'Toggle tooltip (Y button)' }
 ]}
 ];
 
@@ -17293,7 +17366,7 @@ let html = `
 
 <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(34,197,94,0.15);border:2px solid #22c55e;border-radius:8px">
 <p style="margin:0;color:#86efac;font-size:0.9rem;text-align:center">
-<strong>Quick Reference:</strong> Right Stick = Characters • Left Stick = Sigils • Bumpers & Triggers work the same way!
+<strong>Quick Reference:</strong> D-pad/Left Stick = Navigate • Bumpers = Characters • Triggers = Sigils
 </p>
 </div>
 `;
@@ -18306,8 +18379,13 @@ const GamepadController = {
     }
 
     if (ctx === 'confirm') {
-      const btn = document.querySelector('.confirm-btn-yes');
-      if (btn) btn.click();
+      // Click focused button if one exists, otherwise default to Yes
+      if (this.focusedElement && document.body.contains(this.focusedElement) && this.focusedElement.closest('.confirm-modal')) {
+        this.focusedElement.click();
+      } else {
+        const btn = document.querySelector('.confirm-btn-yes');
+        if (btn) btn.click();
+      }
       return;
     }
 
@@ -18537,6 +18615,12 @@ const GamepadController = {
   handleStart() {
     if (!this.active) this.activate();
     this.playClick();
+    // Don't stack multiple settings menus
+    const existingMenu = document.querySelector('.modal-container.dark');
+    if (existingMenu) {
+      if (typeof closeSettingsMenu === 'function') closeSettingsMenu();
+      return;
+    }
     if (typeof showSettingsMenu === 'function') {
       showSettingsMenu();
     }
@@ -19041,10 +19125,9 @@ setInterval(function() {
 reg.update().catch(function() {});
 }, 60000);
 
-// Handle waiting service worker (update available)
+// Handle waiting service worker (update available) - notify user instead of force-reloading
 if (reg.waiting) {
-debugLog('[SW] Update waiting, activating...');
-reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+debugLog('[SW] Update waiting, will apply on next visit');
 }
 
 // Listen for new service worker installing
@@ -19054,20 +19137,20 @@ debugLog('[SW] Update found, installing...');
 
 newWorker.addEventListener('statechange', function() {
 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-debugLog('[SW] New version installed, activating...');
-newWorker.postMessage({ type: 'SKIP_WAITING' });
+debugLog('[SW] New version installed, will apply on next visit');
+// Show a non-intrusive toast instead of force-reloading
+if (typeof toast === 'function') {
+  toast('Update available! Restart the app to apply.', 3000);
+}
 }
 });
 });
 })
 .catch(function(err) { console.warn('[SW] Registration failed:', err); });
 
-// Reload page when new service worker takes control
+// No longer force-reload on controllerchange - let the update apply naturally on next visit
 navigator.serviceWorker.addEventListener('controllerchange', function() {
-debugLog('[SW] Controller changed, reloading for update...');
-// Save before reloading to prevent data loss
-try { saveGame(); } catch(e) { console.warn('[SW] Failed to save before reload:', e); }
-window.location.reload();
+debugLog('[SW] Controller changed, update applied');
 });
 }
 
@@ -19120,6 +19203,8 @@ S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tutorialDisabled = j.tutorialDisabled || false;
 S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
+S.toastLogLocked = j.toastLogLocked || false;
 S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;

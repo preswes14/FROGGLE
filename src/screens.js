@@ -962,6 +962,7 @@ showPedestal();
 }
 
 function removeFigurine(hero, stat) {
+showConfirmModal('Remove this figurine from the pedestal?', () => {
 const idx = S.pedestal.findIndex(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
 if(idx >= 0) {
 S.pedestal.splice(idx, 1);
@@ -969,6 +970,7 @@ savePermanent();
 toast(`${hero} ${stat} figurine removed!`);
 showPedestal();
 }
+});
 }
 
 // ===== WIN =====
@@ -1966,6 +1968,7 @@ function claimQuest(questId) {
 
   // Award gold
   S.gold += quest.reward;
+  trackQuestProgress('gold', quest.reward);
   S.questsClaimed[questId] = true;
   S.questsCompleted[questId] = true;
 

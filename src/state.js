@@ -402,12 +402,16 @@ locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = 'none';
 }
 
-document.getElementById('gold').textContent = S.gold;
+const goldEl = document.getElementById('gold');
+if(goldEl) goldEl.textContent = S.gold;
+const xpEl = document.getElementById('xp');
+if(xpEl) {
 // Show combat XP during combat, cumulative XP otherwise
 if(S.combatXP !== undefined && S.combatXP > 0) {
-document.getElementById('xp').textContent = `${S.xp} (+${S.combatXP})`;
+xpEl.textContent = `${S.xp} (+${S.combatXP})`;
 } else {
-document.getElementById('xp').textContent = S.xp;
+xpEl.textContent = S.xp;
+}
 }
 // Show/hide debug button
 const debugBtn = document.getElementById('debugBtn');
@@ -426,7 +430,7 @@ card.classList.add('hit-flash');
 setTimeout(() => {
 const el = document.getElementById(targetId);
 if(el) el.classList.remove('hit-flash');
-}, ANIMATION_TIMINGS.DAMAGE_FLASH);
+}, T(ANIMATION_TIMINGS.DAMAGE_FLASH));
 }
 }
 
@@ -437,7 +441,7 @@ card.classList.add('attack-slide');
 setTimeout(() => {
 const el = document.getElementById(attackerId);
 if(el) el.classList.remove('attack-slide');
-}, ANIMATION_TIMINGS.ATTACK_SLIDE);
+}, T(ANIMATION_TIMINGS.ATTACK_SLIDE));
 }
 }
 
@@ -448,7 +452,7 @@ card.classList.add('enemy-attack-slide');
 setTimeout(() => {
 const el = document.getElementById(attackerId);
 if(el) el.classList.remove('enemy-attack-slide');
-}, ANIMATION_TIMINGS.ATTACK_SLIDE);
+}, T(ANIMATION_TIMINGS.ATTACK_SLIDE));
 }
 }
 
@@ -458,7 +462,7 @@ if(card) {
 card.classList.add('heal-flash');
 // JUICE: Sound effects - froggy gulp + heal chime
 SoundFX.play('gulp');
-setTimeout(() => SoundFX.play('heal'), 100);
+setTimeout(() => SoundFX.play('heal'), T(100));
 // JUICE: Floating heal number
 if (healAmount > 0) {
   showFloatingNumber(targetId, `+${healAmount}`, 'heal');
@@ -472,7 +476,7 @@ setTimeout(() => {
 const el = document.getElementById(targetId);
 if(el) el.classList.remove('heal-flash');
 if(cross.parentNode) cross.remove();
-}, ANIMATION_TIMINGS.HEAL_FLASH);
+}, T(ANIMATION_TIMINGS.HEAL_FLASH));
 }
 }
 
@@ -482,7 +486,7 @@ if(card) {
 card.classList.add('shield-flash');
 // JUICE: Sound effects - froggy bubble + shield chime
 SoundFX.play('bubble');
-setTimeout(() => SoundFX.play('shield'), 80);
+setTimeout(() => SoundFX.play('shield'), T(80));
 // JUICE: Floating shield number
 if (shieldAmount > 0) {
   showFloatingNumber(targetId, `+${shieldAmount}🛡`, 'shield');
@@ -490,7 +494,7 @@ if (shieldAmount > 0) {
 setTimeout(() => {
 const el = document.getElementById(targetId);
 if(el) el.classList.remove('shield-flash');
-}, ANIMATION_TIMINGS.SHIELD_FLASH);
+}, T(ANIMATION_TIMINGS.SHIELD_FLASH));
 }
 }
 
@@ -944,7 +948,7 @@ if(data.sig) {
 const validSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
 for(const key of Object.keys(data.sig)) {
 if(!validSigils.includes(key)) throw new Error('Unknown sigil in save: ' + key);
-if(typeof data.sig[key] !== 'number' || data.sig[key] < 0 || data.sig[key] > 5) throw new Error('Invalid sigil level for ' + key);
+if(typeof data.sig[key] !== 'number' || data.sig[key] < 0 || data.sig[key] > 4) throw new Error('Invalid sigil level for ' + key);
 }
 }
 // Validate pedestal entries have required shape
@@ -1076,6 +1080,15 @@ neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
+silverKeyHeld: S.silverKeyHeld || false,
+oracleHero: S.oracleHero,
+oracleRoll: S.oracleRoll,
+oracleStat: S.oracleStat,
+wizardHero: S.wizardHero,
+wizardSigil: S.wizardSigil,
+wizardChallenges: S.wizardChallenges,
+wizardChallengeIndex: S.wizardChallengeIndex || 0,
+wizardUpgradedSigils: S.wizardUpgradedSigils || [],
 royalQuestActive: S.royalQuestActive || false,
 royalQuestCompleted: S.royalQuestCompleted || false,
 royalAskerTitle: S.royalAskerTitle || null,
@@ -1109,6 +1122,14 @@ S.royalQuestActive = j.royalQuestActive || false;
 S.royalQuestCompleted = j.royalQuestCompleted || false;
 S.royalAskerTitle = j.royalAskerTitle || null;
 S.royalBelovedTitle = j.royalBelovedTitle || null;
+S.oracleHero = j.oracleHero || null;
+S.oracleRoll = j.oracleRoll || null;
+S.oracleStat = j.oracleStat || null;
+S.wizardHero = j.wizardHero || null;
+S.wizardSigil = j.wizardSigil || null;
+S.wizardChallenges = j.wizardChallenges || null;
+S.wizardChallengeIndex = j.wizardChallengeIndex || 0;
+S.wizardUpgradedSigils = j.wizardUpgradedSigils || [];
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -1332,6 +1353,14 @@ S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Exp
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
 S.silverKeyHeld = r.silverKeyHeld || false;
+S.oracleHero = r.oracleHero || null;
+S.oracleRoll = r.oracleRoll || null;
+S.oracleStat = r.oracleStat || null;
+S.wizardHero = r.wizardHero || null;
+S.wizardSigil = r.wizardSigil || null;
+S.wizardChallenges = r.wizardChallenges || null;
+S.wizardChallengeIndex = r.wizardChallengeIndex || 0;
+S.wizardUpgradedSigils = r.wizardUpgradedSigils || [];
 S.royalQuestActive = r.royalQuestActive || false;
 S.royalQuestCompleted = r.royalQuestCompleted || false;
 S.royalAskerTitle = r.royalAskerTitle || null;
@@ -1366,6 +1395,7 @@ debugLog('[SAVE] Detected invalid tutorial save: floor 0, advancing to floor 1')
 S.floor = 1;
 // Clear the corrupted save and re-save with correct floor
 localStorage.removeItem(`froggle8_slot${slot}`);
+saveGame();
 }
 upd();
 startFloor(S.floor);
@@ -1453,6 +1483,14 @@ tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
 silverKeyHeld: S.silverKeyHeld || false,
+oracleHero: S.oracleHero,
+oracleRoll: S.oracleRoll,
+oracleStat: S.oracleStat,
+wizardHero: S.wizardHero,
+wizardSigil: S.wizardSigil,
+wizardChallenges: S.wizardChallenges,
+wizardChallengeIndex: S.wizardChallengeIndex || 0,
+wizardUpgradedSigils: S.wizardUpgradedSigils || [],
 royalQuestActive: S.royalQuestActive || false,
 royalQuestCompleted: S.royalQuestCompleted || false,
 royalAskerTitle: S.royalAskerTitle || null,

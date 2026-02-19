@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.38';
+const GAME_VERSION = 'S_1.45';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -75,7 +75,7 @@ function setHeroReaction(heroId, reaction, duration = 800) {
                 hero.reaction = null;
                 render();
             }
-        }, duration);
+        }, T(duration));
     }
 }
 
@@ -375,7 +375,8 @@ setTimeout(() => {
 damagedIds.forEach((id, idx) => {
 triggerHitAnimation(id);
 // JUICE: Floating damage numbers for hero damage
-showFloatingNumber(id, `-${dmg}`, dmg >= 5 ? 'critical' : 'damage', idx * 15);
+const totalLoss = (targetDetails[idx].shieldLost || 0) + (targetDetails[idx].hpLost || 0);
+showFloatingNumber(id, `-${totalLoss}`, totalLoss >= 5 ? 'critical' : 'damage', idx * 15);
 // Show pained reaction when hero takes damage
 const hero = S.heroes.find(h => h.id === id);
 if(hero) setHeroReaction(id, 'pained', hero.ls ? 0 : 600);
@@ -577,7 +578,7 @@ if(shieldLost > 0 && !options.silent) SoundFX.play('shieldBreak');
 }
 
 // Apply damage to HP
-hpLost = dmg;
+hpLost = Math.min(dmg, target.h);
 target.h -= dmg;
 
 // LAYER 1: Warning when hero drops below 30% HP (preventive Last Stand warning)

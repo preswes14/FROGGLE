@@ -144,9 +144,9 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 // Convert 0-1 to percentage for display
-const masterPct = Math.round((S.masterVolume || 1) * 100);
-const sfxPct = Math.round((S.sfxVolume || 1) * 100);
-const musicPct = Math.round((S.musicVolume || 1) * 100);
+const masterPct = Math.round((S.masterVolume ?? 1) * 100);
+const sfxPct = Math.round((S.sfxVolume ?? 1) * 100);
+const musicPct = Math.round((S.musicVolume ?? 1) * 100);
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Audio settings">
@@ -347,7 +347,7 @@ toast('Restarting floor...', 1200);
 setTimeout(() => {
 if(S.floor % 2 === 1) {
 // Odd floor = combat
-combat(S.floor);
+startFloor(S.floor);
 } else {
 // Even floor = neutral
 startFloor(S.floor);
@@ -368,6 +368,20 @@ S.enemies = [];
 S.recruits = [];
 S.combatXP = 0;
 S.combatGold = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.turn = 'player';
+S.locked = false;
+S.inCombat = false;
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.inRibbleton = true;
 setTimeout(() => {
 showRibbleton();
@@ -389,6 +403,20 @@ S.enemies = [];
 S.recruits = [];
 S.combatXP = 0;
 S.combatGold = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.turn = 'player';
+S.locked = false;
+S.inCombat = false;
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.inRibbleton = true;
 S.inTutorial = false;
 setTimeout(() => {
@@ -409,6 +437,20 @@ S.enemies = [];
 S.recruits = [];
 S.combatXP = 0;
 S.combatGold = 0;
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.turn = 'player';
+S.locked = false;
+S.inCombat = false;
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.inRibbleton = false;
 S.inTutorial = false;
 // Save permanent progress
@@ -476,17 +518,6 @@ toast('Sigil tooltips enabled!', 1200);
 toast('Sigil tooltips disabled!', 1200);
 }
 savePermanent();
-}
-
-function toggleSoundFX(enabled) {
-SoundFX.enabled = enabled;
-if(enabled) {
-SoundFX.init();
-SoundFX.play('select');
-toast('Sound effects enabled!', 1200);
-} else {
-toast('Sound effects disabled!', 1200);
-}
 }
 
 function setAnimationSpeed(speed, fromSubmenu = false) {
@@ -650,9 +681,9 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 const controls = [
-{ section: '🕹️ Sticks (Combat)', items: [
-  { btn: 'Right Stick', desc: 'Cycle between characters (heroes ↔ enemies)', highlight: true },
-  { btn: 'Left Stick', desc: 'Cycle sigils on current character', highlight: true }
+{ section: '🕹️ Sticks', items: [
+  { btn: 'Left Stick', desc: 'Navigate (D-pad equivalent)', highlight: true },
+  { btn: 'Right Stick', desc: 'Scroll vertically in menus', highlight: true }
 ]},
 { section: '🎮 Bumpers & Triggers (Combat)', items: [
   { btn: 'LB / RB', desc: 'Previous / Next character (same as right stick)' },
@@ -676,13 +707,12 @@ const controls = [
   { btn: 'R3 (right click)', desc: 'Toggle Controller Debug overlay' }
 ]},
 { section: '⌨️ Keyboard Fallback', items: [
-  { btn: 'Arrow Keys / WASD', desc: 'Navigate (D-pad equivalent)' },
-  { btn: 'Q / E', desc: 'Previous / Next character (LB / RB)' },
-  { btn: 'Z / C', desc: 'Previous / Next sigil (LT / RT)' },
+  { btn: 'Arrow Keys', desc: 'Navigate (D-pad equivalent)' },
   { btn: 'Enter / Space', desc: 'Confirm (A button)' },
   { btn: 'Escape', desc: 'Back / Cancel (B button)' },
-  { btn: 'X / T', desc: 'Switch sides / Toggle tooltip' },
-  { btn: 'R', desc: 'Auto-target (SELECT)' }
+  { btn: 'Tab', desc: 'Cycle focus forward' },
+  { btn: 'X', desc: 'Switch sides (X button)' },
+  { btn: 'Y', desc: 'Toggle tooltip (Y button)' }
 ]}
 ];
 
@@ -692,7 +722,7 @@ let html = `
 
 <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(34,197,94,0.15);border:2px solid #22c55e;border-radius:8px">
 <p style="margin:0;color:#86efac;font-size:0.9rem;text-align:center">
-<strong>Quick Reference:</strong> Right Stick = Characters • Left Stick = Sigils • Bumpers & Triggers work the same way!
+<strong>Quick Reference:</strong> D-pad/Left Stick = Navigate • Bumpers = Characters • Triggers = Sigils
 </p>
 </div>
 `;

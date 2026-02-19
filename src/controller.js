@@ -405,8 +405,13 @@ const GamepadController = {
     }
 
     if (ctx === 'confirm') {
-      const btn = document.querySelector('.confirm-btn-yes');
-      if (btn) btn.click();
+      // Click focused button if one exists, otherwise default to Yes
+      if (this.focusedElement && document.body.contains(this.focusedElement) && this.focusedElement.closest('.confirm-modal')) {
+        this.focusedElement.click();
+      } else {
+        const btn = document.querySelector('.confirm-btn-yes');
+        if (btn) btn.click();
+      }
       return;
     }
 
@@ -636,6 +641,12 @@ const GamepadController = {
   handleStart() {
     if (!this.active) this.activate();
     this.playClick();
+    // Don't stack multiple settings menus
+    const existingMenu = document.querySelector('.modal-container.dark');
+    if (existingMenu) {
+      if (typeof closeSettingsMenu === 'function') closeSettingsMenu();
+      return;
+    }
     if (typeof showSettingsMenu === 'function') {
       showSettingsMenu();
     }

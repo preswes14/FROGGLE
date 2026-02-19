@@ -52,10 +52,9 @@ setInterval(function() {
 reg.update().catch(function() {});
 }, 60000);
 
-// Handle waiting service worker (update available)
+// Handle waiting service worker (update available) - notify user instead of force-reloading
 if (reg.waiting) {
-debugLog('[SW] Update waiting, activating...');
-reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+debugLog('[SW] Update waiting, will apply on next visit');
 }
 
 // Listen for new service worker installing
@@ -65,20 +64,20 @@ debugLog('[SW] Update found, installing...');
 
 newWorker.addEventListener('statechange', function() {
 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-debugLog('[SW] New version installed, activating...');
-newWorker.postMessage({ type: 'SKIP_WAITING' });
+debugLog('[SW] New version installed, will apply on next visit');
+// Show a non-intrusive toast instead of force-reloading
+if (typeof toast === 'function') {
+  toast('Update available! Restart the app to apply.', 3000);
+}
 }
 });
 });
 })
 .catch(function(err) { console.warn('[SW] Registration failed:', err); });
 
-// Reload page when new service worker takes control
+// No longer force-reload on controllerchange - let the update apply naturally on next visit
 navigator.serviceWorker.addEventListener('controllerchange', function() {
-debugLog('[SW] Controller changed, reloading for update...');
-// Save before reloading to prevent data loss
-try { saveGame(); } catch(e) { console.warn('[SW] Failed to save before reload:', e); }
-window.location.reload();
+debugLog('[SW] Controller changed, update applied');
 });
 }
 
@@ -131,6 +130,8 @@ S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tutorialDisabled = j.tutorialDisabled || false;
 S.cutsceneDisabled = j.cutsceneDisabled || false;
 S.tooltipsDisabled = j.tooltipsDisabled || false;
+S.toastLogVisible = j.toastLogVisible !== undefined ? j.toastLogVisible : true;
+S.toastLogLocked = j.toastLogLocked || false;
 S.highContrastMode = j.highContrastMode || false;
 S.usedDeathQuotes = j.usedDeathQuotes || [];
 S.controllerDisabled = j.controllerDisabled || false;
