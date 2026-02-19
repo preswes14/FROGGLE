@@ -452,7 +452,8 @@ if(hasAsterisk && firstAction) {
 repeats = asteriskLevel + 1;
 // NOTE: firstActionUsed is set in finishAction(), not here
 // This allows players to cancel and still keep their Asterisk benefit
-toast(`Asterisk activated! ${sig} ×${repeats}!`, 1500);
+SoundFX.play('powerUp');
+toast(`Asterisk ×${repeats}! ${h.n}'s ${sig} fires ${repeats} time${repeats>1?'s':''}!`, 2000);
 }
 
 if(sig === 'Ghost') {
@@ -1393,6 +1394,12 @@ if(e.n === 'Goblin') tutorialState.goblinKilled = true;
 if(deadEnemies.length > 0) {
 SoundFX.play('croak'); // Froggy croak for enemy defeat
 triggerScreenShake(true); // Heavy shake on enemy defeat
+// Boss-kill callout for big enemies
+deadEnemies.forEach(e => {
+if(e.n === 'Dragon') toast('Dragon slain!', 2000, 'success');
+else if(e.n === 'Cave Troll') toast('Cave Troll felled!', 2000, 'success');
+else if(e.n === 'Giant') toast('Giant toppled!', 1500);
+});
 // All heroes smile when enemy is killed (gold/xp awarded)
 setAllHeroesReaction('happy', 1200);
 setTimeout(() => {
@@ -1435,6 +1442,7 @@ shieldedIds.push(target.id);
 });
 // Trigger all shield animations simultaneously with amounts
 shieldedIds.forEach(id => triggerShieldAnimation(id, shieldAmt));
+SoundFX.play('shield');
 if(targetNames.length > 0) {
 toast(`${targetNames.join(' and ')} gained ${shieldAmt} shield!`);
 // QUEST TRACKING: Shield applied
@@ -1468,7 +1476,10 @@ setHeroReaction(h.id, 'happy', 1000);
 // Healed targets also smile
 healedIds.forEach(id => setHeroReaction(id, 'happy', 1200));
 if(healed.length > 0) toast(`${healed.join(' and ')} restored ${healAmt} HP!`);
-if(revived.length > 0) toast(`${revived.join(' and ')} revived with ${healAmt} HP!`);
+if(revived.length > 0) {
+SoundFX.play('powerUp');
+toast(`${revived.join(' and ')} revived from Last Stand!`, 2000, 'success');
+}
 // QUEST TRACKING: Heal used
 trackQuestProgress('heal');
 trackQuestProgress('targets', healedIds.length);
@@ -1753,7 +1764,7 @@ triggerHealAnimation(flydra.id, reviveHP);
 const flydraGold = 150 * (S.gameMode === 'fu' ? 3 : 1); // Frogged Up multiplier
 S.gold += flydraGold;
 S.combatGold += flydraGold;
-trackQuestProgress('goldEarned', flydraGold);
+trackQuestProgress('gold', flydraGold);
 SoundFX.play('coinDrop');
 upd();
 dyingFlydras.forEach(flydra => {
@@ -1763,7 +1774,7 @@ trackQuestProgress('enemyKill', 'Flydra');
 });
 // Remove all dead Flydras
 S.enemies = S.enemies.filter(e => !e.isFlydra || e.flydraState !== 'dead');
-toast('All Flydra heads defeated!', 2000);
+toast('The Flydra is vanquished!', 2500, 'success');
 checkCombatEnd();
 }
 }
@@ -3212,6 +3223,7 @@ if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
+SoundFX.play('powerUp');
 toast(`${S.heroes[idx].n} POW +1!`);
 upd();
 startingXPMenu();
@@ -3224,6 +3236,7 @@ S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;
+SoundFX.play('powerUp');
 toast(`${S.heroes[idx].n} HP +5!`);
 upd();
 startingXPMenu();
@@ -3283,6 +3296,7 @@ if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+SoundFX.play('powerUp');
 toast(`${sig} upgraded!`);
 upd();
 startingUpgradeSigil();
@@ -3359,6 +3373,7 @@ S.levelUpCount++;
 const h = S.heroes[heroIdx];
 if(!h.ts) h.ts = [];
 h.ts.push(sig);
+SoundFX.play('powerUp');
 toast(`${h.n} learned ${sig}!`);
 upd();
 startingAddSigilToHero();
@@ -3510,6 +3525,7 @@ h.ts.push(sig);
 h.ts = sortSigils(h.ts);
 const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const displayLevel = totalLevel + 1;  // Internal 0 = display L1, etc.
+SoundFX.play('powerUp');
 toast(`${h.n} learned ${sig} (L${displayLevel})!`);
 upd();
 saveGame();
@@ -3583,6 +3599,7 @@ S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const displayLevel = newLevel + 1;  // Internal 0 = display L1, etc.
+SoundFX.play('powerUp');
 toast(`${sig} upgraded to L${displayLevel}!`);
 upd();
 saveGame();
@@ -3653,6 +3670,7 @@ hero.s = sortSigils(hero.s);
 }
 });
 }
+SoundFX.play('powerUp');
 toast(`${sig} ${newLevel === 1 ? 'added' : 'upgraded to L' + newLevel}! All heroes benefit!`);
 upd();
 saveGame();
@@ -3683,6 +3701,7 @@ if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
+SoundFX.play('powerUp');
 toast(`${S.heroes[idx].n} POW +1!`);
 upd();
 saveGame();
@@ -3696,6 +3715,7 @@ S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;
+SoundFX.play('powerUp');
 if(S.heroes[idx].ls) {
 S.heroes[idx].ls = false;
 S.heroes[idx].lst = 0;
