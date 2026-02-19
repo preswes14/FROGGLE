@@ -165,7 +165,7 @@ Defined in `E` object (constants.js).
 | Giant | 3 | 12 | 6 | 12 | 1 turn | Asterisk, Expand, Shield, Grapple, Alpha, Heal, Ghost, Attack† | Shield L1 |
 | Cave Troll | 4 | 15 | 10 | 15 | special | Expand, Shield, Grapple, Alpha, Heal, Ghost | **RAGE:** Attack L1→L2→L3→L1 |
 | Dragon | 5 | 20 | 20 | 25 | 1 turn | Expand, Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L1 |
-| Flydra | 5 | 25 | 0† | 50/head | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L2, Expand L2 |
+| Flydra | 5 | 25 | 0† | 50/head | 1 turn | Shield, Grapple, Alpha, Heal, Ghost | **PERM:** Attack L=N, Expand L=N (N=hero count) |
 
 †Giant can draw Attack/Shield/Heal at L2 (others capped at L1). Cave Troll/Dragon/Flydra draw at up to L2. Flydra `goldDrop` is 0 per-head; 150G total is awarded at combat completion when ALL heads are defeated.
 
@@ -175,7 +175,7 @@ Defined in `E` object (constants.js).
 - **Cave Troll**: Rolling rage mechanic - Attack level cycles L1→L2→L3→L1. Draws a sigil each turn EXCEPT on reset turns (when L3→L1)
 - **Giant**: Starts with Shield L1, can draw Attack/Shield/Heal at L2
 - **Dragon**: Permanent Attack L2 + Expand L1 (always hits 2 targets twice)
-- **Flydra** (Floor 19 boss): Multi-headed, revives at 50% HP if other heads alive, grants Ghost charges to surviving heads on death. †Gold (150) awarded only when ALL heads defeated; XP awarded per-head kill
+- **Flydra** (Floor 19 boss): Multi-headed, revives at 50% HP if other heads alive, grants Ghost charges to surviving heads on death. Sigil levels scale with hero count (L2 with 2 heroes, L3 with 3). †Gold (150) awarded only when ALL heads defeated; XP awarded per-head kill
 
 **Floor Appearances** (N = hero count, 2 or 3):
 | Floor | Encounter |
@@ -293,7 +293,7 @@ S.helpTipsDisabled    // Mechanic explanation popups (e.g. stun_intro, shield_pe
 S.tutorialDisabled    // Guided walkthrough popups (e.g. ribbleton_warrior_attack)
 S.cutsceneDisabled    // One-time narrative events (e.g. death_intro, first_victory_sequence)
 S.tooltipsDisabled    // Hover/longpress sigil tooltips
-S.animationSpeed      // 0 = instant, 0.5 = fast, 1 = normal, 2 = slow
+S.animationSpeed      // 0 = instant, 1 = normal, 2 = 2x faster, 4 = 4x faster (higher = faster, divides timeouts)
 S.highContrastMode    // Accessibility high contrast
 S.controllerDisabled  // Disable gamepad input
 ```

@@ -1241,8 +1241,29 @@ S.alphaCurrentAction = 0;
 // Start first granted action
 if(S.alphaGrantedActions.length > 0) {
 const nextHeroIdx = S.alphaGrantedActions[0];
+const nextHero = S.heroes[nextHeroIdx];
+// Auto-skip stunned heroes receiving Alpha-granted turns
+if(nextHero && nextHero.st > 0) {
+toast(`${nextHero.n} is stunned - Alpha-granted turn skipped!`);
+S.alphaCurrentAction++;
+// Skip all granted turns for this stunned hero
+while(S.alphaCurrentAction < S.alphaGrantedActions.length && S.alphaGrantedActions[S.alphaCurrentAction] === nextHeroIdx) {
+S.alphaCurrentAction++;
+}
+if(S.alphaCurrentAction >= S.alphaGrantedActions.length) {
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
+checkTurnEnd();
+render();
+return;
+}
+const actualNext = S.alphaGrantedActions[S.alphaCurrentAction];
+S.activeIdx = actualNext;
+toast(`${S.heroes[actualNext].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+} else {
 S.activeIdx = nextHeroIdx;
-toast(`${S.heroes[nextHeroIdx].n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+toast(`${nextHero.n}'s turn (Alpha-granted ${S.alphaCurrentAction + 1}/${S.alphaGrantedActions.length})!`);
+}
 }
 render();
 }
@@ -1544,7 +1565,7 @@ setTimeout(() => {
 S.enemies = S.enemies.filter(e => !e.isFlydra);
 render();
 checkCombatEnd();
-}, 300);
+}, T(300));
 } else {
 render(); // Re-render to show flipped card
 }
@@ -1573,7 +1594,7 @@ setTimeout(() => {
   S.enemies = S.enemies.filter(e => e.id !== enemy.id);
   render();
   checkCombatEnd();
-}, 300);
+}, T(300));
 }
 }
 }
@@ -1992,6 +2013,8 @@ allEnemies.forEach((enemy, idx) => {
 setTimeout(() => {
 S.enemyTurnCurrent = idx + 1;
 render(); // Update header to show progress
+// Guard: skip if enemy died mid-turn (e.g., from Alpha phase or Grapple recoil)
+if(enemy.h <= 0 || !S.enemies.includes(enemy)) return;
 executeEnemyTurn(enemy);
 }, delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Just enough stagger for visual clarity (was 600ms)
@@ -2154,7 +2177,7 @@ toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} f
 }
 } else if(sig === 'Grapple') {
 const target = S.heroes[enemy.li];
-if(target && target.h > 0) {
+if(target && (target.h > 0 || target.ls)) {
 const dmgToEnemy = target.p;
 // Use applyDamageToTarget so enemy shield/ghost are respected
 applyDamageToTarget(enemy, dmgToEnemy, {isHero: false, skipRewards: true, silent: true});
@@ -2275,7 +2298,7 @@ render();
 // Normal sigil drawing for other enemies
 else if(e.turnsSinceGain >= e.gainRate && (!isTutorial || isGoblinRound3)) {
 e.turnsSinceGain = 0;
-// Draw multiple sigils per turn if specified (Dragons draw 2)
+// Draw multiple sigils per turn if specified
 const draws = e.drawsPerTurn || 1;
 for(let i = 0; i < draws; i++) {
 drawEnemySigil(e);

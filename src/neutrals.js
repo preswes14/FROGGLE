@@ -495,15 +495,6 @@ showRibbleton();
 }
 }
 
-function loadGameFromTitle() {
-const s = localStorage.getItem('froggle8');
-if(s) {
-loadGame();
-} else {
-toast('No saved game found!');
-}
-}
-
 function exitGame() {
 showConfirmModal('Thanks for playing FROGGLE! Close the window to exit.', () => {
 window.close();
@@ -1310,7 +1301,6 @@ setTimeout(proceed, 2500);
 }
 
 // ===== TITLE & HERO SELECT =====
-let selectedHeroView = null; // Track which hero card is currently displayed
 
 function title() {
 debugLog('[FROGGLE] title() called - Hero selection screen');
@@ -1541,22 +1531,6 @@ S.gameMode = S.gameMode === 'Standard' ? 'fu' : 'Standard';
 document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
 savePermanent();
 title();
-}
-
-function pick(t) {
-const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
-const i = sel.indexOf(t);
-if(i>=0) {
-sel.splice(i,1);
-} else if(sel.length<requiredHeroes) {
-sel.push(t);
-} else {
-toast(`Maximum ${requiredHeroes} heroes!`);
-return;
-}
-
-// Update selection display
-updateSelectionDisplay();
 }
 
 function start() {
@@ -2028,6 +2002,7 @@ function applyWellDamage(heroIdx, hpLoss, goldGain) {
 const hero = S.heroes[heroIdx];
 // Apply damage through shields first (consistent with combat)
 let remaining = hpLoss;
+let ghostBlocked = false;
 if(hero.sh > 0) {
 const absorbed = Math.min(hero.sh, remaining);
 hero.sh -= absorbed;
@@ -2041,6 +2016,7 @@ hero.h += remaining;
 hero.sh += (hpLoss - remaining); // Restore shield too
 if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+ghostBlocked = true;
 } else {
 hero.h = 0;
 hero.ls = true;
@@ -2048,7 +2024,7 @@ hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
-toast(`${hero.n} took ${hpLoss} damage!`);
+if(!ghostBlocked) toast(`${hero.n} took ${hpLoss} damage!`);
 
 S.gold += goldGain;
 if(S.gold < 0) S.gold = 0;
@@ -2215,6 +2191,7 @@ function finishChestOpen(heroIdx, trapDmg, goldGain) {
 const hero = S.heroes[heroIdx];
 // Apply damage through shields first (consistent with combat)
 let remaining = trapDmg;
+let ghostBlocked = false;
 if(hero.sh > 0) {
 const absorbed = Math.min(hero.sh, remaining);
 hero.sh -= absorbed;
@@ -2228,6 +2205,7 @@ hero.h += remaining;
 hero.sh += (trapDmg - remaining); // Restore shield too
 if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
 toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+ghostBlocked = true;
 } else {
 hero.h = 0;
 hero.ls = true;
@@ -2235,7 +2213,7 @@ hero.lst = 0;
 toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
 }
 }
-toast(`${hero.n} took ${trapDmg} damage!`);
+if(!ghostBlocked) toast(`${hero.n} took ${trapDmg} damage!`);
 
 S.gold += goldGain;
 upd();
