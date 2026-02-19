@@ -128,6 +128,7 @@ questProgress: {
 
   // Milestone tracking
   highestFloor: 0,
+  highestFUFloor: 0,
   totalGoldEarned: 0,
   totalRunsCompleted: 0,
   standardWins: 0,
@@ -879,60 +880,10 @@ if(replace && callbacks && callbacks.onReplace) callbacks.onReplace();
 else if(!replace && callbacks && callbacks.onKeep) callbacks.onKeep();
 }
 
-// LEGACY: Pre-slot save functions. Overridden by slot-based versions below (line ~1270).
-// Kept as fallback for loadPermanent()/loadGame() which read from these keys for migration.
-function savePermanent() {
-try {
-// Create backup of existing save before overwriting
-const existing = localStorage.getItem('froggle8_permanent');
-if(existing) {
-localStorage.setItem('froggle8_permanent_backup', existing);
-}
-localStorage.setItem('froggle8_permanent', JSON.stringify({
-version: GAME_VERSION,
-gold: S.gold,
-goingRate: S.goingRate,
-startingXP: S.startingXP,
-sig: S.sig,
-sigUpgradeCounts: S.sigUpgradeCounts,
-ghostBoysConverted: S.ghostBoysConverted,
-pedestal: S.pedestal,
-hasReachedFloor20: S.hasReachedFloor20,
-fuUnlocked: S.fuUnlocked,
-forcedFUEntry: S.forcedFUEntry,
-tapoUnlocked: S.tapoUnlocked,
-advancedSigilsUnlocked: S.advancedSigilsUnlocked,
-passiveSigilsUnlocked: S.passiveSigilsUnlocked,
-runNumber: S.runNumber,
-runsAttempted: S.runsAttempted,
-tutorialFlags: S.tutorialFlags,
-helpTipsDisabled: S.helpTipsDisabled,
-tutorialDisabled: S.tutorialDisabled,
-cutsceneDisabled: S.cutsceneDisabled,
-tooltipsDisabled: S.tooltipsDisabled,
-toastLogVisible: S.toastLogVisible,
-toastLogLocked: S.toastLogLocked,
-highContrastMode: S.highContrastMode,
-usedDeathQuotes: S.usedDeathQuotes,
-controllerDisabled: S.controllerDisabled,
-animationSpeed: S.animationSpeed,
-masterVolume: S.masterVolume,
-sfxVolume: S.sfxVolume,
-musicVolume: S.musicVolume,
-pondHistory: S.pondHistory,
-questsCompleted: S.questsCompleted,
-questsClaimed: S.questsClaimed,
-questProgress: S.questProgress
-}));
-} catch(e) {
-console.warn('[SAVE] Failed to save permanent data:', e);
-if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
-toast('Storage full! Go to title screen > Save Manager to delete old slots.', 3500);
-} else {
-toast('Save failed. Check browser storage in Settings > Privacy.', 2500);
-}
-}
-}
+// Placeholder declarations — overridden by slot-based versions below (line ~1270).
+// Declared here so callers between here and the override don't error.
+function savePermanent() {}
+function saveGame() {}
 
 // Validate save data has required structure
 function validateSaveData(data, type = 'permanent') {
@@ -1067,99 +1018,6 @@ Object.assign(S.tutorialFlags, j.tutorialFlags);
 } catch(e) {
 console.warn('[SAVE] Failed to load permanent data:', e);
 // Continue with defaults if load fails
-}
-}
-
-// LEGACY: Pre-slot saveGame. Overridden by slot-based version below (line ~1330).
-function saveGame() {
-try {
-localStorage.setItem('froggle8', JSON.stringify({
-f:S.floor, x:S.xp, luc:S.levelUpCount,
-h:S.heroes,
-neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
-tempSigUpgrades: S.tempSigUpgrades,
-gameMode: S.gameMode,
-chosenHeroIdx: S.chosenHeroIdx,
-silverKeyHeld: S.silverKeyHeld || false,
-oracleHero: S.oracleHero,
-oracleRoll: S.oracleRoll,
-oracleStat: S.oracleStat,
-wizardHero: S.wizardHero,
-wizardSigil: S.wizardSigil,
-wizardChallenges: S.wizardChallenges,
-wizardChallengeIndex: S.wizardChallengeIndex || 0,
-wizardUpgradedSigils: S.wizardUpgradedSigils || [],
-royalQuestActive: S.royalQuestActive || false,
-royalQuestCompleted: S.royalQuestCompleted || false,
-royalAskerTitle: S.royalAskerTitle || null,
-royalBelovedTitle: S.royalBelovedTitle || null
-}));
-savePermanent();
-} catch(e) {
-console.warn('[SAVE] Failed to save game:', e);
-if(e.name === 'QuotaExceededError' || (e.code && e.code === 22)) {
-toast('Storage full! Go to title screen > Save Manager to delete old slots.', 3500);
-} else {
-toast('Game save failed. Try clearing old slots in Save Manager.', 2500);
-}
-}
-}
-
-function loadGame() {
-loadPermanent(); // Load persistent data first
-try {
-const d = localStorage.getItem('froggle8');
-if(!d) return;
-const j = JSON.parse(d);
-S.floor=j.f; S.xp=j.x; S.levelUpCount=j.luc || 0;
-S.heroes=j.h;
-S.neutralDeck=j.neutralDeck || [];
-S.lastNeutral=j.lastNeutral || null;
-S.tempSigUpgrades = j.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
-S.gameMode = j.gameMode || 'Standard';
-S.chosenHeroIdx = j.chosenHeroIdx !== undefined ? j.chosenHeroIdx : -1;
-S.royalQuestActive = j.royalQuestActive || false;
-S.royalQuestCompleted = j.royalQuestCompleted || false;
-S.royalAskerTitle = j.royalAskerTitle || null;
-S.royalBelovedTitle = j.royalBelovedTitle || null;
-S.oracleHero = j.oracleHero || null;
-S.oracleRoll = j.oracleRoll || null;
-S.oracleStat = j.oracleStat || null;
-S.wizardHero = j.wizardHero || null;
-S.wizardSigil = j.wizardSigil || null;
-S.wizardChallenges = j.wizardChallenges || null;
-S.wizardChallengeIndex = j.wizardChallengeIndex || 0;
-S.wizardUpgradedSigils = j.wizardUpgradedSigils || [];
-S.recruits = []; // Recruits don't persist across saves
-S.heroes.forEach(h => {
-if(!h.ts) h.ts = [];
-// Migration fix: Remove Attack from Healer (was removed from starting sigils)
-if(h.n === 'Healer' && h.s.includes('Attack')) {
-h.s = h.s.filter(sig => sig !== 'Attack');
-debugLog('[SAVE] Migrated Healer: removed Attack from saved sigils');
-}
-});
-// CRITICAL: Check for invalid save state (all heroes in Last Stand)
-// This can happen if game was closed during/after defeat before reaching death screen
-const allHeroesInLastStand = S.heroes.length > 0 && S.heroes.every(h => h.ls);
-if(allHeroesInLastStand) {
-debugLog('[SAVE] Detected invalid save: all heroes in Last Stand, going to death screen');
-// Clear the corrupted run save
-localStorage.removeItem('froggle8');
-// Clear temp upgrades
-S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
-upd();
-toast('Continuing from last defeat...', 1800);
-setTimeout(() => transitionScreen(showDeathScreen), 500);
-return;
-}
-upd();
-startFloor(S.floor);
-toast('Loaded!');
-} catch(e) {
-console.warn('[SAVE] Failed to load game:', e);
-toast('Error loading saved game. Starting new game...', ANIMATION_TIMINGS.TOAST_LONG);
-setTimeout(() => transitionScreen(title), ANIMATION_TIMINGS.TOAST_LONG);
 }
 }
 
