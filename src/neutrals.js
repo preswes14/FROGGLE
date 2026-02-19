@@ -430,6 +430,7 @@ S.questProgress = {
   enemyTypesDefeated: { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false },
   // Milestones
   highestFloor: 0,
+  highestFUFloor: 0,
   totalGoldEarned: 0,
   totalRunsCompleted: 0,
   standardWins: 0,
@@ -2586,7 +2587,7 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function showOracle2() {
-if(S.oracleHero == null || S.oracleRoll == null) {
+if(S.oracleHero == null || S.oracleRoll == null || S.oracleStat == null) {
 nextFloor();
 return;
 }
@@ -2605,7 +2606,7 @@ h.m = Math.max(1, h.m - 5);
 if(h.h > h.m) h.h = h.m;
 outcome = `"Cursed! Cursed!" Dark light surges from the orb, and ${h.n} feels weaker. Maximum HP reduced by 5!`;
 } else {
-h.p = Math.max(0, h.p - 1);
+h.p = Math.max(1, h.p - 1);
 outcome = `"Cursed! Cursed!" Dark light surges from the orb, and ${h.n} feels their strength fade. POW reduced by 1!`;
 }
 } else if(roll >= 10 && roll <= 15) {

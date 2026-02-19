@@ -1453,7 +1453,7 @@ healedIds.push(target.id);
 if(target.ls) {
 target.ls = false;
 target.lst = 0;
-target.h = healAmt;
+target.h = Math.min(healAmt, target.m);
 revived.push(target.n);
 } else {
 target.h += healAmt;
