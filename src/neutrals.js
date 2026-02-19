@@ -141,7 +141,7 @@ debugLog('[FROGGLE] gameView element:', v);
 // Check for old saves and migrate
 migrateOldSave();
 // If migration created slot 1 but currentSlot not set, set it
-if(!S.currentSlot && localStorage.getItem('froggle8_permanent_slot1')) {
+if(S.currentSlot == null && localStorage.getItem('froggle8_permanent_slot1')) {
 S.currentSlot = 1;
 localStorage.setItem('froggle8_current_slot', '1');
 debugLog('[SAVE] Set currentSlot to 1 after migration');

@@ -1198,12 +1198,14 @@ const stats = ['POW', 'HP'];
 const earnedFigurines = window.earnedFigurines || [];
 const totalToSlot = earnedFigurines.length;
 
+// If no figurines earned, skip pedestal entirely
+if(totalToSlot === 0) { onComplete(); return; }
+
 // Track which heroes have slotted THIS session (to enforce 1 figurine per hero per victory)
 if(!window.heroesSlottedThisVictory) window.heroesSlottedThisVictory = [];
 const slotsThisSession = window.heroesSlottedThisVictory.length;
 
-// Only show heroes who earned figurines
-const heroesToShow = earnedFigurines.length > 0 ? earnedFigurines : ['Warrior', 'Tank', 'Mage', 'Healer'];
+const heroesToShow = earnedFigurines;
 
 // Build slot grid - only for heroes who earned figurines
 let slotsHTML = `<div style="display:grid;grid-template-columns:repeat(${Math.min(heroesToShow.length, 4)},1fr);gap:1rem;margin:1rem 0">`;
@@ -1275,16 +1277,6 @@ window.heroesSlottedThisVictory.push(hero);
 savePermanent();
 toast(`${hero} ${stat} figurine placed!`, 1200);
 showFirstVictoryPedestal(window.firstVicPedestalComplete);
-}
-
-function removeFirstVicFigurine(hero, stat) {
-const idx = S.pedestal.findIndex(p => p.hero === hero && p.stat === stat && p.mode === S.gameMode);
-if(idx >= 0) {
-S.pedestal.splice(idx, 1);
-savePermanent();
-toast(`${hero} ${stat} figurine removed!`);
-showFirstVictoryPedestal(window.firstVicPedestalComplete);
-}
 }
 
 function showFUVictoryCredits() {
