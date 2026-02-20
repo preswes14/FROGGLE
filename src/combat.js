@@ -723,8 +723,15 @@ const rollText = formatD20Compact(rolls, best);
 const h = S.heroes[heroIdx];
 if(best >= dc) {
 const healAmount = h.p;
+if(h.ls) {
+h.ls = false;
+h.lst = 0;
+h.h = Math.min(healAmount, h.m);
+toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} revived with ${h.h} HP!`, 2000);
+} else {
 h.h = Math.min(h.h + healAmount, h.m);
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} healed for ${healAmount} HP!`, 2000);
+}
 } else {
 toast(`${rollText} needed ${dc} - <span style="color:#ef4444;font-weight:bold">FAILED!</span>`, 1800);
 }
