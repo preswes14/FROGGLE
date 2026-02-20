@@ -1976,10 +1976,21 @@ buttons: `<button class="btn" onclick="applyWellClimb(${hpLoss}, ${goldGain})">C
 
 function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
-// Show hero selection screen
+// Show hero selection screen (exclude Last Stand heroes - they can't take damage)
 const v = document.getElementById('gameView');
 let heroButtons = '';
-S.heroes.forEach((h, idx) => {
+const eligible = S.heroes.filter(h => !h.ls);
+if(eligible.length === 0) {
+// All heroes in Last Stand - skip damage
+S.gold += goldGain;
+if(S.gold < 0) S.gold = 0;
+upd();
+if(goldGain > 0) toast(`Gained ${goldGain} Gold!`);
+nextFloor();
+return;
+}
+eligible.forEach(h => {
+const idx = S.heroes.indexOf(h);
 heroButtons += `<button class="neutral-btn danger" onclick="applyWellDamage(${idx}, ${hpLoss}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
@@ -2160,9 +2171,19 @@ contentOutcome += ' Inside the secret compartment, you find a small silver key!'
 
 const v = document.getElementById('gameView');
 if(trapDmg > 0) {
-// Show hero selection for trap damage
+// Show hero selection for trap damage (exclude Last Stand heroes - they can't take damage)
 let heroButtons = '';
-S.heroes.forEach((h, idx) => {
+const eligible = S.heroes.filter(h => !h.ls);
+if(eligible.length === 0) {
+// All heroes in Last Stand - skip trap damage, just award gold
+S.gold += goldGain;
+upd();
+if(goldGain > 0) toast(`Found ${goldGain} Gold!`);
+nextFloor();
+return;
+}
+eligible.forEach(h => {
+const idx = S.heroes.indexOf(h);
 heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
 v.innerHTML = buildNeutralHTML({
