@@ -168,6 +168,7 @@ loadPermanent(); // No last slot, use old format
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'helpTips:', S.helpTipsDisabled, 'tutorial:', S.tutorialDisabled, 'cutscene:', S.cutsceneDisabled);
 
 try { applyVolumeSettings(); } catch(e) { console.warn('[FROGGLE] applyVolumeSettings failed:', e); }
+try { GameMusic.preload(); } catch(e) { console.warn('[FROGGLE] GameMusic.preload failed:', e); }
 try { initToastLog(); } catch(e) { console.warn('[FROGGLE] initToastLog failed:', e); }
 try { initSuspendSystem(); } catch(e) { console.warn('[FROGGLE] initSuspendSystem failed:', e); }
 try { Steam.init(); } catch(e) { console.warn('[FROGGLE] Steam.init failed:', e); }

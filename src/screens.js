@@ -975,8 +975,8 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
-// JUICE: Victory music and treasure sound!
-ProceduralMusic.playVictory();
+// JUICE: Victory treasure sound!
+GameMusic.stop();
 SoundFX.play('treasure');
 
 // Record victory to The Pond!
@@ -1392,8 +1392,7 @@ showPedestal();
 }
 
 function showSimpleVictoryScreen() {
-// JUICE: Funky frog beat for victory celebration (after fanfare)
-setTimeout(() => ProceduralMusic.startTitleBeat(), 2000);
+// Music stopped on victory - no procedural music
 const v = document.getElementById('gameView');
 let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
@@ -2149,8 +2148,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Froggy beat for Ribbleton hub
-ProceduralMusic.startFroggyBeat();
+// Music: stop combat music when entering Ribbleton
+GameMusic.stop();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');

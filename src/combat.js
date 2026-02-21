@@ -159,7 +159,7 @@ const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
 // JUICE: Start combat music
-if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.startCombat();
+GameMusic.playCombat(f);
 S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
@@ -2426,7 +2426,7 @@ return true;
 // Normal combat victory
 // JUICE: Victory celebration!
 spawnConfetti(60);
-if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playVictory(); // Victory fanfare!
+GameMusic.stop(); // Stop combat music on victory
 SoundFX.play('victoryFanfare'); // Triumphant ascending fanfare!
 setTimeout(() => SoundFX.play('ribbit'), 300); // Celebratory frog croak after fanfare
 // Show happy reactions on all surviving heroes for 3 seconds
@@ -2471,8 +2471,8 @@ localStorage.removeItem('froggle8'); // Also clear old format for backwards comp
 // Record to The Pond - determine what killed the heroes
 const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
 recordPondHistory('defeat', killedBy);
-// JUICE: Defeat sound and music
-if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playDefeat();
+// JUICE: Defeat sound
+GameMusic.stop();
 SoundFX.play('death');
 setTimeout(() => {
 toast('Defeated!', 2400, 'critical');
