@@ -3021,8 +3021,9 @@ GamepadController.restoreFocusState();
 
 // ===== LEVEL UP =====
 function levelUp() {
-// JUICE: Level up sound
+// JUICE: Level up sound + char select music
 SoundFX.play('levelup');
+GameMusic.playScene('char_select');
 
 // Unlock blue portal after completing Floor 19 (combat before floor 20)
 if(S.floor === 19) {

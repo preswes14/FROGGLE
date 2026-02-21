@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.49';
+const GAME_VERSION = 'S_1.50';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4825,9 +4825,18 @@ const GameMusic = {
   // Track registry: { name: 'assets/music/filename.mp3' }
   // Naming convention: 'combat1_intro', 'combat1_loop', etc.
   tracks: {
-    // Combat music for floors 1,3,5,7,9 (add MP3 files to assets/music/)
-    // 'combat1_intro': 'assets/music/Froggle_Combat_1_intro.mp3',
-    // 'combat1_loop': 'assets/music/Froggle_Combat_1_loop.mp3',
+    'char_select': 'assets/music/Froggle_Char_Select.mp3',
+    'combat1_intro': 'assets/music/Froggle_Combat_1_intro.mp3',
+    'combat1_loop': 'assets/music/Froggle_Combat_1_loop.mp3',
+    'combat_boss': 'assets/music/Froggle_Combat_Boss.mp3',
+    'combat_hard': 'assets/music/Froggle_Combat_Hard.mp3',
+    'game_over': 'assets/music/Froggle_Game_Over.mp3',
+    'neutral_base': 'assets/music/Froggle_Neutral_Base.mp3',
+    'neutral_happy': 'assets/music/Froggle_Neutral_Happy_Final.mp3',
+    'neutral_medium': 'assets/music/Froggle_Neutral_Medium.mp3',
+    'neutral_intense': 'assets/music/Froggle_Neutral_ScaryIntenseFunky.mp3',
+    'neutral_weird': 'assets/music/Froggle_Neutral_Weird.mp3',
+    'town_base': 'assets/music/Froggle_Town_Base.mp3',
   },
   currentTrack: null,
   loaded: false,
@@ -4869,14 +4878,44 @@ const GameMusic = {
 
   // Play combat music based on floor number
   playCombat(floor) {
-    // Floors 1,3,5,7,9 use combat1 track
-    // Future: add more tracks for floors 11+ (combat2, combat3, etc.)
-    if (floor <= 9) {
-      this.play('combat1_intro', 'combat1_loop');
+    if (floor === 19) {
+      this.play(null, 'combat_boss');
+    } else if (floor >= 11) {
+      this.play(null, 'combat_hard');
     } else {
-      // Reuse combat1 for higher floors until more tracks are added
       this.play('combat1_intro', 'combat1_loop');
     }
+  },
+
+  // Play a named scene track (looping, no intro)
+  playScene(trackName) {
+    this.play(null, trackName);
+  },
+
+  // Play music for a neutral encounter based on encounter name
+  playNeutral(enc) {
+    const map = {
+      'shopkeeper1': 'neutral_medium',
+      'shopkeeper2': 'game_over',
+      'wishingwell1': 'neutral_medium',
+      'wishingwell2': 'neutral_happy',
+      'treasurechest1': 'neutral_medium',
+      'treasurechest2': 'neutral_happy',
+      'wizard1': 'neutral_medium',
+      'wizard2': 'neutral_happy',
+      'oracle1': 'neutral_medium',
+      'oracle2': 'neutral_happy',
+      'encampment1': 'neutral_intense',
+      'encampment2': 'neutral_base',
+      'ghost1': 'neutral_weird',
+      'ghost2': 'neutral_base',
+      'gambling1': 'neutral_medium',
+      'gambling2': 'neutral_intense',
+      'royal1': 'neutral_medium',
+      'royal2': 'neutral_happy',
+    };
+    const track = map[enc] || 'neutral_base';
+    this.play(null, track);
   },
 
   stop(fadeOut = 0.5) {
@@ -9480,8 +9519,9 @@ GamepadController.restoreFocusState();
 
 // ===== LEVEL UP =====
 function levelUp() {
-// JUICE: Level up sound
+// JUICE: Level up sound + char select music
 SoundFX.play('levelup');
+GameMusic.playScene('char_select');
 
 // Unlock blue portal after completing Floor 19 (combat before floor 20)
 if(S.floor === 19) {
@@ -10326,8 +10366,8 @@ return html;
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
 debugLog('[FROGGLE] mainTitlePage START');
-// Music: stop any playing music on title screen
-GameMusic.stop();
+// Music: play town theme on title screen
+GameMusic.playScene('town_base');
 // Hide game header on title screen
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'none';
@@ -10429,8 +10469,8 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
 
 // Show credits screen
 function showCredits() {
-// Music: stop any playing music on credits
-GameMusic.stop();
+// Music: play char select theme on credits
+GameMusic.playScene('char_select');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
@@ -11504,8 +11544,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// Music: stop any playing music on hero select
-GameMusic.stop();
+// Music: play char select theme on hero select
+GameMusic.playScene('char_select');
 upd();
 // Reset selection first
 sel = [];
@@ -11898,8 +11938,6 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// Music: stop combat music during neutral encounters
-GameMusic.stop();
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
@@ -11909,9 +11947,14 @@ showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities
 const enc = getNeutralEncounter();
 
 if(S.ghostBoysConverted && enc.startsWith('ghost')) {
+// Music: play base neutral for empty playroom
+GameMusic.playScene('neutral_base');
 showEmptyPlayroom();
 return;
 }
+
+// Music: play encounter-specific neutral music
+GameMusic.playNeutral(enc);
 
 // Show interstitial then launch encounter
 const launchEncounter = () => {
@@ -14064,6 +14107,8 @@ return sorted.length > 0 ? sorted[0][0] : '-';
 
 // ===== DEATH SCREEN =====
 function showDeathScreen() {
+// Music: play game over theme
+GameMusic.playScene('game_over');
 savePermanent(); // Save gold, goingRate, sig upgrades
 // Recruits persist until killed - don't clear here
 
@@ -14754,8 +14799,8 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
-// JUICE: Victory treasure sound!
-GameMusic.stop();
+// JUICE: Victory treasure sound + happy music!
+GameMusic.playScene('neutral_happy');
 SoundFX.play('treasure');
 
 // Record victory to The Pond!
@@ -15927,8 +15972,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// Music: stop combat music when entering Ribbleton
-GameMusic.stop();
+// Music: play town theme in Ribbleton
+GameMusic.playScene('town_base');
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');

@@ -285,6 +285,8 @@ return sorted.length > 0 ? sorted[0][0] : '-';
 
 // ===== DEATH SCREEN =====
 function showDeathScreen() {
+// Music: play game over theme
+GameMusic.playScene('game_over');
 savePermanent(); // Save gold, goingRate, sig upgrades
 // Recruits persist until killed - don't clear here
 
@@ -975,8 +977,8 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
-// JUICE: Victory treasure sound!
-GameMusic.stop();
+// JUICE: Victory treasure sound + happy music!
+GameMusic.playScene('neutral_happy');
 SoundFX.play('treasure');
 
 // Record victory to The Pond!
@@ -2148,8 +2150,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// Music: stop combat music when entering Ribbleton
-GameMusic.stop();
+// Music: play town theme in Ribbleton
+GameMusic.playScene('town_base');
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
