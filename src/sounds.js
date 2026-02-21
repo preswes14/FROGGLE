@@ -91,6 +91,12 @@ const SoundFX = {
     // Stop current music if playing
     this.stopMusic();
 
+    // Cancel any pending gain automation from a previous fade-out
+    if (this.musicGain && this.ctx) {
+      this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+    }
+
     if (!this.audioBuffers[name]) {
       console.warn(`Music "${name}" not loaded`);
       return null;
