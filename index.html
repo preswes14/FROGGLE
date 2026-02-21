@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.48';
+const GAME_VERSION = 'S_1.49';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4818,583 +4818,70 @@ const SoundFX = {
 document.addEventListener('click', () => SoundFX.init(), { once: true });
 document.addEventListener('touchstart', () => SoundFX.init(), { once: true });
 
-// ===== PROCEDURAL MUSIC SYSTEM =====
-const ProceduralMusic = {
-  ctx: null,
-  enabled: true,
-  volume: 0.15,
-  currentMode: null,
-  oscillators: [],
-  gainNodes: [],
-  intervalIds: [],
+// ===== FILE-BASED MUSIC SYSTEM =====
+// Plays real audio files (MP3) for game music with intro+loop support.
+// Add tracks to GameMusic.tracks, then call GameMusic.preload() at startup.
+const GameMusic = {
+  // Track registry: { name: 'assets/music/filename.mp3' }
+  // Naming convention: 'combat1_intro', 'combat1_loop', etc.
+  tracks: {
+    // Combat music for floors 1,3,5,7,9 (add MP3 files to assets/music/)
+    // 'combat1_intro': 'assets/music/Froggle_Combat_1_intro.mp3',
+    // 'combat1_loop': 'assets/music/Froggle_Combat_1_loop.mp3',
+  },
+  currentTrack: null,
+  loaded: false,
 
-  init() {
+  async preload() {
+    const entries = Object.entries(this.tracks);
+    if (entries.length === 0) { this.loaded = true; return; }
     if (!SoundFX.ctx) SoundFX.init();
-    this.ctx = SoundFX.ctx;
+    await SoundFX.preloadAudio(Object.fromEntries(entries));
+    this.loaded = true;
   },
 
-  stopAll() {
-    // Stop all oscillators
-    this.oscillators.forEach(osc => {
-      try { osc.stop(); } catch(e) {}
-    });
-    this.oscillators = [];
+  // Play a track with optional intro that transitions to loop
+  play(introName, loopName) {
+    if (!this.loaded) return;
 
-    // Disconnect gain nodes
-    this.gainNodes.forEach(g => {
-      try { g.disconnect(); } catch(e) {}
-    });
-    this.gainNodes = [];
+    // Stop any current music
+    SoundFX.stopMusic();
 
-    // Clear intervals
-    this.intervalIds.forEach(id => clearInterval(id));
-    this.intervalIds = [];
-
-    this.currentMode = null;
+    if (introName && SoundFX.audioBuffers[introName]) {
+      // Play intro first, then auto-transition to loop
+      const introSource = SoundFX.playMusic(introName, { loop: false });
+      this.currentTrack = introName;
+      if (introSource && loopName) {
+        introSource.onended = () => {
+          // Only transition if we haven't been stopped/changed
+          if (this.currentTrack === introName) {
+            SoundFX.playMusic(loopName, { loop: true });
+            this.currentTrack = loopName;
+          }
+        };
+      }
+    } else if (loopName && SoundFX.audioBuffers[loopName]) {
+      // No intro available, just loop
+      SoundFX.playMusic(loopName, { loop: true });
+      this.currentTrack = loopName;
+    }
   },
 
-  // Ambient swamp drone - mysterious, atmospheric
-  startAmbient() {
-    if (!this.enabled || this.currentMode === 'ambient') return;
-    this.stopAll();
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-
-    this.currentMode = 'ambient';
-    const now = this.ctx.currentTime;
-
-    // Create master gain for ambient
-    const masterGain = this.ctx.createGain();
-    masterGain.gain.setValueAtTime(0, now);
-    masterGain.gain.linearRampToValueAtTime(this.volume, now + 2); // Fade in
-    masterGain.connect(this.ctx.destination);
-    this.gainNodes.push(masterGain);
-
-    // Deep drone - fundamental (D2, ~73Hz)
-    const drone1 = this.ctx.createOscillator();
-    const drone1Gain = this.ctx.createGain();
-    drone1.frequency.setValueAtTime(73, now);
-    drone1.type = 'sine';
-    drone1Gain.gain.setValueAtTime(0.4, now);
-    drone1.connect(drone1Gain);
-    drone1Gain.connect(masterGain);
-    drone1.start(now);
-    this.oscillators.push(drone1);
-    this.gainNodes.push(drone1Gain);
-
-    // Fifth harmonic (A2, ~110Hz) - adds richness
-    const drone2 = this.ctx.createOscillator();
-    const drone2Gain = this.ctx.createGain();
-    drone2.frequency.setValueAtTime(110, now);
-    drone2.type = 'sine';
-    drone2Gain.gain.setValueAtTime(0.2, now);
-    drone2.connect(drone2Gain);
-    drone2Gain.connect(masterGain);
-    drone2.start(now);
-    this.oscillators.push(drone2);
-    this.gainNodes.push(drone2Gain);
-
-    // Subtle LFO modulation for "breathing" effect on volume
-    const breatheInterval = setInterval(() => {
-      if (this.currentMode !== 'ambient' || !this.ctx) return;
-      const t = this.ctx.currentTime;
-      // Slow breathing (8 second cycle)
-      const breath = 0.7 + 0.3 * Math.sin(t * 0.4);
-      drone1Gain.gain.setTargetAtTime(0.4 * breath, t, 0.5);
-      drone2Gain.gain.setTargetAtTime(0.2 * breath, t, 0.5);
-    }, 500);
-    this.intervalIds.push(breatheInterval);
-
-    // Occasional water drip sounds
-    const dripInterval = setInterval(() => {
-      if (this.currentMode !== 'ambient' || !this.ctx) return;
-      if (Math.random() < 0.3) { // 30% chance every 2 seconds
-        SoundFX.play('waterDrip');
-      }
-    }, 2000);
-    this.intervalIds.push(dripInterval);
-
-    // Occasional cricket chirps (less frequent)
-    const cricketInterval = setInterval(() => {
-      if (this.currentMode !== 'ambient' || !this.ctx) return;
-      if (Math.random() < 0.15) {
-        SoundFX.play('crickets');
-      }
-    }, 4000);
-    this.intervalIds.push(cricketInterval);
+  // Play combat music based on floor number
+  playCombat(floor) {
+    // Floors 1,3,5,7,9 use combat1 track
+    // Future: add more tracks for floors 11+ (combat2, combat3, etc.)
+    if (floor <= 9) {
+      this.play('combat1_intro', 'combat1_loop');
+    } else {
+      // Reuse combat1 for higher floors until more tracks are added
+      this.play('combat1_intro', 'combat1_loop');
+    }
   },
 
-  // Froggy beat - same drums as combat but with splash and ribbit sounds
-  // Used for title screen and Ribbleton (froggy areas)
-  startFroggyBeat() {
-    if (!this.enabled || this.currentMode === 'froggy') return;
-    this.stopAll();
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-
-    this.currentMode = 'froggy';
-    const now = this.ctx.currentTime;
-    const bpm = 100;
-    const beatDuration = 60 / bpm;
-
-    // Create master gain for froggy beat
-    const masterGain = this.ctx.createGain();
-    masterGain.gain.setValueAtTime(0, now);
-    masterGain.gain.linearRampToValueAtTime(this.volume * 1.0, now + 0.5);
-    masterGain.connect(this.ctx.destination);
-    this.gainNodes.push(masterGain);
-
-    // Helper: create noise buffer for percussive sounds
-    const createNoise = (duration) => {
-      const bufferSize = this.ctx.sampleRate * duration;
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-      return buffer;
-    };
-
-    // Pre-create noise buffers (reused each beat to avoid GC pressure)
-    const snareNoiseBuffer = createNoise(0.15);
-    const hatNoiseBuffer = createNoise(0.04);
-
-    // 16-step patterns (two measures of 8)
-    // Kick pattern: same as combat but extended to 16 steps
-    const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0];
-    // Snare on beats 3, 7, 11, 15 (backbeat) - 0-indexed: 2, 6, 10, 14
-    const snarePattern = [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0];
-    // Hi-hat on every step for steady pulse
-    const hatPattern = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-    // Splash on beats 3, 7, 11 (0-indexed: 2, 6, 10)
-    const splashPattern = [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0];
-    // Ribbit on beat 16 (0-indexed: 15)
-    const ribbitPattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
-    let step = 0;
-
-    const beatInterval = setInterval(() => {
-      if (this.currentMode !== 'froggy' || !this.ctx) return;
-
-      const t = this.ctx.currentTime;
-
-      // Kick drum - low thump (slightly quieter than combat)
-      if (kickPattern[step]) {
-        const kickOsc = this.ctx.createOscillator();
-        const kickGain = this.ctx.createGain();
-        kickOsc.connect(kickGain);
-        kickGain.connect(masterGain);
-        kickOsc.frequency.setValueAtTime(150, t);
-        kickOsc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
-        kickGain.gain.setValueAtTime(0.5, t);
-        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
-        kickOsc.type = 'sine';
-        kickOsc.start(t);
-        kickOsc.stop(t + 0.12);
-      }
-
-      // Snare drum - mid punch (slightly quieter)
-      if (snarePattern[step]) {
-        const snareOsc = this.ctx.createOscillator();
-        const snareGain = this.ctx.createGain();
-        snareOsc.connect(snareGain);
-        snareGain.connect(masterGain);
-        snareOsc.frequency.setValueAtTime(180, t);
-        snareOsc.frequency.exponentialRampToValueAtTime(120, t + 0.05);
-        snareGain.gain.setValueAtTime(0.25, t);
-        snareGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-        snareOsc.type = 'triangle';
-        snareOsc.start(t);
-        snareOsc.stop(t + 0.1);
-
-        // Noise rattle
-        const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = snareNoiseBuffer;
-        const snareNoiseGain = this.ctx.createGain();
-        const snareNoiseFilter = this.ctx.createBiquadFilter();
-        snareNoiseFilter.type = 'highpass';
-        snareNoiseFilter.frequency.value = 2000;
-        snareNoise.connect(snareNoiseFilter);
-        snareNoiseFilter.connect(snareNoiseGain);
-        snareNoiseGain.connect(masterGain);
-        snareNoiseGain.gain.setValueAtTime(0.18, t);
-        snareNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
-        snareNoise.start(t);
-      }
-
-      // Hi-hat - quiet tick (quieter than combat for more chill vibe)
-      if (hatPattern[step]) {
-        const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = hatNoiseBuffer;
-        const hatGain = this.ctx.createGain();
-        const hatFilter = this.ctx.createBiquadFilter();
-        hatFilter.type = 'highpass';
-        hatFilter.frequency.value = 7000;
-        hatNoise.connect(hatFilter);
-        hatFilter.connect(hatGain);
-        hatGain.connect(masterGain);
-        const accent = (step === 0 || step === 8) ? 0.08 : 0.04;
-        hatGain.gain.setValueAtTime(accent, t);
-        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
-        hatNoise.start(t);
-      }
-
-      // Water splash on beats 3, 7, 11 (swapped - 'ribbit' synthesis sounds like splash to users)
-      if (splashPattern[step]) {
-        SoundFX.play('ribbit');
-      }
-
-      // Frog ribbit on beat 16 (swapped - 'splash' synthesis sounds like ribbit to users)
-      if (ribbitPattern[step]) {
-        SoundFX.play('splash');
-      }
-
-      step = (step + 1) % 16;
-    }, beatDuration * 1000);
-    this.intervalIds.push(beatInterval);
-  },
-
-  // Title funky beat - laid-back groovy funk with froggy sounds
-  // Used for title screen, victory screen, and credits
-  startTitleBeat() {
-    if (!this.enabled || this.currentMode === 'title') return;
-    this.stopAll();
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-
-    this.currentMode = 'title';
-    const now = this.ctx.currentTime;
-    const bpm = 88; // Slower, more chill
-    const beatDuration = 60 / bpm;
-
-    // Create master gain for title beat
-    const masterGain = this.ctx.createGain();
-    masterGain.gain.setValueAtTime(0, now);
-    masterGain.gain.linearRampToValueAtTime(this.volume * 0.7, now + 1); // Gentler fade in
-    masterGain.connect(this.ctx.destination);
-    this.gainNodes.push(masterGain);
-
-    // Helper: create noise buffer for percussive sounds
-    const createNoise = (duration) => {
-      const bufferSize = this.ctx.sampleRate * duration;
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-      return buffer;
-    };
-
-    // Pre-create noise buffers (reused each beat to avoid GC pressure)
-    const snareNoiseBuffer = createNoise(0.08);
-    const hatNoiseBuffer = createNoise(0.02);
-
-    // 16-step pattern (two measures) - simplified and more spacious
-    //                        steps: 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-    // Simpler kick: just 1, 4, 9, 12 (four-on-the-floor with slight syncopation)
-    const kickPattern =           [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
-    // Snare only on 7 and 15 (half as often)
-    const snarePattern =          [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0];
-    // Sparse hi-hat - just on 1, 5, 9, 13 (quarter notes only)
-    const hatPattern =            [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
-    // LilyPad boing on beat 8 only (signature sound)
-    const lilyPadPattern =        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0];
-    // Gentle ribbit on beat 16 to close the phrase
-    const ribbitPattern =         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
-
-    let step = 0;
-    let measureCount = 0;
-
-    const beatInterval = setInterval(() => {
-      if (this.currentMode !== 'title' || !this.ctx) return;
-
-      const t = this.ctx.currentTime;
-
-      // Kick drum - softer and warmer
-      if (kickPattern[step]) {
-        const kickOsc = this.ctx.createOscillator();
-        const kickGain = this.ctx.createGain();
-        kickOsc.connect(kickGain);
-        kickGain.connect(masterGain);
-        kickOsc.frequency.setValueAtTime(100, t);
-        kickOsc.frequency.exponentialRampToValueAtTime(50, t + 0.12);
-        kickGain.gain.setValueAtTime(0.4, t);
-        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.18);
-        kickOsc.type = 'sine';
-        kickOsc.start(t);
-        kickOsc.stop(t + 0.18);
-      }
-
-      // Snare - softer, more like a rim tap
-      if (snarePattern[step]) {
-        const snareOsc = this.ctx.createOscillator();
-        const snareGain = this.ctx.createGain();
-        snareOsc.connect(snareGain);
-        snareGain.connect(masterGain);
-        snareOsc.frequency.setValueAtTime(180, t);
-        snareOsc.frequency.exponentialRampToValueAtTime(120, t + 0.03);
-        snareGain.gain.setValueAtTime(0.2, t);
-        snareGain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
-        snareOsc.type = 'triangle';
-        snareOsc.start(t);
-        snareOsc.stop(t + 0.08);
-
-        // Light noise brush
-        const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = snareNoiseBuffer;
-        const snareNoiseGain = this.ctx.createGain();
-        const snareNoiseFilter = this.ctx.createBiquadFilter();
-        snareNoiseFilter.type = 'highpass';
-        snareNoiseFilter.frequency.value = 3000;
-        snareNoise.connect(snareNoiseFilter);
-        snareNoiseFilter.connect(snareNoiseGain);
-        snareNoiseGain.connect(masterGain);
-        snareNoiseGain.gain.setValueAtTime(0.1, t);
-        snareNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.06);
-        snareNoise.start(t);
-      }
-
-      // Soft hi-hat tick
-      if (hatPattern[step]) {
-        const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = hatNoiseBuffer;
-        const hatGain = this.ctx.createGain();
-        const hatFilter = this.ctx.createBiquadFilter();
-        hatFilter.type = 'highpass';
-        hatFilter.frequency.value = 8000;
-        hatNoise.connect(hatFilter);
-        hatFilter.connect(hatGain);
-        hatGain.connect(masterGain);
-        hatGain.gain.setValueAtTime(0.03, t);
-        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.02);
-        hatNoise.start(t);
-      }
-
-      // LilyPad boing - the signature froggy sound
-      if (lilyPadPattern[step]) {
-        SoundFX.play('lilyPad');
-      }
-
-      // Gentle ribbit to close the phrase (every other measure for variety)
-      if (ribbitPattern[step] && measureCount % 2 === 1) {
-        SoundFX.play('ribbit');
-      }
-
-      // Track measures
-      if (step === 15) {
-        measureCount++;
-      }
-
-      step = (step + 1) % 16;
-    }, beatDuration * 1000);
-    this.intervalIds.push(beatInterval);
-  },
-
-  // Combat beat - percussive, drum-focused
-  startCombat() {
-    if (!this.enabled || this.currentMode === 'combat') return;
-    this.stopAll();
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-
-    this.currentMode = 'combat';
-    const now = this.ctx.currentTime;
-    const bpm = 100;
-    const beatDuration = 60 / bpm;
-
-    // Create master gain for combat
-    const masterGain = this.ctx.createGain();
-    masterGain.gain.setValueAtTime(0, now);
-    masterGain.gain.linearRampToValueAtTime(this.volume * 1.2, now + 0.5);
-    masterGain.connect(this.ctx.destination);
-    this.gainNodes.push(masterGain);
-
-    // Helper: create noise buffer for percussive sounds
-    const createNoise = (duration) => {
-      const bufferSize = this.ctx.sampleRate * duration;
-      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-      return buffer;
-    };
-
-    // Pre-create noise buffers (reused each beat to avoid GC pressure)
-    const kickNoiseBuffer = createNoise(0.03);
-    const snareNoiseBuffer = createNoise(0.15);
-    const hatNoiseBuffer = createNoise(0.04);
-
-    // Kick pattern: 1-0-0-1-0-1-0-0 (8 steps) - punchy drum hits
-    const kickPattern = [1, 0, 0, 1, 0, 1, 0, 0];
-    // Snare on beats 3 and 7 (backbeat)
-    const snarePattern = [0, 0, 1, 0, 0, 0, 1, 0];
-    // Hi-hat on every step for steady pulse
-    const hatPattern = [1, 1, 1, 1, 1, 1, 1, 1];
-    let step = 0;
-
-    const beatInterval = setInterval(() => {
-      if (this.currentMode !== 'combat' || !this.ctx) return;
-
-      const t = this.ctx.currentTime;
-
-      // Kick drum - low thump with noise click
-      if (kickPattern[step]) {
-        // Low frequency body
-        const kickOsc = this.ctx.createOscillator();
-        const kickGain = this.ctx.createGain();
-        kickOsc.connect(kickGain);
-        kickGain.connect(masterGain);
-        kickOsc.frequency.setValueAtTime(150, t);
-        kickOsc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
-        kickGain.gain.setValueAtTime(0.7, t);
-        kickGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
-        kickOsc.type = 'sine';
-        kickOsc.start(t);
-        kickOsc.stop(t + 0.12);
-
-        // Noise click for attack
-        const kickNoise = this.ctx.createBufferSource();
-        kickNoise.buffer = kickNoiseBuffer;
-        const kickNoiseGain = this.ctx.createGain();
-        const kickNoiseFilter = this.ctx.createBiquadFilter();
-        kickNoiseFilter.type = 'lowpass';
-        kickNoiseFilter.frequency.value = 200;
-        kickNoise.connect(kickNoiseFilter);
-        kickNoiseFilter.connect(kickNoiseGain);
-        kickNoiseGain.connect(masterGain);
-        kickNoiseGain.gain.setValueAtTime(0.3, t);
-        kickNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
-        kickNoise.start(t);
-      }
-
-      // Snare drum - mid punch with noise burst
-      if (snarePattern[step]) {
-        // Body tone
-        const snareOsc = this.ctx.createOscillator();
-        const snareGain = this.ctx.createGain();
-        snareOsc.connect(snareGain);
-        snareGain.connect(masterGain);
-        snareOsc.frequency.setValueAtTime(180, t);
-        snareOsc.frequency.exponentialRampToValueAtTime(120, t + 0.05);
-        snareGain.gain.setValueAtTime(0.35, t);
-        snareGain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
-        snareOsc.type = 'triangle';
-        snareOsc.start(t);
-        snareOsc.stop(t + 0.1);
-
-        // Noise rattle
-        const snareNoise = this.ctx.createBufferSource();
-        snareNoise.buffer = snareNoiseBuffer;
-        const snareNoiseGain = this.ctx.createGain();
-        const snareNoiseFilter = this.ctx.createBiquadFilter();
-        snareNoiseFilter.type = 'highpass';
-        snareNoiseFilter.frequency.value = 2000;
-        snareNoise.connect(snareNoiseFilter);
-        snareNoiseFilter.connect(snareNoiseGain);
-        snareNoiseGain.connect(masterGain);
-        snareNoiseGain.gain.setValueAtTime(0.25, t);
-        snareNoiseGain.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
-        snareNoise.start(t);
-      }
-
-      // Hi-hat - quiet tick for steady metronome pulse
-      if (hatPattern[step]) {
-        const hatNoise = this.ctx.createBufferSource();
-        hatNoise.buffer = hatNoiseBuffer;
-        const hatGain = this.ctx.createGain();
-        const hatFilter = this.ctx.createBiquadFilter();
-        hatFilter.type = 'highpass';
-        hatFilter.frequency.value = 7000;
-        hatNoise.connect(hatFilter);
-        hatFilter.connect(hatGain);
-        hatGain.connect(masterGain);
-        // Accent on downbeats
-        const accent = (step === 0 || step === 4) ? 0.12 : 0.06;
-        hatGain.gain.setValueAtTime(accent, t);
-        hatGain.gain.exponentialRampToValueAtTime(0.01, t + 0.03);
-        hatNoise.start(t);
-      }
-
-      // Single splash at end of pattern (step 7)
-      if (step === 7) {
-        SoundFX.play('ribbit'); // 'ribbit' synthesis sounds like splash to users
-      }
-
-      step = (step + 1) % 8;
-    }, beatDuration * 1000);
-    this.intervalIds.push(beatInterval);
-  },
-
-  // Victory fanfare - celebratory, ascending
-  playVictory() {
-    if (!this.enabled) return;
-    this.stopAll();
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-
-    const now = this.ctx.currentTime;
-
-    // Triumphant chord progression: C -> G -> Am -> F -> C (simplified fanfare)
-    const fanfare = [
-      { notes: [262, 330, 392], time: 0, duration: 0.3 },      // C major
-      { notes: [294, 370, 440], time: 0.35, duration: 0.3 },   // D major
-      { notes: [330, 415, 494], time: 0.7, duration: 0.3 },    // E major
-      { notes: [392, 494, 587], time: 1.05, duration: 0.5 },   // G major (resolve)
-      { notes: [523, 659, 784], time: 1.6, duration: 0.8 },    // C major (octave up, finale)
-    ];
-
-    fanfare.forEach(chord => {
-      chord.notes.forEach((freq, i) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.frequency.setValueAtTime(freq, now + chord.time);
-        gain.gain.setValueAtTime(this.volume * 0.6, now + chord.time);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + chord.time + chord.duration);
-        osc.type = i === 0 ? 'sine' : 'triangle'; // Root is fuller
-        osc.start(now + chord.time);
-        osc.stop(now + chord.time + chord.duration + 0.1);
-      });
-    });
-
-    // Add a final sparkle
-    setTimeout(() => SoundFX.play('frogChorus'), 1800);
-  },
-
-  // Death/defeat sound - somber, descending
-  playDefeat() {
-    if (!this.enabled) return;
-    this.stopAll();
-    if (!this.ctx) this.init();
-    if (!this.ctx) return;
-
-    const now = this.ctx.currentTime;
-
-    // Descending minor progression
-    const lament = [
-      { freq: 220, time: 0 },
-      { freq: 196, time: 0.4 },
-      { freq: 175, time: 0.8 },
-      { freq: 147, time: 1.2 },
-    ];
-
-    lament.forEach(note => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.frequency.setValueAtTime(note.freq, now + note.time);
-      gain.gain.setValueAtTime(this.volume * 0.5, now + note.time);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + note.time + 0.5);
-      osc.type = 'sawtooth';
-      osc.start(now + note.time);
-      osc.stop(now + note.time + 0.6);
-    });
-  },
-
-  setVolume(vol) {
-    this.volume = Math.max(0, Math.min(1, vol));
+  stop(fadeOut = 0.5) {
+    this.currentTrack = null;
+    SoundFX.stopMusic(fadeOut);
   }
 };
 
@@ -5414,16 +4901,7 @@ function applyVolumeSettings() {
     SoundFX.musicGain.gain.setValueAtTime(SoundFX.musicVolume, SoundFX.ctx.currentTime);
   }
 
-  // Apply to ProceduralMusic
-  ProceduralMusic.volume = 0.15 * effectiveMusic; // Base procedural music volume is 0.15
-
-  // Update currently playing procedural music volume if active
-  if (ProceduralMusic.gainNodes && ProceduralMusic.gainNodes.length > 0 && ProceduralMusic.ctx) {
-    const masterGain = ProceduralMusic.gainNodes[0];
-    if (masterGain && masterGain.gain) {
-      masterGain.gain.setValueAtTime(ProceduralMusic.volume, ProceduralMusic.ctx.currentTime);
-    }
-  }
+  // Note: GameMusic uses SoundFX.musicGain for volume, which is already updated above
 }
 
 // Set master volume and apply
@@ -7140,7 +6618,7 @@ const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 S.inCombat = true; // Mark that we're in active combat for autosave
 // JUICE: Start combat music
-if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.startCombat();
+GameMusic.playCombat(f);
 S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
@@ -9407,7 +8885,7 @@ return true;
 // Normal combat victory
 // JUICE: Victory celebration!
 spawnConfetti(60);
-if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playVictory(); // Victory fanfare!
+GameMusic.stop(); // Stop combat music on victory
 SoundFX.play('victoryFanfare'); // Triumphant ascending fanfare!
 setTimeout(() => SoundFX.play('ribbit'), 300); // Celebratory frog croak after fanfare
 // Show happy reactions on all surviving heroes for 3 seconds
@@ -9452,8 +8930,8 @@ localStorage.removeItem('froggle8'); // Also clear old format for backwards comp
 // Record to The Pond - determine what killed the heroes
 const killedBy = S.enemies.length > 0 ? S.enemies[0].n : 'Unknown';
 recordPondHistory('defeat', killedBy);
-// JUICE: Defeat sound and music
-if(typeof ProceduralMusic !== 'undefined') ProceduralMusic.playDefeat();
+// JUICE: Defeat sound
+GameMusic.stop();
 SoundFX.play('death');
 setTimeout(() => {
 toast('Defeated!', 2400, 'critical');
@@ -10848,8 +10326,8 @@ return html;
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
 debugLog('[FROGGLE] mainTitlePage START');
-// JUICE: Funky frog beat for title screen
-ProceduralMusic.startTitleBeat();
+// Music: stop any playing music on title screen
+GameMusic.stop();
 // Hide game header on title screen
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'none';
@@ -10951,8 +10429,8 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
 
 // Show credits screen
 function showCredits() {
-// JUICE: Funky frog beat for credits
-ProceduralMusic.startTitleBeat();
+// Music: stop any playing music on credits
+GameMusic.stop();
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
@@ -12026,8 +11504,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Funky frog beat for title/hero select
-ProceduralMusic.startTitleBeat();
+// Music: stop any playing music on hero select
+GameMusic.stop();
 upd();
 // Reset selection first
 sel = [];
@@ -12420,8 +11898,8 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Ambient music for neutral/exploration
-ProceduralMusic.startAmbient();
+// Music: stop combat music during neutral encounters
+GameMusic.stop();
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
@@ -15276,8 +14754,8 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
-// JUICE: Victory music and treasure sound!
-ProceduralMusic.playVictory();
+// JUICE: Victory treasure sound!
+GameMusic.stop();
 SoundFX.play('treasure');
 
 // Record victory to The Pond!
@@ -15693,8 +15171,7 @@ showPedestal();
 }
 
 function showSimpleVictoryScreen() {
-// JUICE: Funky frog beat for victory celebration (after fanfare)
-setTimeout(() => ProceduralMusic.startTitleBeat(), 2000);
+// Music stopped on victory - no procedural music
 const v = document.getElementById('gameView');
 let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
@@ -16450,8 +15927,8 @@ function showRibbleton() {
 S.inRibbleton = true;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// JUICE: Froggy beat for Ribbleton hub
-ProceduralMusic.startFroggyBeat();
+// Music: stop combat music when entering Ribbleton
+GameMusic.stop();
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
@@ -19140,6 +18617,7 @@ loadPermanent(); // No last slot, use old format
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'helpTips:', S.helpTipsDisabled, 'tutorial:', S.tutorialDisabled, 'cutscene:', S.cutsceneDisabled);
 
 try { applyVolumeSettings(); } catch(e) { console.warn('[FROGGLE] applyVolumeSettings failed:', e); }
+try { GameMusic.preload(); } catch(e) { console.warn('[FROGGLE] GameMusic.preload failed:', e); }
 try { initToastLog(); } catch(e) { console.warn('[FROGGLE] initToastLog failed:', e); }
 try { initSuspendSystem(); } catch(e) { console.warn('[FROGGLE] initSuspendSystem failed:', e); }
 try { Steam.init(); } catch(e) { console.warn('[FROGGLE] Steam.init failed:', e); }
