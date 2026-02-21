@@ -121,6 +121,10 @@ ipcMain.on('steam-unlock-achievement', (event, achievementId) => {
   }
   try {
     const result = steamClient.achievement.activate(achievementId);
+    // activate() only sets the achievement in memory — store() flushes to Steam servers
+    if (result) {
+      steamClient.stats.store();
+    }
     event.returnValue = result;
   } catch (e) {
     console.warn('[Steam] Unlock failed:', e);
@@ -149,6 +153,7 @@ ipcMain.on('steam-clear-achievement', (event, achievementId) => {
   }
   try {
     const result = steamClient.achievement.clear(achievementId);
+    if (result) steamClient.stats.store();
     event.returnValue = result;
   } catch (e) {
     event.returnValue = false;
@@ -163,23 +168,26 @@ ipcMain.on('steam-clear-all-achievements', (event) => {
   try {
     const achievements = steamClient.achievement.getAll();
     achievements.forEach(a => steamClient.achievement.clear(a.name));
+    steamClient.stats.store();
     event.returnValue = true;
   } catch (e) {
     event.returnValue = false;
   }
 });
 
-// Stats
+// Stats — float stats must use setFloat/getFloat (configured in Steam dashboard)
+const FLOAT_STATS = new Set(['fastest_win_seconds']);
+
 ipcMain.on('steam-set-stat', (event, statName, value) => {
   if (!steamInitialized || !steamClient) {
     event.returnValue = false;
     return;
   }
   try {
-    if (Number.isInteger(value)) {
-      steamClient.stats.setInt(statName, value);
-    } else {
+    if (FLOAT_STATS.has(statName)) {
       steamClient.stats.setFloat(statName, value);
+    } else {
+      steamClient.stats.setInt(statName, Math.floor(value));
     }
     event.returnValue = true;
   } catch (e) {
@@ -193,13 +201,11 @@ ipcMain.on('steam-get-stat', (event, statName) => {
     return;
   }
   try {
-    const intVal = steamClient.stats.getInt(statName);
-    if (intVal !== undefined) {
-      event.returnValue = intVal;
-      return;
+    if (FLOAT_STATS.has(statName)) {
+      event.returnValue = steamClient.stats.getFloat(statName) || 0;
+    } else {
+      event.returnValue = steamClient.stats.getInt(statName) || 0;
     }
-    const floatVal = steamClient.stats.getFloat(statName);
-    event.returnValue = floatVal || 0;
   } catch (e) {
     event.returnValue = 0;
   }
@@ -300,9 +306,11 @@ ipcMain.on('steam-get-user-info', (event) => {
     return;
   }
   try {
+    const steamId = steamClient.localplayer.getSteamId();
     event.returnValue = {
       name: steamClient.localplayer.getName(),
-      steamId: steamClient.localplayer.getSteamId().steamId64
+      // steamId64 is a bigint — convert to string to avoid JSON.stringify crashes
+      steamId: steamId.steamId64.toString()
     };
   } catch (e) {
     event.returnValue = null;

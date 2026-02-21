@@ -31,6 +31,9 @@
     "directories": {
       "output": "dist"
     },
+    "asarUnpack": [
+      "**/steamworks.js/**"
+    ],
     "files": [
       "index.html",
       "electron-main.js",
