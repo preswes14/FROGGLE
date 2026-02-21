@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.50';
+const GAME_VERSION = 'S_1.51';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4131,6 +4131,12 @@ const SoundFX = {
 
     // Stop current music if playing
     this.stopMusic();
+
+    // Cancel any pending gain automation from a previous fade-out
+    if (this.musicGain && this.ctx) {
+      this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+    }
 
     if (!this.audioBuffers[name]) {
       console.warn(`Music "${name}" not loaded`);
@@ -18662,7 +18668,10 @@ loadPermanent(); // No last slot, use old format
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'helpTips:', S.helpTipsDisabled, 'tutorial:', S.tutorialDisabled, 'cutscene:', S.cutsceneDisabled);
 
 try { applyVolumeSettings(); } catch(e) { console.warn('[FROGGLE] applyVolumeSettings failed:', e); }
-try { GameMusic.preload(); } catch(e) { console.warn('[FROGGLE] GameMusic.preload failed:', e); }
+try { GameMusic.preload().then(() => {
+  // Start title music after preload completes (if still on title screen)
+  if (!GameMusic.currentTrack) GameMusic.playScene('town_base');
+}); } catch(e) { console.warn('[FROGGLE] GameMusic.preload failed:', e); }
 try { initToastLog(); } catch(e) { console.warn('[FROGGLE] initToastLog failed:', e); }
 try { initSuspendSystem(); } catch(e) { console.warn('[FROGGLE] initSuspendSystem failed:', e); }
 try { Steam.init(); } catch(e) { console.warn('[FROGGLE] Steam.init failed:', e); }
