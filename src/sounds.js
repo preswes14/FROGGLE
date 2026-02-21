@@ -784,9 +784,18 @@ const GameMusic = {
   // Track registry: { name: 'assets/music/filename.mp3' }
   // Naming convention: 'combat1_intro', 'combat1_loop', etc.
   tracks: {
-    // Combat music for floors 1,3,5,7,9 (add MP3 files to assets/music/)
-    // 'combat1_intro': 'assets/music/Froggle_Combat_1_intro.mp3',
-    // 'combat1_loop': 'assets/music/Froggle_Combat_1_loop.mp3',
+    'char_select': 'assets/music/Froggle_Char_Select.mp3',
+    'combat1_intro': 'assets/music/Froggle_Combat_1_intro.mp3',
+    'combat1_loop': 'assets/music/Froggle_Combat_1_loop.mp3',
+    'combat_boss': 'assets/music/Froggle_Combat_Boss.mp3',
+    'combat_hard': 'assets/music/Froggle_Combat_Hard.mp3',
+    'game_over': 'assets/music/Froggle_Game_Over.mp3',
+    'neutral_base': 'assets/music/Froggle_Neutral_Base.mp3',
+    'neutral_happy': 'assets/music/Froggle_Neutral_Happy_Final.mp3',
+    'neutral_medium': 'assets/music/Froggle_Neutral_Medium.mp3',
+    'neutral_intense': 'assets/music/Froggle_Neutral_ScaryIntenseFunky.mp3',
+    'neutral_weird': 'assets/music/Froggle_Neutral_Weird.mp3',
+    'town_base': 'assets/music/Froggle_Town_Base.mp3',
   },
   currentTrack: null,
   loaded: false,
@@ -828,14 +837,44 @@ const GameMusic = {
 
   // Play combat music based on floor number
   playCombat(floor) {
-    // Floors 1,3,5,7,9 use combat1 track
-    // Future: add more tracks for floors 11+ (combat2, combat3, etc.)
-    if (floor <= 9) {
-      this.play('combat1_intro', 'combat1_loop');
+    if (floor === 19) {
+      this.play(null, 'combat_boss');
+    } else if (floor >= 11) {
+      this.play(null, 'combat_hard');
     } else {
-      // Reuse combat1 for higher floors until more tracks are added
       this.play('combat1_intro', 'combat1_loop');
     }
+  },
+
+  // Play a named scene track (looping, no intro)
+  playScene(trackName) {
+    this.play(null, trackName);
+  },
+
+  // Play music for a neutral encounter based on encounter name
+  playNeutral(enc) {
+    const map = {
+      'shopkeeper1': 'neutral_medium',
+      'shopkeeper2': 'game_over',
+      'wishingwell1': 'neutral_medium',
+      'wishingwell2': 'neutral_happy',
+      'treasurechest1': 'neutral_medium',
+      'treasurechest2': 'neutral_happy',
+      'wizard1': 'neutral_medium',
+      'wizard2': 'neutral_happy',
+      'oracle1': 'neutral_medium',
+      'oracle2': 'neutral_happy',
+      'encampment1': 'neutral_intense',
+      'encampment2': 'neutral_base',
+      'ghost1': 'neutral_weird',
+      'ghost2': 'neutral_base',
+      'gambling1': 'neutral_medium',
+      'gambling2': 'neutral_intense',
+      'royal1': 'neutral_medium',
+      'royal2': 'neutral_happy',
+    };
+    const track = map[enc] || 'neutral_base';
+    this.play(null, track);
   },
 
   stop(fadeOut = 0.5) {

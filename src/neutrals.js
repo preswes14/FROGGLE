@@ -130,8 +130,8 @@ return html;
 // ===== MAIN TITLE PAGE =====
 function mainTitlePage() {
 debugLog('[FROGGLE] mainTitlePage START');
-// Music: stop any playing music on title screen
-GameMusic.stop();
+// Music: play town theme on title screen
+GameMusic.playScene('town_base');
 // Hide game header on title screen
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'none';
@@ -233,8 +233,8 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
 
 // Show credits screen
 function showCredits() {
-// Music: stop any playing music on credits
-GameMusic.stop();
+// Music: play char select theme on credits
+GameMusic.playScene('char_select');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
@@ -1308,8 +1308,8 @@ debugLog('[FROGGLE] title() called - Hero selection screen');
 // Show header on hero selection
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// Music: stop any playing music on hero select
-GameMusic.stop();
+// Music: play char select theme on hero select
+GameMusic.playScene('char_select');
 upd();
 // Reset selection first
 sel = [];
@@ -1702,8 +1702,6 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
-// Music: stop combat music during neutral encounters
-GameMusic.stop();
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
@@ -1713,9 +1711,14 @@ showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities
 const enc = getNeutralEncounter();
 
 if(S.ghostBoysConverted && enc.startsWith('ghost')) {
+// Music: play base neutral for empty playroom
+GameMusic.playScene('neutral_base');
 showEmptyPlayroom();
 return;
 }
+
+// Music: play encounter-specific neutral music
+GameMusic.playNeutral(enc);
 
 // Show interstitial then launch encounter
 const launchEncounter = () => {
