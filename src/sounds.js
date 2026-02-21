@@ -121,8 +121,8 @@ const SoundFX = {
   stopMusic(fadeOut = 0) {
     if (!this.currentMusic) return;
 
-    if (fadeOut > 0 && this.musicGain) {
-      // Fade out
+    if (fadeOut > 0 && this.musicGain && this.musicVolume > 0.001) {
+      // Fade out (skip fade if volume is already near zero — exponentialRamp requires positive start)
       const now = this.ctx.currentTime;
       this.musicGain.gain.setValueAtTime(this.musicVolume, now);
       this.musicGain.gain.exponentialRampToValueAtTime(0.01, now + fadeOut);
@@ -805,6 +805,7 @@ const GameMusic = {
   },
   currentTrack: null,
   loaded: false,
+  _pendingPlay: null, // Queued play request while loading
 
   async preload() {
     const entries = Object.entries(this.tracks);
@@ -812,11 +813,24 @@ const GameMusic = {
     if (!SoundFX.ctx) SoundFX.init();
     await SoundFX.preloadAudio(Object.fromEntries(entries));
     this.loaded = true;
+    // Play any track that was requested while loading
+    if (this._pendingPlay) {
+      const { introName, loopName } = this._pendingPlay;
+      this._pendingPlay = null;
+      this.play(introName, loopName);
+    }
   },
 
   // Play a track with optional intro that transitions to loop
   play(introName, loopName) {
-    if (!this.loaded) return;
+    if (!this.loaded) {
+      // Queue for playback once preload finishes
+      this._pendingPlay = { introName, loopName };
+      return;
+    }
+
+    // Skip if the requested track is already playing (prevents jarring restarts)
+    if (this.currentTrack && (this.currentTrack === introName || this.currentTrack === loopName)) return;
 
     // Stop any current music
     SoundFX.stopMusic();
