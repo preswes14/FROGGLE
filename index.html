@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.51';
+const GAME_VERSION = 'S_1.52';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4162,8 +4162,8 @@ const SoundFX = {
   stopMusic(fadeOut = 0) {
     if (!this.currentMusic) return;
 
-    if (fadeOut > 0 && this.musicGain) {
-      // Fade out
+    if (fadeOut > 0 && this.musicGain && this.musicVolume > 0.001) {
+      // Fade out (skip fade if volume is already near zero — exponentialRamp requires positive start)
       const now = this.ctx.currentTime;
       this.musicGain.gain.setValueAtTime(this.musicVolume, now);
       this.musicGain.gain.exponentialRampToValueAtTime(0.01, now + fadeOut);
@@ -4846,6 +4846,7 @@ const GameMusic = {
   },
   currentTrack: null,
   loaded: false,
+  _pendingPlay: null, // Queued play request while loading
 
   async preload() {
     const entries = Object.entries(this.tracks);
@@ -4853,11 +4854,24 @@ const GameMusic = {
     if (!SoundFX.ctx) SoundFX.init();
     await SoundFX.preloadAudio(Object.fromEntries(entries));
     this.loaded = true;
+    // Play any track that was requested while loading
+    if (this._pendingPlay) {
+      const { introName, loopName } = this._pendingPlay;
+      this._pendingPlay = null;
+      this.play(introName, loopName);
+    }
   },
 
   // Play a track with optional intro that transitions to loop
   play(introName, loopName) {
-    if (!this.loaded) return;
+    if (!this.loaded) {
+      // Queue for playback once preload finishes
+      this._pendingPlay = { introName, loopName };
+      return;
+    }
+
+    // Skip if the requested track is already playing (prevents jarring restarts)
+    if (this.currentTrack && (this.currentTrack === introName || this.currentTrack === loopName)) return;
 
     // Stop any current music
     SoundFX.stopMusic();
@@ -18668,10 +18682,7 @@ loadPermanent(); // No last slot, use old format
 debugLog('[FROGGLE] loadPermanent complete, S.runNumber:', S.runNumber, 'helpTips:', S.helpTipsDisabled, 'tutorial:', S.tutorialDisabled, 'cutscene:', S.cutsceneDisabled);
 
 try { applyVolumeSettings(); } catch(e) { console.warn('[FROGGLE] applyVolumeSettings failed:', e); }
-try { GameMusic.preload().then(() => {
-  // Start title music after preload completes (if still on title screen)
-  if (!GameMusic.currentTrack) GameMusic.playScene('town_base');
-}); } catch(e) { console.warn('[FROGGLE] GameMusic.preload failed:', e); }
+try { GameMusic.preload(); } catch(e) { console.warn('[FROGGLE] GameMusic.preload failed:', e); }
 try { initToastLog(); } catch(e) { console.warn('[FROGGLE] initToastLog failed:', e); }
 try { initSuspendSystem(); } catch(e) { console.warn('[FROGGLE] initSuspendSystem failed:', e); }
 try { Steam.init(); } catch(e) { console.warn('[FROGGLE] Steam.init failed:', e); }
