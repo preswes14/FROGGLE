@@ -1089,6 +1089,8 @@ showSimpleVictoryScreen();
 }
 
 function showFirstVictoryCutscene() {
+// Music: play town theme for victory narrative (story returns to Ribbleton)
+GameMusic.playScene('town_base');
 // Build dynamic stats text based on what was slotted
 const getSlottedStatsText = () => {
 const slotted = S.pedestal.filter(p => p.mode === S.gameMode);
@@ -1282,6 +1284,8 @@ showFirstVictoryPedestal(window.firstVicPedestalComplete);
 }
 
 function showFUVictoryCredits() {
+// Music: play town theme for FU victory credits
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 
 // Check if this is a Tapo victory (gated behind beating FU with Tapo)
@@ -1326,6 +1330,8 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 }
 
 function showTapoVictoryMessage() {
+// Music: play town theme for Tapo victory thank-you
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <style>
@@ -1394,7 +1400,8 @@ showPedestal();
 }
 
 function showSimpleVictoryScreen() {
-// Music stopped on victory - no procedural music
+// Music: play town theme for victory screen
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;

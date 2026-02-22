@@ -3152,6 +3152,8 @@ startFloor(S.floor + 1);
 }
 
 function showStartingXPScreen() {
+// Music: play town theme for pre-run XP spending
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
 const canAfford = S.xp >= nextCost;

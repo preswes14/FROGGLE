@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.52';
+const GAME_VERSION = 'S_1.53';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9670,6 +9670,8 @@ startFloor(S.floor + 1);
 }
 
 function showStartingXPScreen() {
+// Music: play town theme for pre-run XP spending
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
 const canAfford = S.xp >= nextCost;
@@ -10980,6 +10982,8 @@ setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPL
 // ===== RIBBLETON TUTORIAL INTRO =====
 function showTutorialStory() {
 debugLog('[FROGGLE] showTutorialStory START');
+// Music: play town theme during tutorial story slides
+GameMusic.playScene('town_base');
 const slides = [
 {
 // Full-art: Ribbleton background with text overlay
@@ -11234,6 +11238,8 @@ finishTaposBirthdayPhase();
 
 function finishTaposBirthdayPhase() {
 // Phase 1 victory celebration
+// Music: play town theme for post-combat celebration
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
@@ -11261,6 +11267,8 @@ Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton.
 }
 
 function transitionToPortalInvasion() {
+// Music: play town theme during portal invasion narrative
+GameMusic.playScene('town_base');
 // Show portal opening narrative
 const slides = [
 {
@@ -11510,6 +11518,8 @@ combat(0);
 
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
+// Music: play town theme during post-tutorial narrative
+GameMusic.playScene('town_base');
 const slides = [
 {bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe..."},
 {bg: 'assets/ribbleton-tadpole.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
@@ -11522,6 +11532,8 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
+// Music: play town theme on title card
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 if(!v) {
 showRibbleton();
@@ -13722,6 +13734,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 
 // ===== OLD TAPO ENCOUNTER (FLOOR 20) =====
 function showOldTapo() {
+// Music: play town theme for Old Tapo narrative encounter
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
@@ -14931,6 +14945,8 @@ showSimpleVictoryScreen();
 }
 
 function showFirstVictoryCutscene() {
+// Music: play town theme for victory narrative (story returns to Ribbleton)
+GameMusic.playScene('town_base');
 // Build dynamic stats text based on what was slotted
 const getSlottedStatsText = () => {
 const slotted = S.pedestal.filter(p => p.mode === S.gameMode);
@@ -15124,6 +15140,8 @@ showFirstVictoryPedestal(window.firstVicPedestalComplete);
 }
 
 function showFUVictoryCredits() {
+// Music: play town theme for FU victory credits
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 
 // Check if this is a Tapo victory (gated behind beating FU with Tapo)
@@ -15168,6 +15186,8 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 }
 
 function showTapoVictoryMessage() {
+// Music: play town theme for Tapo victory thank-you
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <style>
@@ -15236,7 +15256,8 @@ showPedestal();
 }
 
 function showSimpleVictoryScreen() {
-// Music stopped on victory - no procedural music
+// Music: play town theme for victory screen
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 let html = `
 <h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;

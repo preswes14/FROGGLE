@@ -724,6 +724,8 @@ setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPL
 // ===== RIBBLETON TUTORIAL INTRO =====
 function showTutorialStory() {
 debugLog('[FROGGLE] showTutorialStory START');
+// Music: play town theme during tutorial story slides
+GameMusic.playScene('town_base');
 const slides = [
 {
 // Full-art: Ribbleton background with text overlay
@@ -978,6 +980,8 @@ finishTaposBirthdayPhase();
 
 function finishTaposBirthdayPhase() {
 // Phase 1 victory celebration
+// Music: play town theme for post-combat celebration
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
@@ -1005,6 +1009,8 @@ Belly overflowing with delicious fresh flies, Mage and Tapo return to Ribbleton.
 }
 
 function transitionToPortalInvasion() {
+// Music: play town theme during portal invasion narrative
+GameMusic.playScene('town_base');
 // Show portal opening narrative
 const slides = [
 {
@@ -1254,6 +1260,8 @@ combat(0);
 
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
+// Music: play town theme during post-tutorial narrative
+GameMusic.playScene('town_base');
 const slides = [
 {bg: 'assets/ribbleton.png', text: "Scattered, the remaining enemies scamper back into the portal. The frog heroes unite, wipe their brows, and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe..."},
 {bg: 'assets/ribbleton-tadpole.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
@@ -1266,6 +1274,8 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
+// Music: play town theme on title card
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 if(!v) {
 showRibbleton();
@@ -3466,6 +3476,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 
 // ===== OLD TAPO ENCOUNTER (FLOOR 20) =====
 function showOldTapo() {
+// Music: play town theme for Old Tapo narrative encounter
+GameMusic.playScene('town_base');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
