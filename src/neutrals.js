@@ -1274,8 +1274,8 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
-// Music: play town theme on title card
-GameMusic.playScene('town_base');
+// Silent - dramatic pause on title card
+GameMusic.stop();
 const v = document.getElementById('gameView');
 if(!v) {
 showRibbleton();
@@ -3476,8 +3476,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 
 // ===== OLD TAPO ENCOUNTER (FLOOR 20) =====
 function showOldTapo() {
-// Music: play town theme for Old Tapo narrative encounter
-GameMusic.playScene('town_base');
+// Music: play neutral weird for Old Tapo's mystical encounter
+GameMusic.playScene('neutral_weird');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">

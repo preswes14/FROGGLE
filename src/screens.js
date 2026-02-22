@@ -1330,8 +1330,8 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 }
 
 function showTapoVictoryMessage() {
-// Music: play town theme for Tapo victory thank-you
-GameMusic.playScene('town_base');
+// Music: play neutral weird for Preston's thank-you message
+GameMusic.playScene('neutral_weird');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <style>

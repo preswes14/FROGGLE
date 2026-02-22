@@ -2561,7 +2561,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.53';
+const GAME_VERSION = 'S_1.54';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9670,8 +9670,8 @@ startFloor(S.floor + 1);
 }
 
 function showStartingXPScreen() {
-// Music: play town theme for pre-run XP spending
-GameMusic.playScene('town_base');
+// Music: play char select theme for pre-run XP spending
+GameMusic.playScene('char_select');
 const v = document.getElementById('gameView');
 const nextCost = getXPCost(S.levelUpCount);
 const canAfford = S.xp >= nextCost;
@@ -11532,8 +11532,8 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
-// Music: play town theme on title card
-GameMusic.playScene('town_base');
+// Silent - dramatic pause on title card
+GameMusic.stop();
 const v = document.getElementById('gameView');
 if(!v) {
 showRibbleton();
@@ -13734,8 +13734,8 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 
 // ===== OLD TAPO ENCOUNTER (FLOOR 20) =====
 function showOldTapo() {
-// Music: play town theme for Old Tapo narrative encounter
-GameMusic.playScene('town_base');
+// Music: play neutral weird for Old Tapo's mystical encounter
+GameMusic.playScene('neutral_weird');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
@@ -15186,8 +15186,8 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 }
 
 function showTapoVictoryMessage() {
-// Music: play town theme for Tapo victory thank-you
-GameMusic.playScene('town_base');
+// Music: play neutral weird for Preston's thank-you message
+GameMusic.playScene('neutral_weird');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <style>
