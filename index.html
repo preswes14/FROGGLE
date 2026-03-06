@@ -945,6 +945,280 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   50% { box-shadow: 0 0 0 8px #22c55e, 0 0 0 10px rgba(59,130,246,0.4); }
 }
 
+/* ===== MOBILE LANDSCAPE OPTIMIZATION ===== */
+/* Targets phones in landscape mode (max-height ~500px distinguishes phones from tablets) */
+@media (max-width: 932px) and (orientation: landscape) and (max-height: 500px) {
+  /* Compact header for mobile */
+  .header {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+  .header button {
+    height: 24px !important;
+    min-width: 24px !important;
+    padding: 0.15rem 0.35rem !important;
+    font-size: 0.6rem !important;
+  }
+
+  /* Game area: use full height, minimal padding, allow horizontal scroll as safety net */
+  .game-area {
+    height: calc(100dvh - 32px);
+    padding: 0.25rem;
+    overflow-x: auto;
+  }
+
+  /* Combat lanes: fit to screen width */
+  .combat-lane {
+    max-width: 100%;
+    padding: 0.3rem 0.4rem;
+    margin-bottom: 0.25rem;
+    border-width: 2px;
+  }
+
+  /* Shrink hero cards for mobile */
+  .card.hero {
+    width: 120px !important;
+    max-width: 120px !important;
+    padding: 0.3rem;
+    min-height: 50px;
+    font-size: 0.7rem;
+    border-width: 2px;
+  }
+
+  /* Shrink enemy cards for mobile */
+  .card.enemy {
+    width: 110px;
+    max-width: 110px;
+    padding: 0.3rem;
+    min-height: 50px;
+    font-size: 0.7rem;
+    border-width: 2px;
+  }
+
+  /* Even smaller for crowded lanes */
+  .combat-lane.crowded-3 .card.enemy {
+    width: 90px;
+    max-width: 90px;
+    padding: 0.2rem;
+    min-height: 40px;
+    font-size: 0.65rem;
+  }
+  .combat-lane.crowded-5 .card.enemy {
+    width: 70px;
+    max-width: 70px;
+    padding: 0.15rem;
+    min-height: 35px;
+    font-size: 0.6rem;
+  }
+
+  /* Card images smaller */
+  .card-image {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .card-emoji {
+    font-size: 1.4rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .card-stats {
+    font-size: 0.65rem;
+    line-height: 1.1;
+  }
+
+  /* Sigils: smaller touch targets but still usable */
+  .sigil {
+    min-width: 30px;
+    min-height: 30px;
+    padding: 4px;
+    font-size: 0.7rem;
+  }
+  .sigil img {
+    height: 1.2em;
+  }
+  .sigil-row {
+    gap: 2px;
+  }
+  .card.hero .sigil-row .sigil {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 2px;
+    font-size: 0.65rem;
+  }
+  .card.hero .sigil-row .sigil img {
+    height: 1em;
+  }
+  .sigil-row.compact .sigil {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 3px;
+  }
+
+  /* Crowded lane sigils even smaller */
+  .combat-lane.crowded-3 .card.enemy .sigil {
+    width: 16px;
+    height: 16px;
+    font-size: 0.55rem;
+  }
+  .combat-lane.crowded-5 .card.enemy .sigil {
+    width: 14px;
+    height: 14px;
+    font-size: 0.5rem;
+  }
+
+  /* Lane content: tighter gaps */
+  .lane-content {
+    gap: 0.4rem !important;
+  }
+
+  /* Combat header compact */
+  .combat-header {
+    padding: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .combat-header-title {
+    font-size: 0.85rem;
+  }
+  .combat-header-subtitle {
+    font-size: 0.7rem;
+  }
+  .combat-header-info {
+    font-size: 0.6rem;
+  }
+
+  /* Buttons: more compact */
+  .btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+    margin-bottom: 0.4rem;
+    border-width: 2px;
+  }
+  .btn.small {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+    min-height: 28px;
+  }
+
+  .choice {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 40px;
+    margin-bottom: 0.4rem;
+    border-width: 2px;
+  }
+
+  /* Neutral encounters: stack vertically on mobile */
+  .neutral-container {
+    flex-direction: column;
+  }
+  .neutral-left {
+    flex: 1 1 auto;
+    min-width: 100%;
+    padding: 0.5rem;
+  }
+  .neutral-right {
+    flex: 0 0 30%;
+    min-width: 100%;
+    min-height: 120px;
+    max-height: 30vh;
+  }
+  .neutral-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+  }
+  .neutral-desc {
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+  .neutral-btn {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+    border-width: 2px;
+  }
+  .neutral-stats {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
+  }
+  .neutral-outcome {
+    font-size: 0.75rem;
+    padding: 0.35rem;
+  }
+
+  /* Toast notifications: smaller */
+  .toast {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    max-width: 280px;
+  }
+
+  /* Tooltips: compact */
+  .tooltip {
+    max-width: 250px;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  .tooltip-title {
+    font-size: 0.9rem;
+  }
+  .tooltip-desc {
+    font-size: 0.75rem;
+  }
+
+  /* Tutorial modals: fit mobile screen */
+  .tutorial-modal {
+    padding: 1rem;
+    max-width: 90vw;
+  }
+  .tutorial-modal h2 {
+    font-size: 1.1rem;
+  }
+  .tutorial-modal p {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .tutorial-modal button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Modal containers */
+  .modal-container {
+    padding: 1rem;
+    max-width: 85vw;
+    max-height: 85vh;
+  }
+  .modal-title {
+    font-size: 1rem;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-size: 0.7rem;
+    padding: 0.2rem;
+  }
+
+  /* HP and shield bars: slightly thinner */
+  .hp-bar-container {
+    height: 4px;
+    margin-top: 2px;
+  }
+  .shield-bar-container {
+    height: 5px;
+    margin-top: 3px;
+  }
+
+  /* Floating numbers: scale down */
+  .floating-number {
+    font-size: 1.2rem;
+  }
+  .floating-number.critical {
+    font-size: 1.6rem;
+  }
+}
+
 /* Tablet improvements (768px-1023px) */
 @media (min-width: 768px) {
   /* Base scaling for tablet */
