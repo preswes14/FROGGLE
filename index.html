@@ -2835,7 +2835,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.54';
+const GAME_VERSION = 'S_1.55';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -11791,7 +11791,7 @@ function finishRibbletonTutorial() {
 const slides = [
 {bg: 'assets/ribbleton.png', text: "A few stragglers scamper back into the portal - the battle is won! Our Frogventurers wipe their brows and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe\u2026"},
 {text: "WAIT... WHERE IS TAPO??!",
-html: `<div style="font-size:3rem;font-weight:bold;line-height:1.5;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px;letter-spacing:0.05em">WAIT...<br>WHERE IS TAPO??!</div>`,
+html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
 {bg: 'assets/ribbleton-tadpole.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
