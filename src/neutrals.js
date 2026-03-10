@@ -1275,6 +1275,7 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
+GameMusic.stop();
 const v = document.getElementById('gameView');
 if(!v) {
 showRibbleton();

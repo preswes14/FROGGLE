@@ -2835,7 +2835,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.55';
+const GAME_VERSION = 'S_1.56';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -11805,6 +11805,7 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
+GameMusic.stop();
 const v = document.getElementById('gameView');
 if(!v) {
 showRibbleton();
