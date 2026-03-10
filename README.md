@@ -22,7 +22,7 @@ FROGGLE is a *weirdly empowering*, **delightfully breakable** (**f**)roguelike d
 - 3 advanced upgradable active abilities with powerful effects (like preventing death or granting turns to an ally)
 - 3 game-changing passive abilities that the heroes gain/upgrade as a team!
 - A wildly challenging game mode - FROGGED UP mode - (clear Standard to unlock)
-- Funky froggy procedurally-generated beats
+- Funky froggy beats
 - Lots of fun tidbits and easter eggs!
 
 *Inspired by Slay the Spire, Balatro, and Inscryption - if you like any of these, you'll probably like FROGGLE!*

@@ -1,5 +1,5 @@
 // FROGGLE Service Worker - Offline PWA Support
-const CACHE_NAME = 'froggle-v1.56';
+const CACHE_NAME = 'froggle-v1.57';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
