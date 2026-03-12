@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.58';
+const GAME_VERSION = 'S_1.60';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -10,32 +10,35 @@ if(typeof S !== 'undefined' && S.debugMode) console.log(...args);
 // ===== GAME DATA =====
 // Hero images
 const HERO_IMAGES = {
-        warrior: 'assets/characters/warriorfull.png',
-        tank: 'assets/characters/tankfull.png',
-        mage: 'assets/characters/magefull.png',
-        healer: 'assets/characters/healerfull.png',
-        tapo: 'assets/characters/tapofull.png'
+        warrior: 'assets/warrior_normal.png',
+        tank: 'assets/tank_normal.png',
+        mage: 'assets/mage_normal.png',
+        healer: 'assets/heal_normal.png',
+        tapo: 'assets/tapo_normal.png'
     };
 
 // Hero reaction images (happy/pained expressions)
 const HERO_REACTIONS = {
     warrior: {
-        happy: 'assets/reactions/warrior-happy.jpeg',
-        pained: 'assets/reactions/warrior-pained.jpeg'
+        happy: 'assets/warrior_happy.png',
+        pained: 'assets/warrior_pain.png'
     },
     tank: {
-        happy: 'assets/reactions/tank-happy.jpeg',
-        pained: 'assets/reactions/tank-pained.jpeg'
+        happy: 'assets/tank_happy.png',
+        pained: 'assets/tank_pain.png'
     },
     mage: {
-        happy: 'assets/reactions/mage-happy.jpeg',
-        pained: 'assets/reactions/mage-pained.jpeg'
+        happy: 'assets/mage_happy.png',
+        pained: 'assets/mage_pain.png'
     },
     healer: {
-        happy: 'assets/reactions/healer-happy.jpeg',
-        pained: 'assets/reactions/healer-pained.jpeg'
+        happy: 'assets/heal_happy.png',
+        pained: 'assets/heal_pain.png'
+    },
+    tapo: {
+        happy: 'assets/tapo_happy.png',
+        pained: 'assets/tapo_pain.png'
     }
-    // Tapo doesn't have reaction images yet
 };
 
 // Get hero image based on current reaction state
@@ -151,21 +154,22 @@ const ENEMY_EMOJI = {
 // Enemy artwork images (replaces emojis for main enemies)
 // Fly keeps emoji (tutorial only), Flydra uses FLYDRA_HEADS
 const ENEMY_IMAGES = {
-'Goblin': 'assets/enemies/goblin.jpeg',
-'Wolf': 'assets/enemies/wolf.jpeg',
-'Giant': 'assets/enemies/giant.jpeg',
-'Orc': 'assets/enemies/orc.png',
-'Cave Troll': 'assets/enemies/cave_troll.png',
-'Dragon': 'assets/enemies/dragon.jpeg'
+'Fly': 'assets/fly.png',
+'Goblin': 'assets/goblin.png',
+'Wolf': 'assets/wolf.png',
+'Giant': 'assets/giant.png',
+'Orc': 'assets/orc.png',
+'Cave Troll': 'assets/troll.png',
+'Dragon': 'assets/dragon.png'
 };
 
 // Flydra head images and names (for multi-headed boss)
 // Standard mode (2 heroes): uses 'left' and 'right' heads (A, B)
 // FU mode (3 heroes): uses all three heads (A, B, C)
 const FLYDRA_HEADS = {
-left: { name: 'Flydra A', image: 'assets/flydra_venomwing.png' },
-center: { name: 'Flydra B', image: 'assets/flydra_dreadmaw.png' },
-right: { name: 'Flydra C', image: 'assets/flydra_blightfang.png' }
+left: { name: 'Flydra A', image: 'assets/Hydra1.png' },
+center: { name: 'Flydra B', image: 'assets/Hydra2.png' },
+right: { name: 'Flydra C', image: 'assets/Hydra3.png' }
 };
 
 // Sigil icons - now using extracted PNG images with transparent backgrounds
