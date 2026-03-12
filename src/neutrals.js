@@ -1336,18 +1336,14 @@ v.innerHTML = `
 
 <div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
-<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
-<img src="assets/hero-select.png" alt="Hero selection" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
-<!-- Controller-friendly hero selection buttons -->
-<button type="button" class="hero-select-btn" data-hero="warrior" onclick="event.stopPropagation();toggleHeroSelection('warrior')" aria-label="Select Warrior"></button>
-<button type="button" class="hero-select-btn" data-hero="tank" onclick="event.stopPropagation();toggleHeroSelection('tank')" aria-label="Select Tank"></button>
-<button type="button" class="hero-select-btn" data-hero="mage" onclick="event.stopPropagation();toggleHeroSelection('mage')" aria-label="Select Mage"></button>
-<button type="button" class="hero-select-btn" data-hero="healer" onclick="event.stopPropagation();toggleHeroSelection('healer')" aria-label="Select Healer"></button>
-<!-- Hero card overlays -->
-<div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="mage-card" style="position:absolute;bottom:10%;left:51%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="healer-card" style="position:absolute;bottom:10%;left:76%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
+<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
+${['warrior','tank','mage','healer'].map(hero => `
+<div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:auto;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(1.05);' : 'filter:brightness(0.7);'}">
+<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
+<button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
+<div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
+</div>`).join('')}
 </div>
 
 ${S.tapoUnlocked ? `
@@ -1419,6 +1415,14 @@ healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expan
 tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upgraded passives'}
 };
 
+// Update hero image brightness based on selection
+['warrior', 'tank', 'mage', 'healer'].forEach(h => {
+const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] img`);
+if(cellImg) {
+cellImg.style.filter = sel.includes(h) ? 'brightness(1.2)' : 'brightness(0.7)';
+cellImg.style.transform = sel.includes(h) ? 'scale(1.05)' : 'scale(1)';
+}
+});
 // Update all card displays
 ['warrior', 'tank', 'mage', 'healer'].forEach(h => {
 const cardEl = document.getElementById(`${h}-card`);
