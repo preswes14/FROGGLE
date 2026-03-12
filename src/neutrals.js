@@ -151,8 +151,8 @@ v.innerHTML = `
 <div class="title-container">
 <!-- Background image - landscape for wide screens, portrait for narrow -->
 <picture>
-<source media="(min-aspect-ratio: 1/1)" srcset="assets/SCREEN 3.png">
-<img src="assets/SCREEN 3.png" alt="FROGGLE" class="title-bg-image">
+<source media="(min-aspect-ratio: 1/1)" srcset="assets/screen3.png">
+<img src="assets/screen3.png" alt="FROGGLE" class="title-bg-image">
 </picture>
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
@@ -739,7 +739,7 @@ text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">
 html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#f5f5f5">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite;display:inline-block;margin:1.5rem 0">
-<img src="assets/tapo-nobg.png" alt="Tapo the tadpole" style="width:170px;height:auto">
+<img src="assets/tapo_normal.png" alt="Tapo the tadpole" style="width:170px;height:auto">
 </div>
 <p style="font-size:1.15rem;line-height:1.7;margin-top:1rem;color:#f5f5f5">The whole town is celebrating the little tadpole's special day!</p>
 <style>
@@ -785,7 +785,7 @@ html: `
 <span>🎁</span>
 </div>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite">
-<img src="assets/tapo-nobg.png" alt="Tapo" style="width:110px;height:auto">
+<img src="assets/tapo_normal.png" alt="Tapo" style="width:110px;height:auto">
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Tapo</div>
 </div>
 </div>
@@ -885,7 +885,7 @@ overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:600px">
 <div style="text-align:center">
 <div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:1rem">
-<img src="assets/tapo-nobg.png" alt="Tapo" style="width:120px;height:auto">
+<img src="assets/tapo_normal.png" alt="Tapo" style="width:120px;height:auto">
 </div>
 <h2 style="color:#22c55e;margin-bottom:1rem">Tapo to the Rescue!</h2>
 <p style="font-size:1.1rem;line-height:1.7;margin-bottom:1.5rem">
@@ -997,7 +997,7 @@ v.innerHTML = `
 <div style="max-width:600px;text-align:center">
 <h2 style="font-size:2.5rem;margin-bottom:0.5rem;color:#22c55e">Success!!</h2>
 <div style="animation:danceTapo 0.5s ease-in-out infinite;margin:1rem 0">
-<img src="assets/tapo-nobg.png" alt="Tapo" style="width:100px;height:auto">
+<img src="assets/tapo_normal.png" alt="Tapo" style="width:100px;height:auto">
 </div>
 <p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
@@ -1083,7 +1083,7 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 </div>
 <div style="text-align:center">
 <div style="animation:tapoSignatureSmall 3s ease-in-out infinite;display:inline-block">
-<img src="assets/tapo-nobg.png" alt="Tapo" style="width:60px;height:auto">
+<img src="assets/tapo_normal.png" alt="Tapo" style="width:60px;height:auto">
 </div>
 <div style="font-size:0.65rem;color:#22c55e;margin-top:0.25rem">Protected!</div>
 </div>
@@ -3513,7 +3513,7 @@ v.innerHTML = `
 "Ah! I know!" <em>*Poof*</em>
 </div>
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo-nobg.png" alt="Baby Tapo" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
+<img src="assets/tapo_normal.png" alt="Baby Tapo" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;margin:1rem 0">
 <em>Squeals.</em> The heroes know this sound well - Baby Tapo is hungry for flies!
 </div>
