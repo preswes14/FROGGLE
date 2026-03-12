@@ -801,7 +801,7 @@ const GameMusic = {
     'neutral_medium': 'assets/music/Froggle_Neutral_Medium.mp3',
     'neutral_intense': 'assets/music/Froggle_Neutral_ScaryIntenseFunky.mp3',
     'neutral_weird': 'assets/music/Froggle_Neutral_Weird.mp3',
-    'town_base': 'assets/music/Froggle_Town_Base_v2.mp3',
+    'town_base': 'assets/music/Froggle_Town_Base_v5.mp3',
   },
   currentTrack: null,
   loaded: false,
