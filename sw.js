@@ -1,5 +1,5 @@
 // FROGGLE Service Worker - Offline PWA Support
-const CACHE_NAME = 'froggle-v1.63';
+const CACHE_NAME = 'froggle-v1.64';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,7 +7,7 @@ const ASSETS_TO_CACHE = [
   './assets/tapo.png',
   './assets/tapo-icon.png',
   './assets/tapo-icon-180.png',
-  './assets/froggle_title.png',
+  './assets/screen3.png',
   './assets/ribbleton.png',
   './assets/victory-room.png'
 ];

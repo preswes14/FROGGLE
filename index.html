@@ -1683,9 +1683,9 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 }
 
 /* Flip neutral portraits that face the wrong direction */
-img[src*="healerfull"],
-img[src*="warriorfull"],
-img[src*="tankfull"] {
+img[src*="heal_normal"],
+img[src*="warrior_normal"],
+img[src*="tank_normal"] {
   transform: scaleX(-1);
 }
 
@@ -2835,7 +2835,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.63';
+const GAME_VERSION = 'S_1.64';
 console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
