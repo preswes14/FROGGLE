@@ -32,7 +32,7 @@ v.innerHTML = `
 <div style="text-align:center;color:#fff;animation:fadeIn 0.8s ease">
 <div style="font-size:2rem;font-weight:bold;margin-bottom:0.5rem;color:#e94560">Floor ${f}</div>
 <div style="font-size:1.5rem;font-style:italic;margin-bottom:1rem;color:#fbbf24">${floorName}</div>
-<img src="assets/Flydra Boss.png" alt="The Flydra" style="max-width:90vw;max-height:60vh;object-fit:contain;border-radius:8px;box-shadow:0 0 40px rgba(233,69,96,0.6);animation:flydraReveal 1.2s ease">
+<img src="assets/Hydra.png" alt="The Flydra" style="max-width:90vw;max-height:60vh;object-fit:contain;border-radius:8px;box-shadow:0 0 40px rgba(233,69,96,0.6);animation:flydraReveal 1.2s ease">
 </div>
 </div>
 <style>

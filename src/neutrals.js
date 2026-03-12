@@ -151,8 +151,8 @@ v.innerHTML = `
 <div class="title-container">
 <!-- Background image - landscape for wide screens, portrait for narrow -->
 <picture>
-<source media="(min-aspect-ratio: 1/1)" srcset="assets/froggle_title_wide.jpeg">
-<img src="assets/froggle_title.png" alt="FROGGLE" class="title-bg-image">
+<source media="(min-aspect-ratio: 1/1)" srcset="assets/SCREEN 3.png">
+<img src="assets/SCREEN 3.png" alt="FROGGLE" class="title-bg-image">
 </picture>
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
@@ -777,7 +777,7 @@ html: `
 <h2 style="font-size:1.7rem;margin-bottom:1rem;color:#2c63c7">A Special Gift</h2>
 <div style="display:flex;justify-content:center;align-items:center;gap:2rem;margin:1.5rem 0">
 <div>
-<img src="assets/reactions/mage-happy.jpeg" alt="Mage smiling" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
+<img src="assets/mage_happy.png" alt="Mage smiling" style="width:130px;height:auto;border-radius:8px;border:2px solid #22c55e;box-shadow:0 4px 8px rgba(0,0,0,0.2)">
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Mage</div>
 </div>
 <div style="font-size:2.5rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem">
@@ -1078,7 +1078,7 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
-<img src="assets/characters/tankfull.png" alt="Tank" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
+<img src="assets/tank_normal.png" alt="Tank" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">🛡 On Guard!</div>
 </div>
 <div style="text-align:center">
@@ -1088,17 +1088,17 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 <div style="font-size:0.65rem;color:#22c55e;margin-top:0.25rem">Protected!</div>
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
-<img src="assets/characters/magefull.png" alt="Mage" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
+<img src="assets/mage_normal.png" alt="Mage" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
 <div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">📖 On Guard!</div>
 </div>
 </div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
-<img src="assets/characters/warriorfull.png" alt="Warrior" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
+<img src="assets/warrior_normal.png" alt="Warrior" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">⚔️ Attacking!</div>
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
-<img src="assets/characters/healerfull.png" alt="Healer" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
+<img src="assets/heal_normal.png" alt="Healer" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
 <div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">✚ Attacking!</div>
 </div>
 </div>
@@ -1336,18 +1336,14 @@ v.innerHTML = `
 
 <div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
-<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;cursor:pointer" onclick="handleHeroImageClick(event, this)">
-<img src="assets/hero-select.png" alt="Hero selection" style="width:100%;height:auto;display:block;border-radius:8px;border:3px solid #000;pointer-events:none">
-<!-- Controller-friendly hero selection buttons -->
-<button type="button" class="hero-select-btn" data-hero="warrior" onclick="event.stopPropagation();toggleHeroSelection('warrior')" aria-label="Select Warrior"></button>
-<button type="button" class="hero-select-btn" data-hero="tank" onclick="event.stopPropagation();toggleHeroSelection('tank')" aria-label="Select Tank"></button>
-<button type="button" class="hero-select-btn" data-hero="mage" onclick="event.stopPropagation();toggleHeroSelection('mage')" aria-label="Select Mage"></button>
-<button type="button" class="hero-select-btn" data-hero="healer" onclick="event.stopPropagation();toggleHeroSelection('healer')" aria-label="Select Healer"></button>
-<!-- Hero card overlays -->
-<div id="warrior-card" style="position:absolute;bottom:10%;left:1%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="tank-card" style="position:absolute;bottom:10%;left:26%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="mage-card" style="position:absolute;bottom:10%;left:51%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
-<div id="healer-card" style="position:absolute;bottom:10%;left:76%;width:23%;display:none;z-index:10;pointer-events:none;"></div>
+<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
+${['warrior','tank','mage','healer'].map(hero => `
+<div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:auto;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(1.05);' : 'filter:brightness(0.7);'}">
+<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
+<button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
+<div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
+</div>`).join('')}
 </div>
 
 ${S.tapoUnlocked ? `
@@ -1419,6 +1415,14 @@ healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expan
 tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upgraded passives'}
 };
 
+// Update hero image brightness based on selection
+['warrior', 'tank', 'mage', 'healer'].forEach(h => {
+const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] img`);
+if(cellImg) {
+cellImg.style.filter = sel.includes(h) ? 'brightness(1.2)' : 'brightness(0.7)';
+cellImg.style.transform = sel.includes(h) ? 'scale(1.05)' : 'scale(1)';
+}
+});
 // Update all card displays
 ['warrior', 'tank', 'mage', 'healer'].forEach(h => {
 const cardEl = document.getElementById(`${h}-card`);
@@ -3479,7 +3483,7 @@ function showOldTapo() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<img src="assets/old-tapo.png" alt="Old Tapo, Master of Space and Time" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<img src="assets/tapo_old.png" alt="Old Tapo, Master of Space and Time" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
 "Tapo, you say? Yes... I was called Tapo once, wasn't I? That was 'Before'... Before I mastered the speculae of space, the tesseracts of time... before I became one with the universe. You would save me? Why, I need no saving... In a universe of infinite and terrifying possibility, there need be no fear, no hate, no pain."
@@ -3492,7 +3496,7 @@ function oldTapoSlide2() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="neutral-container">
-<img src="assets/old-tapo.png" alt="Old Tapo" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
+<img src="assets/tapo_old.png" alt="Old Tapo" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
 "Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, but that Flydra sure looked yummy..."
@@ -3547,7 +3551,7 @@ function showDeathIntroDialogue() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
-<img src="assets/neutrals/shopkeeper2.png" alt="The mysterious shopkeeper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
@@ -3572,7 +3576,7 @@ const responseText = fromRibbleton
 
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
-<img src="assets/neutrals/shopkeeper2.png" alt="The mysterious shopkeeper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
 "${responseText}"
