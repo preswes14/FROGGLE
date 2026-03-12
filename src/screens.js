@@ -1312,7 +1312,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 
 <div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #22c55e">
 <h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
-<img src="assets/tapo.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
+<img src="assets/tapo_normal.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Starts with D20 + any upgraded passives</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.6;margin-top:0.5rem;font-style:italic">(Glass cannon mode activated)</p>
@@ -1354,7 +1354,7 @@ v.innerHTML = `
 
 <div style="text-align:center;margin:2rem 0">
 <div style="display:inline-block;animation:tapoSignatureVictory 4.8s ease-in-out infinite">
-<img src="assets/tapo-nobg.png" alt="Tapo celebrating" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto">
+<img src="assets/tapo_normal.png" alt="Tapo celebrating" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto">
 </div>
 </div>
 
@@ -1402,7 +1402,7 @@ let html = `
 if(S.gameMode === 'fu') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
 } else {
-html += `<img src="assets/tapo.png" alt="Tapo saved!" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
+html += `<img src="assets/tapo_normal.png" alt="Tapo saved!" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:1.2rem;font-weight:bold">You saved Tapo the Tadpole!</p>`;
 
 // Check if they've explored FU mode and show conditional text
