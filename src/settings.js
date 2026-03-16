@@ -116,10 +116,10 @@ ${inGame ? `
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">Audiobutton>
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">Gameplaybutton>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">Displaybutton>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">Controllerbutton>
+<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audiobutton>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplaybutton>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Displaybutton>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controllerbutton>
 </div>
 
 ${inGame ? `
@@ -156,7 +156,7 @@ let html = `
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#fbbf24">Master Volume</label>
+<label style="font-weight:bold;color:#fbbf24">♪ Master Volume</label>
 <span id="master-vol-display" style="font-size:0.9rem;color:#fbbf24">${masterPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${masterPct}" aria-label="Master volume"
@@ -166,7 +166,7 @@ let html = `
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#22c55e">Sound Effects</label>
+<label style="font-weight:bold;color:#22c55e">♪ Sound Effects</label>
 <span id="sfx-vol-display" style="font-size:0.9rem;color:#22c55e">${sfxPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${sfxPct}" aria-label="Sound effects volume"
@@ -176,7 +176,7 @@ let html = `
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#8b5cf6">Music</label>
+<label style="font-weight:bold;color:#8b5cf6">♫ Music</label>
 <span id="music-vol-display" style="font-size:0.9rem;color:#8b5cf6">${musicPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${musicPct}" aria-label="Music volume"
@@ -248,11 +248,11 @@ let html = `
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)">
-<span>Show Toast Log</span>
+<span>▸ Show Toast Log</span>
 </label>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)">
-<span>Help Tips</span>
+<span>▸ Help Tips</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Mechanic explanation popups</p>
 <label class="modal-checkbox-label">
@@ -262,12 +262,12 @@ let html = `
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Guided tutorial popups</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.cutsceneDisabled ? 'checked' : ''} onchange="toggleCutscenes(this.checked)">
-<span>Story Cutscenes</span>
+<span>▸ Story Cutscenes</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">One-time narrative events</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
-<span>Show Sigil Tooltips</span>
+<span>▸ Show Sigil Tooltips</span>
 </label>
 
 <h3 class="modal-section-title green" style="margin-top:1rem">Accessibility</h3>
@@ -744,7 +744,7 @@ html += `</div>`;
 
 html += `
 <div style="margin-top:1.5rem;padding:1rem;background:rgba(99,102,241,0.15);border:2px solid #6366f1;border-radius:8px">
-<h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">Pro Tips</h4>
+<h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">▸ Pro Tips</h4>
 <ul style="margin:0;padding-left:1.25rem;color:#c7d2fe;font-size:0.85rem;line-height:1.5">
 <li><strong>Auto-Target (SELECT)</strong> picks smart targets: lowest HP enemies for attacks, most damaged heroes for heals</li>
 <li><strong>Switch Sides (X)</strong> quickly jumps between your hero and the enemy across from them</li>
@@ -788,7 +788,7 @@ FROGGLE uses <strong>Gamepad with Joystick Trackpad</strong> template as a base.
 </p>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Quick Setup (Recommended)</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">▸ Quick Setup (Recommended)</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <ol style="margin:0;padding-left:1.25rem;color:#e5e7eb;font-size:0.85rem;line-height:1.8">
 <li>Open Steam and navigate to your game in the Library</li>
@@ -798,7 +798,7 @@ FROGGLE uses <strong>Gamepad with Joystick Trackpad</strong> template as a base.
 </ol>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Custom Configuration</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">▸ Custom Configuration</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <p style="margin:0 0 0.75rem 0;color:#c7d5e0;font-size:0.85rem">
 If you want to customize, here's the expected mapping:
@@ -994,7 +994,7 @@ a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5�
 
 let html = `
 <div class="modal-container faq">
-<h2 class="modal-title orange">Frequently Asked Questions</h2>
+<h2 class="modal-title orange">? Frequently Asked Questions</h2>
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
 <h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">FROGGLE</h3>
@@ -1037,7 +1037,7 @@ let html = `
 </div>
 
 <div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-top:1rem">
-<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">PRO TIPS</h4>
+<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">▸ PRO TIPS</h4>
 <ul style="margin:0;padding-left:1.5rem;font-size:0.85rem;line-height:1.5">
 <li><strong>Mage & Healer Start Stronger:</strong> They get +1 Expand built-in, so their actions hit 1 extra target from the start!</li>
 <li><strong>Shields Persist:</strong> Before winning a battle, use remaining actions to shield your team - they carry over to the next fight!</li>
@@ -1112,11 +1112,11 @@ return '#ff0080'; // L5 gradient
 
 let html = `
 <div class="modal-container light">
-<h2 class="modal-title purple">SIGILARIUM</h2>
+<h2 class="modal-title purple">✦ SIGILARIUM ✦</h2>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-bottom:1.5rem">All Sigils and Their Permanent Upgrade Levels</p>
 
 <!-- Core Sigils -->
-<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">Core Sigils</h3>
+<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">※ Core Sigils</h3>
 <div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
@@ -1145,7 +1145,7 @@ html += `
 </div>
 
 <!-- Advanced Sigils -->
-<h3 style="color:#f97316;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #f97316;padding-bottom:0.25rem">Advanced Sigils</h3>
+<h3 style="color:#f97316;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #f97316;padding-bottom:0.25rem">† Advanced Sigils</h3>
 <div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
@@ -1174,7 +1174,7 @@ html += `
 </div>
 
 <!-- Passive Sigils -->
-<h3 style="color:#9333ea;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #9333ea;padding-bottom:0.25rem">Passive Sigils</h3>
+<h3 style="color:#9333ea;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #9333ea;padding-bottom:0.25rem">◇ Passive Sigils</h3>
 <div style="display:grid;gap:0.75rem">
 `;
 

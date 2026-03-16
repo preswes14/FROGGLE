@@ -480,7 +480,7 @@ html += `</div>`;
 const canAffordAdvanced = S.gold >= 20;
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #f97316;box-shadow:0 0 20px rgba(249,115,22,0.3);text-align:center">
-<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">LOCKED</div>
+<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">⊘ LOCKED</div>
 <p style="color:#f97316;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock advanced combat techniques</p>
 <button class="btn" ${!canAffordAdvanced ? 'disabled' : ''} onclick="unlockSigilCategory('advanced')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordAdvanced ? 'background:linear-gradient(135deg,#f97316,#ea580c);border-color:#f97316;color:#fff' : ''}">
@@ -499,7 +499,7 @@ html += `</div>`;
 const canAffordPassive = S.gold >= 50;
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #9333ea;box-shadow:0 0 20px rgba(147,51,234,0.3);text-align:center">
-<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">LOCKED</div>
+<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">⊘ LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Expand • Asterisk • Star</p>
 <p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock passive enhancements</p>
 <button class="btn" ${!canAffordPassive ? 'disabled' : ''} onclick="unlockSigilCategory('passive')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordPassive ? 'background:linear-gradient(135deg,#9333ea,#7c3aed);border-color:#9333ea;color:#fff' : ''}">

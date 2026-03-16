@@ -2804,7 +2804,7 @@ const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
 // Asterisk expended indicator: red X overlay when first action used
 const asteriskExpended = (s === 'Asterisk' && h.firstActionUsed);
-const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.8rem;color:#dc2626;font-weight:bold;text-shadow:0 0 3px #000;pointer-events:none">USED</span>' : '';
+const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1rem;color:#dc2626;font-weight:bold;text-shadow:0 0 3px #000;pointer-events:none">✕</span>' : '';
 const sigilStyle = asteriskExpended ? 'position:relative;opacity:0.5' : '';
 return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
 ${sigilStyle ? `style="${sigilStyle}"` : ''}
@@ -3515,7 +3515,7 @@ html += renderActiveSigils(advancedSigils, 'Advanced Sigils', '#f97316');
 html += `
 <h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
-<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -3590,7 +3590,7 @@ html += renderUpgradeSigils(advancedSigils, 'Advanced Sigils', '#f97316');
 html += `
 <h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
-<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -3630,7 +3630,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive
 if(!S.passiveSigilsUnlocked) {
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
-<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
