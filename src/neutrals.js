@@ -278,7 +278,7 @@ v.innerHTML = `
 
 <div style="text-align:center;margin-bottom:1rem">
 <p style="font-size:0.7rem;margin:0 0 0.25rem 0;color:#9ca3af;font-weight:bold">Special Thanks</p>
-<p style="font-size:0.7rem;margin:0;color:#9ca3af;line-height:1.5">Jason Tsui, Sam Kern, Erin Keif, Adal Rifai, John Patrick Coan</p>
+<p style="font-size:0.7rem;margin:0;color:#9ca3af;line-height:1.5">Jason Tsui, Sam Kern, Erin Keif, Adal Rifai, JPC</p>
 </div>
 
 <div style="text-align:center;margin-bottom:1rem;padding:0.5rem;background:#fef3c7;border-radius:8px">
