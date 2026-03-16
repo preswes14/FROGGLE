@@ -759,7 +759,7 @@ function updateToastLog() {
 const log = document.getElementById('toastLog');
 if(!log) return;
 let html = `<div class="toast-log-header">
-<span style="font-size:1rem">🪵 Combat Log</span>
+<span style="font-size:1rem">Combat Log</span>
 <button onclick="minimizeToastLog()" aria-label="Close combat log" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
 </div>`;
 html += '<div class="toast-log-entries">';
@@ -798,7 +798,7 @@ setTimeout(() => showTutorialPop(flagName, message, onDismiss), 100);
 return;
 }
 // Add tutorial message to toast log for reference
-S.toastHistory.unshift(`📖 ${message}`);
+S.toastHistory.unshift(`${message}`);
 if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
 updateToastLog();
 // Create blocking modal
@@ -1455,7 +1455,7 @@ font-family: inherit;
 `;
 overlay.innerHTML = `
 <div style="text-align:center">
-<div style="font-size:3rem;margin-bottom:1rem">🐸</div>
+<div style="font-size:1.5rem;font-weight:bold;margin-bottom:1rem;color:#22c55e">FROGGLE</div>
 <h2 style="font-size:1.5rem;margin:0 0 0.5rem 0;color:#22c55e">FROGGLE SUSPENDED</h2>
 <p style="font-size:1rem;opacity:0.8;margin:0 0 1.5rem 0">Game saved. Tap or press any button to resume.</p>
 <div style="font-size:0.9rem;opacity:0.6">Progress has been saved automatically.</div>

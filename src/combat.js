@@ -55,7 +55,7 @@ return;
 const isAmbush = f === 11;
 const ambushWarning = isAmbush ? `
 <div style="margin-top:1.5rem;padding:0.75rem 1.5rem;background:rgba(239,68,68,0.3);border:2px solid #ef4444;border-radius:8px;animation:pulseWarning 1s ease infinite">
-<div style="font-size:1.2rem;font-weight:bold;color:#fca5a5">⚠️ AMBUSH! ⚠️</div>
+<div style="font-size:1.2rem;font-weight:bold;color:#fca5a5">AMBUSH!</div>
 <div style="font-size:0.95rem;color:#fca5a5;margin-top:0.25rem">All heroes stunned Turn 1!</div>
 </div>
 ` : '';
@@ -504,7 +504,7 @@ autoFocusTargetForController(heroIdx, 'enemy');
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 // Alpha tutorial: show first time player clicks Alpha
-showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant another hero multiple turns! Great ROI.");
+showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant an ally multiple turns! Great ROI.");
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
@@ -513,7 +513,7 @@ S.alphaLevel = level * repeats;
 S.alphaTargetsNeeded = targetsNeeded;
 S.targets = [];
 const totalActions = level * repeats;
-toast(`Alpha: Grant ${totalActions} action${totalActions>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
+toast(`Alpha: Grant ${totalActions} action${totalActions>1?'s':''} to ${targetsNeeded} ${targetsNeeded>1?'allies':'ally'}!`);
 render();
 autoFocusTargetForController(heroIdx, 'hero');
 }
@@ -629,7 +629,7 @@ if(isTutorial) {
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
-<strong style="font-size:1.2rem">✅ DC 10: CONFUSE</strong><br>
+<strong style="font-size:1.2rem">DC 10: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Target deals its own POW to itself</span>
 </div>`;
 // Show other options greyed out
@@ -641,7 +641,7 @@ const lockedOptions = [
 ];
 lockedOptions.forEach(opt => {
 html += `<div style="margin-bottom:0.5rem;background:#e0e0e0;border:2px solid #999;border-radius:8px;padding:0.75rem;opacity:0.5;cursor:not-allowed">
-<strong style="font-size:0.95rem">🔒 DC ${opt.dc}: ${opt.name}</strong><br>
+<strong style="font-size:0.95rem">DC ${opt.dc}: ${opt.name}</strong><br>
 <span style="font-size:0.85rem">${opt.desc}</span>
 </div>`;
 });
@@ -656,7 +656,7 @@ html = '<div style="text-align:center;padding:1rem;background:white;border:3px s
 html += '<h3 style="margin-bottom:1rem;color:#1a1a1a">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
-if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">✨ Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
+if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
 if(S.asteriskD20Repeats > 1) {
 html += `<p style="margin-bottom:0.5rem;color:#f97316">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
 html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
@@ -789,7 +789,7 @@ const resultClass = isNat20 ? 'nat20' : isNat1 ? 'nat1' : success ? 'success' : 
 const overlay = document.createElement('div');
 overlay.className = 'd20-roll-overlay';
 overlay.innerHTML = `
-<div class="d20-dice-spin">🎲</div>
+<div class="d20-dice-spin">D20</div>
 <div class="d20-result-number ${resultClass}">${best}</div>
 `;
 document.body.appendChild(overlay);
@@ -1232,7 +1232,7 @@ S.acted.push(alphaUserIdx);
 if(alphaUser && !alphaUser.firstActionUsed) alphaUser.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
-toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
+toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} ${targetIds.length>1?'allies':'ally'}!`);
 // QUEST TRACKING: Alpha used
 trackQuestProgress('alpha');
 // Set up multi-action state for granted heroes
@@ -1811,7 +1811,7 @@ return;
 S.turn = 'enemy';
 S.acted = [];
 S.activeIdx = -1;
-showTurnBanner('enemy-turn', '⚔️ Enemy Turn');
+showTurnBanner('enemy-turn', 'Enemy Turn');
 render();
 S.enemies.forEach(e => {
 // NOTE: Stun decrement moved to endEnemyTurn() so enemies actually skip their turn
@@ -1825,7 +1825,7 @@ if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
 });
 }
-setTimeout(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
+scheduleEnemyAction(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
 }
 
 function drawEnemyStartSigil(enemy, base, forceLevel1 = false) {
@@ -1895,11 +1895,11 @@ if(drawnSigil) drawnSigil.newlyDrawn = false;
  */
 function executeAlphaPhase() {
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
-if(alphaEnemies.length === 0) { setTimeout(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
+if(alphaEnemies.length === 0) { scheduleEnemyAction(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all Alpha enemies in reading order with minimal stagger
 let delay = 0;
 alphaEnemies.forEach((alphaEnemy, idx) => {
-setTimeout(() => {
+scheduleEnemyAction(() => {
 const allies = S.enemies.filter(e => e.id !== alphaEnemy.id && e.h > 0 && e.st === 0 && !e.s.some(s => s.sig === 'Alpha' && !s.perm));
 if(allies.length === 0) { toast(`${alphaEnemy.n}'s Alpha has no valid allies!`); alphaEnemy.alphaActed = true; return; }
 allies.sort((a, b) => { if(b.p !== a.p) return b.p - a.p; return b.s.length - a.s.length; });
@@ -1913,19 +1913,19 @@ alphaEnemy.alphaActed = true;
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-setTimeout(() => executeRecruitPhase(), delay + T(600));
+scheduleEnemyAction(() => executeRecruitPhase(), delay + T(600));
 }
 
 function executeRecruitPhase() {
-if(!S.recruits || S.recruits.length === 0) { setTimeout(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
+if(!S.recruits || S.recruits.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all recruits in reading order with minimal stagger
 let delay = 0;
 S.recruits.forEach((recruit, idx) => {
-setTimeout(() => executeRecruitTurn(recruit), delay);
+scheduleEnemyAction(() => executeRecruitTurn(recruit), delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-setTimeout(() => executeNormalEnemyPhase(), delay + T(600));
+scheduleEnemyAction(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
@@ -2028,7 +2028,7 @@ S.enemyTurnCurrent = 0;
 
 let delay = 0;
 allEnemies.forEach((enemy, idx) => {
-setTimeout(() => {
+scheduleEnemyAction(() => {
 S.enemyTurnCurrent = idx + 1;
 render(); // Update header to show progress
 // Guard: skip if enemy died mid-turn (e.g., from Alpha phase or Grapple recoil)
@@ -2039,7 +2039,7 @@ delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Just enough stagger for vis
 });
 
 // Wait for longest animation to complete (600ms per enemy action + stagger)
-setTimeout(() => endEnemyTurn(), delay + T(600));
+scheduleEnemyAction(() => endEnemyTurn(), delay + T(600));
 }
 
 function executeEnemyTurn(enemy) {
@@ -2583,10 +2583,10 @@ if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand turn ${h.lst+1}${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost charges' : ''}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
-html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">LAST STAND</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
-html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
 html += `<div style="font-size:0.65rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
@@ -2632,11 +2632,11 @@ const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-if(h.st > 0) extra.push(`💥${h.st}T`);
+if(h.st > 0) extra.push(`STUN ${h.st}T`);
 // Show alpha-granted bonus turns remaining for this hero
 if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
 const alphaRemaining = S.alphaGrantedActions.slice(S.alphaCurrentAction || 0).filter(idx => idx === i).length;
-if(alphaRemaining > 0) extra.push(`⚡${alphaRemaining}`);
+if(alphaRemaining > 0) extra.push(`+${alphaRemaining}`);
 }
 if(hasActed) extra.push('✓');
 let onclick = '';
@@ -2645,6 +2645,10 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = getHeroImage(h);
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
 html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
+// Tapo's Chosen tooltip indicator
+if(S.chosenHeroIdx === i) {
+html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.6rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
+}
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
@@ -2800,7 +2804,7 @@ const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
 // Asterisk expended indicator: red X overlay when first action used
 const asteriskExpended = (s === 'Asterisk' && h.firstActionUsed);
-const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem;color:#dc2626;text-shadow:0 0 3px #000;pointer-events:none">❌</span>' : '';
+const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.8rem;color:#dc2626;font-weight:bold;text-shadow:0 0 3px #000;pointer-events:none">USED</span>' : '';
 const sigilStyle = asteriskExpended ? 'position:relative;opacity:0.5' : '';
 return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
 ${sigilStyle ? `style="${sigilStyle}"` : ''}
@@ -2831,18 +2835,17 @@ return b.h - a.h;
 const recruit = heroRecruits[0];
 const recruitExtra = [];
 if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
+if(recruit.st > 0) recruitExtra.push(`STUN ${recruit.st}T`);
 const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
 html += `<div id="${recruit.id}" class="card hero recruit${recruitShieldClass}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
-// Enemy image or emoji (retain original enemy type)
-const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+// Enemy image (retain original enemy type)
 const recruitImageSrc = ENEMY_IMAGES[recruit.n];
 if(recruitImageSrc) {
 html += `<div style="width:50px;height:50px;margin:0 auto 0.25rem;display:flex;align-items:center;justify-content:center"><img src="${recruitImageSrc}" alt="${recruit.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
-html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">${recruitEmoji}</div>`;
+html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem">${recruit.n}</div>`;
 }
 // HP
 html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
@@ -2888,12 +2891,12 @@ laneEnemies.forEach(e => {
 // FLYDRA: Check if this is a dying Flydra - render flipped card
 if(e.isFlydra && e.flydraState === 'dying') {
 html += `<div id="${e.id}" class="card enemy flydra-dying" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:3px solid #e94560;opacity:0.9">`;
-html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">⚠️ ${e.n} ⚠️</div>`;
+html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">${e.n}</div>`;
 // Show greyed-out head image if available
 if(e.flydraHeadImage) {
 html += `<div style="text-align:center;margin:0.5rem 0"><img src="${e.flydraHeadImage}" alt="${e.n}" style="width:50px;height:50px;object-fit:contain;filter:grayscale(80%) brightness(0.5);border-radius:4px"></div>`;
 } else {
-html += `<div style="text-align:center;font-size:2.5rem;margin:0.5rem 0;filter:grayscale(50%)">💀</div>`;
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#e94560;margin:0.5rem 0">DYING</div>`;
 }
 html += `<div style="text-align:center;font-size:0.75rem;color:#f1f5f9;line-height:1.4;padding:0.5rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24;margin-bottom:0.3rem">REGENERATING...</div>`;
@@ -2912,9 +2915,8 @@ if(e.sh > 0) cardClasses += ' has-shield';
 const extra = [];
 // Show ghost charges if enemy has them
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
-if(e.st > 0) extra.push(`💥${e.st}T`);
+if(e.st > 0) extra.push(`STUN ${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
-const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 const enemyAriaLabel = `${getEnemyDisplayName(e)} - ${e.h}/${e.m} HP, ${e.p} Power${e.sh > 0 ? ', '+e.sh+' shield' : ''}${e.g > 0 ? ', '+e.g+' ghost' : ''}${e.st > 0 ? ', stunned '+e.st+' turns' : ''}`;
 html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} >`;
 // Name at top
@@ -2929,7 +2931,7 @@ html += `<div style="flex:1;min-width:0;height:50px;display:flex;align-items:cen
 } else if(enemyImageSrc) {
 html += `<div style="flex:1;min-width:0;height:60px;display:flex;align-items:center;justify-content:center"><img src="${enemyImageSrc}" alt="${e.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
-html += `<div style="flex:1;min-width:0;font-size:2rem;text-align:center">${enemyEmoji}</div>`;
+html += `<div style="flex:1;min-width:0;font-size:0.8rem;font-weight:bold;text-align:center">${e.n}</div>`;
 }
 html += `<div style="flex-shrink:0;text-align:center"><div style="font-size:0.8rem;white-space:nowrap">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
@@ -2982,12 +2984,12 @@ const adjustedDC = S.d20DC || 10;
 html += `<div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(30,30,30,0.98),rgba(30,30,30,0.9));border-top:3px solid #3b82f6;padding:1rem;z-index:1000;text-align:center">`;
 html += `<div style="margin-bottom:0.5rem;color:#fff;font-weight:bold;font-size:1.1rem">${h.n}: ${actionName} (DC ${adjustedDC})</div>`;
 if(expandLevel > 0) {
-html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">✨ Expand: Select up to ${maxTargets} targets</div>`;
+html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">Expand: Select up to ${maxTargets} targets</div>`;
 }
 html += `<div style="margin-bottom:0.75rem;color:#fbbf24;font-size:1rem">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
 html += `<div style="display:flex;gap:1rem;justify-content:center">`;
 html += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">Cancel</button>`;
-html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">🎲 Roll D20!</button>`;
+html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
 html += `</div></div>`;
 }
 
@@ -3042,12 +3044,14 @@ const spendStyle = canAfford
   ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
   : 'opacity:0.5;text-align:center';
 v.innerHTML = `
-<h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
-<p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
-<button class="btn secondary" onclick="viewHeroCards()">View Heroes</button>
-<button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
+<h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
+<p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
+<p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
+<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
+<div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+<button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
+<button class="btn safe" onclick="tryAdvanceFromLevelUp()" style="flex:1">Next Floor</button>
+</div>`;
 }
 
 // Check if player should be warned about unspent XP before advancing
@@ -3082,7 +3086,7 @@ const heroImage = getHeroImage(h);
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-if(h.st > 0) extra.push(`💥${h.st}T`);
+if(h.st > 0) extra.push(`STUN ${h.st}T`);
 
 let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';
 if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626';
@@ -3143,7 +3147,7 @@ saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
 S.tutorialFlags.faq_intro = true;
-showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br>🌀 <strong>Sigilarium</strong> - View all sigils and their effects<br>🪵 <strong>Log</strong> - See combat message history<br>❓ <strong>FAQ</strong> - Frequently asked questions about game mechanics<br>⚙️ <strong>Settings</strong> - Adjust game options and preferences", () => {
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong>Sigilarium</strong> - View all sigils and their effects<br><strong>Log</strong> - See combat message history<br><strong>FAQ</strong> - Frequently asked questions about game mechanics<br><strong>Settings</strong> - Adjust game options and preferences", () => {
 startFloor(S.floor + 1);
 });
 return;
@@ -3162,7 +3166,7 @@ v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem;color:#a855f7">Starting XP Bonus!</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;opacity:0.8">Spend it now or bank it for later. Remaining XP: <strong>${S.xp}</strong> | Next Level Cost: <strong>${nextCost}XP</strong></p>
-<div class="choice" onclick="startingXPMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
+<div class="choice" onclick="startingXPMenu()" style="${spendStyle}">Spend XP</div>
 <button class="btn safe" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
 }
 
@@ -3185,22 +3189,22 @@ v.innerHTML = `
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
 
 <div style="background:rgba(44,99,199,0.1);border:2px solid #2c63c7;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#2c63c7;margin:0 0 0.5rem 0;font-size:1rem">⚔️ Core Sigils</h3>
+<h3 style="color:#2c63c7;margin:0 0 0.5rem 0;font-size:1rem">Core Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4">Basic actions that heroes start with: Attack, Shield, Heal, D20. Every hero can learn these.</p>
 </div>
 
 <div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#f97316;margin:0 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin:0 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4">Alternative specialist actions for your turn: Ghost, Alpha, Grapple. Heroes don't start with these, but any hero can learn them!</p>
 </div>
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">✨ Passive Sigils</h3>
+<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">Passive Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4">Global enhancements that automatically improve all heroes: Expand, Asterisk, Star. <strong>All heroes benefit immediately from passive upgrades!</strong></p>
 </div>
 
 <div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-bottom:1.5rem">
-<p style="font-size:0.9rem;margin:0;line-height:1.5"><strong>💡 Upgrading a sigil makes it stronger everywhere:</strong> in the Sigilarium, on every hero who has it, and for any hero who learns it later!</p>
+<p style="font-size:0.9rem;margin:0;line-height:1.5"><strong>Upgrading a sigil makes it stronger everywhere:</strong> in the Sigilarium, on every hero who has it, and for any hero who learns it later!</p>
 </div>
 
 <div class="choice" onclick="startingUpgradeSigil()">Upgrade Existing Sigil</div>
@@ -3289,9 +3293,9 @@ categoryHtml += `<div class="choice" onclick="startingUpSigil('${sig}')"><strong
 return categoryHtml;
 };
 
-html += renderSigilChoices(coreSigils, '⚔️ Core Sigils', '#2c63c7');
-html += renderSigilChoices(advancedSigils, '🔥 Advanced Sigils', '#f97316');
-html += renderSigilChoices(passiveSigils, '✨ Passive Sigils', '#9333ea');
+html += renderSigilChoices(coreSigils, 'Core Sigils', '#2c63c7');
+html += renderSigilChoices(advancedSigils, 'Advanced Sigils', '#f97316');
+html += renderSigilChoices(passiveSigils, 'Passive Sigils', '#9333ea');
 }
 }
 html += `<button class="btn secondary" onclick="showStartingSigilUpgradeMenu()">Back</button>`;
@@ -3365,9 +3369,9 @@ categoryHtml += `<div class="choice" onclick="startingAddSigilConfirm(${heroIdx}
 return categoryHtml;
 };
 
-html += renderCategorySigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
-html += renderCategorySigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
-html += renderCategorySigils(passiveSigils, '✨ Passive Sigils', '#9333ea');
+html += renderCategorySigils(coreSigils, 'Core Sigils', '#2c63c7');
+html += renderCategorySigils(advancedSigils, 'Advanced Sigils', '#f97316');
+html += renderCategorySigils(passiveSigils, 'Passive Sigils', '#9333ea');
 }
 html += `<button class="btn secondary" onclick="startingAddSigilToHero()">Back</button>`;
 v.innerHTML = html;
@@ -3413,7 +3417,7 @@ v.innerHTML = `
 <div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
 <div class="tutorial-modal" style="max-width:550px;text-align:left">
 <h2 style="text-align:center;color:#22c55e;margin-bottom:1rem">Level Up!</h2>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! Here are your options:</p>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! FROGGLE is all about finding cool upgrade combos. Here are your options:</p>
 
 <div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
 <h4 style="color:#3b82f6;margin:0 0 0.25rem 0;font-size:0.95rem">1. Add Active Sigil to Hero</h4>
@@ -3503,15 +3507,15 @@ categoryHtml += `<div class="choice" onclick="confirmAddActiveSigil(${heroIdx}, 
 return categoryHtml;
 };
 
-html += renderActiveSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderActiveSigils(coreSigils, 'Core Sigils', '#2c63c7');
 // Advanced Sigils - locked if not unlocked
 if(S.advancedSigilsUnlocked) {
-html += renderActiveSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+html += renderActiveSigils(advancedSigils, 'Advanced Sigils', '#f97316');
 } else {
 html += `
-<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
-<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -3578,15 +3582,15 @@ categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><s
 return categoryHtml;
 };
 
-html += renderUpgradeSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderUpgradeSigils(coreSigils, 'Core Sigils', '#2c63c7');
 // Advanced Sigils - locked if not unlocked
 if(S.advancedSigilsUnlocked) {
-html += renderUpgradeSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+html += renderUpgradeSigils(advancedSigils, 'Advanced Sigils', '#f97316');
 } else {
 html += `
-<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
-<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -3626,7 +3630,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive
 if(!S.passiveSigilsUnlocked) {
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
-<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -3643,7 +3647,7 @@ if(available.length === 0) {
 html += `<p style="text-align:center;margin-bottom:1rem">All passive sigils maxed!</p>`;
 } else {
 html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">✨ Passive Sigils</h3>
+<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">Passive Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4"><strong>Expand:</strong> +1 target for Attack/Shield/Heal<br><strong>Asterisk:</strong> Next action triggers multiple times<br><strong>Star:</strong> Multiply XP earned in combat</p>
 </div>`;
 

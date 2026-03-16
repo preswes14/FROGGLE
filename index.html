@@ -398,12 +398,13 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
 .card.hero.chosen-one::before {
-  content: '🌼';
+  content: '★';
   position: absolute;
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 1.3rem;
+  color: #fbbf24;
   filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24);
   z-index: 1;
   animation: chosen-glow 2s ease-in-out infinite;
@@ -2794,11 +2795,11 @@ body.controller-active .controller-prompts {
 <div class="header" id="gameHeader" role="banner" aria-live="polite">
 <div id="locationInfo"><span id="locationLabel">Floor</span> <span id="floor">1</span><span id="roundInfo"> | Round <span id="round">1</span></span></div>
 <div style="display:flex;gap:0.25rem">
-<button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Sigilarium">🌀</button>
-<button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Combat Log">🪵</button>
-<button onclick="showFAQ()" style="padding:0.25rem 0.5rem;background:#f97316;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="FAQ/Help">❓</button>
-<button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Settings">⚙️</button>
-<div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer" title="Debug">🛠️</button></div>
+<button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer;color:#fff" title="Sigilarium">SIG</button>
+<button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer;color:#fff" title="Combat Log">LOG</button>
+<button onclick="showFAQ()" style="padding:0.25rem 0.5rem;background:#f97316;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer;color:#fff" title="FAQ/Help">FAQ</button>
+<button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer;color:#fff" title="Settings">SET</button>
+<div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.7rem;cursor:pointer;color:#fff" title="Debug">DBG</button></div>
 </div>
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
 </div>
@@ -2836,7 +2837,7 @@ window.onerror = function(msg, url, line, col, error) {
 <script>
 // ===== VERSION CHECK =====
 const GAME_VERSION = 'S_1.64';
-console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
+console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
 function debugLog(...args) {
@@ -2975,16 +2976,16 @@ dragon: { n:'Dragon', p:5, h:20, m:20, goldDrop:20, x:25, pool:['Expand','Shield
 flydra: { n:'Flydra', p:5, h:25, m:25, goldDrop:0, x:50, pool:['Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:2, gainRate:1, isFlydra:true, permSigils:[{s:'Attack',l:2},{s:'Expand',l:2}] }
 };
 
-// Enemy emoji icons
+// Enemy text fallback (emoji removed - using art assets)
 const ENEMY_EMOJI = {
-'Fly': '🪰',
-'Goblin': '👺',
-'Wolf': '🐺',
-'Orc': '👹',
-'Giant': '🗿',
-'Cave Troll': '👹',
-'Dragon': '🐉',
-'Flydra': '🐲'
+'Fly': 'F',
+'Goblin': 'G',
+'Wolf': 'W',
+'Orc': 'O',
+'Giant': 'Gi',
+'Cave Troll': 'CT',
+'Dragon': 'Dr',
+'Flydra': 'Fl'
 };
 
 // Enemy artwork images (replaces emojis for main enemies)
@@ -3054,7 +3055,7 @@ const SIGIL_DESCRIPTIONS = {
 'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
 'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
 'Star': 'PASSIVE (works automatically): Multiply combat XP by <b class="sig-scale">1.5×</b>. L2: 2×. L3: 2.5×. L4: 3×. Stacks across all heroes!',
-'Alpha': 'Grant target hero <b class="sig-scale">ONE</b> extra action this turn. L2: 2 actions. L3: 3 actions. L4: 4 actions.'
+'Alpha': 'Grant target ally <b class="sig-scale">ONE</b> extra action this turn. L2: 2 actions. L3: 3 actions. L4: 4 actions.'
 };
 
 // ===== SIGIL ORDERING =====
@@ -3287,14 +3288,13 @@ if(isSelected) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
-if(isSelected) extra.push('❌');
-const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
+if(isSelected) extra.push('X');
 const enemyImageSrc = ENEMY_IMAGES[e.n];
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">`;
 if(enemyImageSrc) {
 html += `<div class="card-emoji"><img src="${enemyImageSrc}" alt="${e.n}" style="width:40px;height:40px;object-fit:contain;border-radius:4px"></div>`;
 } else {
-html += `<div class="card-emoji">${enemyEmoji}</div>`;
+html += `<div class="card-emoji" style="font-weight:bold;font-size:0.8rem">${e.n}</div>`;
 }
 html += `<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${getEnemyDisplayName(e)}</div>
 <div class="card-stats">${e.p}💥 | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
@@ -3357,7 +3357,7 @@ html += `<div class="combat-header-subtitle">${targetText}</div>`;
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
-html += `<div class="combat-header-title" style="color:#f97316">⚠️ AMBUSH! ⚠️</div>`;
+html += `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
 html += `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
 html += `<button class="btn" onclick="confirmAmbushSkip()" style="margin-top:0.5rem;padding:0.5rem 1.5rem">Continue to Enemy Turn</button>`;
 } else {
@@ -3676,6 +3676,20 @@ return false;
 // Tutorial system
 let tooltipTimeout = null;
 let currentTooltip = null;
+let tooltipActive = false;
+let tooltipPendingCallbacks = [];
+
+// Schedule an action that should pause while a tooltip is showing
+function scheduleEnemyAction(fn, delay) {
+const wrappedFn = () => {
+if(tooltipActive) {
+tooltipPendingCallbacks.push(wrappedFn);
+} else {
+fn();
+}
+};
+setTimeout(wrappedFn, delay);
+}
 
 // Get level-specific description with colored/bolded numbers
 function getLevelDescription(sigilName, level) {
@@ -3692,7 +3706,7 @@ const boldNum = (num) => `<strong style="color:${color}">${num}</strong>`;
 
 // Level-specific descriptions
 const descriptions = {
-'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
+'Attack': level === 0 ? 'Not unlocked' : `Deal POW damage ${boldNum(level)} time${level > 1 ? 's' : ''}`,
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
 'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (enemy hurts itself), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
@@ -3701,7 +3715,7 @@ const descriptions = {
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death (persists between combats, max 9)`,
 'Asterisk': level === 0 ? 'Not unlocked' : `PASSIVE: Next action triggers ${boldNum(level + 1)} times! Resets after each battle`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
-'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
+'Alpha': level === 0 ? 'Not unlocked' : `Grant target ally ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
 };
 
 return descriptions[sigilName] || 'No description available';
@@ -3710,6 +3724,8 @@ return descriptions[sigilName] || 'No description available';
 function showTooltip(sigilName, element, level = 1) {
 // Check if tooltips are disabled
 if(S.tooltipsDisabled) return;
+// Pause enemy actions while tooltip is visible
+tooltipActive = true;
 
 // Tooltip display (tutorial explanation happens in Ribbleton combat)
 
@@ -3769,6 +3785,13 @@ tooltipTimeout = null;
 if(currentTooltip) {
 currentTooltip.remove();
 currentTooltip = null;
+}
+// Resume enemy actions that were paused
+tooltipActive = false;
+if(tooltipPendingCallbacks.length > 0) {
+const pending = tooltipPendingCallbacks.slice();
+tooltipPendingCallbacks = [];
+pending.forEach(fn => setTimeout(fn, 0));
 }
 }
 
@@ -3909,7 +3932,6 @@ function spawnConfetti(count = 50) {
 
   // Frog-friendly colors (greens, golds, lily pad colors)
   const colors = ['#22c55e', '#16a34a', '#4ade80', '#fbbf24', '#84cc16', '#10b981', '#34d399', '#a3e635'];
-  const frogEmojis = ['🐸', '🐸', '🐸', '🪷', '💚', '✨'];
 
   for (let i = 0; i < count; i++) {
     const confetti = document.createElement('div');
@@ -3919,14 +3941,7 @@ function spawnConfetti(count = 50) {
     confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
 
     const rand = Math.random();
-    if (rand < 0.2) {
-      // 20% chance: Frog emoji
-      confetti.style.backgroundColor = 'transparent';
-      confetti.style.width = 'auto';
-      confetti.style.height = 'auto';
-      confetti.style.fontSize = (16 + Math.random() * 16) + 'px';
-      confetti.textContent = frogEmojis[Math.floor(Math.random() * frogEmojis.length)];
-    } else if (rand < 0.35) {
+    if (rand < 0.35) {
       // 15% chance: Tiny Tapo image
       confetti.style.backgroundColor = 'transparent';
       confetti.style.width = (20 + Math.random() * 15) + 'px';
@@ -6024,7 +6039,7 @@ function updateToastLog() {
 const log = document.getElementById('toastLog');
 if(!log) return;
 let html = `<div class="toast-log-header">
-<span style="font-size:1rem">🪵 Combat Log</span>
+<span style="font-size:1rem">Combat Log</span>
 <button onclick="minimizeToastLog()" aria-label="Close combat log" style="background:#ef4444;border:2px solid #000;border-radius:4px;padding:0.25rem 0.5rem;font-weight:bold;cursor:pointer;font-size:0.8rem">✕</button>
 </div>`;
 html += '<div class="toast-log-entries">';
@@ -6063,7 +6078,7 @@ setTimeout(() => showTutorialPop(flagName, message, onDismiss), 100);
 return;
 }
 // Add tutorial message to toast log for reference
-S.toastHistory.unshift(`📖 ${message}`);
+S.toastHistory.unshift(`${message}`);
 if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
 updateToastLog();
 // Create blocking modal
@@ -6720,7 +6735,7 @@ font-family: inherit;
 `;
 overlay.innerHTML = `
 <div style="text-align:center">
-<div style="font-size:3rem;margin-bottom:1rem">🐸</div>
+<div style="font-size:1.5rem;font-weight:bold;margin-bottom:1rem;color:#22c55e">FROGGLE</div>
 <h2 style="font-size:1.5rem;margin:0 0 0.5rem 0;color:#22c55e">FROGGLE SUSPENDED</h2>
 <p style="font-size:1rem;opacity:0.8;margin:0 0 1.5rem 0">Game saved. Tap or press any button to resume.</p>
 <div style="font-size:0.9rem;opacity:0.6">Progress has been saved automatically.</div>
@@ -6851,7 +6866,7 @@ return;
 const isAmbush = f === 11;
 const ambushWarning = isAmbush ? `
 <div style="margin-top:1.5rem;padding:0.75rem 1.5rem;background:rgba(239,68,68,0.3);border:2px solid #ef4444;border-radius:8px;animation:pulseWarning 1s ease infinite">
-<div style="font-size:1.2rem;font-weight:bold;color:#fca5a5">⚠️ AMBUSH! ⚠️</div>
+<div style="font-size:1.2rem;font-weight:bold;color:#fca5a5">AMBUSH!</div>
 <div style="font-size:0.95rem;color:#fca5a5;margin-top:0.25rem">All heroes stunned Turn 1!</div>
 </div>
 ` : '';
@@ -7300,7 +7315,7 @@ autoFocusTargetForController(heroIdx, 'enemy');
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 // Alpha tutorial: show first time player clicks Alpha
-showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant another hero multiple turns! Great ROI.");
+showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant an ally multiple turns! Great ROI.");
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
@@ -7309,7 +7324,7 @@ S.alphaLevel = level * repeats;
 S.alphaTargetsNeeded = targetsNeeded;
 S.targets = [];
 const totalActions = level * repeats;
-toast(`Alpha: Grant ${totalActions} action${totalActions>1?'s':''} to ${targetsNeeded} hero${targetsNeeded>1?'es':''}!`);
+toast(`Alpha: Grant ${totalActions} action${totalActions>1?'s':''} to ${targetsNeeded} ${targetsNeeded>1?'allies':'ally'}!`);
 render();
 autoFocusTargetForController(heroIdx, 'hero');
 }
@@ -7425,7 +7440,7 @@ if(isTutorial) {
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
-<strong style="font-size:1.2rem">✅ DC 10: CONFUSE</strong><br>
+<strong style="font-size:1.2rem">DC 10: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Target deals its own POW to itself</span>
 </div>`;
 // Show other options greyed out
@@ -7437,7 +7452,7 @@ const lockedOptions = [
 ];
 lockedOptions.forEach(opt => {
 html += `<div style="margin-bottom:0.5rem;background:#e0e0e0;border:2px solid #999;border-radius:8px;padding:0.75rem;opacity:0.5;cursor:not-allowed">
-<strong style="font-size:0.95rem">🔒 DC ${opt.dc}: ${opt.name}</strong><br>
+<strong style="font-size:0.95rem">DC ${opt.dc}: ${opt.name}</strong><br>
 <span style="font-size:0.85rem">${opt.desc}</span>
 </div>`;
 });
@@ -7452,7 +7467,7 @@ html = '<div style="text-align:center;padding:1rem;background:white;border:3px s
 html += '<h3 style="margin-bottom:1rem;color:#1a1a1a">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
-if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">✨ Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
+if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
 if(S.asteriskD20Repeats > 1) {
 html += `<p style="margin-bottom:0.5rem;color:#f97316">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
 html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
@@ -7585,7 +7600,7 @@ const resultClass = isNat20 ? 'nat20' : isNat1 ? 'nat1' : success ? 'success' : 
 const overlay = document.createElement('div');
 overlay.className = 'd20-roll-overlay';
 overlay.innerHTML = `
-<div class="d20-dice-spin">🎲</div>
+<div class="d20-dice-spin">D20</div>
 <div class="d20-result-number ${resultClass}">${best}</div>
 `;
 document.body.appendChild(overlay);
@@ -8028,7 +8043,7 @@ S.acted.push(alphaUserIdx);
 if(alphaUser && !alphaUser.firstActionUsed) alphaUser.firstActionUsed = true;
 S.pending = null;
 S.targets = [];
-toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} hero${targetIds.length>1?'es':''}!`);
+toast(`${alphaUser.n} used Alpha! Granting ${actionsToGrant} action${actionsToGrant>1?'s':''} to ${targetIds.length} ${targetIds.length>1?'allies':'ally'}!`);
 // QUEST TRACKING: Alpha used
 trackQuestProgress('alpha');
 // Set up multi-action state for granted heroes
@@ -8607,7 +8622,7 @@ return;
 S.turn = 'enemy';
 S.acted = [];
 S.activeIdx = -1;
-showTurnBanner('enemy-turn', '⚔️ Enemy Turn');
+showTurnBanner('enemy-turn', 'Enemy Turn');
 render();
 S.enemies.forEach(e => {
 // NOTE: Stun decrement moved to endEnemyTurn() so enemies actually skip their turn
@@ -8621,7 +8636,7 @@ if(!r.turnsSinceGain) r.turnsSinceGain = 0;
 r.turnsSinceGain++;
 });
 }
-setTimeout(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
+scheduleEnemyAction(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
 }
 
 function drawEnemyStartSigil(enemy, base, forceLevel1 = false) {
@@ -8691,11 +8706,11 @@ if(drawnSigil) drawnSigil.newlyDrawn = false;
  */
 function executeAlphaPhase() {
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
-if(alphaEnemies.length === 0) { setTimeout(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
+if(alphaEnemies.length === 0) { scheduleEnemyAction(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all Alpha enemies in reading order with minimal stagger
 let delay = 0;
 alphaEnemies.forEach((alphaEnemy, idx) => {
-setTimeout(() => {
+scheduleEnemyAction(() => {
 const allies = S.enemies.filter(e => e.id !== alphaEnemy.id && e.h > 0 && e.st === 0 && !e.s.some(s => s.sig === 'Alpha' && !s.perm));
 if(allies.length === 0) { toast(`${alphaEnemy.n}'s Alpha has no valid allies!`); alphaEnemy.alphaActed = true; return; }
 allies.sort((a, b) => { if(b.p !== a.p) return b.p - a.p; return b.s.length - a.s.length; });
@@ -8709,19 +8724,19 @@ alphaEnemy.alphaActed = true;
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-setTimeout(() => executeRecruitPhase(), delay + T(600));
+scheduleEnemyAction(() => executeRecruitPhase(), delay + T(600));
 }
 
 function executeRecruitPhase() {
-if(!S.recruits || S.recruits.length === 0) { setTimeout(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
+if(!S.recruits || S.recruits.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all recruits in reading order with minimal stagger
 let delay = 0;
 S.recruits.forEach((recruit, idx) => {
-setTimeout(() => executeRecruitTurn(recruit), delay);
+scheduleEnemyAction(() => executeRecruitTurn(recruit), delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-setTimeout(() => executeNormalEnemyPhase(), delay + T(600));
+scheduleEnemyAction(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
@@ -8824,7 +8839,7 @@ S.enemyTurnCurrent = 0;
 
 let delay = 0;
 allEnemies.forEach((enemy, idx) => {
-setTimeout(() => {
+scheduleEnemyAction(() => {
 S.enemyTurnCurrent = idx + 1;
 render(); // Update header to show progress
 // Guard: skip if enemy died mid-turn (e.g., from Alpha phase or Grapple recoil)
@@ -8835,7 +8850,7 @@ delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Just enough stagger for vis
 });
 
 // Wait for longest animation to complete (600ms per enemy action + stagger)
-setTimeout(() => endEnemyTurn(), delay + T(600));
+scheduleEnemyAction(() => endEnemyTurn(), delay + T(600));
 }
 
 function executeEnemyTurn(enemy) {
@@ -9379,10 +9394,10 @@ if(isTargetable) onclick = `onclick="tgtHero('${h.id}')"`;
 else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${i})"`;
 const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand turn ${h.lst+1}${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost charges' : ''}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
-html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">⚠️ LAST STAND ⚠️</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">LAST STAND</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
 if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
-html += `<div style="text-align:center;font-size:1.5rem;margin:0.3rem 0">💀</div>`;
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
 html += `<div style="font-size:0.65rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
@@ -9428,11 +9443,11 @@ const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-if(h.st > 0) extra.push(`💥${h.st}T`);
+if(h.st > 0) extra.push(`STUN ${h.st}T`);
 // Show alpha-granted bonus turns remaining for this hero
 if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
 const alphaRemaining = S.alphaGrantedActions.slice(S.alphaCurrentAction || 0).filter(idx => idx === i).length;
-if(alphaRemaining > 0) extra.push(`⚡${alphaRemaining}`);
+if(alphaRemaining > 0) extra.push(`+${alphaRemaining}`);
 }
 if(hasActed) extra.push('✓');
 let onclick = '';
@@ -9441,6 +9456,10 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = getHeroImage(h);
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
 html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
+// Tapo's Chosen tooltip indicator
+if(S.chosenHeroIdx === i) {
+html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.6rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
+}
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
@@ -9596,7 +9615,7 @@ const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
 // Asterisk expended indicator: red X overlay when first action used
 const asteriskExpended = (s === 'Asterisk' && h.firstActionUsed);
-const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem;color:#dc2626;text-shadow:0 0 3px #000;pointer-events:none">❌</span>' : '';
+const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.8rem;color:#dc2626;font-weight:bold;text-shadow:0 0 3px #000;pointer-events:none">USED</span>' : '';
 const sigilStyle = asteriskExpended ? 'position:relative;opacity:0.5' : '';
 return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
 ${sigilStyle ? `style="${sigilStyle}"` : ''}
@@ -9627,18 +9646,17 @@ return b.h - a.h;
 const recruit = heroRecruits[0];
 const recruitExtra = [];
 if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
-if(recruit.st > 0) recruitExtra.push(`💥${recruit.st}T`);
+if(recruit.st > 0) recruitExtra.push(`STUN ${recruit.st}T`);
 const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
 html += `<div id="${recruit.id}" class="card hero recruit${recruitShieldClass}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bottom:0.25rem">${recruit.p}</div>`;
-// Enemy image or emoji (retain original enemy type)
-const recruitEmoji = ENEMY_EMOJI[recruit.n] || '👾';
+// Enemy image (retain original enemy type)
 const recruitImageSrc = ENEMY_IMAGES[recruit.n];
 if(recruitImageSrc) {
 html += `<div style="width:50px;height:50px;margin:0 auto 0.25rem;display:flex;align-items:center;justify-content:center"><img src="${recruitImageSrc}" alt="${recruit.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
-html += `<div style="text-align:center;font-size:1.5rem;margin-bottom:0.25rem">${recruitEmoji}</div>`;
+html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem">${recruit.n}</div>`;
 }
 // HP
 html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">${recruit.h}/${recruit.m}</div>`;
@@ -9684,12 +9702,12 @@ laneEnemies.forEach(e => {
 // FLYDRA: Check if this is a dying Flydra - render flipped card
 if(e.isFlydra && e.flydraState === 'dying') {
 html += `<div id="${e.id}" class="card enemy flydra-dying" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:3px solid #e94560;opacity:0.9">`;
-html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">⚠️ ${e.n} ⚠️</div>`;
+html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">${e.n}</div>`;
 // Show greyed-out head image if available
 if(e.flydraHeadImage) {
 html += `<div style="text-align:center;margin:0.5rem 0"><img src="${e.flydraHeadImage}" alt="${e.n}" style="width:50px;height:50px;object-fit:contain;filter:grayscale(80%) brightness(0.5);border-radius:4px"></div>`;
 } else {
-html += `<div style="text-align:center;font-size:2.5rem;margin:0.5rem 0;filter:grayscale(50%)">💀</div>`;
+html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#e94560;margin:0.5rem 0">DYING</div>`;
 }
 html += `<div style="text-align:center;font-size:0.75rem;color:#f1f5f9;line-height:1.4;padding:0.5rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24;margin-bottom:0.3rem">REGENERATING...</div>`;
@@ -9708,9 +9726,8 @@ if(e.sh > 0) cardClasses += ' has-shield';
 const extra = [];
 // Show ghost charges if enemy has them
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
-if(e.st > 0) extra.push(`💥${e.st}T`);
+if(e.st > 0) extra.push(`STUN ${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
-const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
 const enemyAriaLabel = `${getEnemyDisplayName(e)} - ${e.h}/${e.m} HP, ${e.p} Power${e.sh > 0 ? ', '+e.sh+' shield' : ''}${e.g > 0 ? ', '+e.g+' ghost' : ''}${e.st > 0 ? ', stunned '+e.st+' turns' : ''}`;
 html += `<div id="${e.id}" class="${cardClasses}" aria-label="${enemyAriaLabel}" ${isTargetable?`onclick="tgtEnemy('${e.id}')"`:''} >`;
 // Name at top
@@ -9725,7 +9742,7 @@ html += `<div style="flex:1;min-width:0;height:50px;display:flex;align-items:cen
 } else if(enemyImageSrc) {
 html += `<div style="flex:1;min-width:0;height:60px;display:flex;align-items:center;justify-content:center"><img src="${enemyImageSrc}" alt="${e.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
-html += `<div style="flex:1;min-width:0;font-size:2rem;text-align:center">${enemyEmoji}</div>`;
+html += `<div style="flex:1;min-width:0;font-size:0.8rem;font-weight:bold;text-align:center">${e.n}</div>`;
 }
 html += `<div style="flex-shrink:0;text-align:center"><div style="font-size:0.8rem;white-space:nowrap">${e.h}/${e.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
@@ -9778,12 +9795,12 @@ const adjustedDC = S.d20DC || 10;
 html += `<div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(30,30,30,0.98),rgba(30,30,30,0.9));border-top:3px solid #3b82f6;padding:1rem;z-index:1000;text-align:center">`;
 html += `<div style="margin-bottom:0.5rem;color:#fff;font-weight:bold;font-size:1.1rem">${h.n}: ${actionName} (DC ${adjustedDC})</div>`;
 if(expandLevel > 0) {
-html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">✨ Expand: Select up to ${maxTargets} targets</div>`;
+html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">Expand: Select up to ${maxTargets} targets</div>`;
 }
 html += `<div style="margin-bottom:0.75rem;color:#fbbf24;font-size:1rem">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
 html += `<div style="display:flex;gap:1rem;justify-content:center">`;
 html += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">Cancel</button>`;
-html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">🎲 Roll D20!</button>`;
+html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
 html += `</div></div>`;
 }
 
@@ -9838,12 +9855,14 @@ const spendStyle = canAfford
   ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
   : 'opacity:0.5;text-align:center';
 v.innerHTML = `
-<h2 style="text-align:center;margin-bottom:1rem">Level Up!</h2>
-<p style="text-align:center;margin-bottom:0.5rem">Floor ${S.floor} Complete</p>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
-<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
-<button class="btn secondary" onclick="viewHeroCards()">View Heroes</button>
-<button class="btn safe" onclick="tryAdvanceFromLevelUp()">Next Floor</button>`;
+<h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
+<p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
+<p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
+<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
+<div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+<button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
+<button class="btn safe" onclick="tryAdvanceFromLevelUp()" style="flex:1">Next Floor</button>
+</div>`;
 }
 
 // Check if player should be warned about unspent XP before advancing
@@ -9878,7 +9897,7 @@ const heroImage = getHeroImage(h);
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
-if(h.st > 0) extra.push(`💥${h.st}T`);
+if(h.st > 0) extra.push(`STUN ${h.st}T`);
 
 let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';
 if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626';
@@ -9939,7 +9958,7 @@ saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
 S.tutorialFlags.faq_intro = true;
-showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br>🌀 <strong>Sigilarium</strong> - View all sigils and their effects<br>🪵 <strong>Log</strong> - See combat message history<br>❓ <strong>FAQ</strong> - Frequently asked questions about game mechanics<br>⚙️ <strong>Settings</strong> - Adjust game options and preferences", () => {
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong>Sigilarium</strong> - View all sigils and their effects<br><strong>Log</strong> - See combat message history<br><strong>FAQ</strong> - Frequently asked questions about game mechanics<br><strong>Settings</strong> - Adjust game options and preferences", () => {
 startFloor(S.floor + 1);
 });
 return;
@@ -9958,7 +9977,7 @@ v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem;color:#a855f7">Starting XP Bonus!</h2>
 <p style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">You start this run with <strong>${S.startingXP} XP</strong> from Death Boy sacrifices!</p>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:0.9rem;opacity:0.8">Spend it now or bank it for later. Remaining XP: <strong>${S.xp}</strong> | Next Level Cost: <strong>${nextCost}XP</strong></p>
-<div class="choice" onclick="startingXPMenu()" style="${spendStyle}">Spend XP${canAfford ? ' ✨' : ''}</div>
+<div class="choice" onclick="startingXPMenu()" style="${spendStyle}">Spend XP</div>
 <button class="btn safe" onclick="startFloor(1)">Start Run (Bank XP)</button>`;
 }
 
@@ -9981,22 +10000,22 @@ v.innerHTML = `
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
 
 <div style="background:rgba(44,99,199,0.1);border:2px solid #2c63c7;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#2c63c7;margin:0 0 0.5rem 0;font-size:1rem">⚔️ Core Sigils</h3>
+<h3 style="color:#2c63c7;margin:0 0 0.5rem 0;font-size:1rem">Core Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4">Basic actions that heroes start with: Attack, Shield, Heal, D20. Every hero can learn these.</p>
 </div>
 
 <div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#f97316;margin:0 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin:0 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4">Alternative specialist actions for your turn: Ghost, Alpha, Grapple. Heroes don't start with these, but any hero can learn them!</p>
 </div>
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">✨ Passive Sigils</h3>
+<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">Passive Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4">Global enhancements that automatically improve all heroes: Expand, Asterisk, Star. <strong>All heroes benefit immediately from passive upgrades!</strong></p>
 </div>
 
 <div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-bottom:1.5rem">
-<p style="font-size:0.9rem;margin:0;line-height:1.5"><strong>💡 Upgrading a sigil makes it stronger everywhere:</strong> in the Sigilarium, on every hero who has it, and for any hero who learns it later!</p>
+<p style="font-size:0.9rem;margin:0;line-height:1.5"><strong>Upgrading a sigil makes it stronger everywhere:</strong> in the Sigilarium, on every hero who has it, and for any hero who learns it later!</p>
 </div>
 
 <div class="choice" onclick="startingUpgradeSigil()">Upgrade Existing Sigil</div>
@@ -10085,9 +10104,9 @@ categoryHtml += `<div class="choice" onclick="startingUpSigil('${sig}')"><strong
 return categoryHtml;
 };
 
-html += renderSigilChoices(coreSigils, '⚔️ Core Sigils', '#2c63c7');
-html += renderSigilChoices(advancedSigils, '🔥 Advanced Sigils', '#f97316');
-html += renderSigilChoices(passiveSigils, '✨ Passive Sigils', '#9333ea');
+html += renderSigilChoices(coreSigils, 'Core Sigils', '#2c63c7');
+html += renderSigilChoices(advancedSigils, 'Advanced Sigils', '#f97316');
+html += renderSigilChoices(passiveSigils, 'Passive Sigils', '#9333ea');
 }
 }
 html += `<button class="btn secondary" onclick="showStartingSigilUpgradeMenu()">Back</button>`;
@@ -10161,9 +10180,9 @@ categoryHtml += `<div class="choice" onclick="startingAddSigilConfirm(${heroIdx}
 return categoryHtml;
 };
 
-html += renderCategorySigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
-html += renderCategorySigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
-html += renderCategorySigils(passiveSigils, '✨ Passive Sigils', '#9333ea');
+html += renderCategorySigils(coreSigils, 'Core Sigils', '#2c63c7');
+html += renderCategorySigils(advancedSigils, 'Advanced Sigils', '#f97316');
+html += renderCategorySigils(passiveSigils, 'Passive Sigils', '#9333ea');
 }
 html += `<button class="btn secondary" onclick="startingAddSigilToHero()">Back</button>`;
 v.innerHTML = html;
@@ -10209,7 +10228,7 @@ v.innerHTML = `
 <div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
 <div class="tutorial-modal" style="max-width:550px;text-align:left">
 <h2 style="text-align:center;color:#22c55e;margin-bottom:1rem">Level Up!</h2>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! Here are your options:</p>
+<p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! FROGGLE is all about finding cool upgrade combos. Here are your options:</p>
 
 <div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
 <h4 style="color:#3b82f6;margin:0 0 0.25rem 0;font-size:0.95rem">1. Add Active Sigil to Hero</h4>
@@ -10299,15 +10318,15 @@ categoryHtml += `<div class="choice" onclick="confirmAddActiveSigil(${heroIdx}, 
 return categoryHtml;
 };
 
-html += renderActiveSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderActiveSigils(coreSigils, 'Core Sigils', '#2c63c7');
 // Advanced Sigils - locked if not unlocked
 if(S.advancedSigilsUnlocked) {
-html += renderActiveSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+html += renderActiveSigils(advancedSigils, 'Advanced Sigils', '#f97316');
 } else {
 html += `
-<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
-<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -10374,15 +10393,15 @@ categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><s
 return categoryHtml;
 };
 
-html += renderUpgradeSigils(coreSigils, '⚔️ Core Sigils', '#2c63c7');
+html += renderUpgradeSigils(coreSigils, 'Core Sigils', '#2c63c7');
 // Advanced Sigils - locked if not unlocked
 if(S.advancedSigilsUnlocked) {
-html += renderUpgradeSigils(advancedSigils, '🔥 Advanced Sigils', '#f97316');
+html += renderUpgradeSigils(advancedSigils, 'Advanced Sigils', '#f97316');
 } else {
 html += `
-<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin:1rem 0 0.5rem 0;font-size:1rem">Advanced Sigils</h3>
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
-<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -10422,7 +10441,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive
 if(!S.passiveSigilsUnlocked) {
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
-<div style="font-size:1.5rem;margin-bottom:0.5rem">🔒</div>
+<div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
 </div>`;
@@ -10439,7 +10458,7 @@ if(available.length === 0) {
 html += `<p style="text-align:center;margin-bottom:1rem">All passive sigils maxed!</p>`;
 } else {
 html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
-<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">✨ Passive Sigils</h3>
+<h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">Passive Sigils</h3>
 <p style="font-size:0.85rem;margin:0;line-height:1.4"><strong>Expand:</strong> +1 target for Attack/Shield/Heal<br><strong>Asterisk:</strong> Next action triggers multiple times<br><strong>Star:</strong> Multiply XP earned in combat</p>
 </div>`;
 
@@ -10636,7 +10655,7 @@ html += '<div class="neutral-left">';
 // Header with stats and narrative
 html += '<div class="neutral-header">';
 if(showStats) {
-html += `<div class="neutral-stats">💰 ${S.gold}G | 🎯 Floor ${S.floor}</div>`;
+html += `<div class="neutral-stats">${S.gold}G | Floor ${S.floor}</div>`;
 }
 html += '<div class="neutral-narrative">';
 if(title) html += `<div class="neutral-title">${title}</div>`;
@@ -10756,7 +10775,7 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
     v.innerHTML = `
     <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:2rem">
     <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:400px;text-align:center">
-    <h2 style="margin:0 0 1rem 0">🐸 Thanks for playing!</h2>
+    <h2 style="margin:0 0 1rem 0">Thanks for playing!</h2>
     <p style="margin:0 0 1.5rem 0;opacity:0.9">Close this tab or window to exit completely.</p>
     <button class="btn" onclick="mainTitlePage()" style="background:#6366f1">Return to Title</button>
     </div>
@@ -10773,7 +10792,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
 <div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-<h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">🐸 FROGGLE 🐸</h2>
+<h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">FROGGLE</h2>
 
 <div style="text-align:center;margin-bottom:1rem">
 <p style="font-size:0.95rem;margin:0 0 0.25rem 0;color:#1e1b4b">A DubsPubs game by</p>
@@ -10842,20 +10861,20 @@ v.innerHTML = `
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 1</h3>
-${slot1.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot1.lastSaved)}</span>` : ''}
+${slot1.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">${formatSaveDate(slot1.lastSaved)}</span>` : ''}
 </div>
 ${slot1.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
-<div>📊 Runs: <strong>${slot1.runsAttempted}</strong> | 💰 Rate: <strong>${slot1.goingRate}G</strong></div>
-${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
+<div>Runs: <strong>${slot1.runsAttempted}</strong> | Rate: <strong>${slot1.goingRate}G</strong></div>
+${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(1)" style="padding:0.5rem">🗑️</button>
+<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? 'Continue' : 'New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(1)" style="padding:0.5rem">Del</button>
 </div>
 ` : `
 <p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">New Game</button>
 `}
 </div>
 
@@ -10863,20 +10882,20 @@ ${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active 
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 2</h3>
-${slot2.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot2.lastSaved)}</span>` : ''}
+${slot2.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">${formatSaveDate(slot2.lastSaved)}</span>` : ''}
 </div>
 ${slot2.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
-<div>📊 Runs: <strong>${slot2.runsAttempted}</strong> | 💰 Rate: <strong>${slot2.goingRate}G</strong></div>
-${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
+<div>Runs: <strong>${slot2.runsAttempted}</strong> | Rate: <strong>${slot2.goingRate}G</strong></div>
+${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(2)" style="padding:0.5rem">🗑️</button>
+<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? 'Continue' : 'New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(2)" style="padding:0.5rem">Del</button>
 </div>
 ` : `
 <p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">New Game</button>
 `}
 </div>
 
@@ -10884,20 +10903,20 @@ ${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active 
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 3</h3>
-${slot3.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot3.lastSaved)}</span>` : ''}
+${slot3.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">${formatSaveDate(slot3.lastSaved)}</span>` : ''}
 </div>
 ${slot3.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
-<div>📊 Runs: <strong>${slot3.runsAttempted}</strong> | 💰 Rate: <strong>${slot3.goingRate}G</strong></div>
-${slot3.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot3.activeFloor ? ` - Floor ${slot3.activeFloor}` : ''}</div>` : ''}
+<div>Runs: <strong>${slot3.runsAttempted}</strong> | Rate: <strong>${slot3.goingRate}G</strong></div>
+${slot3.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">Active Run${slot3.activeFloor ? ` - Floor ${slot3.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(3)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot3.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(3)" style="padding:0.5rem">🗑️</button>
+<button class="btn" onclick="continueSlot(3)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot3.hasActiveRun ? 'Continue' : 'New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(3)" style="padding:0.5rem">Del</button>
 </div>
 ` : `
 <p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(3)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(3)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">New Game</button>
 `}
 </div>
 
@@ -11211,7 +11230,7 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:500px">
-<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ! 💪</h2>
+<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ!</h2>
 <p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
 No time to waste, eh? Well then get going! Save Tapo!
 </p>
@@ -11221,17 +11240,15 @@ If you need help, look for the:
 </p>
 <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap">
 <div style="text-align:center">
-<div style="font-size:1.5rem;margin-bottom:0.25rem">👇</div>
-<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">❓ Help/FAQ</div>
+<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Help/FAQ</div>
 </div>
 <div style="text-align:center">
-<div style="font-size:1.5rem;margin-bottom:0.25rem">👇</div>
-<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">📖 Sigilarium</div>
+<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Sigilarium</div>
 </div>
 </div>
 </div>
 <p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
-(Help/tips can be disabled in ⚙️ Settings)
+(Help/tips can be disabled in Settings)
 </p>
 <button onclick="confirmSkipTutorial()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's go!</button>
 </div>`;
@@ -11315,8 +11332,8 @@ html: `
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Mage</div>
 </div>
 <div style="font-size:2.5rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem">
-<span>🪰</span>
-<span>🎁</span>
+<span></span>
+<span></span>
 </div>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:110px;height:auto">
@@ -11351,7 +11368,7 @@ overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:400px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
 <p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
-🪰 Here come three <strong>flies</strong> now - you're up! 🪰
+Here come three <strong>flies</strong> now - you're up!
 </p>
 <button onclick="dismissTaposBirthdayOverlay()" style="margin-top:0.75rem;padding:0.6rem 1.5rem;font-size:1rem;">Let's catch flies!</button>
 </div>`;
@@ -11430,7 +11447,7 @@ His sticky tongue lashes out and <strong>swallows the ${flyText} whole!</strong>
 <span style="font-size:0.9rem;opacity:0.8">(In normal combat, your hero would enter "Last Stand" mode - but Tapo's got your back for now!)</span>
 </p>
 <button onclick="continueTapoRescue()" style="padding:1rem 2.5rem;font-size:1.3rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">
-*ribbit* 🪰
+*ribbit*
 </button>
 </div>
 </div>
@@ -11535,7 +11552,7 @@ v.innerHTML = `
 </div>
 <p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
-Bellies overflowing, Mage and Tapo return to Ribbleton. 🎉
+Bellies overflowing, Mage and Tapo return to Ribbleton.
 </p>
 <button onclick="transitionToPortalInvasion()" style="padding:1rem 2rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1.5rem">Continue</button>
 </div>
@@ -11550,15 +11567,15 @@ html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
 <div style="margin:1.5rem 0;position:relative">
 <div style="width:160px;height:160px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite">🌀</div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite"></div>
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 As Mage and Tapo enter Ribbleton, something seems off..<br>
 Whoa! <strong>A dark portal</strong> is open in the center of square!
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1rem 0;font-size:2.5rem">
-<div style="animation:enemyAppear 1s ease-out">👺</div>
-<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
+<div style="animation:enemyAppear 1s ease-out"></div>
+<div style="animation:enemyAppear 1.3s ease-out"></div>
 </div>
 <style>
 @keyframes shake {
@@ -11613,7 +11630,7 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
 <img src="assets/tank_normal.png" alt="Tank" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">🛡 On Guard!</div>
+<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">On Guard!</div>
 </div>
 <div style="text-align:center">
 <div style="animation:tapoSignatureSmall 3s ease-in-out infinite;display:inline-block">
@@ -11623,13 +11640,13 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
 <img src="assets/mage_normal.png" alt="Mage" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">📖 On Guard!</div>
+<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">On Guard!</div>
 </div>
 </div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
 <img src="assets/warrior_normal.png" alt="Warrior" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">⚔️ Attacking!</div>
+<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">Attacking!</div>
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
 <img src="assets/heal_normal.png" alt="Healer" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
@@ -11637,8 +11654,8 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 </div>
 </div>
 <div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:2.5rem">
-<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
-<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
+<div style="animation:enemyThreat 1s ease-in-out infinite"></div>
+<div style="animation:enemyThreat 1.2s ease-in-out infinite"></div>
 </div>
 </div>
 <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
@@ -11798,7 +11815,7 @@ const slides = [
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/ribbleton-tadpole.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
+{bg: 'assets/tapo_normal.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
 html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong></div>`,
 onShow: () => { GameMusic.play(null, 'combat_boss'); }},
 {text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
@@ -11866,14 +11883,14 @@ const maxSlots = 8;
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
-<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP 🔥' : 'FROGGLE 🐸'}</h1>
+<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
 
 <div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:auto;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(1.05);' : 'filter:brightness(0.7);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(1.05);' : 'filter:brightness(0.7);'}">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
 <div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
@@ -11883,11 +11900,11 @@ ${['warrior','tank','mage','healer'].map(hero => `
 ${S.tapoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
 <button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
-🎉 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'} 🎉
+${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'}
 </button>
 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 && S.gameMode === 'fu' ? `
 <button class="btn" onclick="selectAllTapos()" style="background:linear-gradient(135deg,#f59e0b 0%,#22c55e 100%);padding:0.5rem 1rem;font-size:0.9rem;font-weight:bold;border:3px solid #000;margin-top:0.5rem">
-🐸 ALL TAPOS 🐸
+ALL TAPOS
 </button>` : ''}
 </div>` : ''}
 
@@ -14052,7 +14069,7 @@ v.innerHTML = `
 <em>Squeals.</em> The heroes know this sound well - Baby Tapo is hungry for flies!
 </div>
 <div style="font-size:2.5rem;font-weight:bold;color:#3b82f6;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
-✨ Tapo Unlocked! ✨
+Tapo Unlocked!
 </div>
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
 Baby Tapo has been added to your hero roster!<br>
@@ -14086,7 +14103,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
 <img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
 </p>
@@ -14111,7 +14128,7 @@ const responseText = fromRibbleton
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
 <img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
 "${responseText}"
 </p>
@@ -14221,9 +14238,9 @@ return `
   ${animation}
 " onmouseover="this.style.transform='scale(1.15)'"
    onmouseout="this.style.transform='scale(1)'"
-   title="Run #${run.runNumber} - Floor ${run.floorReached}${isVictory ? ' 🏆' : ''}">
+   title="Run #${run.runNumber} - Floor ${run.floorReached}">
   <span style="font-size:${Math.max(11, size/4)}px;font-weight:bold;color:${isVictory ? '#000' : '#fff'};text-shadow:${isVictory ? 'none' : '1px 1px 2px rgba(0,0,0,0.6)'}">${run.floorReached}</span>
-  ${isVictory ? `<span style="font-size:${Math.max(10, size/5)}px">🏆</span>` : ''}
+  ${isVictory ? `<span style="font-size:${Math.max(10, size/5)}px;font-weight:bold;color:#fbbf24">W</span>` : ''}
 </div>`;
 }
 
@@ -14259,7 +14276,7 @@ let html = `
 </style>
 <div style="max-width:900px;margin:0 auto;padding:1rem">
 <h1 style="text-align:center;margin-bottom:0.5rem;font-size:2rem;color:#60a5fa;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
-🌿 The Pond 🌿
+The Pond
 </h1>
 <p style="text-align:center;color:#94a3b8;margin-bottom:1rem;font-size:0.95rem">
 A quiet place to reflect on adventures past...
@@ -14267,15 +14284,15 @@ A quiet place to reflect on adventures past...
 
 <!-- Legend -->
 <div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap;font-size:0.85rem">
-<span style="color:#22c55e">🟢 Good Try</span>
-<span style="color:#fbbf24">🟡 Good Job</span>
-${S.fuUnlocked ? `<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">🌈 ${(S.pondHistory || []).some(r => r.gameMode === 'fu') ? 'Frogged Up Win' : 'What the Frog?'}</span>` : ''}
+<span style="color:#22c55e">Good Try</span>
+<span style="color:#fbbf24">Good Job</span>
+${S.fuUnlocked ? `<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">${(S.pondHistory || []).some(r => r.gameMode === 'fu') ? 'Frogged Up Win' : 'What the Frog?'}</span>` : ''}
 <span style="color:#64748b;font-size:0.8rem">(bigger = higher floor)</span>
 </div>
 
 ${history.length === 0 ? `
 <div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
-<p style="font-size:2rem;margin-bottom:1rem">🪷</p>
+<p style="font-size:2rem;margin-bottom:1rem"></p>
 <p style="color:#94a3b8;font-size:1.1rem">The water is still...</p>
 <p style="color:#64748b;margin-top:0.5rem">Lily pads will appear here after your first adventure and grow the further you progress.</p>
 </div>
@@ -14309,16 +14326,16 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
 
 ${S.hasReachedFloor20 ? `
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(251,191,36,0.1));border:2px solid #3b82f6;border-radius:12px">
-<h3 style="margin:0 0 0.75rem 0;color:#60a5fa;text-shadow:1px 1px 2px rgba(0,0,0,0.5)">🏆 The Flydra's Conquerors 🏆</h3>
+<h3 style="margin:0 0 0.75rem 0;color:#60a5fa;text-shadow:1px 1px 2px rgba(0,0,0,0.5)">The Flydra's Conquerors</h3>
 <p style="color:#94a3b8;font-size:0.9rem;margin-bottom:0.75rem">You've proven yourself worthy. Visit the Champions Hall to manage figurines and explore other realms.</p>
 <button class="btn" onclick="showChampionsMenu()" style="background:linear-gradient(135deg,#3b82f6,#1e40af);border:2px solid #60a5fa;padding:0.75rem 1.5rem;font-size:1rem">
-🐸 Enter Champions Hall
+Enter Champions Hall
 </button>
 </div>
 ` : ''}
 
 <div style="text-align:center;margin-top:1.5rem">
-<button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">🐸 Return to Ribbleton</button>
+<button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">Return to Ribbleton</button>
 </div>
 </div>`;
 
@@ -14352,7 +14369,7 @@ const v = document.getElementById('gameView');
 const html = `
 <div class="modal-container" style="max-width:350px">
 <div style="background:${headerBg};padding:1rem;border-radius:8px 8px 0 0;text-align:center">
-<h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? '🏆 Victory!' : '🪷 Journey'} #${run.runNumber}</h2>
+<h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? 'Victory!' : 'Journey'} #${run.runNumber}</h2>
 </div>
 <div style="padding:1rem">
 <div style="display:grid;gap:0.5rem;font-size:0.95rem">
@@ -14362,7 +14379,7 @@ const html = `
 </div>
 <div style="display:flex;justify-content:space-between">
 <span style="color:#94a3b8">Mode:</span>
-<span style="color:#f1f5f9">${run.gameMode === 'fu' ? '🔥 ' : '⚔️ '}${modeText}</span>
+<span style="color:#f1f5f9">${modeText}</span>
 </div>
 <div style="display:flex;justify-content:space-between">
 <span style="color:#94a3b8">Floor Reached:</span>
@@ -14392,7 +14409,7 @@ ${!isVictory && run.killedBy ? `
 ` : ''}
 ${isVictory ? `
 <div style="text-align:center;margin-top:0.5rem;padding:0.5rem;background:rgba(34,197,94,0.2);border-radius:4px">
-<span style="color:#22c55e;font-weight:bold">🎉 Tapo Rescued!</span>
+<span style="color:#22c55e;font-weight:bold">Tapo Rescued!</span>
 </div>
 ` : ''}
 </div>
@@ -14465,31 +14482,51 @@ let html = `
 <style>
 @keyframes marquee-flash {
   0%, 100% { border-color: #dc2626; box-shadow: 0 0 10px rgba(220,38,38,0.8), 0 0 20px rgba(220,38,38,0.5); }
-  50% { border-color: #3b82f6; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
+  50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
 }
 .going-rate-marquee {
   animation: marquee-flash 1.5s ease-in-out infinite;
   border: 4px solid #dc2626;
   padding: 1.5rem;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1));
+  background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(251,191,36,0.1));
   margin: 1.5rem 0;
 }
+@keyframes death-star-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.death-stars {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; border-radius: 12px;
+}
+.death-star {
+  position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+  animation: death-star-twinkle var(--twinkle-duration, 3s) ease-in-out infinite;
+  animation-delay: var(--twinkle-delay, 0s);
+}
+@keyframes reaper-glow {
+  0%, 100% { box-shadow: 0 0 30px rgba(220,38,38,0.6), 0 0 60px rgba(220,38,38,0.3); }
+  50% { box-shadow: 0 0 40px rgba(220,38,38,0.8), 0 0 80px rgba(220,38,38,0.4), 0 0 120px rgba(168,85,247,0.2); }
+}
 </style>
-<div class="death-screen-container" style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
-<img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
-${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#4a4540;font-style:italic">"${deathQuote}"</p>` : ''}
+<div class="death-screen-container" style="position:relative;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);padding:2rem;border-radius:12px;max-width:900px;margin:0 auto;color:#e8e0f0;box-shadow:0 4px 24px rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.3)">
+<div class="death-stars" id="deathStars"></div>
+<div style="position:relative;z-index:1">
+<div style="text-align:center;margin-bottom:1.5rem">
+<img src="assets/reaper.png" alt="Death" style="max-width:280px;height:auto;margin:0 auto;display:block;border-radius:12px;border:3px solid #dc2626;animation:reaper-glow 3s ease-in-out infinite">
+</div>
+<h1 style="text-align:center;margin-bottom:0.5rem;font-size:2.2rem;color:#dc2626;text-shadow:0 0 20px rgba(220,38,38,0.5)">DEATH'S SHOP</h1>
+${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p>` : ''}
 <div class="going-rate-marquee">
-<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#b45309">${S.gold}</strong></p>
-<p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
-<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#5a5550;font-style:italic">(+${nextRateIncrease}G per upgrade)</p>
+<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#fbbf24">${S.gold}</strong></p>
+<p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">Going Rate: ${S.goingRate}G</p>
+<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#a89cc8;font-style:italic">(+${nextRateIncrease}G per upgrade)</p>
 </div>`;
 
 if(S.gold === 0) {
-html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc2626;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
+html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#f87171;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
 } else {
-html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#2c2416">Upgrade Sigilarium:</h3>`;
+html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#e8e0f0">Upgrade Sigilarium:</h3>`;
 
 // Sanity check: if goingRate is very low but sigUpgradeCounts is high, something is wrong
 // This can happen if save data gets corrupted or from old migration issues
@@ -14564,12 +14601,12 @@ const costDisplay = escalation > 0
 // Use color-coded borders based on next level
 const borderColor = nextColorClass;
 cards += `
-<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid ${borderColor};box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+<div class="death-screen-sigil-card" style="background:rgba(15,15,35,0.8);padding:1rem;border-radius:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.3)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
-<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#4a4540;font-weight:600">Cost: ${cost}G</div>
+<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#a89cc8;font-weight:600">Cost: ${cost}G</div>
 <button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%;${canAfford ? `border-color:${nextColorClass}` : ''}">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
@@ -14579,13 +14616,13 @@ return cards;
 };
 
 // Core Sigils
-html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">⚔️ Core Sigils</h4>`;
+html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Core Sigils</h4>`;
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(coreSigils);
 html += `</div>`;
 
 // Advanced Sigils
-html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">🔥 Advanced Sigils</h4>`;
+html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Advanced Sigils</h4>`;
 if(S.advancedSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(advancedSigils);
@@ -14594,7 +14631,7 @@ html += `</div>`;
 const canAffordAdvanced = S.gold >= 20;
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #f97316;box-shadow:0 0 20px rgba(249,115,22,0.3);text-align:center">
-<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">LOCKED</div>
 <p style="color:#f97316;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock advanced combat techniques</p>
 <button class="btn" ${!canAffordAdvanced ? 'disabled' : ''} onclick="unlockSigilCategory('advanced')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordAdvanced ? 'background:linear-gradient(135deg,#f97316,#ea580c);border-color:#f97316;color:#fff' : ''}">
@@ -14604,7 +14641,7 @@ ${canAffordAdvanced ? 'UNLOCK - 20G' : 'Need 20G to Unlock'}
 }
 
 // Passive Sigils
-html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">✨ Passive Sigils</h4>`;
+html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Passive Sigils</h4>`;
 if(S.passiveSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(passiveSigils);
@@ -14613,7 +14650,7 @@ html += `</div>`;
 const canAffordPassive = S.gold >= 50;
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #9333ea;box-shadow:0 0 20px rgba(147,51,234,0.3);text-align:center">
-<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Expand • Asterisk • Star</p>
 <p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock passive enhancements</p>
 <button class="btn" ${!canAffordPassive ? 'disabled' : ''} onclick="unlockSigilCategory('passive')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordPassive ? 'background:linear-gradient(135deg,#9333ea,#7c3aed);border-color:#9333ea;color:#fff' : ''}">
@@ -14687,9 +14724,25 @@ html += `
 <div style="text-align:center;margin-top:2rem">
 <button class="btn danger" onclick="restartAfterDeath()" style="font-size:1.2rem;padding:1rem 2rem">Return to Ribbleton</button>
 </div>
+</div>
 </div>`;
 
 v.innerHTML = html;
+
+// Generate stars for the death screen background
+const starsContainer = document.getElementById('deathStars');
+if(starsContainer) {
+  for(let i = 0; i < 60; i++) {
+    const star = document.createElement('div');
+    star.className = 'death-star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.setProperty('--twinkle-duration', (2 + Math.random() * 4) + 's');
+    star.style.setProperty('--twinkle-delay', (Math.random() * 3) + 's');
+    if(Math.random() > 0.7) { star.style.width = '3px'; star.style.height = '3px'; }
+    starsContainer.appendChild(star);
+  }
+}
 }
 
 function purchaseSigilUpgrade(sig, cost) {
@@ -14846,7 +14899,7 @@ function showFUIntroPopup() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
-<h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">🐸 Welcome to the Endgame! 🐸</h2>
+<h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">Welcome to the Endgame!</h2>
 
 <p style="margin-bottom:1.5rem;font-size:1.1rem;line-height:1.6">
 You've conquered the Flydra and saved Tapo once... but there's always more to do!
@@ -14854,12 +14907,12 @@ You've conquered the Flydra and saved Tapo once... but there's always more to do
 
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin:2rem 0">
 <div style="flex:1;min-width:200px;background:rgba(59,130,246,0.2);border:2px solid #3b82f6;border-radius:8px;padding:1rem">
-<h3 style="color:#3b82f6;margin-bottom:0.5rem">🔵 Standard Runs</h3>
+<h3 style="color:#3b82f6;margin-bottom:0.5rem">Standard Runs</h3>
 <p style="font-size:0.9rem;color:#94a3b8">Earn <strong style="color:#fbbf24">Figurines</strong> for surviving heroes. Permanently boost your stats!</p>
 </div>
 
 <div style="flex:1;min-width:200px;background:rgba(34,197,94,0.2);border:2px solid #22c55e;border-radius:8px;padding:1rem">
-<h3 style="color:#22c55e;margin-bottom:0.5rem">🟢 Frogged Up Runs</h3>
+<h3 style="color:#22c55e;margin-bottom:0.5rem">Frogged Up Runs</h3>
 <p style="font-size:0.9rem;color:#94a3b8">Earn <strong style="color:#d97706">bonus Gold</strong> for upgrades. Higher risk, higher rewards!</p>
 </div>
 </div>
@@ -14901,7 +14954,7 @@ let html = `
 </style>
 <div style="position:relative;max-width:800px;margin:0 auto">
 <h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
-🏆 The Flydra's Conquerors 🏆
+The Flydra's Conquerors
 </h1>
 
 <div style="position:relative;width:100%;margin:0 auto">
@@ -14915,7 +14968,7 @@ let html = `
      onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
      title="Return to Ribbleton">
   <div style="width:90px;height:90px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:champions-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem">🐸</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem"></div>
   </div>
 </div>
 
@@ -14929,9 +14982,9 @@ let html = `
 </div>
 
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(251,191,36,0.1);border:2px solid #3b82f6;border-radius:8px">
-<p style="margin:0.5rem 0;font-size:1rem"><strong>Current Mode:</strong> <span style="color:${S.gameMode === 'fu' ? '#22c55e' : '#3b82f6'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
+<p style="margin:0.5rem 0;font-size:1rem"><strong>Current Mode:</strong> <span style="color:${S.gameMode === 'fu' ? '#22c55e' : '#3b82f6'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP'}</span></p>
 <p style="margin:0.5rem 0;font-size:0.9rem;opacity:0.8">Click the <strong>pedestal</strong> to manage figurines (${pedestalCount}/${maxSlots})</p>
-<p style="margin:0.5rem 0;font-size:0.9rem"><strong>🔵 Blue Portal:</strong> Standard Mode | <strong>🟢 Green Portal:</strong> Frogged Up Mode</p>
+<p style="margin:0.5rem 0;font-size:0.9rem"><strong>Blue Portal:</strong> Standard Mode | <strong>Green Portal:</strong> Frogged Up Mode</p>
 </div>
 
 <div style="text-align:center;margin-top:1rem">
@@ -14949,7 +15002,7 @@ return;
 }
 S.gameMode = targetMode;
 savePermanent();
-toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Realm!`);
+toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up'} Realm!`);
 // Go to hero select for the new mode
 title();
 }
@@ -14997,7 +15050,7 @@ slotsHTML += `
 
 if(isSlotted) {
 // Show frog emoji when slot is filled
-slotsHTML += `<div style="font-size:2.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));animation:frogBounce 1.5s ease-in-out infinite">🐸</div>`;
+slotsHTML += `<div style="font-size:2.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));animation:frogBounce 1.5s ease-in-out infinite"></div>`;
 } else {
 // Empty slot - subtle indicator
 slotsHTML += `<div style="width:80%;height:80%;background:rgba(0,0,0,0.2);border:2px dashed rgba(255,255,255,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center">
@@ -15035,7 +15088,7 @@ ${slotsHTML}
 
 <!-- Header overlay -->
 <div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);text-align:center;z-index:10">
-<h2 style="margin:0;color:#fbbf24;text-shadow:0 2px 8px rgba(0,0,0,0.9);font-size:1.3rem">⚱️ Pedestal of Champions</h2>
+<h2 style="margin:0;color:#fbbf24;text-shadow:0 2px 8px rgba(0,0,0,0.9);font-size:1.3rem">Pedestal of Champions</h2>
 <p style="margin:0.25rem 0;font-size:0.85rem;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)">${S.gameMode} Mode - ${placedCount}/8 figurines placed</p>
 </div>
 
@@ -15304,7 +15357,7 @@ heroCardsHTML += `
 <div style="background:linear-gradient(135deg,#1e3a5f,#0f172a);border:3px solid #22c55e;border-radius:12px;padding:1rem;min-width:140px;text-align:center">
 <div style="font-size:1.2rem;font-weight:bold;color:#22c55e;margin-bottom:0.5rem">${hero.n}</div>
 <div style="font-size:0.9rem;margin-bottom:0.5rem">${hero.p}💥 | ${hero.m}❤</div>
-${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5rem">🗿 ${pedestalBonus}</div>` : ''}
+${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5rem">${pedestalBonus}</div>` : ''}
 <div style="font-size:0.7rem">${sigilsHTML}</div>
 </div>`;
 });
@@ -15312,7 +15365,7 @@ heroCardsHTML += '</div>';
 
 v.innerHTML = `
 <div style="max-width:700px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
-<h2 style="margin-bottom:0.5rem;color:#22c55e;font-size:1.8rem">🏆 Congratulations! 🏆</h2>
+<h2 style="margin-bottom:0.5rem;color:#22c55e;font-size:1.8rem">Congratulations!</h2>
 <p style="margin-bottom:1.5rem;font-size:1.1rem">You've cleared Standard Mode!</p>
 ${heroCardsHTML}
 <p style="margin-top:1.5rem;font-size:0.9rem;color:#94a3b8">Your heroes rest peacefully in Ribbleton...</p>
@@ -15327,7 +15380,7 @@ window.heroCardsInterstitialComplete = onComplete;
 function showFirstVictoryPedestal(onComplete) {
 // Show a simplified pedestal UI during the first victory cutscene
 const v = document.getElementById('gameView');
-const heroIcons = {'Warrior': '⚔', 'Tank': '🛡', 'Mage': '📖', 'Healer': '✚'};
+const heroIcons = {'Warrior': 'W', 'Tank': 'T', 'Mage': 'M', 'Healer': 'H'};
 const stats = ['POW', 'HP'];
 
 // Get earned figurines - only heroes who earned one this run
@@ -15355,7 +15408,7 @@ const canSlot = earnedFigurines.includes(hero) && !isSlotted && !heroAlreadySlot
 
 slotsHTML += `
 <div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;${canSlot ? 'cursor:pointer' : 'opacity:0.5'}" onclick="${canSlot ? `slotFirstVicFigurine('${hero}','${stat}')` : ''}">
-<div style="font-size:1.5rem">${heroIcons[hero] || '🐸'}</div>
+<div style="font-size:1.5rem">${heroIcons[hero] || '?'}</div>
 <div style="font-size:0.8rem;font-weight:bold">${hero}</div>
 <div style="font-size:0.7rem;color:#94a3b8">${stat === 'POW' ? '+1 POW' : '+5 HP'}</div>
 ${isSlotted ? '<div style="color:#fbbf24;font-size:0.8rem;margin-top:0.5rem">✓ Slotted</div>' : (canSlot ? '<div style="color:#64748b;font-size:0.8rem;margin-top:0.5rem">Click to slot</div>' : '')}
@@ -15370,7 +15423,7 @@ const buttonDisabled = !allSlotted && totalToSlot > 0;
 
 v.innerHTML = `
 <div style="max-width:800px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #fbbf24;color:#fff">
-<h2 style="text-align:center;margin-bottom:1rem;color:#fbbf24">⚱️ Slot Your Figurines!</h2>
+<h2 style="text-align:center;margin-bottom:1rem;color:#fbbf24">Slot Your Figurines!</h2>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.95rem">Each surviving hero earns a figurine! Place them to permanently boost that hero's stats.</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;color:${allSlotted ? '#22c55e' : '#fbbf24'}">
 <strong>Figurines placed: ${slotsThisSession}/${totalToSlot}</strong>
@@ -15423,13 +15476,13 @@ const tapoInParty = S.heroes.some(h => (h.base || h.n) === 'Tapo');
 
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #22c55e;color:#fff">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">🔥 FROGGED UP MODE CONQUERED! 🔥</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">FROGGED UP MODE CONQUERED!</h1>
 
 <div style="text-align:center;margin-bottom:2rem;font-size:1.2rem;line-height:1.8">
 <p>Holy frog. You defeated the ${tapoInParty ? '(second) ' : ''}hardest challenge in FROGGLE.</p>
 <p style="margin-top:1rem">Thank you for playing. No other thank yous really matter - <strong>YOU</strong>, the Player, deserve all the thanks in the world.</p>
 ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">Now, think you can beat the FROGGED UP Flydra with Tapo in your party?</p>` : ''}
-<p style="font-size:2rem;margin:2rem 0">❤️</p>
+<p style="font-size:2rem;margin:2rem 0"></p>
 </div>
 
 <div style="background:rgba(0,0,0,0.3);padding:1.5rem;border-radius:8px;margin:2rem 0">
@@ -15445,7 +15498,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 </div>
 
 <div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #22c55e">
-<h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
+<h3 style="text-align:center;margin-bottom:1rem">TAPO UNLOCKED!</h3>
 <img src="assets/tapo_normal.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Starts with D20 + any upgraded passives</p>
@@ -15484,7 +15537,7 @@ v.innerHTML = `
 }
 </style>
 <div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">VICTORY!</h1>
 
 <div style="text-align:center;margin:2rem 0">
 <div style="display:inline-block;animation:tapoSignatureVictory 4.8s ease-in-out infinite">
@@ -15508,7 +15561,6 @@ I hope you had fun!
 </div>
 
 <div style="text-align:center;font-size:2.5rem;margin:2rem 0">
-❤️🐸❤️
 </div>
 
 <div style="text-align:center;margin-top:2rem">
@@ -15531,7 +15583,7 @@ function showSimpleVictoryScreen() {
 // Music stopped on victory - no procedural music
 const v = document.getElementById('gameView');
 let html = `
-<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
+<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">VICTORY!</h1>`;
 
 if(S.gameMode === 'fu') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
@@ -15550,7 +15602,7 @@ html += `<p style="text-align:center;margin-bottom:2rem;font-size:1rem;color:#64
 
 if(window.earnedFigurines && window.earnedFigurines.length > 0) {
 html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px">
-<h3 style="text-align:center;margin-bottom:0.5rem">🏆 Hero Figurines Earned! 🏆</h3>
+<h3 style="text-align:center;margin-bottom:0.5rem">Hero Figurines Earned!</h3>
 <p style="text-align:center">The following heroes can place figurines (Max 2 per frog):</p>
 <ul style="list-style:none;padding:0;text-align:center">`;
 window.earnedFigurines.forEach(name => {
@@ -16047,14 +16099,14 @@ const QUESTS = {
 
 // Category display names and order
 const QUEST_CATEGORIES = {
-  learning: { name: 'Getting Started', icon: '📚', order: 1 },
-  heroes: { name: 'Hero Exploration', icon: '🦸', order: 2 },
-  neutrals: { name: 'Neutral Encounters', icon: '🏕️', order: 3 },
-  milestones: { name: 'Milestones', icon: '🏆', order: 4 },
-  combat: { name: 'Combat Mastery', icon: '⚔️', order: 5 },
-  repeatable: { name: 'Ongoing Challenges', icon: '🔄', order: 6 },
-  fu: { name: 'Frogged Up', icon: '🔥', order: 7 },
-  secret: { name: 'Secrets', icon: '🔮', order: 8 }
+  learning: { name: 'Getting Started', icon: '', order: 1 },
+  heroes: { name: 'Hero Exploration', icon: '', order: 2 },
+  neutrals: { name: 'Neutral Encounters', icon: '', order: 3 },
+  milestones: { name: 'Milestones', icon: '', order: 4 },
+  combat: { name: 'Combat Mastery', icon: '', order: 5 },
+  repeatable: { name: 'Ongoing Challenges', icon: '', order: 6 },
+  fu: { name: 'Frogged Up', icon: '', order: 7 },
+  secret: { name: 'Secrets', icon: '', order: 8 }
 };
 
 // Check if a quest is unlocked (visible)
@@ -16210,8 +16262,8 @@ function showQuestBoard() {
 
 <div style="max-width:600px;margin:0 auto;padding:1rem">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-  <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">📋 Quest Board</h1>
-  <div style="font-size:1rem;color:#22c55e">💰 ${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>
+  <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">Quest Board</h1>
+  <div style="font-size:1rem;color:#22c55e">${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>
 </div>
 
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.8">Complete quests to earn gold rewards!</p>
@@ -16219,7 +16271,7 @@ function showQuestBoard() {
 
   for(const category of sortedCategories) {
     const quests = questsByCategory[category];
-    const catInfo = QUEST_CATEGORIES[category] || { name: category, icon: '📋' };
+    const catInfo = QUEST_CATEGORIES[category] || { name: category, icon: '' };
 
     // Count unlocked quests in this category
     const unlockedQuests = quests.filter(q => isQuestUnlocked(q.id));
@@ -16316,7 +16368,7 @@ let html = `
 <!-- Title overlay at top -->
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:1rem;background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, transparent 100%)">
 <h1 style="text-align:center;margin:0;font-size:2rem;color:#22c55e;text-shadow:2px 2px 6px rgba(0,0,0,0.9), 0 0 20px rgba(34,197,94,0.5)">
-🐸 Welcome Home to Ribbleton! 🐸
+Welcome Home to Ribbleton!
 </h1>
 </div>
 
@@ -16329,9 +16381,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
      onkeydown="if(event.key==='Enter')showPond()"
      title="Reflect on your adventures at the Lilypad Pond">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 40px #3b82f6">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">🪷</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem"></div>
   </div>
-  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #3b82f6">🌿 The Pond</p>
+  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #3b82f6">The Pond</p>
 </div>
 </div>
 ` : ''}
@@ -16343,9 +16395,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
      onkeydown="if(event.key==='Enter')enterRedPortal()"
      title="Click to begin your adventure and save Tapo!">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:ribbleton-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">👺</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem"></div>
   </div>
-  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
+  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">Save Tapo!</p>
 </div>
 </div>
 
@@ -16356,10 +16408,10 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
        onkeydown="if(event.key==='Enter')showQuestBoard()"
        title="View available quests and claim rewards">
     <div style="width:80px;height:80px;position:relative;background:linear-gradient(135deg, #92400e, #78350f);border-radius:8px;border:4px solid #451a03;box-shadow:0 4px 16px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center">
-      <span style="font-size:3rem">🪧</span>
+      <span style="font-size:1.5rem;font-weight:bold;color:#fbbf24">QUESTS</span>
       ${getClaimableQuestCount() > 0 ? `<span style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#000;font-weight:bold;font-size:0.9rem;padding:0.15rem 0.5rem;border-radius:10px;border:2px solid #000;animation:pulse-glow 1.5s ease-in-out infinite">${getClaimableQuestCount()}</span>` : ''}
     </div>
-    <p style="margin-top:0.4rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(146,64,14,0.9);padding:0.2rem 0.6rem;border-radius:4px;border:2px solid #78350f">📋 Quests</p>
+    <p style="margin-top:0.4rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(146,64,14,0.9);padding:0.2rem 0.6rem;border-radius:4px;border:2px solid #78350f">Quests</p>
   </div>
 </div>
 </div>`;
@@ -16392,7 +16444,7 @@ showSettingsMenu();
 
 function toggleOopsAll20s(enabled) {
 S.oopsAll20s = enabled;
-toast(enabled ? '🎲 Oops All 20s: ON (All D20 rolls = 20!)' : '🎲 Oops All 20s: OFF', 1500);
+toast(enabled ? 'Oops All 20s: ON (All D20 rolls = 20!)' : 'Oops All 20s: OFF', 1500);
 // Refresh debug menu to update checkbox
 const debugMenu = document.querySelector('[style*="z-index:30000"]');
 if(debugMenu && debugMenu.textContent.includes('DEBUG MENU')) {
@@ -16409,7 +16461,7 @@ const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Debug menu">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">DEBUG MENU</h2>
 
 <h3 class="modal-section-title green">Resources</h3>
 <button class="btn" onclick="debugAddGold()" style="margin-bottom:0.5rem;background:#22c55e">+100 Gold</button>
@@ -16448,7 +16500,7 @@ ${heroNames.map(h => `<option value="${h.idx}">${h.name} (POW:${S.heroes[h.idx].
 </div>
 </div>
 <button class="btn" onclick="debugSetHeroStats()" style="background:#3b82f6;margin-bottom:0.5rem">Update Hero Stats</button>
-${S.heroes.some(h => h.ls) ? `<button class="btn" onclick="debugReviveFromLastStand()" style="background:#dc2626;margin-bottom:0.5rem">💀 Revive from Last Stand</button>` : ''}
+${S.heroes.some(h => h.ls) ? `<button class="btn" onclick="debugReviveFromLastStand()" style="background:#dc2626;margin-bottom:0.5rem">Revive from Last Stand</button>` : ''}
 </div>
 ` : ''}
 
@@ -16460,7 +16512,7 @@ ${inCombat ? `
 <h3 class="modal-section-title blue">Cheats</h3>
 <label class="modal-checkbox-label" style="background:rgba(251,191,36,0.2)">
 <input type="checkbox" ${S.oopsAll20s ? 'checked' : ''} onchange="toggleOopsAll20s(this.checked)">
-<span>🎲 Oops All 20s (Auto-succeed D20 rolls)</span>
+<span>Oops All 20s (Auto-succeed D20 rolls)</span>
 </label>
 
 <button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
@@ -16485,26 +16537,26 @@ const inRibbleton = S.inRibbleton;
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">⚙️ SETTINGS ⚙️</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">SETTINGS</h2>
 
 ${inGame ? `
-<button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
-<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#f97316">🔄 Restart Level</button>
+<button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">Save Game</button>
+<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#f97316">Restart Level</button>
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">🔊 Audio</button>
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay</button>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display</button>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller</button>
+<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">Audiobutton>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">Gameplaybutton>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">Displaybutton>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">Controllerbutton>
 </div>
 
 ${inGame ? `
-<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-top:1rem;background:#dc2626">🚪 Quit to Ribbleton</button>
+<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-top:1rem;background:#dc2626">Quit to Ribbleton</button>
 ` : inTutorial ? `
-<button class="btn danger" onclick="confirmQuitTutorial()" style="margin-top:1rem;background:#dc2626">🚪 Exit Tutorial</button>
+<button class="btn danger" onclick="confirmQuitTutorial()" style="margin-top:1rem;background:#dc2626">Exit Tutorial</button>
 ` : inRibbleton ? `
-<button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">🚪 Quit Game</button>
+<button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">Quit Game</button>
 ` : ''}
 
 <button class="settings-back-btn" onclick="closeSettingsMenu()">Return</button>
@@ -16527,13 +16579,13 @@ const musicPct = Math.round((S.musicVolume ?? 1) * 100);
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Audio settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🔊 AUDIO</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">AUDIOh2>
 
 <div style="display:flex;flex-direction:column;gap:1.25rem">
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#fbbf24">🔈 Master Volume</label>
+<label style="font-weight:bold;color:#fbbf24">Master Volume</label>
 <span id="master-vol-display" style="font-size:0.9rem;color:#fbbf24">${masterPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${masterPct}" aria-label="Master volume"
@@ -16543,7 +16595,7 @@ let html = `
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#22c55e">💥 Sound Effects</label>
+<label style="font-weight:bold;color:#22c55e">Sound Effects</label>
 <span id="sfx-vol-display" style="font-size:0.9rem;color:#22c55e">${sfxPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${sfxPct}" aria-label="Sound effects volume"
@@ -16553,7 +16605,7 @@ let html = `
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#8b5cf6">🎵 Music</label>
+<label style="font-weight:bold;color:#8b5cf6">Music</label>
 <span id="music-vol-display" style="font-size:0.9rem;color:#8b5cf6">${musicPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${musicPct}" aria-label="Music volume"
@@ -16563,7 +16615,7 @@ let html = `
 
 </div>
 
-<button class="btn" onclick="testAudioLevels()" style="margin-top:1rem;background:#374151">🔊 Test Sound</button>
+<button class="btn" onclick="testAudioLevels()" style="margin-top:1rem;background:#374151">Test Sound</button>
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
@@ -16590,22 +16642,22 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Gameplay settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">GAMEPLAYh2>
 
 <h3 class="modal-section-title green">Animation Speed</h3>
 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
-<button class="btn ${S.animationSpeed === 1 ? 'selected' : ''}" onclick="setAnimationSpeed(1, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 1 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸 Normal</button>
-<button class="btn ${S.animationSpeed === 2 ? 'selected' : ''}" onclick="setAnimationSpeed(2, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 2 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨 2x</button>
-<button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨💨 4x</button>
-<button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">⚡ Instant</button>
+<button class="btn ${S.animationSpeed === 1 ? 'selected' : ''}" onclick="setAnimationSpeed(1, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 1 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">Normal</button>
+<button class="btn ${S.animationSpeed === 2 ? 'selected' : ''}" onclick="setAnimationSpeed(2, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 2 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">2x</button>
+<button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">4x</button>
+<button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">Instant</button>
 </div>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)">
-<span>🛠️ Enable Debug Mode</span>
+<span>Enable Debug Mode</span>
 </label>
-${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">🛠️ Open Debug Tools</button>` : ''}
+${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">Open Debug Tools</button>` : ''}
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
@@ -16621,36 +16673,36 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Display settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">DISPLAY</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)">
-<span>📜 Show Toast Log</span>
+<span>Show Toast Log</span>
 </label>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)">
-<span>💡 Help Tips</span>
+<span>Help Tips</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Mechanic explanation popups</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.tutorialDisabled ? 'checked' : ''} onchange="toggleTutorialWalkthrough(this.checked)">
-<span>📖 Tutorial Walkthrough</span>
+<span>Tutorial Walkthrough</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Guided tutorial popups</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.cutsceneDisabled ? 'checked' : ''} onchange="toggleCutscenes(this.checked)">
-<span>🎬 Story Cutscenes</span>
+<span>Story Cutscenes</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">One-time narrative events</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
-<span>🔍 Show Sigil Tooltips</span>
+<span>Show Sigil Tooltips</span>
 </label>
 
 <h3 class="modal-section-title green" style="margin-top:1rem">Accessibility</h3>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.highContrastMode ? 'checked' : ''} onchange="toggleHighContrastMode(this.checked)">
-<span>👁️ High Contrast Mode</span>
+<span>High Contrast Mode</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">Enhanced visibility for low vision users</p>
 
@@ -16666,7 +16718,7 @@ function toggleToastLogVisibility(enabled) {
 S.toastLogVisible = enabled;
 savePermanent();
 render();
-toast(enabled ? '📜 Toast Log: Visible' : '📜 Toast Log: Hidden', 1500);
+toast(enabled ? 'Toast Log: Visible' : 'Toast Log: Hidden', 1500);
 }
 
 // Toggle high contrast mode
@@ -16678,7 +16730,7 @@ document.body.classList.add('high-contrast');
 document.body.classList.remove('high-contrast');
 }
 savePermanent();
-toast(enabled ? '👁️ High Contrast Mode: ON' : '👁️ High Contrast Mode: OFF', 1500);
+toast(enabled ? 'High Contrast Mode: ON' : 'High Contrast Mode: OFF', 1500);
 }
 
 // ===== CONTROLLER SETTINGS SUBMENU =====
@@ -16688,15 +16740,15 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Controller settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">CONTROLLER</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
-<span>🎮 Controller Support</span>
+<span>Controller Support</span>
 </label>
-<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
-<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">🔄 Re-Init Controller</button>
-<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.9rem">🔍 Input Overlay</button>
+<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">Controls Guide</button>
+<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">Re-Init Controller</button>
+<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.9rem">Input Overlay</button>
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
@@ -16899,7 +16951,7 @@ savePermanent();
 
 function setAnimationSpeed(speed, fromSubmenu = false) {
 S.animationSpeed = speed;
-const labels = {0: '⚡ Instant', 1: '🐸 Normal', 2: '🐸💨 2x', 4: '🐸💨💨 4x'};
+const labels = {0: 'Instant', 1: 'Normal', 2: '2x', 4: '4x'};
 toast(`Animation speed: ${labels[speed]}`, 1200);
 SoundFX.play('hop');
 savePermanent();
@@ -16928,14 +16980,14 @@ const overlay = document.createElement('div');
 overlay.id = 'controller-debug-overlay';
 overlay.style.cssText = 'position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.9);color:#0f0;font-family:monospace;font-size:12px;padding:10px;border-radius:8px;z-index:99999;max-width:300px;border:2px solid #0f0';
 overlay.innerHTML = `
-<div style="font-weight:bold;margin-bottom:5px;color:#fff">🎮 CONTROLLER DEBUG</div>
+<div style="font-weight:bold;margin-bottom:5px;color:#fff">CONTROLLER DEBUG</div>
 <div id="debug-gamepad-status">Checking...</div>
 <div id="debug-buttons" style="margin-top:5px"></div>
 <div id="debug-axes" style="margin-top:5px"></div>
 <div id="debug-keyboard" style="margin-top:5px;color:#ff0">Last key: none</div>
 <div id="debug-key-count" style="font-size:10px;color:#888">Keys pressed: 0</div>
 <div style="margin-top:8px">
-<button id="debug-detect-btn" style="background:#22c55e;color:#000;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer">🔍 Force Detect</button>
+<button id="debug-detect-btn" style="background:#22c55e;color:#000;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer">Force Detect</button>
 </div>
 <div style="margin-top:5px;font-size:10px;color:#888">Tap overlay to close</div>
 `;
@@ -17058,11 +17110,11 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 const controls = [
-{ section: '🕹️ Sticks', items: [
+{ section: 'Sticks', items: [
   { btn: 'Left Stick', desc: 'Navigate (D-pad equivalent)', highlight: true },
   { btn: 'Right Stick', desc: 'Scroll vertically in menus', highlight: true }
 ]},
-{ section: '🎮 Bumpers & Triggers (Combat)', items: [
+{ section: 'Bumpers & Triggers (Combat)', items: [
   { btn: 'LB / RB', desc: 'Previous / Next character (same as right stick)' },
   { btn: 'LT / RT', desc: 'Previous / Next sigil with tooltip (same as left stick)' }
 ]},
@@ -17077,13 +17129,13 @@ const controls = [
   { btn: 'X', desc: 'Switch sides (jump to enemy across from you)' },
   { btn: 'Y', desc: 'Toggle sigil tooltip' }
 ]},
-{ section: '⚙️ Menu Buttons', items: [
+{ section: 'Menu Buttons', items: [
   { btn: 'START (☰)', desc: 'Open Settings menu (works anywhere)' },
   { btn: 'SELECT (⊡)', desc: 'Auto-target: smart targeting for current action' },
   { btn: 'L3 (left click)', desc: 'Show Controls Guide' },
   { btn: 'R3 (right click)', desc: 'Toggle Controller Debug overlay' }
 ]},
-{ section: '⌨️ Keyboard Fallback', items: [
+{ section: 'Keyboard Fallback', items: [
   { btn: 'Arrow Keys', desc: 'Navigate (D-pad equivalent)' },
   { btn: 'Enter / Space', desc: 'Confirm (A button)' },
   { btn: 'Escape', desc: 'Back / Cancel (B button)' },
@@ -17095,7 +17147,7 @@ const controls = [
 
 let html = `
 <div class="modal-container dark" style="max-height:85vh;overflow-y:auto">
-<h2 class="modal-title blue" style="margin-bottom:1rem">🎮 CONTROLS GUIDE 🎮</h2>
+<h2 class="modal-title blue" style="margin-bottom:1rem">CONTROLS GUIDE</h2>
 
 <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(34,197,94,0.15);border:2px solid #22c55e;border-radius:8px">
 <p style="margin:0;color:#86efac;font-size:0.9rem;text-align:center">
@@ -17121,7 +17173,7 @@ html += `</div>`;
 
 html += `
 <div style="margin-top:1.5rem;padding:1rem;background:rgba(99,102,241,0.15);border:2px solid #6366f1;border-radius:8px">
-<h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">💡 Pro Tips</h4>
+<h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">Pro Tips</h4>
 <ul style="margin:0;padding-left:1.25rem;color:#c7d2fe;font-size:0.85rem;line-height:1.5">
 <li><strong>Auto-Target (SELECT)</strong> picks smart targets: lowest HP enemies for attacks, most damaged heroes for heals</li>
 <li><strong>Switch Sides (X)</strong> quickly jumps between your hero and the enemy across from them</li>
@@ -17131,7 +17183,7 @@ html += `
 </div>
 
 <button class="btn" onclick="showSteamInputGuide()" style="margin-top:1rem;background:#1b2838">
-<span style="margin-right:0.5rem">🎮</span> Steam Input Setup Guide
+Steam Input Setup Guide
 </button>
 <button class="btn" onclick="closeControlsGuide()" style="margin-top:0.5rem;background:#888">Close</button>
 </div>
@@ -17156,7 +17208,7 @@ const v = document.getElementById('gameView');
 let html = `
 <div class="modal-container dark" style="max-height:85vh;overflow-y:auto">
 <h2 class="modal-title" style="margin-bottom:1rem;color:#1b2838">
-<span style="background:linear-gradient(135deg,#1b2838,#2a475e);padding:0.3rem 0.6rem;border-radius:4px">🎮 Steam Input Setup</span>
+<span style="background:linear-gradient(135deg,#1b2838,#2a475e);padding:0.3rem 0.6rem;border-radius:4px">Steam Input Setup</span>
 </h2>
 
 <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(27,40,56,0.3);border:2px solid #2a475e;border-radius:8px">
@@ -17165,7 +17217,7 @@ FROGGLE uses <strong>Gamepad with Joystick Trackpad</strong> template as a base.
 </p>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">📋 Quick Setup (Recommended)</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Quick Setup (Recommended)</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <ol style="margin:0;padding-left:1.25rem;color:#e5e7eb;font-size:0.85rem;line-height:1.8">
 <li>Open Steam and navigate to your game in the Library</li>
@@ -17175,7 +17227,7 @@ FROGGLE uses <strong>Gamepad with Joystick Trackpad</strong> template as a base.
 </ol>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🔧 Custom Configuration</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Custom Configuration</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <p style="margin:0 0 0.75rem 0;color:#c7d5e0;font-size:0.85rem">
 If you want to customize, here's the expected mapping:
@@ -17216,7 +17268,7 @@ If you want to customize, here's the expected mapping:
 </div>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🎮 Steam Deck Gaming Mode</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Steam Deck Gaming Mode</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <p style="margin:0;color:#e5e7eb;font-size:0.85rem;line-height:1.6">
 On Steam Deck, the built-in controls should work automatically. If not:
@@ -17229,7 +17281,7 @@ On Steam Deck, the built-in controls should work automatically. If not:
 </ol>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🖥️ Electron / Desktop App</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Electron / Desktop App</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <p style="margin:0;color:#e5e7eb;font-size:0.85rem;line-height:1.6">
 When packaging with Electron for Steam:
@@ -17244,7 +17296,7 @@ When packaging with Electron for Steam:
 
 <div style="margin-top:1rem;padding:0.75rem;background:rgba(245,158,11,0.15);border:2px solid #f59e0b;border-radius:8px">
 <p style="margin:0;color:#fcd34d;font-size:0.85rem">
-The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!<br><br><em style="font-size:0.85em;opacity:0.9">(💡 Tip: This works great for Steam Deck users who prefer touch controls!)</em>
+The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!<br><br><em style="font-size:0.85em;opacity:0.9">(Tip: This works great for Steam Deck users who prefer touch controls!)</em>
 </p>
 </div>
 
@@ -17371,18 +17423,18 @@ a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5�
 
 let html = `
 <div class="modal-container faq">
-<h2 class="modal-title orange">❓ Frequently Asked Questions ❓</h2>
+<h2 class="modal-title orange">Frequently Asked Questions</h2>
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
-<h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">🐸 FROGGLE</h3>
+<h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">FROGGLE</h3>
 <p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Advance through the dungeon and save Tapo the tadpole! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
 <div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem;color:#1a1a1a">
-<h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">⚔️ HOW LEVEL-UPS WORK</h4>
+<h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">HOW LEVEL-UPS WORK</h4>
 <p style="font-size:0.9rem;margin:0 0 0.5rem 0">After combat, you can spend XP in 3 ways:</p>
 
 <div style="margin-left:1rem;font-size:0.9rem;line-height:1.6">
-<p style="margin:0.5rem 0"><strong>1️⃣ UPGRADE A SIGIL</strong> (makes it stronger everywhere!)</p>
+<p style="margin:0.5rem 0"><strong>1. UPGRADE A SIGIL</strong> (makes it stronger everywhere!)</p>
 <div style="margin-left:1rem;margin-bottom:0.75rem">
 <p style="margin:0.25rem 0"><strong style="color:#9333ea">Passive Sigils</strong> (Expand, Asterisk, Star):</p>
 <ul style="margin:0.25rem 0;padding-left:1.5rem">
@@ -17398,14 +17450,14 @@ let html = `
 </ul>
 </div>
 
-<p style="margin:0.5rem 0"><strong>2️⃣ ADD A SIGIL TO A HERO</strong></p>
+<p style="margin:0.5rem 0"><strong>2. ADD A SIGIL TO A HERO</strong></p>
 <ul style="margin:0.25rem 0 0.75rem 1.5rem;padding-left:1.5rem">
 <li>All heroes can learn any sigil by spending XP!</li>
 <li>Active sigils use your hero's 1 action per turn</li>
 <li>Choose abilities that complement your strategy</li>
 </ul>
 
-<p style="margin:0.5rem 0"><strong>3️⃣ UPGRADE HERO STATS</strong></p>
+<p style="margin:0.5rem 0"><strong>3. UPGRADE HERO STATS</strong></p>
 <ul style="margin:0.25rem 0;padding-left:1.5rem">
 <li>Spend XP for +1 POW (increases damage/healing/shields)</li>
 <li>Spend XP for +5 Max HP (and heal if in Last Stand)</li>
@@ -17414,7 +17466,7 @@ let html = `
 </div>
 
 <div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-top:1rem">
-<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">💡 PRO TIPS</h4>
+<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">PRO TIPS</h4>
 <ul style="margin:0;padding-left:1.5rem;font-size:0.85rem;line-height:1.5">
 <li><strong>Mage & Healer Start Stronger:</strong> They get +1 Expand built-in, so their actions hit 1 extra target from the start!</li>
 <li><strong>Shields Persist:</strong> Before winning a battle, use remaining actions to shield your team - they carry over to the next fight!</li>
@@ -17489,11 +17541,11 @@ return '#ff0080'; // L5 gradient
 
 let html = `
 <div class="modal-container light">
-<h2 class="modal-title purple">📖 SIGILARIUM 📖</h2>
+<h2 class="modal-title purple">SIGILARIUM</h2>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-bottom:1.5rem">All Sigils and Their Permanent Upgrade Levels</p>
 
 <!-- Core Sigils -->
-<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">⚔️ Core Sigils</h3>
+<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">Core Sigils</h3>
 <div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
@@ -17522,7 +17574,7 @@ html += `
 </div>
 
 <!-- Advanced Sigils -->
-<h3 style="color:#f97316;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #f97316;padding-bottom:0.25rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #f97316;padding-bottom:0.25rem">Advanced Sigils</h3>
 <div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
@@ -17551,7 +17603,7 @@ html += `
 </div>
 
 <!-- Passive Sigils -->
-<h3 style="color:#9333ea;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #9333ea;padding-bottom:0.25rem">✨ Passive Sigils</h3>
+<h3 style="color:#9333ea;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #9333ea;padding-bottom:0.25rem">Passive Sigils</h3>
 <div style="display:grid;gap:0.75rem">
 `;
 
@@ -17778,7 +17830,7 @@ const GamepadController = {
         this.firstInputTime = 0;
         this.inputDetectionShown = false;
         this.activate();
-        toast('🎮 Controller connected!', 2000);
+        toast('Controller connected!', 2000);
         this.startPolling();
         this.startInputDetection();
       } catch(err) {
@@ -18751,7 +18803,7 @@ function toggleControllerSupport(enabled) {
   if (typeof S === 'undefined') return;
   S.controllerDisabled = !enabled;
   if (enabled) {
-    toast('🎮 Controller support enabled!', 2000);
+    toast('Controller support enabled!', 2000);
     GamepadController.init();
   } else {
     toast('Controller support disabled.', 1200);
@@ -18764,7 +18816,7 @@ function forceReinitController() {
   if (typeof S !== 'undefined') S.controllerDisabled = false;
   GamepadController.destroy();
   GamepadController.init();
-  toast('🎮 Controller re-initialized!', 2500);
+  toast('Controller re-initialized!', 2500);
   if (typeof savePermanent === 'function') savePermanent();
   if (typeof closeSettingsMenu === 'function') closeSettingsMenu();
 }
@@ -18780,7 +18832,7 @@ function showSteamDeckHelp() {
   modal.className = 'modal-container dark steam-deck-help-modal';
   modal.style.maxWidth = '400px';
   modal.innerHTML = `
-  <h2 class="modal-title" style="margin-bottom:1rem">🎮 Steam Deck Controls</h2>
+  <h2 class="modal-title" style="margin-bottom:1rem">Steam Deck Controls</h2>
   <div style="text-align:left;font-size:0.85rem;line-height:1.5">
     <p style="margin-bottom:0.8rem">In browser mode, Steam converts controller to keyboard. The game handles both.</p>
     <p style="margin-bottom:0.5rem"><strong>Working controls:</strong></p>

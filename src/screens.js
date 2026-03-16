@@ -87,9 +87,9 @@ return `
   ${animation}
 " onmouseover="this.style.transform='scale(1.15)'"
    onmouseout="this.style.transform='scale(1)'"
-   title="Run #${run.runNumber} - Floor ${run.floorReached}${isVictory ? ' 🏆' : ''}">
+   title="Run #${run.runNumber} - Floor ${run.floorReached}">
   <span style="font-size:${Math.max(11, size/4)}px;font-weight:bold;color:${isVictory ? '#000' : '#fff'};text-shadow:${isVictory ? 'none' : '1px 1px 2px rgba(0,0,0,0.6)'}">${run.floorReached}</span>
-  ${isVictory ? `<span style="font-size:${Math.max(10, size/5)}px">🏆</span>` : ''}
+  ${isVictory ? `<span style="font-size:${Math.max(10, size/5)}px;font-weight:bold;color:#fbbf24">W</span>` : ''}
 </div>`;
 }
 
@@ -125,7 +125,7 @@ let html = `
 </style>
 <div style="max-width:900px;margin:0 auto;padding:1rem">
 <h1 style="text-align:center;margin-bottom:0.5rem;font-size:2rem;color:#60a5fa;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">
-🌿 The Pond 🌿
+The Pond
 </h1>
 <p style="text-align:center;color:#94a3b8;margin-bottom:1rem;font-size:0.95rem">
 A quiet place to reflect on adventures past...
@@ -133,15 +133,15 @@ A quiet place to reflect on adventures past...
 
 <!-- Legend -->
 <div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:1rem;flex-wrap:wrap;font-size:0.85rem">
-<span style="color:#22c55e">🟢 Good Try</span>
-<span style="color:#fbbf24">🟡 Good Job</span>
-${S.fuUnlocked ? `<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">🌈 ${(S.pondHistory || []).some(r => r.gameMode === 'fu') ? 'Frogged Up Win' : 'What the Frog?'}</span>` : ''}
+<span style="color:#22c55e">Good Try</span>
+<span style="color:#fbbf24">Good Job</span>
+${S.fuUnlocked ? `<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold">${(S.pondHistory || []).some(r => r.gameMode === 'fu') ? 'Frogged Up Win' : 'What the Frog?'}</span>` : ''}
 <span style="color:#64748b;font-size:0.8rem">(bigger = higher floor)</span>
 </div>
 
 ${history.length === 0 ? `
 <div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
-<p style="font-size:2rem;margin-bottom:1rem">🪷</p>
+<p style="font-size:2rem;margin-bottom:1rem"></p>
 <p style="color:#94a3b8;font-size:1.1rem">The water is still...</p>
 <p style="color:#64748b;margin-top:0.5rem">Lily pads will appear here after your first adventure and grow the further you progress.</p>
 </div>
@@ -175,16 +175,16 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
 
 ${S.hasReachedFloor20 ? `
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(251,191,36,0.1));border:2px solid #3b82f6;border-radius:12px">
-<h3 style="margin:0 0 0.75rem 0;color:#60a5fa;text-shadow:1px 1px 2px rgba(0,0,0,0.5)">🏆 The Flydra's Conquerors 🏆</h3>
+<h3 style="margin:0 0 0.75rem 0;color:#60a5fa;text-shadow:1px 1px 2px rgba(0,0,0,0.5)">The Flydra's Conquerors</h3>
 <p style="color:#94a3b8;font-size:0.9rem;margin-bottom:0.75rem">You've proven yourself worthy. Visit the Champions Hall to manage figurines and explore other realms.</p>
 <button class="btn" onclick="showChampionsMenu()" style="background:linear-gradient(135deg,#3b82f6,#1e40af);border:2px solid #60a5fa;padding:0.75rem 1.5rem;font-size:1rem">
-🐸 Enter Champions Hall
+Enter Champions Hall
 </button>
 </div>
 ` : ''}
 
 <div style="text-align:center;margin-top:1.5rem">
-<button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">🐸 Return to Ribbleton</button>
+<button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.1rem">Return to Ribbleton</button>
 </div>
 </div>`;
 
@@ -218,7 +218,7 @@ const v = document.getElementById('gameView');
 const html = `
 <div class="modal-container" style="max-width:350px">
 <div style="background:${headerBg};padding:1rem;border-radius:8px 8px 0 0;text-align:center">
-<h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? '🏆 Victory!' : '🪷 Journey'} #${run.runNumber}</h2>
+<h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? 'Victory!' : 'Journey'} #${run.runNumber}</h2>
 </div>
 <div style="padding:1rem">
 <div style="display:grid;gap:0.5rem;font-size:0.95rem">
@@ -228,7 +228,7 @@ const html = `
 </div>
 <div style="display:flex;justify-content:space-between">
 <span style="color:#94a3b8">Mode:</span>
-<span style="color:#f1f5f9">${run.gameMode === 'fu' ? '🔥 ' : '⚔️ '}${modeText}</span>
+<span style="color:#f1f5f9">${modeText}</span>
 </div>
 <div style="display:flex;justify-content:space-between">
 <span style="color:#94a3b8">Floor Reached:</span>
@@ -258,7 +258,7 @@ ${!isVictory && run.killedBy ? `
 ` : ''}
 ${isVictory ? `
 <div style="text-align:center;margin-top:0.5rem;padding:0.5rem;background:rgba(34,197,94,0.2);border-radius:4px">
-<span style="color:#22c55e;font-weight:bold">🎉 Tapo Rescued!</span>
+<span style="color:#22c55e;font-weight:bold">Tapo Rescued!</span>
 </div>
 ` : ''}
 </div>
@@ -331,31 +331,51 @@ let html = `
 <style>
 @keyframes marquee-flash {
   0%, 100% { border-color: #dc2626; box-shadow: 0 0 10px rgba(220,38,38,0.8), 0 0 20px rgba(220,38,38,0.5); }
-  50% { border-color: #3b82f6; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
+  50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
 }
 .going-rate-marquee {
   animation: marquee-flash 1.5s ease-in-out infinite;
   border: 4px solid #dc2626;
   padding: 1.5rem;
   border-radius: 12px;
-  background: linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1));
+  background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(251,191,36,0.1));
   margin: 1.5rem 0;
 }
+@keyframes death-star-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+.death-stars {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; border-radius: 12px;
+}
+.death-star {
+  position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+  animation: death-star-twinkle var(--twinkle-duration, 3s) ease-in-out infinite;
+  animation-delay: var(--twinkle-delay, 0s);
+}
+@keyframes reaper-glow {
+  0%, 100% { box-shadow: 0 0 30px rgba(220,38,38,0.6), 0 0 60px rgba(220,38,38,0.3); }
+  50% { box-shadow: 0 0 40px rgba(220,38,38,0.8), 0 0 80px rgba(220,38,38,0.4), 0 0 120px rgba(168,85,247,0.2); }
+}
 </style>
-<div class="death-screen-container" style="background:#f5f4ed;padding:2rem;border-radius:8px;max-width:900px;margin:0 auto;color:#2c2416;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
-<img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:1rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
-${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#4a4540;font-style:italic">"${deathQuote}"</p>` : ''}
+<div class="death-screen-container" style="position:relative;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);padding:2rem;border-radius:12px;max-width:900px;margin:0 auto;color:#e8e0f0;box-shadow:0 4px 24px rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.3)">
+<div class="death-stars" id="deathStars"></div>
+<div style="position:relative;z-index:1">
+<div style="text-align:center;margin-bottom:1.5rem">
+<img src="assets/reaper.png" alt="Death" style="max-width:280px;height:auto;margin:0 auto;display:block;border-radius:12px;border:3px solid #dc2626;animation:reaper-glow 3s ease-in-out infinite">
+</div>
+<h1 style="text-align:center;margin-bottom:0.5rem;font-size:2.2rem;color:#dc2626;text-shadow:0 0 20px rgba(220,38,38,0.5)">DEATH'S SHOP</h1>
+${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p>` : ''}
 <div class="going-rate-marquee">
-<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#b45309">${S.gold}</strong></p>
-<p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">⚡ Going Rate: ${S.goingRate}G ⚡</p>
-<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#5a5550;font-style:italic">(+${nextRateIncrease}G per upgrade)</p>
+<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#fbbf24">${S.gold}</strong></p>
+<p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">Going Rate: ${S.goingRate}G</p>
+<p style="text-align:center;font-size:0.85rem;margin:0.25rem 0 0 0;color:#a89cc8;font-style:italic">(+${nextRateIncrease}G per upgrade)</p>
 </div>`;
 
 if(S.gold === 0) {
-html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#dc2626;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
+html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#f87171;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
 } else {
-html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#2c2416">Upgrade Sigilarium:</h3>`;
+html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#e8e0f0">Upgrade Sigilarium:</h3>`;
 
 // Sanity check: if goingRate is very low but sigUpgradeCounts is high, something is wrong
 // This can happen if save data gets corrupted or from old migration issues
@@ -430,12 +450,12 @@ const costDisplay = escalation > 0
 // Use color-coded borders based on next level
 const borderColor = nextColorClass;
 cards += `
-<div class="death-screen-sigil-card" style="background:#ffffff;padding:1rem;border-radius:8px;border:2px solid ${borderColor};box-shadow:0 2px 4px rgba(0,0,0,0.1)">
+<div class="death-screen-sigil-card" style="background:rgba(15,15,35,0.8);padding:1rem;border-radius:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.3)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
 </div>
-<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#4a4540;font-weight:600">Cost: ${cost}G</div>
+<div style="font-size:0.9rem;margin-bottom:0.75rem;color:#a89cc8;font-weight:600">Cost: ${cost}G</div>
 <button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.5rem 1rem;font-size:0.9rem;width:100%;${canAfford ? `border-color:${nextColorClass}` : ''}">
 ${canAfford ? 'Purchase' : 'Too Expensive'}
 </button>
@@ -445,13 +465,13 @@ return cards;
 };
 
 // Core Sigils
-html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">⚔️ Core Sigils</h4>`;
+html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Core Sigils</h4>`;
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(coreSigils);
 html += `</div>`;
 
 // Advanced Sigils
-html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">🔥 Advanced Sigils</h4>`;
+html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Advanced Sigils</h4>`;
 if(S.advancedSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(advancedSigils);
@@ -460,7 +480,7 @@ html += `</div>`;
 const canAffordAdvanced = S.gold >= 20;
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #f97316;box-shadow:0 0 20px rgba(249,115,22,0.3);text-align:center">
-<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">LOCKED</div>
 <p style="color:#f97316;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Ghost • Alpha • Grapple</p>
 <p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock advanced combat techniques</p>
 <button class="btn" ${!canAffordAdvanced ? 'disabled' : ''} onclick="unlockSigilCategory('advanced')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordAdvanced ? 'background:linear-gradient(135deg,#f97316,#ea580c);border-color:#f97316;color:#fff' : ''}">
@@ -470,7 +490,7 @@ ${canAffordAdvanced ? 'UNLOCK - 20G' : 'Need 20G to Unlock'}
 }
 
 // Passive Sigils
-html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">✨ Passive Sigils</h4>`;
+html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Passive Sigils</h4>`;
 if(S.passiveSigilsUnlocked) {
 html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
 html += renderSigilCards(passiveSigils);
@@ -479,7 +499,7 @@ html += `</div>`;
 const canAffordPassive = S.gold >= 50;
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #9333ea;box-shadow:0 0 20px rgba(147,51,234,0.3);text-align:center">
-<div style="font-size:2rem;margin-bottom:1rem">🔒</div>
+<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Expand • Asterisk • Star</p>
 <p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock passive enhancements</p>
 <button class="btn" ${!canAffordPassive ? 'disabled' : ''} onclick="unlockSigilCategory('passive')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordPassive ? 'background:linear-gradient(135deg,#9333ea,#7c3aed);border-color:#9333ea;color:#fff' : ''}">
@@ -553,9 +573,25 @@ html += `
 <div style="text-align:center;margin-top:2rem">
 <button class="btn danger" onclick="restartAfterDeath()" style="font-size:1.2rem;padding:1rem 2rem">Return to Ribbleton</button>
 </div>
+</div>
 </div>`;
 
 v.innerHTML = html;
+
+// Generate stars for the death screen background
+const starsContainer = document.getElementById('deathStars');
+if(starsContainer) {
+  for(let i = 0; i < 60; i++) {
+    const star = document.createElement('div');
+    star.className = 'death-star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.setProperty('--twinkle-duration', (2 + Math.random() * 4) + 's');
+    star.style.setProperty('--twinkle-delay', (Math.random() * 3) + 's');
+    if(Math.random() > 0.7) { star.style.width = '3px'; star.style.height = '3px'; }
+    starsContainer.appendChild(star);
+  }
+}
 }
 
 function purchaseSigilUpgrade(sig, cost) {
@@ -712,7 +748,7 @@ function showFUIntroPopup() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
-<h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">🐸 Welcome to the Endgame! 🐸</h2>
+<h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">Welcome to the Endgame!</h2>
 
 <p style="margin-bottom:1.5rem;font-size:1.1rem;line-height:1.6">
 You've conquered the Flydra and saved Tapo once... but there's always more to do!
@@ -720,12 +756,12 @@ You've conquered the Flydra and saved Tapo once... but there's always more to do
 
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin:2rem 0">
 <div style="flex:1;min-width:200px;background:rgba(59,130,246,0.2);border:2px solid #3b82f6;border-radius:8px;padding:1rem">
-<h3 style="color:#3b82f6;margin-bottom:0.5rem">🔵 Standard Runs</h3>
+<h3 style="color:#3b82f6;margin-bottom:0.5rem">Standard Runs</h3>
 <p style="font-size:0.9rem;color:#94a3b8">Earn <strong style="color:#fbbf24">Figurines</strong> for surviving heroes. Permanently boost your stats!</p>
 </div>
 
 <div style="flex:1;min-width:200px;background:rgba(34,197,94,0.2);border:2px solid #22c55e;border-radius:8px;padding:1rem">
-<h3 style="color:#22c55e;margin-bottom:0.5rem">🟢 Frogged Up Runs</h3>
+<h3 style="color:#22c55e;margin-bottom:0.5rem">Frogged Up Runs</h3>
 <p style="font-size:0.9rem;color:#94a3b8">Earn <strong style="color:#d97706">bonus Gold</strong> for upgrades. Higher risk, higher rewards!</p>
 </div>
 </div>
@@ -767,7 +803,7 @@ let html = `
 </style>
 <div style="position:relative;max-width:800px;margin:0 auto">
 <h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
-🏆 The Flydra's Conquerors 🏆
+The Flydra's Conquerors
 </h1>
 
 <div style="position:relative;width:100%;margin:0 auto">
@@ -781,7 +817,7 @@ let html = `
      onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
      title="Return to Ribbleton">
   <div style="width:90px;height:90px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:champions-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 30px #3b82f6">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem">🐸</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3rem"></div>
   </div>
 </div>
 
@@ -795,9 +831,9 @@ let html = `
 </div>
 
 <div style="text-align:center;margin-top:1.5rem;padding:1rem;background:rgba(251,191,36,0.1);border:2px solid #3b82f6;border-radius:8px">
-<p style="margin:0.5rem 0;font-size:1rem"><strong>Current Mode:</strong> <span style="color:${S.gameMode === 'fu' ? '#22c55e' : '#3b82f6'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP 🔥'}</span></p>
+<p style="margin:0.5rem 0;font-size:1rem"><strong>Current Mode:</strong> <span style="color:${S.gameMode === 'fu' ? '#22c55e' : '#3b82f6'}">${S.gameMode === 'Standard' ? 'Standard' : 'FROGGED UP'}</span></p>
 <p style="margin:0.5rem 0;font-size:0.9rem;opacity:0.8">Click the <strong>pedestal</strong> to manage figurines (${pedestalCount}/${maxSlots})</p>
-<p style="margin:0.5rem 0;font-size:0.9rem"><strong>🔵 Blue Portal:</strong> Standard Mode | <strong>🟢 Green Portal:</strong> Frogged Up Mode</p>
+<p style="margin:0.5rem 0;font-size:0.9rem"><strong>Blue Portal:</strong> Standard Mode | <strong>Green Portal:</strong> Frogged Up Mode</p>
 </div>
 
 <div style="text-align:center;margin-top:1rem">
@@ -815,7 +851,7 @@ return;
 }
 S.gameMode = targetMode;
 savePermanent();
-toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up 🔥'} Realm!`);
+toast(`Entered ${targetMode === 'Standard' ? 'Standard' : 'Frogged Up'} Realm!`);
 // Go to hero select for the new mode
 title();
 }
@@ -863,7 +899,7 @@ slotsHTML += `
 
 if(isSlotted) {
 // Show frog emoji when slot is filled
-slotsHTML += `<div style="font-size:2.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));animation:frogBounce 1.5s ease-in-out infinite">🐸</div>`;
+slotsHTML += `<div style="font-size:2.5rem;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.8));animation:frogBounce 1.5s ease-in-out infinite"></div>`;
 } else {
 // Empty slot - subtle indicator
 slotsHTML += `<div style="width:80%;height:80%;background:rgba(0,0,0,0.2);border:2px dashed rgba(255,255,255,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center">
@@ -901,7 +937,7 @@ ${slotsHTML}
 
 <!-- Header overlay -->
 <div style="position:absolute;top:1rem;left:50%;transform:translateX(-50%);text-align:center;z-index:10">
-<h2 style="margin:0;color:#fbbf24;text-shadow:0 2px 8px rgba(0,0,0,0.9);font-size:1.3rem">⚱️ Pedestal of Champions</h2>
+<h2 style="margin:0;color:#fbbf24;text-shadow:0 2px 8px rgba(0,0,0,0.9);font-size:1.3rem">Pedestal of Champions</h2>
 <p style="margin:0.25rem 0;font-size:0.85rem;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8)">${S.gameMode} Mode - ${placedCount}/8 figurines placed</p>
 </div>
 
@@ -1170,7 +1206,7 @@ heroCardsHTML += `
 <div style="background:linear-gradient(135deg,#1e3a5f,#0f172a);border:3px solid #22c55e;border-radius:12px;padding:1rem;min-width:140px;text-align:center">
 <div style="font-size:1.2rem;font-weight:bold;color:#22c55e;margin-bottom:0.5rem">${hero.n}</div>
 <div style="font-size:0.9rem;margin-bottom:0.5rem">${hero.p}💥 | ${hero.m}❤</div>
-${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5rem">🗿 ${pedestalBonus}</div>` : ''}
+${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5rem">${pedestalBonus}</div>` : ''}
 <div style="font-size:0.7rem">${sigilsHTML}</div>
 </div>`;
 });
@@ -1178,7 +1214,7 @@ heroCardsHTML += '</div>';
 
 v.innerHTML = `
 <div style="max-width:700px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
-<h2 style="margin-bottom:0.5rem;color:#22c55e;font-size:1.8rem">🏆 Congratulations! 🏆</h2>
+<h2 style="margin-bottom:0.5rem;color:#22c55e;font-size:1.8rem">Congratulations!</h2>
 <p style="margin-bottom:1.5rem;font-size:1.1rem">You've cleared Standard Mode!</p>
 ${heroCardsHTML}
 <p style="margin-top:1.5rem;font-size:0.9rem;color:#94a3b8">Your heroes rest peacefully in Ribbleton...</p>
@@ -1193,7 +1229,7 @@ window.heroCardsInterstitialComplete = onComplete;
 function showFirstVictoryPedestal(onComplete) {
 // Show a simplified pedestal UI during the first victory cutscene
 const v = document.getElementById('gameView');
-const heroIcons = {'Warrior': '⚔', 'Tank': '🛡', 'Mage': '📖', 'Healer': '✚'};
+const heroIcons = {'Warrior': 'W', 'Tank': 'T', 'Mage': 'M', 'Healer': 'H'};
 const stats = ['POW', 'HP'];
 
 // Get earned figurines - only heroes who earned one this run
@@ -1221,7 +1257,7 @@ const canSlot = earnedFigurines.includes(hero) && !isSlotted && !heroAlreadySlot
 
 slotsHTML += `
 <div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;${canSlot ? 'cursor:pointer' : 'opacity:0.5'}" onclick="${canSlot ? `slotFirstVicFigurine('${hero}','${stat}')` : ''}">
-<div style="font-size:1.5rem">${heroIcons[hero] || '🐸'}</div>
+<div style="font-size:1.5rem">${heroIcons[hero] || '?'}</div>
 <div style="font-size:0.8rem;font-weight:bold">${hero}</div>
 <div style="font-size:0.7rem;color:#94a3b8">${stat === 'POW' ? '+1 POW' : '+5 HP'}</div>
 ${isSlotted ? '<div style="color:#fbbf24;font-size:0.8rem;margin-top:0.5rem">✓ Slotted</div>' : (canSlot ? '<div style="color:#64748b;font-size:0.8rem;margin-top:0.5rem">Click to slot</div>' : '')}
@@ -1236,7 +1272,7 @@ const buttonDisabled = !allSlotted && totalToSlot > 0;
 
 v.innerHTML = `
 <div style="max-width:800px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #fbbf24;color:#fff">
-<h2 style="text-align:center;margin-bottom:1rem;color:#fbbf24">⚱️ Slot Your Figurines!</h2>
+<h2 style="text-align:center;margin-bottom:1rem;color:#fbbf24">Slot Your Figurines!</h2>
 <p style="text-align:center;margin-bottom:1rem;font-size:0.95rem">Each surviving hero earns a figurine! Place them to permanently boost that hero's stats.</p>
 <p style="text-align:center;margin-bottom:1rem;font-size:1.1rem;color:${allSlotted ? '#22c55e' : '#fbbf24'}">
 <strong>Figurines placed: ${slotsThisSession}/${totalToSlot}</strong>
@@ -1289,13 +1325,13 @@ const tapoInParty = S.heroes.some(h => (h.base || h.n) === 'Tapo');
 
 v.innerHTML = `
 <div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #22c55e;color:#fff">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">🔥 FROGGED UP MODE CONQUERED! 🔥</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">FROGGED UP MODE CONQUERED!</h1>
 
 <div style="text-align:center;margin-bottom:2rem;font-size:1.2rem;line-height:1.8">
 <p>Holy frog. You defeated the ${tapoInParty ? '(second) ' : ''}hardest challenge in FROGGLE.</p>
 <p style="margin-top:1rem">Thank you for playing. No other thank yous really matter - <strong>YOU</strong>, the Player, deserve all the thanks in the world.</p>
 ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">Now, think you can beat the FROGGED UP Flydra with Tapo in your party?</p>` : ''}
-<p style="font-size:2rem;margin:2rem 0">❤️</p>
+<p style="font-size:2rem;margin:2rem 0"></p>
 </div>
 
 <div style="background:rgba(0,0,0,0.3);padding:1.5rem;border-radius:8px;margin:2rem 0">
@@ -1311,7 +1347,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 </div>
 
 <div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #22c55e">
-<h3 style="text-align:center;margin-bottom:1rem">🎉 TAPO UNLOCKED! 🎉</h3>
+<h3 style="text-align:center;margin-bottom:1rem">TAPO UNLOCKED!</h3>
 <img src="assets/tapo_normal.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Starts with D20 + any upgraded passives</p>
@@ -1350,7 +1386,7 @@ v.innerHTML = `
 }
 </style>
 <div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">🏆 VICTORY! 🏆</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">VICTORY!</h1>
 
 <div style="text-align:center;margin:2rem 0">
 <div style="display:inline-block;animation:tapoSignatureVictory 4.8s ease-in-out infinite">
@@ -1374,7 +1410,6 @@ I hope you had fun!
 </div>
 
 <div style="text-align:center;font-size:2.5rem;margin:2rem 0">
-❤️🐸❤️
 </div>
 
 <div style="text-align:center;margin-top:2rem">
@@ -1397,7 +1432,7 @@ function showSimpleVictoryScreen() {
 // Music stopped on victory - no procedural music
 const v = document.getElementById('gameView');
 let html = `
-<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">🏆 VICTORY! 🏆</h1>`;
+<h1 style="text-align:center;margin:2rem 0;font-size:2.5rem">VICTORY!</h1>`;
 
 if(S.gameMode === 'fu') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
@@ -1416,7 +1451,7 @@ html += `<p style="text-align:center;margin-bottom:2rem;font-size:1rem;color:#64
 
 if(window.earnedFigurines && window.earnedFigurines.length > 0) {
 html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px">
-<h3 style="text-align:center;margin-bottom:0.5rem">🏆 Hero Figurines Earned! 🏆</h3>
+<h3 style="text-align:center;margin-bottom:0.5rem">Hero Figurines Earned!</h3>
 <p style="text-align:center">The following heroes can place figurines (Max 2 per frog):</p>
 <ul style="list-style:none;padding:0;text-align:center">`;
 window.earnedFigurines.forEach(name => {
@@ -1913,14 +1948,14 @@ const QUESTS = {
 
 // Category display names and order
 const QUEST_CATEGORIES = {
-  learning: { name: 'Getting Started', icon: '📚', order: 1 },
-  heroes: { name: 'Hero Exploration', icon: '🦸', order: 2 },
-  neutrals: { name: 'Neutral Encounters', icon: '🏕️', order: 3 },
-  milestones: { name: 'Milestones', icon: '🏆', order: 4 },
-  combat: { name: 'Combat Mastery', icon: '⚔️', order: 5 },
-  repeatable: { name: 'Ongoing Challenges', icon: '🔄', order: 6 },
-  fu: { name: 'Frogged Up', icon: '🔥', order: 7 },
-  secret: { name: 'Secrets', icon: '🔮', order: 8 }
+  learning: { name: 'Getting Started', icon: '', order: 1 },
+  heroes: { name: 'Hero Exploration', icon: '', order: 2 },
+  neutrals: { name: 'Neutral Encounters', icon: '', order: 3 },
+  milestones: { name: 'Milestones', icon: '', order: 4 },
+  combat: { name: 'Combat Mastery', icon: '', order: 5 },
+  repeatable: { name: 'Ongoing Challenges', icon: '', order: 6 },
+  fu: { name: 'Frogged Up', icon: '', order: 7 },
+  secret: { name: 'Secrets', icon: '', order: 8 }
 };
 
 // Check if a quest is unlocked (visible)
@@ -2076,8 +2111,8 @@ function showQuestBoard() {
 
 <div style="max-width:600px;margin:0 auto;padding:1rem">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-  <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">📋 Quest Board</h1>
-  <div style="font-size:1rem;color:#22c55e">💰 ${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>
+  <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">Quest Board</h1>
+  <div style="font-size:1rem;color:#22c55e">${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>
 </div>
 
 <p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;opacity:0.8">Complete quests to earn gold rewards!</p>
@@ -2085,7 +2120,7 @@ function showQuestBoard() {
 
   for(const category of sortedCategories) {
     const quests = questsByCategory[category];
-    const catInfo = QUEST_CATEGORIES[category] || { name: category, icon: '📋' };
+    const catInfo = QUEST_CATEGORIES[category] || { name: category, icon: '' };
 
     // Count unlocked quests in this category
     const unlockedQuests = quests.filter(q => isQuestUnlocked(q.id));
@@ -2182,7 +2217,7 @@ let html = `
 <!-- Title overlay at top -->
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;padding:1rem;background:linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 70%, transparent 100%)">
 <h1 style="text-align:center;margin:0;font-size:2rem;color:#22c55e;text-shadow:2px 2px 6px rgba(0,0,0,0.9), 0 0 20px rgba(34,197,94,0.5)">
-🐸 Welcome Home to Ribbleton! 🐸
+Welcome Home to Ribbleton!
 </h1>
 </div>
 
@@ -2195,9 +2230,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
      onkeydown="if(event.key==='Enter')showPond()"
      title="Reflect on your adventures at the Lilypad Pond">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #3b82f6, #1e3a8a);animation:ribbleton-portal-pulse 1.2s ease-in-out infinite;box-shadow:0 0 40px #3b82f6">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">🪷</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem"></div>
   </div>
-  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #3b82f6">🌿 The Pond</p>
+  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(59,130,246,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #3b82f6">The Pond</p>
 </div>
 </div>
 ` : ''}
@@ -2209,9 +2244,9 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
      onkeydown="if(event.key==='Enter')enterRedPortal()"
      title="Click to begin your adventure and save Tapo!">
   <div style="width:120px;height:120px;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:ribbleton-portal-pulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem">👺</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:4rem"></div>
   </div>
-  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">🐸 Save Tapo!</p>
+  <p style="margin-top:0.5rem;font-size:1rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(220,38,38,0.8);padding:0.25rem 0.75rem;border-radius:6px;border:2px solid #dc2626">Save Tapo!</p>
 </div>
 </div>
 
@@ -2222,10 +2257,10 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
        onkeydown="if(event.key==='Enter')showQuestBoard()"
        title="View available quests and claim rewards">
     <div style="width:80px;height:80px;position:relative;background:linear-gradient(135deg, #92400e, #78350f);border-radius:8px;border:4px solid #451a03;box-shadow:0 4px 16px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center">
-      <span style="font-size:3rem">🪧</span>
+      <span style="font-size:1.5rem;font-weight:bold;color:#fbbf24">QUESTS</span>
       ${getClaimableQuestCount() > 0 ? `<span style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#000;font-weight:bold;font-size:0.9rem;padding:0.15rem 0.5rem;border-radius:10px;border:2px solid #000;animation:pulse-glow 1.5s ease-in-out infinite">${getClaimableQuestCount()}</span>` : ''}
     </div>
-    <p style="margin-top:0.4rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(146,64,14,0.9);padding:0.2rem 0.6rem;border-radius:4px;border:2px solid #78350f">📋 Quests</p>
+    <p style="margin-top:0.4rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(146,64,14,0.9);padding:0.2rem 0.6rem;border-radius:4px;border:2px solid #78350f">Quests</p>
   </div>
 </div>
 </div>`;

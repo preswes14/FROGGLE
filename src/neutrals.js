@@ -102,7 +102,7 @@ html += '<div class="neutral-left">';
 // Header with stats and narrative
 html += '<div class="neutral-header">';
 if(showStats) {
-html += `<div class="neutral-stats">💰 ${S.gold}G | 🎯 Floor ${S.floor}</div>`;
+html += `<div class="neutral-stats">${S.gold}G | Floor ${S.floor}</div>`;
 }
 html += '<div class="neutral-narrative">';
 if(title) html += `<div class="neutral-title">${title}</div>`;
@@ -222,7 +222,7 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
     v.innerHTML = `
     <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:2rem">
     <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:400px;text-align:center">
-    <h2 style="margin:0 0 1rem 0">🐸 Thanks for playing!</h2>
+    <h2 style="margin:0 0 1rem 0">Thanks for playing!</h2>
     <p style="margin:0 0 1.5rem 0;opacity:0.9">Close this tab or window to exit completely.</p>
     <button class="btn" onclick="mainTitlePage()" style="background:#6366f1">Return to Title</button>
     </div>
@@ -239,7 +239,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
 <div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-<h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">🐸 FROGGLE 🐸</h2>
+<h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">FROGGLE</h2>
 
 <div style="text-align:center;margin-bottom:1rem">
 <p style="font-size:0.95rem;margin:0 0 0.25rem 0;color:#1e1b4b">A DubsPubs game by</p>
@@ -308,20 +308,20 @@ v.innerHTML = `
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 1</h3>
-${slot1.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot1.lastSaved)}</span>` : ''}
+${slot1.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">${formatSaveDate(slot1.lastSaved)}</span>` : ''}
 </div>
 ${slot1.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
-<div>📊 Runs: <strong>${slot1.runsAttempted}</strong> | 💰 Rate: <strong>${slot1.goingRate}G</strong></div>
-${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
+<div>Runs: <strong>${slot1.runsAttempted}</strong> | Rate: <strong>${slot1.goingRate}G</strong></div>
+${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">Active Run${slot1.activeFloor ? ` - Floor ${slot1.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(1)" style="padding:0.5rem">🗑️</button>
+<button class="btn" onclick="continueSlot(1)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot1.hasActiveRun ? 'Continue' : 'New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(1)" style="padding:0.5rem">Del</button>
 </div>
 ` : `
 <p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(1)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">New Game</button>
 `}
 </div>
 
@@ -329,20 +329,20 @@ ${slot1.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active 
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 2</h3>
-${slot2.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot2.lastSaved)}</span>` : ''}
+${slot2.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">${formatSaveDate(slot2.lastSaved)}</span>` : ''}
 </div>
 ${slot2.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
-<div>📊 Runs: <strong>${slot2.runsAttempted}</strong> | 💰 Rate: <strong>${slot2.goingRate}G</strong></div>
-${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
+<div>Runs: <strong>${slot2.runsAttempted}</strong> | Rate: <strong>${slot2.goingRate}G</strong></div>
+${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">Active Run${slot2.activeFloor ? ` - Floor ${slot2.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(2)" style="padding:0.5rem">🗑️</button>
+<button class="btn" onclick="continueSlot(2)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot2.hasActiveRun ? 'Continue' : 'New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(2)" style="padding:0.5rem">Del</button>
 </div>
 ` : `
 <p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(2)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">New Game</button>
 `}
 </div>
 
@@ -350,20 +350,20 @@ ${slot2.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active 
 <div style="background:white;border:3px solid #000;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem;color:#1a1a1a">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
 <h3 style="font-size:1.1rem;margin:0;color:#1a1a1a">Slot 3</h3>
-${slot3.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">📅 ${formatSaveDate(slot3.lastSaved)}</span>` : ''}
+${slot3.lastSaved ? `<span style="font-size:0.75rem;color:#6b7280">${formatSaveDate(slot3.lastSaved)}</span>` : ''}
 </div>
 ${slot3.exists ? `
 <div style="font-size:0.85rem;color:#374151;margin-bottom:0.5rem">
-<div>📊 Runs: <strong>${slot3.runsAttempted}</strong> | 💰 Rate: <strong>${slot3.goingRate}G</strong></div>
-${slot3.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">🎮 Active Run${slot3.activeFloor ? ` - Floor ${slot3.activeFloor}` : ''}</div>` : ''}
+<div>Runs: <strong>${slot3.runsAttempted}</strong> | Rate: <strong>${slot3.goingRate}G</strong></div>
+${slot3.hasActiveRun ? `<div style="color:#16a34a;font-weight:bold">Active Run${slot3.activeFloor ? ` - Floor ${slot3.activeFloor}` : ''}</div>` : ''}
 </div>
 <div style="display:flex;gap:0.5rem">
-<button class="btn" onclick="continueSlot(3)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot3.hasActiveRun ? '▶️ Continue' : '🆕 New Run'}</button>
-<button class="btn secondary icon" onclick="confirmDeleteSlot(3)" style="padding:0.5rem">🗑️</button>
+<button class="btn" onclick="continueSlot(3)" style="flex:1;background:#22c55e;border:3px solid #16a34a;font-weight:bold;padding:0.5rem">${slot3.hasActiveRun ? 'Continue' : 'New Run'}</button>
+<button class="btn secondary icon" onclick="confirmDeleteSlot(3)" style="padding:0.5rem">Del</button>
 </div>
 ` : `
 <p style="color:#6b7280;margin-bottom:0.5rem;font-size:0.9rem">Empty Slot</p>
-<button class="btn" onclick="createNewSlot(3)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">🆕 New Game</button>
+<button class="btn" onclick="createNewSlot(3)" style="width:100%;background:#3b82f6;border:3px solid #f97316;font-weight:bold;padding:0.5rem">New Game</button>
 `}
 </div>
 
@@ -677,7 +677,7 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:500px">
-<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ! 💪</h2>
+<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ!</h2>
 <p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
 No time to waste, eh? Well then get going! Save Tapo!
 </p>
@@ -687,17 +687,15 @@ If you need help, look for the:
 </p>
 <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap">
 <div style="text-align:center">
-<div style="font-size:1.5rem;margin-bottom:0.25rem">👇</div>
-<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">❓ Help/FAQ</div>
+<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Help/FAQ</div>
 </div>
 <div style="text-align:center">
-<div style="font-size:1.5rem;margin-bottom:0.25rem">👇</div>
-<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">📖 Sigilarium</div>
+<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Sigilarium</div>
 </div>
 </div>
 </div>
 <p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
-(Help/tips can be disabled in ⚙️ Settings)
+(Help/tips can be disabled in Settings)
 </p>
 <button onclick="confirmSkipTutorial()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's go!</button>
 </div>`;
@@ -781,8 +779,8 @@ html: `
 <div style="margin-top:0.5rem;font-weight:bold;font-size:1rem;color:#f5f5f5">Mage</div>
 </div>
 <div style="font-size:2.5rem;display:flex;flex-direction:column;align-items:center;gap:0.25rem">
-<span>🪰</span>
-<span>🎁</span>
+<span></span>
+<span></span>
 </div>
 <div style="animation:tapoSignature 3.6s ease-in-out infinite">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:110px;height:auto">
@@ -817,7 +815,7 @@ overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:400px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
 <p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
-🪰 Here come three <strong>flies</strong> now - you're up! 🪰
+Here come three <strong>flies</strong> now - you're up!
 </p>
 <button onclick="dismissTaposBirthdayOverlay()" style="margin-top:0.75rem;padding:0.6rem 1.5rem;font-size:1rem;">Let's catch flies!</button>
 </div>`;
@@ -896,7 +894,7 @@ His sticky tongue lashes out and <strong>swallows the ${flyText} whole!</strong>
 <span style="font-size:0.9rem;opacity:0.8">(In normal combat, your hero would enter "Last Stand" mode - but Tapo's got your back for now!)</span>
 </p>
 <button onclick="continueTapoRescue()" style="padding:1rem 2.5rem;font-size:1.3rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">
-*ribbit* 🪰
+*ribbit*
 </button>
 </div>
 </div>
@@ -1001,7 +999,7 @@ v.innerHTML = `
 </div>
 <p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
-Bellies overflowing, Mage and Tapo return to Ribbleton. 🎉
+Bellies overflowing, Mage and Tapo return to Ribbleton.
 </p>
 <button onclick="transitionToPortalInvasion()" style="padding:1rem 2rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1.5rem">Continue</button>
 </div>
@@ -1016,15 +1014,15 @@ html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
 <div style="margin:1.5rem 0;position:relative">
 <div style="width:160px;height:160px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite">🌀</div>
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite"></div>
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 As Mage and Tapo enter Ribbleton, something seems off..<br>
 Whoa! <strong>A dark portal</strong> is open in the center of square!
 </p>
 <div style="display:flex;justify-content:center;gap:2rem;margin:1rem 0;font-size:2.5rem">
-<div style="animation:enemyAppear 1s ease-out">👺</div>
-<div style="animation:enemyAppear 1.3s ease-out">🐺</div>
+<div style="animation:enemyAppear 1s ease-out"></div>
+<div style="animation:enemyAppear 1.3s ease-out"></div>
 </div>
 <style>
 @keyframes shake {
@@ -1079,7 +1077,7 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
 <div style="animation:defensiveStance 1.5s ease-in-out infinite">
 <img src="assets/tank_normal.png" alt="Tank" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">🛡 On Guard!</div>
+<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">On Guard!</div>
 </div>
 <div style="text-align:center">
 <div style="animation:tapoSignatureSmall 3s ease-in-out infinite;display:inline-block">
@@ -1089,13 +1087,13 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 </div>
 <div style="animation:defensiveStance 1.3s ease-in-out infinite">
 <img src="assets/mage_normal.png" alt="Mage" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">📖 On Guard!</div>
+<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">On Guard!</div>
 </div>
 </div>
 <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
 <div style="animation:chargeForward 0.8s ease-out infinite alternate">
 <img src="assets/warrior_normal.png" alt="Warrior" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">⚔️ Attacking!</div>
+<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">Attacking!</div>
 </div>
 <div style="animation:chargeForward 1s ease-out infinite alternate">
 <img src="assets/heal_normal.png" alt="Healer" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
@@ -1103,8 +1101,8 @@ Strange, hostile creatures have spilled out of the <strong style="color:#dc2626"
 </div>
 </div>
 <div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:2.5rem">
-<div style="animation:enemyThreat 1s ease-in-out infinite">👺</div>
-<div style="animation:enemyThreat 1.2s ease-in-out infinite">🐺</div>
+<div style="animation:enemyThreat 1s ease-in-out infinite"></div>
+<div style="animation:enemyThreat 1.2s ease-in-out infinite"></div>
 </div>
 </div>
 <div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
@@ -1264,7 +1262,7 @@ const slides = [
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/ribbleton-tadpole.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
+{bg: 'assets/tapo_normal.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
 html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong></div>`,
 onShow: () => { GameMusic.play(null, 'combat_boss'); }},
 {text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
@@ -1332,14 +1330,14 @@ const maxSlots = 8;
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
-<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP 🔥' : 'FROGGLE 🐸'}</h1>
+<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
 
 <div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:auto;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(1.05);' : 'filter:brightness(0.7);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(1.05);' : 'filter:brightness(0.7);'}">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
 <div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
@@ -1349,11 +1347,11 @@ ${['warrior','tank','mage','healer'].map(hero => `
 ${S.tapoUnlocked ? `
 <div style="margin-top:1rem;text-align:center">
 <button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
-🎉 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'} 🎉
+${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'}
 </button>
 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 && S.gameMode === 'fu' ? `
 <button class="btn" onclick="selectAllTapos()" style="background:linear-gradient(135deg,#f59e0b 0%,#22c55e 100%);padding:0.5rem 1rem;font-size:0.9rem;font-weight:bold;border:3px solid #000;margin-top:0.5rem">
-🐸 ALL TAPOS 🐸
+ALL TAPOS
 </button>` : ''}
 </div>` : ''}
 
@@ -3518,7 +3516,7 @@ v.innerHTML = `
 <em>Squeals.</em> The heroes know this sound well - Baby Tapo is hungry for flies!
 </div>
 <div style="font-size:2.5rem;font-weight:bold;color:#3b82f6;text-shadow:0 0 10px rgba(251,191,36,0.5);margin:2rem 0;animation:glow 1s ease-in-out infinite">
-✨ Tapo Unlocked! ✨
+Tapo Unlocked!
 </div>
 <div class="neutral-outcome" style="font-size:1.1rem;margin:1.5rem 0">
 Baby Tapo has been added to your hero roster!<br>
@@ -3552,7 +3550,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
 <img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
 </p>
@@ -3577,7 +3575,7 @@ const responseText = fromRibbleton
 v.innerHTML = `
 <div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
 <img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">☠️ DEATH ☠️</h1>
+<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
 "${responseText}"
 </p>
