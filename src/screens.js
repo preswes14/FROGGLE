@@ -1345,6 +1345,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 <p>Additional Playtesters: Noel McKillip, Ryan Evertz</p>
 <p>The Frogs: Charlie Schmidt, Matt Sutz, Ray Willess</p>
 <p>Support: Lisa Evans</p>
+<p style="font-size:0.75rem;opacity:0.7">Special Thanks: Jason Tsui, Sam Kern, Erin Keif, Adal Rifai, John Patrick Coan</p>
 </div>
 </div>
 
