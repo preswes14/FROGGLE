@@ -247,22 +247,28 @@ v.innerHTML = `
 </div>
 
 <div style="text-align:center;margin-bottom:1rem">
-<p style="font-size:0.9rem;margin:0;color:#1e1b4b"><strong>Design, Art, & Code:</strong> Preston + Claude</p>
+<p style="font-size:0.9rem;margin:0;color:#1e1b4b"><strong>Game Design, Code & Music:</strong> Preston Wesley Evans</p>
+<p style="font-size:0.8rem;margin:0.25rem 0 0 0;color:#4b5563;font-style:italic">AI coding assistance by Claude, by Anthropic</p>
 </div>
 
 <div style="text-align:center;margin-bottom:1rem">
-<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Playtesting</p>
-<p style="font-size:0.85rem;margin:0;color:#4b5563;line-height:1.5">Michael Griffin, Charlie Schmidt, Carolyn Powell, Matt Sutz, Ryan Evertz, Noel McKillip, Ray Willess</p>
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Art</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563;line-height:1.5">Character Art: Harimoon<br>Environmental Art: Zabiier</p>
 </div>
 
 <div style="text-align:center;margin-bottom:1rem">
-<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Inspiration</p>
-<p style="font-size:0.85rem;margin:0;color:#4b5563">Inscryption, Slay the Spire, Balatro, and too much coffee</p>
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Official Playtesters</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563;line-height:1.5">Ari, Michael Griffin</p>
 </div>
 
 <div style="text-align:center;margin-bottom:1rem">
-<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Sanity</p>
-<p style="font-size:0.85rem;margin:0;color:#4b5563">Erin Keif, Adal Rfai, JPC, Odell Brewing</p>
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">Additional Playtesters</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563;line-height:1.5">Noel McKillip, Ryan Evertz</p>
+</div>
+
+<div style="text-align:center;margin-bottom:1rem">
+<p style="font-size:0.85rem;margin:0 0 0.25rem 0;color:#6366f1;font-weight:bold">The Frogs</p>
+<p style="font-size:0.85rem;margin:0;color:#4b5563;line-height:1.5">Charlie Schmidt, Matt Sutz, Ray Willess</p>
 </div>
 
 <div style="text-align:center;margin-bottom:1rem">

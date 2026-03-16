@@ -1338,10 +1338,12 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 <h3 style="text-align:center;margin-bottom:1rem;color:#22c55e">FROGGLE</h3>
 <div style="text-align:center;font-size:0.9rem;line-height:2;opacity:0.9">
 <p><strong>A DubsPubs game by Preston Wesley Evans</strong></p>
-<p>Design, Art, & Code: Preston + Claude</p>
-<p>Playtesting: Michael Griffin, Charlie Schmidt, Carolyn Powell, Matt Sutz, Ryan Evertz</p>
-<p>Inspiration: Inscryption, Slay the Spire, Balatro, and too much coffee</p>
-<p>Sanity: Erin Keif, Adal Rfai, JPC, Odell Brewing</p>
+<p>Game Design, Code & Music: Preston Wesley Evans</p>
+<p style="font-size:0.8rem;font-style:italic;opacity:0.8">AI coding assistance by Claude, by Anthropic</p>
+<p>Character Art: Harimoon • Environmental Art: Zabiier</p>
+<p>Official Playtesters: Ari, Michael Griffin</p>
+<p>Additional Playtesters: Noel McKillip, Ryan Evertz</p>
+<p>The Frogs: Charlie Schmidt, Matt Sutz, Ray Willess</p>
 <p>Support: Lisa Evans</p>
 </div>
 </div>
