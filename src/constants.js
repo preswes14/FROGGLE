@@ -1,6 +1,6 @@
 // ===== VERSION CHECK =====
 const GAME_VERSION = 'S_1.64';
-console.log(`%c🐸 FROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
+console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
 function debugLog(...args) {
@@ -139,16 +139,16 @@ dragon: { n:'Dragon', p:5, h:20, m:20, goldDrop:20, x:25, pool:['Expand','Shield
 flydra: { n:'Flydra', p:5, h:25, m:25, goldDrop:0, x:50, pool:['Shield','Grapple','Alpha','Heal','Ghost'], maxLevel:2, gainRate:1, isFlydra:true, permSigils:[{s:'Attack',l:2},{s:'Expand',l:2}] }
 };
 
-// Enemy emoji icons
+// Enemy text fallback (emoji removed - using art assets)
 const ENEMY_EMOJI = {
-'Fly': '🪰',
-'Goblin': '👺',
-'Wolf': '🐺',
-'Orc': '👹',
-'Giant': '🗿',
-'Cave Troll': '👹',
-'Dragon': '🐉',
-'Flydra': '🐲'
+'Fly': 'F',
+'Goblin': 'G',
+'Wolf': 'W',
+'Orc': 'O',
+'Giant': 'Gi',
+'Cave Troll': 'CT',
+'Dragon': 'Dr',
+'Flydra': 'Fl'
 };
 
 // Enemy artwork images (replaces emojis for main enemies)
@@ -218,7 +218,7 @@ const SIGIL_DESCRIPTIONS = {
 'Ghost': 'Gain <b class="sig-scale">ONE</b> Ghost charge. L2: 2 charges. L3: 3. L4: 4. Each charge prevents one lethal hit. Charges persist between combats (max 9).',
 'Asterisk': 'PASSIVE (works automatically): Your first action each combat triggers <b class="sig-scale">ONE</b> extra time. L2: 2 extra. L3: 3 extra. L4: 4 extra.',
 'Star': 'PASSIVE (works automatically): Multiply combat XP by <b class="sig-scale">1.5×</b>. L2: 2×. L3: 2.5×. L4: 3×. Stacks across all heroes!',
-'Alpha': 'Grant target hero <b class="sig-scale">ONE</b> extra action this turn. L2: 2 actions. L3: 3 actions. L4: 4 actions.'
+'Alpha': 'Grant target ally <b class="sig-scale">ONE</b> extra action this turn. L2: 2 actions. L3: 3 actions. L4: 4 actions.'
 };
 
 // ===== SIGIL ORDERING =====
@@ -451,14 +451,13 @@ if(isSelected) cardClasses += ' targeted';
 const extra = [];
 if(e.sh > 0) extra.push(`${e.sh}🛡`);
 if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
-if(isSelected) extra.push('❌');
-const enemyEmoji = ENEMY_EMOJI[e.n] || '👾';
+if(isSelected) extra.push('X');
 const enemyImageSrc = ENEMY_IMAGES[e.n];
 html += `<div class="${cardClasses}" onclick="selectEncampmentTarget('${e.id}')">`;
 if(enemyImageSrc) {
 html += `<div class="card-emoji"><img src="${enemyImageSrc}" alt="${e.n}" style="width:40px;height:40px;object-fit:contain;border-radius:4px"></div>`;
 } else {
-html += `<div class="card-emoji">${enemyEmoji}</div>`;
+html += `<div class="card-emoji" style="font-weight:bold;font-size:0.8rem">${e.n}</div>`;
 }
 html += `<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${getEnemyDisplayName(e)}</div>
 <div class="card-stats">${e.p}💥 | ${e.h}/${e.m}❤${extra.length>0?' | '+extra.join(' '):''}</div>
@@ -521,7 +520,7 @@ html += `<div class="combat-header-subtitle">${targetText}</div>`;
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
-html += `<div class="combat-header-title" style="color:#f97316">⚠️ AMBUSH! ⚠️</div>`;
+html += `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
 html += `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
 html += `<button class="btn" onclick="confirmAmbushSkip()" style="margin-top:0.5rem;padding:0.5rem 1.5rem">Continue to Enemy Turn</button>`;
 } else {
@@ -840,6 +839,20 @@ return false;
 // Tutorial system
 let tooltipTimeout = null;
 let currentTooltip = null;
+let tooltipActive = false;
+let tooltipPendingCallbacks = [];
+
+// Schedule an action that should pause while a tooltip is showing
+function scheduleEnemyAction(fn, delay) {
+const wrappedFn = () => {
+if(tooltipActive) {
+tooltipPendingCallbacks.push(wrappedFn);
+} else {
+fn();
+}
+};
+setTimeout(wrappedFn, delay);
+}
 
 // Get level-specific description with colored/bolded numbers
 function getLevelDescription(sigilName, level) {
@@ -856,7 +869,7 @@ const boldNum = (num) => `<strong style="color:${color}">${num}</strong>`;
 
 // Level-specific descriptions
 const descriptions = {
-'Attack': level === 0 ? 'Not unlocked' : level === 1 ? 'Deal POW damage to target' : `Attack ${boldNum(level)} times for POW damage each`,
+'Attack': level === 0 ? 'Not unlocked' : `Deal POW damage ${boldNum(level)} time${level > 1 ? 's' : ''}`,
 'Shield': level === 0 ? 'Not unlocked' : level === 1 ? 'Grant target 2×POW shield (persists between battles, capped at max HP)' : `Shield ${boldNum(level)} times for 2×POW each (persists between battles, capped at max HP)`,
 'Heal': level === 0 ? 'Not unlocked' : level === 1 ? 'Restore 2×POW HP to target (cannot exceed max HP)' : `Heal ${boldNum(level)} times for 2×POW each (cannot exceed max HP)`,
 'D20': `Roll ${boldNum(level)}d20, use best result. Choose gambit: Confuse (enemy hurts itself), Startle (stun), Mend (heal self), Steal (gold), Recruit (join team)`,
@@ -865,7 +878,7 @@ const descriptions = {
 'Ghost': level === 0 ? 'Not unlocked' : `Gain ${boldNum(level)} charge${level > 1 ? 's' : ''}. Each charge prevents one death (persists between combats, max 9)`,
 'Asterisk': level === 0 ? 'Not unlocked' : `PASSIVE: Next action triggers ${boldNum(level + 1)} times! Resets after each battle`,
 'Star': level === 0 ? 'PASSIVE: Not unlocked' : `PASSIVE: Gain ${boldNum(level * 0.5)}× extra XP per battle (stacks with other heroes)`,
-'Alpha': level === 0 ? 'Not unlocked' : `Grant target hero ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
+'Alpha': level === 0 ? 'Not unlocked' : `Grant target ally ${boldNum(level)} extra action${level > 1 ? 's' : ''} this turn`
 };
 
 return descriptions[sigilName] || 'No description available';
@@ -874,6 +887,8 @@ return descriptions[sigilName] || 'No description available';
 function showTooltip(sigilName, element, level = 1) {
 // Check if tooltips are disabled
 if(S.tooltipsDisabled) return;
+// Pause enemy actions while tooltip is visible
+tooltipActive = true;
 
 // Tooltip display (tutorial explanation happens in Ribbleton combat)
 
@@ -933,6 +948,13 @@ tooltipTimeout = null;
 if(currentTooltip) {
 currentTooltip.remove();
 currentTooltip = null;
+}
+// Resume enemy actions that were paused
+tooltipActive = false;
+if(tooltipPendingCallbacks.length > 0) {
+const pending = tooltipPendingCallbacks.slice();
+tooltipPendingCallbacks = [];
+pending.forEach(fn => setTimeout(fn, 0));
 }
 }
 
@@ -1073,7 +1095,6 @@ function spawnConfetti(count = 50) {
 
   // Frog-friendly colors (greens, golds, lily pad colors)
   const colors = ['#22c55e', '#16a34a', '#4ade80', '#fbbf24', '#84cc16', '#10b981', '#34d399', '#a3e635'];
-  const frogEmojis = ['🐸', '🐸', '🐸', '🪷', '💚', '✨'];
 
   for (let i = 0; i < count; i++) {
     const confetti = document.createElement('div');
@@ -1083,14 +1104,7 @@ function spawnConfetti(count = 50) {
     confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
 
     const rand = Math.random();
-    if (rand < 0.2) {
-      // 20% chance: Frog emoji
-      confetti.style.backgroundColor = 'transparent';
-      confetti.style.width = 'auto';
-      confetti.style.height = 'auto';
-      confetti.style.fontSize = (16 + Math.random() * 16) + 'px';
-      confetti.textContent = frogEmojis[Math.floor(Math.random() * frogEmojis.length)];
-    } else if (rand < 0.35) {
+    if (rand < 0.35) {
       // 15% chance: Tiny Tapo image
       confetti.style.backgroundColor = 'transparent';
       confetti.style.width = (20 + Math.random() * 15) + 'px';

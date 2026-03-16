@@ -15,7 +15,7 @@ showSettingsMenu();
 
 function toggleOopsAll20s(enabled) {
 S.oopsAll20s = enabled;
-toast(enabled ? '🎲 Oops All 20s: ON (All D20 rolls = 20!)' : '🎲 Oops All 20s: OFF', 1500);
+toast(enabled ? 'Oops All 20s: ON (All D20 rolls = 20!)' : 'Oops All 20s: OFF', 1500);
 // Refresh debug menu to update checkbox
 const debugMenu = document.querySelector('[style*="z-index:30000"]');
 if(debugMenu && debugMenu.textContent.includes('DEBUG MENU')) {
@@ -32,7 +32,7 @@ const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Debug menu">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🛠️ DEBUG MENU 🛠️</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">DEBUG MENU</h2>
 
 <h3 class="modal-section-title green">Resources</h3>
 <button class="btn" onclick="debugAddGold()" style="margin-bottom:0.5rem;background:#22c55e">+100 Gold</button>
@@ -71,7 +71,7 @@ ${heroNames.map(h => `<option value="${h.idx}">${h.name} (POW:${S.heroes[h.idx].
 </div>
 </div>
 <button class="btn" onclick="debugSetHeroStats()" style="background:#3b82f6;margin-bottom:0.5rem">Update Hero Stats</button>
-${S.heroes.some(h => h.ls) ? `<button class="btn" onclick="debugReviveFromLastStand()" style="background:#dc2626;margin-bottom:0.5rem">💀 Revive from Last Stand</button>` : ''}
+${S.heroes.some(h => h.ls) ? `<button class="btn" onclick="debugReviveFromLastStand()" style="background:#dc2626;margin-bottom:0.5rem">Revive from Last Stand</button>` : ''}
 </div>
 ` : ''}
 
@@ -83,7 +83,7 @@ ${inCombat ? `
 <h3 class="modal-section-title blue">Cheats</h3>
 <label class="modal-checkbox-label" style="background:rgba(251,191,36,0.2)">
 <input type="checkbox" ${S.oopsAll20s ? 'checked' : ''} onchange="toggleOopsAll20s(this.checked)">
-<span>🎲 Oops All 20s (Auto-succeed D20 rolls)</span>
+<span>Oops All 20s (Auto-succeed D20 rolls)</span>
 </label>
 
 <button class="btn" onclick="closeDebugMenu()" style="margin-top:1rem;background:#888">Close</button>
@@ -108,26 +108,26 @@ const inRibbleton = S.inRibbleton;
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">⚙️ SETTINGS ⚙️</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">SETTINGS</h2>
 
 ${inGame ? `
-<button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">💾 Save Game</button>
-<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#f97316">🔄 Restart Level</button>
+<button class="btn" onclick="manualSave()" style="margin-bottom:0.5rem;background:#22c55e">Save Game</button>
+<button class="btn" onclick="restartLevel()" style="margin-bottom:0.5rem;background:#f97316">Restart Level</button>
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">🔊 Audio</button>
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">🎮 Gameplay</button>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">🖥️ Display</button>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">🕹️ Controller</button>
+<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audiobutton>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplaybutton>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Displaybutton>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controllerbutton>
 </div>
 
 ${inGame ? `
-<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-top:1rem;background:#dc2626">🚪 Quit to Ribbleton</button>
+<button class="btn danger" onclick="confirmQuitToRibbleton()" style="margin-top:1rem;background:#dc2626">Quit to Ribbleton</button>
 ` : inTutorial ? `
-<button class="btn danger" onclick="confirmQuitTutorial()" style="margin-top:1rem;background:#dc2626">🚪 Exit Tutorial</button>
+<button class="btn danger" onclick="confirmQuitTutorial()" style="margin-top:1rem;background:#dc2626">Exit Tutorial</button>
 ` : inRibbleton ? `
-<button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">🚪 Quit Game</button>
+<button class="btn" onclick="confirmExitGame()" style="margin-top:1rem;background:#dc2626">Quit Game</button>
 ` : ''}
 
 <button class="settings-back-btn" onclick="closeSettingsMenu()">Return</button>
@@ -150,13 +150,13 @@ const musicPct = Math.round((S.musicVolume ?? 1) * 100);
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Audio settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🔊 AUDIO</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">AUDIOh2>
 
 <div style="display:flex;flex-direction:column;gap:1.25rem">
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#fbbf24">🔈 Master Volume</label>
+<label style="font-weight:bold;color:#fbbf24">♪ Master Volume</label>
 <span id="master-vol-display" style="font-size:0.9rem;color:#fbbf24">${masterPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${masterPct}" aria-label="Master volume"
@@ -166,7 +166,7 @@ let html = `
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#22c55e">💥 Sound Effects</label>
+<label style="font-weight:bold;color:#22c55e">♪ Sound Effects</label>
 <span id="sfx-vol-display" style="font-size:0.9rem;color:#22c55e">${sfxPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${sfxPct}" aria-label="Sound effects volume"
@@ -176,7 +176,7 @@ let html = `
 
 <div>
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
-<label style="font-weight:bold;color:#8b5cf6">🎵 Music</label>
+<label style="font-weight:bold;color:#8b5cf6">♫ Music</label>
 <span id="music-vol-display" style="font-size:0.9rem;color:#8b5cf6">${musicPct}%</span>
 </div>
 <input type="range" min="0" max="100" value="${musicPct}" aria-label="Music volume"
@@ -186,7 +186,7 @@ let html = `
 
 </div>
 
-<button class="btn" onclick="testAudioLevels()" style="margin-top:1rem;background:#374151">🔊 Test Sound</button>
+<button class="btn" onclick="testAudioLevels()" style="margin-top:1rem;background:#374151">Test Sound</button>
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
@@ -213,22 +213,22 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Gameplay settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🎮 GAMEPLAY</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">GAMEPLAYh2>
 
 <h3 class="modal-section-title green">Animation Speed</h3>
 <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
-<button class="btn ${S.animationSpeed === 1 ? 'selected' : ''}" onclick="setAnimationSpeed(1, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 1 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸 Normal</button>
-<button class="btn ${S.animationSpeed === 2 ? 'selected' : ''}" onclick="setAnimationSpeed(2, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 2 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨 2x</button>
-<button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">🐸💨💨 4x</button>
-<button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">⚡ Instant</button>
+<button class="btn ${S.animationSpeed === 1 ? 'selected' : ''}" onclick="setAnimationSpeed(1, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 1 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">Normal</button>
+<button class="btn ${S.animationSpeed === 2 ? 'selected' : ''}" onclick="setAnimationSpeed(2, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 2 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">2x</button>
+<button class="btn ${S.animationSpeed === 4 ? 'selected' : ''}" onclick="setAnimationSpeed(4, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 4 ? 'background:#22c55e;border-color:#16a34a' : 'background:#374151'}">4x</button>
+<button class="btn ${S.animationSpeed === 0 ? 'selected' : ''}" onclick="setAnimationSpeed(0, true)" style="flex:1;min-width:60px;padding:0.5rem;font-size:0.9rem;${S.animationSpeed === 0 ? 'background:#f97316;border-color:#ea580c' : 'background:#374151'}">Instant</button>
 </div>
 
 <h3 class="modal-section-title blue">Debug</h3>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.debugMode ? 'checked' : ''} onchange="toggleDebugMode(this.checked)">
-<span>🛠️ Enable Debug Mode</span>
+<span>Enable Debug Mode</span>
 </label>
-${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">🛠️ Open Debug Tools</button>` : ''}
+${S.debugMode ? `<button class="btn" onclick="closeSettingsMenu();showDebugMenu()" style="margin-bottom:0.5rem;background:#3b82f6">Open Debug Tools</button>` : ''}
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
@@ -244,36 +244,36 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Display settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🖥️ DISPLAY</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">DISPLAY</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.toastLogVisible ? 'checked' : ''} onchange="toggleToastLogVisibility(this.checked)">
-<span>📜 Show Toast Log</span>
+<span>▸ Show Toast Log</span>
 </label>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.helpTipsDisabled ? 'checked' : ''} onchange="toggleHelpTips(this.checked)">
-<span>💡 Help Tips</span>
+<span>▸ Help Tips</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Mechanic explanation popups</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.tutorialDisabled ? 'checked' : ''} onchange="toggleTutorialWalkthrough(this.checked)">
-<span>📖 Tutorial Walkthrough</span>
+<span>Tutorial Walkthrough</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.25rem 0.5rem;padding-left:0.5rem">Guided tutorial popups</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.cutsceneDisabled ? 'checked' : ''} onchange="toggleCutscenes(this.checked)">
-<span>🎬 Story Cutscenes</span>
+<span>▸ Story Cutscenes</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">One-time narrative events</p>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.tooltipsDisabled ? 'checked' : ''} onchange="toggleTooltips(this.checked)">
-<span>🔍 Show Sigil Tooltips</span>
+<span>▸ Show Sigil Tooltips</span>
 </label>
 
 <h3 class="modal-section-title green" style="margin-top:1rem">Accessibility</h3>
 <label class="modal-checkbox-label">
 <input type="checkbox" ${S.highContrastMode ? 'checked' : ''} onchange="toggleHighContrastMode(this.checked)">
-<span>👁️ High Contrast Mode</span>
+<span>High Contrast Mode</span>
 </label>
 <p style="font-size:0.75rem;opacity:0.6;margin:-0.25rem 0 0.5rem 0.5rem;padding-left:0.5rem">Enhanced visibility for low vision users</p>
 
@@ -289,7 +289,7 @@ function toggleToastLogVisibility(enabled) {
 S.toastLogVisible = enabled;
 savePermanent();
 render();
-toast(enabled ? '📜 Toast Log: Visible' : '📜 Toast Log: Hidden', 1500);
+toast(enabled ? 'Toast Log: Visible' : 'Toast Log: Hidden', 1500);
 }
 
 // Toggle high contrast mode
@@ -301,7 +301,7 @@ document.body.classList.add('high-contrast');
 document.body.classList.remove('high-contrast');
 }
 savePermanent();
-toast(enabled ? '👁️ High Contrast Mode: ON' : '👁️ High Contrast Mode: OFF', 1500);
+toast(enabled ? 'High Contrast Mode: ON' : 'High Contrast Mode: OFF', 1500);
 }
 
 // ===== CONTROLLER SETTINGS SUBMENU =====
@@ -311,15 +311,15 @@ const v = document.getElementById('gameView');
 
 let html = `
 <div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Controller settings">
-<h2 class="modal-title blue" style="margin-bottom:1.5rem">🕹️ CONTROLLER</h2>
+<h2 class="modal-title blue" style="margin-bottom:1.5rem">CONTROLLER</h2>
 
 <label class="modal-checkbox-label">
 <input type="checkbox" ${!S.controllerDisabled ? 'checked' : ''} onchange="toggleControllerSupport(this.checked)">
-<span>🎮 Controller Support</span>
+<span>Controller Support</span>
 </label>
-<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">🎮 Controls Guide</button>
-<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">🔄 Re-Init Controller</button>
-<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.9rem">🔍 Input Overlay</button>
+<button class="btn" onclick="showControlsGuide()" style="margin-bottom:0.5rem;background:#6366f1">Controls Guide</button>
+<button class="btn" onclick="forceReinitController()" style="margin-bottom:0.5rem;background:#22c55e;font-size:0.9rem">Re-Init Controller</button>
+<button class="btn" onclick="toggleControllerDebug()" style="margin-bottom:0.5rem;background:#f59e0b;font-size:0.9rem">Input Overlay</button>
 
 <button class="settings-back-btn" onclick="closeSettingsMenu();showSettingsMenu()">Back <span style="opacity:0.6;font-size:0.85em">(B)</span></button>
 </div>
@@ -522,7 +522,7 @@ savePermanent();
 
 function setAnimationSpeed(speed, fromSubmenu = false) {
 S.animationSpeed = speed;
-const labels = {0: '⚡ Instant', 1: '🐸 Normal', 2: '🐸💨 2x', 4: '🐸💨💨 4x'};
+const labels = {0: 'Instant', 1: 'Normal', 2: '2x', 4: '4x'};
 toast(`Animation speed: ${labels[speed]}`, 1200);
 SoundFX.play('hop');
 savePermanent();
@@ -551,14 +551,14 @@ const overlay = document.createElement('div');
 overlay.id = 'controller-debug-overlay';
 overlay.style.cssText = 'position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.9);color:#0f0;font-family:monospace;font-size:12px;padding:10px;border-radius:8px;z-index:99999;max-width:300px;border:2px solid #0f0';
 overlay.innerHTML = `
-<div style="font-weight:bold;margin-bottom:5px;color:#fff">🎮 CONTROLLER DEBUG</div>
+<div style="font-weight:bold;margin-bottom:5px;color:#fff">CONTROLLER DEBUG</div>
 <div id="debug-gamepad-status">Checking...</div>
 <div id="debug-buttons" style="margin-top:5px"></div>
 <div id="debug-axes" style="margin-top:5px"></div>
 <div id="debug-keyboard" style="margin-top:5px;color:#ff0">Last key: none</div>
 <div id="debug-key-count" style="font-size:10px;color:#888">Keys pressed: 0</div>
 <div style="margin-top:8px">
-<button id="debug-detect-btn" style="background:#22c55e;color:#000;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer">🔍 Force Detect</button>
+<button id="debug-detect-btn" style="background:#22c55e;color:#000;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer">Force Detect</button>
 </div>
 <div style="margin-top:5px;font-size:10px;color:#888">Tap overlay to close</div>
 `;
@@ -681,11 +681,11 @@ closeSettingsMenu();
 const v = document.getElementById('gameView');
 
 const controls = [
-{ section: '🕹️ Sticks', items: [
+{ section: 'Sticks', items: [
   { btn: 'Left Stick', desc: 'Navigate (D-pad equivalent)', highlight: true },
   { btn: 'Right Stick', desc: 'Scroll vertically in menus', highlight: true }
 ]},
-{ section: '🎮 Bumpers & Triggers (Combat)', items: [
+{ section: 'Bumpers & Triggers (Combat)', items: [
   { btn: 'LB / RB', desc: 'Previous / Next character (same as right stick)' },
   { btn: 'LT / RT', desc: 'Previous / Next sigil with tooltip (same as left stick)' }
 ]},
@@ -700,13 +700,13 @@ const controls = [
   { btn: 'X', desc: 'Switch sides (jump to enemy across from you)' },
   { btn: 'Y', desc: 'Toggle sigil tooltip' }
 ]},
-{ section: '⚙️ Menu Buttons', items: [
+{ section: 'Menu Buttons', items: [
   { btn: 'START (☰)', desc: 'Open Settings menu (works anywhere)' },
   { btn: 'SELECT (⊡)', desc: 'Auto-target: smart targeting for current action' },
   { btn: 'L3 (left click)', desc: 'Show Controls Guide' },
   { btn: 'R3 (right click)', desc: 'Toggle Controller Debug overlay' }
 ]},
-{ section: '⌨️ Keyboard Fallback', items: [
+{ section: 'Keyboard Fallback', items: [
   { btn: 'Arrow Keys', desc: 'Navigate (D-pad equivalent)' },
   { btn: 'Enter / Space', desc: 'Confirm (A button)' },
   { btn: 'Escape', desc: 'Back / Cancel (B button)' },
@@ -718,7 +718,7 @@ const controls = [
 
 let html = `
 <div class="modal-container dark" style="max-height:85vh;overflow-y:auto">
-<h2 class="modal-title blue" style="margin-bottom:1rem">🎮 CONTROLS GUIDE 🎮</h2>
+<h2 class="modal-title blue" style="margin-bottom:1rem">CONTROLS GUIDE</h2>
 
 <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(34,197,94,0.15);border:2px solid #22c55e;border-radius:8px">
 <p style="margin:0;color:#86efac;font-size:0.9rem;text-align:center">
@@ -744,7 +744,7 @@ html += `</div>`;
 
 html += `
 <div style="margin-top:1.5rem;padding:1rem;background:rgba(99,102,241,0.15);border:2px solid #6366f1;border-radius:8px">
-<h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">💡 Pro Tips</h4>
+<h4 style="color:#a5b4fc;margin:0 0 0.5rem 0;font-size:0.95rem">▸ Pro Tips</h4>
 <ul style="margin:0;padding-left:1.25rem;color:#c7d2fe;font-size:0.85rem;line-height:1.5">
 <li><strong>Auto-Target (SELECT)</strong> picks smart targets: lowest HP enemies for attacks, most damaged heroes for heals</li>
 <li><strong>Switch Sides (X)</strong> quickly jumps between your hero and the enemy across from them</li>
@@ -754,7 +754,7 @@ html += `
 </div>
 
 <button class="btn" onclick="showSteamInputGuide()" style="margin-top:1rem;background:#1b2838">
-<span style="margin-right:0.5rem">🎮</span> Steam Input Setup Guide
+Steam Input Setup Guide
 </button>
 <button class="btn" onclick="closeControlsGuide()" style="margin-top:0.5rem;background:#888">Close</button>
 </div>
@@ -779,7 +779,7 @@ const v = document.getElementById('gameView');
 let html = `
 <div class="modal-container dark" style="max-height:85vh;overflow-y:auto">
 <h2 class="modal-title" style="margin-bottom:1rem;color:#1b2838">
-<span style="background:linear-gradient(135deg,#1b2838,#2a475e);padding:0.3rem 0.6rem;border-radius:4px">🎮 Steam Input Setup</span>
+<span style="background:linear-gradient(135deg,#1b2838,#2a475e);padding:0.3rem 0.6rem;border-radius:4px">Steam Input Setup</span>
 </h2>
 
 <div style="margin-bottom:1rem;padding:0.75rem;background:rgba(27,40,56,0.3);border:2px solid #2a475e;border-radius:8px">
@@ -788,7 +788,7 @@ FROGGLE uses <strong>Gamepad with Joystick Trackpad</strong> template as a base.
 </p>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">📋 Quick Setup (Recommended)</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">▸ Quick Setup (Recommended)</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <ol style="margin:0;padding-left:1.25rem;color:#e5e7eb;font-size:0.85rem;line-height:1.8">
 <li>Open Steam and navigate to your game in the Library</li>
@@ -798,7 +798,7 @@ FROGGLE uses <strong>Gamepad with Joystick Trackpad</strong> template as a base.
 </ol>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🔧 Custom Configuration</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">▸ Custom Configuration</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <p style="margin:0 0 0.75rem 0;color:#c7d5e0;font-size:0.85rem">
 If you want to customize, here's the expected mapping:
@@ -839,7 +839,7 @@ If you want to customize, here's the expected mapping:
 </div>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🎮 Steam Deck Gaming Mode</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Steam Deck Gaming Mode</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <p style="margin:0;color:#e5e7eb;font-size:0.85rem;line-height:1.6">
 On Steam Deck, the built-in controls should work automatically. If not:
@@ -852,7 +852,7 @@ On Steam Deck, the built-in controls should work automatically. If not:
 </ol>
 </div>
 
-<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">🖥️ Electron / Desktop App</h3>
+<h3 class="modal-section-title" style="margin-top:1rem;color:#66c0f4">Electron / Desktop App</h3>
 <div style="padding:0.75rem;background:rgba(255,255,255,0.05);border-radius:6px;margin-bottom:1rem">
 <p style="margin:0;color:#e5e7eb;font-size:0.85rem;line-height:1.6">
 When packaging with Electron for Steam:
@@ -867,7 +867,7 @@ When packaging with Electron for Steam:
 
 <div style="margin-top:1rem;padding:0.75rem;background:rgba(245,158,11,0.15);border:2px solid #f59e0b;border-radius:8px">
 <p style="margin:0;color:#fcd34d;font-size:0.85rem">
-The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!<br><br><em style="font-size:0.85em;opacity:0.9">(💡 Tip: This works great for Steam Deck users who prefer touch controls!)</em>
+The game also supports keyboard fallback. If controller input isn't detected, you can use Arrow Keys, WASD, Q/E/Z/C, and Enter/Escape to play!<br><br><em style="font-size:0.85em;opacity:0.9">(Tip: This works great for Steam Deck users who prefer touch controls!)</em>
 </p>
 </div>
 
@@ -994,18 +994,18 @@ a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5�
 
 let html = `
 <div class="modal-container faq">
-<h2 class="modal-title orange">❓ Frequently Asked Questions ❓</h2>
+<h2 class="modal-title orange">? Frequently Asked Questions</h2>
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
-<h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">🐸 FROGGLE</h3>
+<h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">FROGGLE</h3>
 <p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Advance through the dungeon and save Tapo the tadpole! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
 <div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem;color:#1a1a1a">
-<h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">⚔️ HOW LEVEL-UPS WORK</h4>
+<h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">HOW LEVEL-UPS WORK</h4>
 <p style="font-size:0.9rem;margin:0 0 0.5rem 0">After combat, you can spend XP in 3 ways:</p>
 
 <div style="margin-left:1rem;font-size:0.9rem;line-height:1.6">
-<p style="margin:0.5rem 0"><strong>1️⃣ UPGRADE A SIGIL</strong> (makes it stronger everywhere!)</p>
+<p style="margin:0.5rem 0"><strong>1. UPGRADE A SIGIL</strong> (makes it stronger everywhere!)</p>
 <div style="margin-left:1rem;margin-bottom:0.75rem">
 <p style="margin:0.25rem 0"><strong style="color:#9333ea">Passive Sigils</strong> (Expand, Asterisk, Star):</p>
 <ul style="margin:0.25rem 0;padding-left:1.5rem">
@@ -1021,14 +1021,14 @@ let html = `
 </ul>
 </div>
 
-<p style="margin:0.5rem 0"><strong>2️⃣ ADD A SIGIL TO A HERO</strong></p>
+<p style="margin:0.5rem 0"><strong>2. ADD A SIGIL TO A HERO</strong></p>
 <ul style="margin:0.25rem 0 0.75rem 1.5rem;padding-left:1.5rem">
 <li>All heroes can learn any sigil by spending XP!</li>
 <li>Active sigils use your hero's 1 action per turn</li>
 <li>Choose abilities that complement your strategy</li>
 </ul>
 
-<p style="margin:0.5rem 0"><strong>3️⃣ UPGRADE HERO STATS</strong></p>
+<p style="margin:0.5rem 0"><strong>3. UPGRADE HERO STATS</strong></p>
 <ul style="margin:0.25rem 0;padding-left:1.5rem">
 <li>Spend XP for +1 POW (increases damage/healing/shields)</li>
 <li>Spend XP for +5 Max HP (and heal if in Last Stand)</li>
@@ -1037,7 +1037,7 @@ let html = `
 </div>
 
 <div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-top:1rem">
-<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">💡 PRO TIPS</h4>
+<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">▸ PRO TIPS</h4>
 <ul style="margin:0;padding-left:1.5rem;font-size:0.85rem;line-height:1.5">
 <li><strong>Mage & Healer Start Stronger:</strong> They get +1 Expand built-in, so their actions hit 1 extra target from the start!</li>
 <li><strong>Shields Persist:</strong> Before winning a battle, use remaining actions to shield your team - they carry over to the next fight!</li>
@@ -1112,11 +1112,11 @@ return '#ff0080'; // L5 gradient
 
 let html = `
 <div class="modal-container light">
-<h2 class="modal-title purple">📖 SIGILARIUM 📖</h2>
+<h2 class="modal-title purple">✦ SIGILARIUM ✦</h2>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-bottom:1.5rem">All Sigils and Their Permanent Upgrade Levels</p>
 
 <!-- Core Sigils -->
-<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">⚔️ Core Sigils</h3>
+<h3 style="color:#2c63c7;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #2c63c7;padding-bottom:0.25rem">※ Core Sigils</h3>
 <div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
@@ -1145,7 +1145,7 @@ html += `
 </div>
 
 <!-- Advanced Sigils -->
-<h3 style="color:#f97316;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #f97316;padding-bottom:0.25rem">🔥 Advanced Sigils</h3>
+<h3 style="color:#f97316;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #f97316;padding-bottom:0.25rem">† Advanced Sigils</h3>
 <div style="display:grid;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
@@ -1174,7 +1174,7 @@ html += `
 </div>
 
 <!-- Passive Sigils -->
-<h3 style="color:#9333ea;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #9333ea;padding-bottom:0.25rem">✨ Passive Sigils</h3>
+<h3 style="color:#9333ea;margin-bottom:0.75rem;font-size:1rem;border-bottom:2px solid #9333ea;padding-bottom:0.25rem">◇ Passive Sigils</h3>
 <div style="display:grid;gap:0.75rem">
 `;
 

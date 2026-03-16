@@ -71,7 +71,7 @@ const GamepadController = {
         this.firstInputTime = 0;
         this.inputDetectionShown = false;
         this.activate();
-        toast('🎮 Controller connected!', 2000);
+        toast('Controller connected!', 2000);
         this.startPolling();
         this.startInputDetection();
       } catch(err) {
@@ -1044,7 +1044,7 @@ function toggleControllerSupport(enabled) {
   if (typeof S === 'undefined') return;
   S.controllerDisabled = !enabled;
   if (enabled) {
-    toast('🎮 Controller support enabled!', 2000);
+    toast('Controller support enabled!', 2000);
     GamepadController.init();
   } else {
     toast('Controller support disabled.', 1200);
@@ -1057,7 +1057,7 @@ function forceReinitController() {
   if (typeof S !== 'undefined') S.controllerDisabled = false;
   GamepadController.destroy();
   GamepadController.init();
-  toast('🎮 Controller re-initialized!', 2500);
+  toast('Controller re-initialized!', 2500);
   if (typeof savePermanent === 'function') savePermanent();
   if (typeof closeSettingsMenu === 'function') closeSettingsMenu();
 }
@@ -1073,7 +1073,7 @@ function showSteamDeckHelp() {
   modal.className = 'modal-container dark steam-deck-help-modal';
   modal.style.maxWidth = '400px';
   modal.innerHTML = `
-  <h2 class="modal-title" style="margin-bottom:1rem">🎮 Steam Deck Controls</h2>
+  <h2 class="modal-title" style="margin-bottom:1rem">Steam Deck Controls</h2>
   <div style="text-align:left;font-size:0.85rem;line-height:1.5">
     <p style="margin-bottom:0.8rem">In browser mode, Steam converts controller to keyboard. The game handles both.</p>
     <p style="margin-bottom:0.5rem"><strong>Working controls:</strong></p>
