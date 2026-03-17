@@ -2131,7 +2131,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
 title: 'A Mysterious Chest',
-description: 'An unadorned wooden chest sits against the far wall, worn brass fittings gleaming in the torchlight. No lock is visible, but there are drops of blood around the chest.',
+description: 'An unadorned wooden chest sits against the far wall, worn brass fittings gleaming in the torchlight. No lock is visible, but there are strange holes in the wall and drops of blood spattered on the ground nearby.',
 buttons: `
 <button class="btn risky" onclick="openChest()">Open the chest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
