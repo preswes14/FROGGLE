@@ -293,8 +293,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .neutral-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 .neutral-container {
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   display: flex;
   flex-direction: row;
   background: #1a1a1a;
@@ -2836,7 +2835,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.75';
+const GAME_VERSION = 'S_1.76';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -12281,6 +12280,9 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// Neutral screens fill the viewport - no scroll/padding needed
+const gameArea = document.getElementById('gameView');
+if(gameArea) gameArea.classList.add('no-scroll');
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {

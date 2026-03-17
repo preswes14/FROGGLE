@@ -1725,6 +1725,9 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// Neutral screens fill the viewport - no scroll/padding needed
+const gameArea = document.getElementById('gameView');
+if(gameArea) gameArea.classList.add('no-scroll');
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
