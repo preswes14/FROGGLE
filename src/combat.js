@@ -1365,9 +1365,10 @@ const isBigHit = pow >= 5;
 showFloatingNumber(id, `-${pow}`, isBigHit ? 'critical' : 'damage', idx * 15);
 });
 
-// JUICE: Sound (screen shake only on defeat/last stand)
+// JUICE: Rapid-fire hit sounds (one per target, staggered)
 if(damagedEnemyIds.length > 0) {
-SoundFX.play(pow >= 5 ? 'crit' : 'hit');
+const sfx = pow >= 5 ? 'crit' : 'hit';
+damagedEnemyIds.forEach((_, i) => setTimeout(() => SoundFX.play(sfx), i * 80));
 // Show cumulative damage counter for this hero's turn
 showDamageCounter(S.turnDamage);
 // Show happy reaction when hero lands a hit

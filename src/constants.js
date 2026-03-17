@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.68';
+const GAME_VERSION = 'S_1.69';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -386,9 +386,10 @@ const hero = S.heroes.find(h => h.id === id);
 if(hero) setHeroReaction(id, 'pained', hero.ls ? 0 : 600);
 });
 
-// JUICE: Sinister sound for enemy attacks on heroes + screen shake
+// JUICE: Rapid-fire hit sounds (one per target, staggered) + screen shake
 if(damagedIds.length > 0) {
-SoundFX.play(dmg >= 5 ? 'enemyCrit' : 'enemyHit');
+const sfx = dmg >= 5 ? 'enemyCrit' : 'enemyHit';
+damagedIds.forEach((_, i) => setTimeout(() => SoundFX.play(sfx), i * 80));
 triggerScreenShake(dmg >= 5); // Heavy shake for big hits
 }
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
