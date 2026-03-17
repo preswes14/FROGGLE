@@ -2252,13 +2252,6 @@ toast(msg);
 }
 
 function endEnemyTurn() {
-// Decrement hero stun at end of enemy turn (heroes skip player turn, then decrement)
-S.heroes.forEach(h => {
-if(h.st > 0) {
-h.st--;
-if(h.st === 0) toast(`${h.n} is no longer stunned!`);
-}
-});
 // Decrement enemy stun at end of enemy turn (enemies skip their turn, then decrement)
 S.enemies.forEach(e => {
 if(e.st > 0) {
@@ -2366,11 +2359,13 @@ if(aliveHeroes.length > 0) {
 showTurnBanner('player-turn', `Round ${S.round} — Your Turn`);
 }
 
-// Auto-skip stunned heroes
+// Auto-skip stunned heroes, then decrement their stun
 S.heroes.forEach((h, idx) => {
 if(h.st > 0 && !S.acted.includes(idx)) {
 S.acted.push(idx);
 toast(`${h.n} is stunned and skips their turn!`);
+h.st--;
+if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 }
 });
 
