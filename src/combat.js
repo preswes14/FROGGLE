@@ -1341,12 +1341,13 @@ if(e.h <= 0 && (!e.g || e.g === 0)) return;
 const hpBefore = e.h;
 damagedEnemyIds.push(e.id);
 // Apply damage (without animation yet)
-applyDamageToTarget(e, pow, {isHero: false, skipRewards: false});
+const shBefore = e.sh || 0;
+const dmgResult = applyDamageToTarget(e, pow, {isHero: false, skipRewards: false});
 const hpAfter = e.h;
 debugLog('[ATTACK] Damage applied to', e.n, '- HP:', hpBefore, '->', hpAfter);
 targetDetails.push({name: e.n, before: hpBefore, after: hpAfter});
-// Track turn damage for damage counter
-S.turnDamage += pow;
+// Track actual damage dealt (shield + HP lost), not raw damage
+S.turnDamage += dmgResult.shieldLost + dmgResult.hpLost;
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && e.n === 'Wolf') {
 debugLog('[TUTORIAL] Wolf took damage! HP now:', e.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
