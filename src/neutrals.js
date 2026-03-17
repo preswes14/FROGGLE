@@ -2609,14 +2609,15 @@ stage2Effect = 'DESIRED';
 replaceStage1WithStage2('oracle');
 } else {
 // Nat 20 - IMMEDIATE effect! Grant reward now, no stage 2 needed
+// Awards 1 stack now (same as Oracle 2 would give), skipping Oracle 2
 if(stat === 'HP') {
-h.m += 10;
-h.h += 10;
+h.m += 5;
+h.h += 5;
 } else {
-h.p += 2;
+h.p += 1;
 }
-fortune = `"Incredible.. Could it be... Now? Before my very eyes?!" A strange light emanates from the orb, infusing the room. ${h.n} feels ${stat === 'POW' ? 'stronger' : 'healthier'} already! ${stat === 'POW' ? 'POW +2!' : 'Maximum HP +10!'}`;
-stage2Effect = 'IMMEDIATE DOUBLE';
+fortune = `"Incredible.. Could it be... Now? Before my very eyes?!" A strange light emanates from the orb, infusing the room. ${h.n} feels ${stat === 'POW' ? 'stronger' : 'healthier'} already! ${stat === 'POW' ? 'POW +1!' : 'Maximum HP +5!'}`;
+stage2Effect = 'IMMEDIATE';
 removeNeutralFromDeck('oracle'); // Remove oracle entirely - effect already granted
 }
 
