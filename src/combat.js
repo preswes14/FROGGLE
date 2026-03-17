@@ -3578,7 +3578,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} ${sig} | L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconOnly(sig)} ${sig} L${displayLevel} → <span style="color:#14b8a6">${sig} L${nextDisplayLevel}</span></strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -3655,9 +3655,9 @@ html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;bo
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
-const displayText = isNew ? `Add ${sig}` : `${sig} | L${level} → L${level + 1}`;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
-html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
+const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → <span style="color:#14b8a6">${sig} L${level + 1}</span>`;
+html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconOnly(sig)} ${displayText}</strong></div>`;
 });
 }
 }

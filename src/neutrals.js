@@ -2499,7 +2499,7 @@ let buttons = '';
 availableSigils.forEach(sig => {
 const currentLevel = getLevel(sig, heroIdx);
 const nextLevel = currentLevel + 1;
-buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIconWithTooltip(sig, nextLevel)} ${sig} - L${currentLevel} → L${nextLevel}</button>`;
+buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIconOnly(sig)} ${sig} L${currentLevel} → <span style="color:#14b8a6">${sig} L${nextLevel}</span></button>`;
 });
 
 v.innerHTML = buildNeutralHTML({
