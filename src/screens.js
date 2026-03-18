@@ -462,10 +462,10 @@ const maxLevel = 4; // All sigils max at perm 4 (Expand can reach effective L5 f
 
 // Show SOLD OUT card for maxed sigils instead of hiding
 if(permLevel >= maxLevel) {
-const colors = ['#666', '#c0c0c0', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colors = ['#94a3b8', '#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
 const maxColor = colors[Math.min(currentLevel, colors.length - 1)];
 cards += `
-<div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,255,0.3)">
+<div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,128,0.3)">
 <div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:1.2rem;margin-bottom:0.75rem;font-weight:bold">
 <span style="color:${maxColor}">L${currentLevel}</span>
@@ -484,9 +484,9 @@ const escalation = escalationTable[cappedCount];
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colors = ['#666', '#c0c0c0', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
-const colorClass = colors[currentLevel] || '#666';
-const nextColorClass = colors[nextLevel] || '#ff00ff';
+const colors = ['#94a3b8', '#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
+const colorClass = colors[currentLevel] || '#94a3b8';
+const nextColorClass = colors[nextLevel] || '#ff0080';
 // Show cost breakdown if there's escalation
 const costDisplay = escalation > 0
   ? `<span title="Base: ${baseCost}G + Escalation: ${escalation}G">${cost}G</span>`

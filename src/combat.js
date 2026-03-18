@@ -627,7 +627,7 @@ let html = '';
 if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
 html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
-html += '<h3 style="margin-bottom:1rem;color:#6b4423">D20: Attempt A Gambit</h3>';
+html += '<h3 style="margin-bottom:1rem;color:#1e3a5f">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">DC 10: CONFUSE</strong><br>
 <span style="font-size:0.95rem">Target deals its own POW to itself</span>
@@ -640,7 +640,7 @@ const lockedOptions = [
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
 lockedOptions.forEach(opt => {
-html += `<div style="margin-bottom:0.5rem;background:#e0e0e0;border:2px solid #999;border-radius:8px;padding:0.75rem;opacity:0.5;cursor:not-allowed">
+html += `<div style="margin-bottom:0.5rem;background:#d1d5db;border:2px solid #9ca3af;border-radius:8px;padding:0.75rem;opacity:0.5;cursor:not-allowed">
 <strong style="font-size:0.95rem">DC ${opt.dc}: ${opt.name}</strong><br>
 <span style="font-size:0.85rem">${opt.desc}</span>
 </div>`;
@@ -2640,7 +2640,7 @@ if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" al
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
-html += `<div style="font-size:0.65rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
+html += `<div style="font-size:0.7rem;opacity:0.8;margin-top:0.2rem">Heal to revive</div>`;
 html += `</div>`;
 // Render clickable D20 sigil for Last Stand hero
 const d20Level = getLevel('D20', i);
@@ -2657,7 +2657,7 @@ if(h.sh > 0) {
 const shieldPct = Math.min(100, (h.sh / h.m) * 100);
 const fullShield = h.sh >= h.m;
 html += `<div class="shield-bar-container" style="margin-top:4px"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
 }
 // Show ghost/acted if any
 const lsExtra = [];
@@ -2698,13 +2698,13 @@ const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+
 html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
 // Tapo's Chosen tooltip indicator
 if(S.chosenHeroIdx === i) {
-html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.6rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
+html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.7rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
 }
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
-html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fff;background:#ef4444;padding:2px 6px;border-radius:4px;margin-bottom:4px">STUNNED ${h.st}T</div>`;
 } else if(hasActed && !isTargetable) {
-html += `<div style="text-align:center;font-size:0.65rem;font-weight:bold;color:#fff;background:#6b7280;padding:2px 6px;border-radius:4px;margin-bottom:4px">DONE</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fff;background:#64748b;padding:2px 6px;border-radius:4px;margin-bottom:4px">DONE</div>`;
 }
 // Name at top
 html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
@@ -2723,7 +2723,7 @@ if(h.sh > 0) {
 const shieldPct = Math.min(100, (h.sh / h.m) * 100);
 const fullShield = h.sh >= h.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
 }
 // Extra info (ghost, stun, alpha, acted)
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
@@ -2909,7 +2909,7 @@ if(recruit.sh > 0) {
 const shieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
 const fullShield = recruit.sh >= recruit.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${recruit.sh}🛡</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${recruit.sh}🛡</div>`;
 }
 // Extra info (ghost, stun)
 if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
@@ -2995,7 +2995,7 @@ if(e.sh > 0) {
 const shieldPct = Math.min(100, (e.sh / e.m) * 100);
 const fullShield = e.sh >= e.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.65rem;color:#60a5fa;margin-top:1px">${e.sh}🛡</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${e.sh}🛡</div>`;
 }
 // Extra info (ghost, stun, target count)
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
