@@ -116,10 +116,10 @@ ${inGame ? `
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audiobutton>
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplaybutton>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Displaybutton>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controllerbutton>
+<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audio</button>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplay</button>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Display</button>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controller</button>
 </div>
 
 ${inGame ? `

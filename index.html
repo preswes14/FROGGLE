@@ -2835,7 +2835,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.85';
+const GAME_VERSION = 'S_1.86';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8797,7 +8797,7 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 dealDamageToEnemy(target, recruit.p);
-toast(`${recruit.n} (Recruit) ${sig} attacked ${target.n} for ${recruit.p}!`);
+toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 } else {
 scheduleEnemyAction(((idx) => () => {
 if(S.enemies.length === 0) return;
@@ -8806,7 +8806,7 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 dealDamageToEnemy(target, recruit.p);
-toast(`${recruit.n} (Recruit) Attack attacked ${target.n} for ${recruit.p}!`);
+toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 })(i), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
 }
 }
@@ -16665,10 +16665,10 @@ ${inGame ? `
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audiobutton>
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplaybutton>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Displaybutton>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controllerbutton>
+<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audio</button>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplay</button>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Display</button>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controller</button>
 </div>
 
 ${inGame ? `

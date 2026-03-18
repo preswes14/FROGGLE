@@ -1986,7 +1986,7 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 dealDamageToEnemy(target, recruit.p);
-toast(`${recruit.n} (Recruit) ${sig} attacked ${target.n} for ${recruit.p}!`);
+toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 } else {
 scheduleEnemyAction(((idx) => () => {
 if(S.enemies.length === 0) return;
@@ -1995,7 +1995,7 @@ if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 dealDamageToEnemy(target, recruit.p);
-toast(`${recruit.n} (Recruit) Attack attacked ${target.n} for ${recruit.p}!`);
+toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 })(i), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
 }
 }
