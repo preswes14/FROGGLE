@@ -864,8 +864,8 @@ backdrop.innerHTML = `
 <h2>Replace Recruit?</h2>
 <p>You already have <strong>${oldName}</strong>. Replace with <strong>${newName}</strong>?</p>
 <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem">
-<button onclick="confirmRecruitReplace(false)" style="background:#666;padding:0.5rem 1rem">Keep ${oldName}</button>
-<button onclick="confirmRecruitReplace(true)" style="background:#4a4;padding:0.5rem 1rem">Replace with ${newName}</button>
+<button onclick="confirmRecruitReplace(false)" style="background:#6b7280;padding:0.5rem 1rem;border:2px solid #9ca3af;border-radius:8px;color:white;font-weight:bold;cursor:pointer">Keep ${oldName}</button>
+<button onclick="confirmRecruitReplace(true)" style="background:#16a34a;padding:0.5rem 1rem;border:2px solid #22c55e;border-radius:8px;color:white;font-weight:bold;cursor:pointer">Replace with ${newName}</button>
 </div>
 </div>`;
 document.body.appendChild(backdrop);

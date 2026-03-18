@@ -1102,9 +1102,9 @@ const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 
 const getLevelColor = (level) => {
-if(level === 0) return '#666';
+if(level === 0) return '#94a3b8';
 if(level === 1) return '#c0c0c0';
-if(level === 2) return '#0d9488';
+if(level === 2) return '#06b6d4';
 if(level === 3) return '#9333ea';
 if(level === 4) return '#d97706';
 return '#ff0080'; // L5 gradient
