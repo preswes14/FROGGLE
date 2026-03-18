@@ -2835,7 +2835,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.81';
+const GAME_VERSION = 'S_1.83';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -7715,7 +7715,7 @@ checkCombatEnd();
 }, () => {
 // REPLACE with new
 S.recruits = S.recruits.filter(r => r.recruitedBy !== heroIdx);
-const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true, s: enemy.s.filter(s => s.perm || s.sig !== 'Attack')};
 S.recruits.push(recruit);
 toast(`${recruitName} replaces ${existingRecruit.n}!`, 1500);
 render();
@@ -7725,7 +7725,7 @@ checkCombatEnd();
 // No existing recruit, just add
 const MAX_RECRUITS = 10;
 if(S.recruits.length < MAX_RECRUITS) {
-const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true, s: enemy.s.filter(s => s.perm || s.sig !== 'Attack')};
 S.recruits.push(recruit);
 toast(`${recruitName} recruited by ${hero.n}!`, 1500);
 // QUEST TRACKING: Recruits held
@@ -8766,12 +8766,19 @@ render();
 }
 
 function executeRecruitBaseAttack(recruit) {
-// Target lowest HP enemy
+// Target enemies, prioritizing those in the recruit's lane
 if(S.enemies.length === 0) return;
-const targets = S.enemies.filter(e => e.h > 0);
-if(targets.length === 0) return;
-targets.sort((a, b) => a.h - b.h);
-const target = targets[0];
+const alive = S.enemies.filter(e => e.h > 0);
+if(alive.length === 0) return;
+// Prefer in-lane enemies (same lane as the hero who recruited), then lowest HP
+const laneIdx = recruit.recruitedBy;
+alive.sort((a, b) => {
+const aInLane = a.li === laneIdx ? 0 : 1;
+const bInLane = b.li === laneIdx ? 0 : 1;
+if(aInLane !== bInLane) return aInLane - bInLane;
+return a.h - b.h;
+});
+const target = alive[0];
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 }
