@@ -904,7 +904,7 @@ checkCombatEnd();
 }, () => {
 // REPLACE with new
 S.recruits = S.recruits.filter(r => r.recruitedBy !== heroIdx);
-const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true, s: enemy.s.filter(s => s.perm || s.sig !== 'Attack')};
 S.recruits.push(recruit);
 toast(`${recruitName} replaces ${existingRecruit.n}!`, 1500);
 render();
@@ -914,7 +914,7 @@ checkCombatEnd();
 // No existing recruit, just add
 const MAX_RECRUITS = 10;
 if(S.recruits.length < MAX_RECRUITS) {
-const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true};
+const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true, s: enemy.s.filter(s => s.perm || s.sig !== 'Attack')};
 S.recruits.push(recruit);
 toast(`${recruitName} recruited by ${hero.n}!`, 1500);
 // QUEST TRACKING: Recruits held
@@ -1341,12 +1341,13 @@ if(e.h <= 0 && (!e.g || e.g === 0)) return;
 const hpBefore = e.h;
 damagedEnemyIds.push(e.id);
 // Apply damage (without animation yet)
-applyDamageToTarget(e, pow, {isHero: false, skipRewards: false});
+const shBefore = e.sh || 0;
+const dmgResult = applyDamageToTarget(e, pow, {isHero: false, skipRewards: false});
 const hpAfter = e.h;
 debugLog('[ATTACK] Damage applied to', e.n, '- HP:', hpBefore, '->', hpAfter);
 targetDetails.push({name: e.n, before: hpBefore, after: hpAfter});
-// Track turn damage for damage counter
-S.turnDamage += pow;
+// Track actual damage dealt (shield + HP lost), not raw damage
+S.turnDamage += dmgResult.shieldLost + dmgResult.hpLost;
 // RIBBLETON TUTORIAL: Track Wolf damage/death
 if(tutorialState && S.floor === 0 && e.n === 'Wolf') {
 debugLog('[TUTORIAL] Wolf took damage! HP now:', e.h, 'wolfDamaged was:', tutorialState.wolfDamaged);
@@ -1365,9 +1366,10 @@ const isBigHit = pow >= 5;
 showFloatingNumber(id, `-${pow}`, isBigHit ? 'critical' : 'damage', idx * 15);
 });
 
-// JUICE: Sound (screen shake only on defeat/last stand)
+// JUICE: Rapid-fire hit sounds (one per target, staggered)
 if(damagedEnemyIds.length > 0) {
-SoundFX.play(pow >= 5 ? 'crit' : 'hit');
+const sfx = pow >= 5 ? 'crit' : 'hit';
+damagedEnemyIds.forEach((_, i) => setTimeout(() => SoundFX.play(sfx), i * 80));
 // Show cumulative damage counter for this hero's turn
 showDamageCounter(S.turnDamage);
 // Show happy reaction when hero lands a hit
@@ -1894,6 +1896,7 @@ if(drawnSigil) drawnSigil.newlyDrawn = false;
  * 4. Continue to Recruit phase
  */
 function executeAlphaPhase() {
+if(S.combatEnding) return;
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
 if(alphaEnemies.length === 0) { scheduleEnemyAction(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all Alpha enemies in reading order with minimal stagger
@@ -1907,7 +1910,15 @@ const bestAlly = allies[0];
 const alphaSigil = alphaEnemy.s.find(s => s.sig === 'Alpha');
 const attacks = alphaSigil.level;
 toast(`${alphaEnemy.n} grants ${bestAlly.n} ${attacks} attack${attacks>1?'s':''}!`);
-for(let i = 0; i < attacks; i++) executeEnemyBaseAttack(bestAlly);
+for(let i = 0; i < attacks; i++) {
+if(i === 0) {
+executeEnemyBaseAttack(bestAlly);
+} else {
+scheduleEnemyAction(((idx) => () => {
+if(bestAlly.h > 0) executeEnemyBaseAttack(bestAlly);
+})(i), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
+}
 alphaEnemy.alphaActed = true;
 }, delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
@@ -1917,6 +1928,7 @@ scheduleEnemyAction(() => executeRecruitPhase(), delay + T(600));
 }
 
 function executeRecruitPhase() {
+if(S.combatEnding) return;
 if(!S.recruits || S.recruits.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all recruits in reading order with minimal stagger
 let delay = 0;
@@ -1929,6 +1941,7 @@ scheduleEnemyAction(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
+if(S.combatEnding) return;
 if(recruit.st > 0) {
 toast(`${recruit.n} (Recruit) is stunned!`);
 // Clear drawn sigils even when stunned - they don't persist
@@ -1945,12 +1958,19 @@ render();
 }
 
 function executeRecruitBaseAttack(recruit) {
-// Target lowest HP enemy
+// Target enemies, prioritizing those in the recruit's lane
 if(S.enemies.length === 0) return;
-const targets = S.enemies.filter(e => e.h > 0);
-if(targets.length === 0) return;
-targets.sort((a, b) => a.h - b.h);
-const target = targets[0];
+const alive = S.enemies.filter(e => e.h > 0);
+if(alive.length === 0) return;
+// Prefer in-lane enemies (same lane as the hero who recruited), then lowest HP
+const laneIdx = recruit.recruitedBy;
+alive.sort((a, b) => {
+const aInLane = a.li === laneIdx ? 0 : 1;
+const bInLane = b.li === laneIdx ? 0 : 1;
+if(aInLane !== bInLane) return aInLane - bInLane;
+return a.h - b.h;
+});
+const target = alive[0];
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 }
@@ -1959,6 +1979,7 @@ function executeRecruitSigil(recruit, sigil) {
 const {sig, level} = sigil;
 if(sig === 'Attack') {
 for(let i = 0; i < level; i++) {
+if(i === 0) {
 if(S.enemies.length === 0) return;
 const targets = S.enemies.filter(e => e.h > 0);
 if(targets.length === 0) return;
@@ -1966,6 +1987,17 @@ targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) ${sig} attacked ${target.n} for ${recruit.p}!`);
+} else {
+scheduleEnemyAction(((idx) => () => {
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+dealDamageToEnemy(target, recruit.p);
+toast(`${recruit.n} (Recruit) Attack attacked ${target.n} for ${recruit.p}!`);
+})(i), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 } else if(sig === 'Shield') {
 const shieldAmt = 2 * recruit.p * level;
@@ -2019,6 +2051,7 @@ toast(`${recruit.n} (Recruit) gained ${level} Ghost charge!`);
 }
 
 function executeNormalEnemyPhase() {
+if(S.combatEnding) return;
 // Execute all enemies in reading order (top-down, left-right) with minimal stagger
 const allEnemies = [...S.enemies].sort((a, b) => a.li - b.li); // Sort by lane index
 
@@ -2043,6 +2076,7 @@ scheduleEnemyAction(() => endEnemyTurn(), delay + T(600));
 }
 
 function executeEnemyTurn(enemy) {
+if(S.combatEnding) return;
 // FLYDRA: Dying Flydras don't act
 if(enemy.isFlydra && enemy.flydraState === 'dying') { return; }
 if(enemy.st > 0) {
@@ -2164,7 +2198,14 @@ const targetCount = 1 + expandLevel;
 const attackSigil = enemy.s.find(s => s.sig === 'Attack');
 const attackLevel = attackSigil ? attackSigil.level : 1;
 for(let i = 0; i < attackLevel; i++) {
-executeEnemyAttackOnHeroes(enemy, targetCount, attackLevel > 1 ? `Attack ${i+1}/${attackLevel}` : 'Attack');
+const label = attackLevel > 1 ? `Attack ${i+1}/${attackLevel}` : 'Attack';
+if(i === 0) {
+executeEnemyAttackOnHeroes(enemy, targetCount, label);
+} else {
+scheduleEnemyAction(((idx, lbl) => () => {
+if(enemy.h > 0) executeEnemyAttackOnHeroes(enemy, targetCount, lbl);
+})(i, label), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 }
 
@@ -2175,7 +2216,14 @@ const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
 
 for(let i = 0; i < level; i++) {
-executeEnemyAttackOnHeroes(enemy, targetCount, `Attack ${i+1}/${level}`);
+const lbl = `Attack ${i+1}/${level}`;
+if(i === 0) {
+executeEnemyAttackOnHeroes(enemy, targetCount, lbl);
+} else {
+scheduleEnemyAction(((idx, label) => () => {
+if(enemy.h > 0) executeEnemyAttackOnHeroes(enemy, targetCount, label);
+})(i, lbl), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 } else if(sig === 'Shield') {
 const shieldAmt = 2 * enemy.p * level;
@@ -2223,7 +2271,14 @@ const targetCount = 1 + expandLevel;
 const multiplier = level + 1;
 toast(`${getEnemyDisplayName(enemy)} used Asterisk: ×${multiplier} attacks!`);
 for(let i = 0; i < multiplier; i++) {
-executeEnemyAttackOnHeroes(enemy, targetCount, `Asterisk Attack ${i+1}/${multiplier}`);
+const lbl = `Asterisk Attack ${i+1}/${multiplier}`;
+if(i === 0) {
+executeEnemyAttackOnHeroes(enemy, targetCount, lbl);
+} else {
+scheduleEnemyAction(((idx, label) => () => {
+if(enemy.h > 0) executeEnemyAttackOnHeroes(enemy, targetCount, label);
+})(i, lbl), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 }
 }
@@ -2250,13 +2305,7 @@ toast(msg);
 }
 
 function endEnemyTurn() {
-// Decrement hero stun at end of enemy turn (heroes skip player turn, then decrement)
-S.heroes.forEach(h => {
-if(h.st > 0) {
-h.st--;
-if(h.st === 0) toast(`${h.n} is no longer stunned!`);
-}
-});
+if(S.combatEnding) return;
 // Decrement enemy stun at end of enemy turn (enemies skip their turn, then decrement)
 S.enemies.forEach(e => {
 if(e.st > 0) {
@@ -2273,7 +2322,7 @@ if(r.st === 0) toast(`${r.n} (Recruit) is no longer stunned!`);
 }
 });
 }
-if(checkCombatEnd()) return;
+if(checkCombatEnd() || S.combatEnding) return;
 S.round++;
 
 // Enemies draw sigils at start of player turn (so player can strategize)
@@ -2364,11 +2413,13 @@ if(aliveHeroes.length > 0) {
 showTurnBanner('player-turn', `Round ${S.round} — Your Turn`);
 }
 
-// Auto-skip stunned heroes
+// Auto-skip stunned heroes, then decrement their stun
 S.heroes.forEach((h, idx) => {
 if(h.st > 0 && !S.acted.includes(idx)) {
 S.acted.push(idx);
 toast(`${h.n} is stunned and skips their turn!`);
+h.st--;
+if(h.st === 0) toast(`${h.n} is no longer stunned!`);
 }
 });
 
@@ -2558,7 +2609,7 @@ S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes
 S.heroes.forEach((h,i) => {
 // Add class for crowded lanes (many enemies)
 const laneEnemyCount = (enemyLanes[i] || []).length;
-const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
+const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 4 ? 'crowded-3' : '';
 html += `<div class="combat-lane ${crowdedClass}" role="region" aria-label="Lane ${i+1}: ${h.n}">`;
 html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 
@@ -3046,7 +3097,7 @@ const spendStyle = canAfford
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
-<p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
+<p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem"><span style="font-size:1.1rem;font-weight:bold;color:#22c55e">${S.xp} XP</span> <span style="color:#888">/ ${nextCost} XP to level up</span></p>
 <div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
 <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
 <button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
@@ -3517,7 +3568,7 @@ html += `
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
-<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 }
 }
@@ -3577,7 +3628,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconWithTooltip(sig, displayLevel)} ${sig} | L${displayLevel} → L${nextDisplayLevel}</strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconOnly(sig)} ${sig} L${displayLevel} → <span style="color:#14b8a6">${sig} L${nextDisplayLevel}</span></strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -3592,7 +3643,7 @@ html += `
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
-<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 }
 }
@@ -3632,7 +3683,7 @@ html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
-<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 } else if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
@@ -3654,9 +3705,9 @@ html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;bo
 available.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
-const displayText = isNew ? `Add ${sig}` : `${sig} | L${level} → L${level + 1}`;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
-html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconWithTooltip(sig, tooltipLevel)} ${displayText}</strong></div>`;
+const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → <span style="color:#14b8a6">${sig} L${level + 1}</span>`;
+html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconOnly(sig)} ${displayText}</strong></div>`;
 });
 }
 }

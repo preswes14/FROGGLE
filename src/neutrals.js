@@ -65,13 +65,19 @@ showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigi
 return rollDice(d20Level, 20);
 }
 
-function showD20Result(rolls, best) {
-// Visual dice display with highlighted best roll - improved contrast
+function showD20Result(rolls, best, dc) {
+// Visual dice display with highlighted best roll - color reflects success/fail if DC provided
+const success = dc == null || best >= dc;
 const diceHTML = rolls.map(r => {
 const isBest = r === best;
-return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
+const bg = isBest ? (success ? '#166534' : '#7f1d1d') : '#1e293b';
+const border = isBest ? (success ? '#15803d' : '#dc2626') : '#475569';
+const color = isBest ? (success ? '#bbf7d0' : '#fecaca') : '#f1f5f9';
+const glow = isBest ? (success ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : 'box-shadow:0 0 12px rgba(220,38,38,0.6);') : '';
+return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${bg};border:2px solid ${border};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${color};font-size:1.2rem;${glow}">${r}</span>`;
 }).join(' ');
-return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#4a4540">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
+const dcText = dc != null ? ` (need ${dc}+)` : '';
+return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#4a4540">Rolling ${rolls.length}d20${dcText}:</div>${diceHTML}</div>`;
 }
 
 function formatD20Compact(rolls, best) {
@@ -1725,6 +1731,9 @@ function neutral(f) {
 // Show header during neutral encounters
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
+// Neutral screens fill the viewport - no scroll/padding needed
+const gameArea = document.getElementById('gameView');
+if(gameArea) gameArea.classList.add('no-scroll');
 upd();
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
@@ -1954,7 +1963,7 @@ function showWishingWell1() {
 const v = document.getElementById('gameView');
 const buttons = `
 <button class="btn risky" onclick="climbWell()">Climb down and get coins</button>
-<button class="btn" onclick="tossWish()">Toss in a coin and make a wish</button>
+<button class="btn" onclick="tossWish()">Each hero tosses in a coin and makes a wish</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
 `;
 v.innerHTML = buildNeutralHTML({
@@ -2131,7 +2140,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
 title: 'A Mysterious Chest',
-description: 'An unadorned wooden chest sits against the far wall, worn brass fittings gleaming in the torchlight. No lock is visible, but there are drops of blood around the chest.',
+description: 'An unadorned wooden chest sits against the far wall, worn brass fittings gleaming in the torchlight. No lock is visible, but you spy strange holes in the wall and drops of blood spattered on the ground nearby.',
 buttons: `
 <button class="btn risky" onclick="openChest()">Open the chest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -2444,7 +2453,7 @@ const challengeIndex = S.wizardChallengeIndex;
 const dc = S.wizardChallenges[challengeIndex];
 
 const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const rollText = showD20Result(rolls, best, dc);
 
 const v = document.getElementById('gameView');
 
@@ -2499,7 +2508,7 @@ let buttons = '';
 availableSigils.forEach(sig => {
 const currentLevel = getLevel(sig, heroIdx);
 const nextLevel = currentLevel + 1;
-buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIconWithTooltip(sig, nextLevel)} ${sig} - L${currentLevel} → L${nextLevel}</button>`;
+buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig}')">${sigilIconOnly(sig)} ${sig} L${currentLevel} → <span style="color:#14b8a6">${sig} L${nextLevel}</span></button>`;
 });
 
 v.innerHTML = buildNeutralHTML({
@@ -2609,14 +2618,15 @@ stage2Effect = 'DESIRED';
 replaceStage1WithStage2('oracle');
 } else {
 // Nat 20 - IMMEDIATE effect! Grant reward now, no stage 2 needed
+// Awards 1 stack now (same as Oracle 2 would give), skipping Oracle 2
 if(stat === 'HP') {
-h.m += 10;
-h.h += 10;
+h.m += 5;
+h.h += 5;
 } else {
-h.p += 2;
+h.p += 1;
 }
-fortune = `"Incredible.. Could it be... Now? Before my very eyes?!" A strange light emanates from the orb, infusing the room. ${h.n} feels ${stat === 'POW' ? 'stronger' : 'healthier'} already! ${stat === 'POW' ? 'POW +2!' : 'Maximum HP +10!'}`;
-stage2Effect = 'IMMEDIATE DOUBLE';
+fortune = `"Incredible.. Could it be... Now? Before my very eyes?!" A strange light emanates from the orb, infusing the room. ${h.n} feels ${stat === 'POW' ? 'stronger' : 'healthier'} already! ${stat === 'POW' ? 'POW +1!' : 'Maximum HP +5!'}`;
+stage2Effect = 'IMMEDIATE';
 removeNeutralFromDeck('oracle'); // Remove oracle entirely - effect already granted
 }
 
@@ -3218,7 +3228,7 @@ attemptGhostEscape();
 
 function attemptGhostEscape() {
 const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const rollText = showD20Result(rolls, best, ghostEscapeDC);
 
 const v = document.getElementById('gameView');
 

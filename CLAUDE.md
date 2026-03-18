@@ -4,6 +4,7 @@
 FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all game logic runs in the browser with vanilla JavaScript. Think Balatro/Inscryption vibes, not mobile retention loops.
 
 ## Tech Stack
+- "Emoji" and "Unicode symbol" are used interchangeably in this project's docs — the UI uses Unicode symbols (✦, ≡, ⚙, etc.) but we refer to them casually as emojis
 - Single HTML file (~18,800 lines) with embedded JS/CSS
 - localStorage for saves (no backend/cloud sync)
 - Mobile-first, PWA installable
@@ -421,7 +422,7 @@ On victory, each surviving hero (HP > 0, not in Last Stand) earns a figurine IF 
 
 ### New Enemy Checklist
 1. Define in `E` object (constants.js): `{n, p, h, m, goldDrop, x, pool, maxLevel, gainRate}`
-2. Add emoji to `ENEMY_EMOJI`
+2. Add text fallback to `ENEMY_EMOJI` (short abbreviation, art assets handle display)
 3. Add to floor composition in `getEnemyComp()`
 4. Handle any special mechanics (like Flydra revival)
 

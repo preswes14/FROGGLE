@@ -108,7 +108,7 @@
 
 **Star:** PASSIVE: Multiply combat XP by (1 + Level x 0.5). Works automatically. Stacks across heroes. L4 = 3x XP!
 
-**Alpha:** Grant target hero an extra action this turn. Higher levels grant more actions.
+**Alpha:** Grant target ally an extra action this turn. Higher levels grant more actions.
 
 ---
 

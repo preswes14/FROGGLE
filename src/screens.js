@@ -327,6 +327,47 @@ const currentTotalUpgrades = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grap
 const nextTier = Math.floor(currentTotalUpgrades / 5);
 const nextRateIncrease = 5 * (nextTier + 1);
 
+// Phase 1: Show quote on blank dark screen
+if(deathQuote) {
+const v2 = document.getElementById('gameView');
+v2.innerHTML = `
+<style>
+@keyframes death-quote-shrink {
+  0% { font-size: 1.6rem; opacity: 1; transform: translateY(0); }
+  100% { font-size: 1rem; opacity: 0.85; transform: translateY(0); }
+}
+</style>
+<div id="deathQuoteIntro" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);display:flex;align-items:center;justify-content:center;z-index:999;padding:2rem">
+<p style="text-align:center;font-size:1.6rem;color:#a89cc8;font-style:italic;max-width:600px;line-height:1.6;opacity:0;transition:opacity 0.5s ease-in" id="deathQuoteText">"${deathQuote}"</p>
+</div>`;
+// Fade in the quote
+setTimeout(() => {
+  const qt = document.getElementById('deathQuoteText');
+  if(qt) qt.style.opacity = '1';
+}, 50);
+// After 2s, render the shop behind, then animate the transition
+setTimeout(() => {
+  renderDeathShop(deathQuote, nextRateIncrease, coreSigils, advancedSigils, passiveSigils, allSigils);
+  const intro = document.getElementById('deathQuoteIntro');
+  if(intro) {
+    intro.style.transition = 'opacity 1.5s ease-out';
+    intro.style.opacity = '0';
+    setTimeout(() => intro.remove(), 1500);
+  }
+  // Animate the inline quote: start large, shrink to normal
+  const inlineQuote = document.getElementById('deathQuoteInline');
+  if(inlineQuote) {
+    inlineQuote.style.animation = 'death-quote-shrink 1.5s ease-out forwards';
+  }
+}, T(2000));
+return;
+}
+renderDeathShop(deathQuote, nextRateIncrease, coreSigils, advancedSigils, passiveSigils, allSigils);
+}
+
+function renderDeathShop(deathQuote, nextRateIncrease, coreSigils, advancedSigils, passiveSigils, allSigils) {
+const v = document.getElementById('gameView');
+
 let html = `
 <style>
 @keyframes marquee-flash {
@@ -357,6 +398,10 @@ let html = `
   0%, 100% { box-shadow: 0 0 30px rgba(220,38,38,0.6), 0 0 60px rgba(220,38,38,0.3); }
   50% { box-shadow: 0 0 40px rgba(220,38,38,0.8), 0 0 80px rgba(220,38,38,0.4), 0 0 120px rgba(168,85,247,0.2); }
 }
+@keyframes death-quote-shrink {
+  0% { font-size: 1.6rem; opacity: 1; }
+  100% { font-size: 1rem; opacity: 0.85; }
+}
 </style>
 <div class="death-screen-container" style="position:relative;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);padding:2rem;border-radius:12px;max-width:900px;margin:0 auto;color:#e8e0f0;box-shadow:0 4px 24px rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.3)">
 <div class="death-stars" id="deathStars"></div>
@@ -365,7 +410,7 @@ let html = `
 <img src="assets/reaper.png" alt="Death" style="max-width:280px;height:auto;margin:0 auto;display:block;border-radius:12px;border:3px solid #dc2626;animation:reaper-glow 3s ease-in-out infinite">
 </div>
 <h1 style="text-align:center;margin-bottom:0.5rem;font-size:2.2rem;color:#dc2626;text-shadow:0 0 20px rgba(220,38,38,0.5)">DEATH'S SHOP</h1>
-${deathQuote ? `<p style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p>` : ''}
+${deathQuote ? `<p id="deathQuoteInline" style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p>` : ''}
 <div class="going-rate-marquee">
 <p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#fbbf24">${S.gold}</strong></p>
 <p style="text-align:center;font-size:1.5rem;margin:0.5rem 0 0 0;font-weight:bold;color:#dc2626">Going Rate: ${S.goingRate}G</p>
