@@ -116,10 +116,10 @@ ${inGame ? `
 ` : ''}
 
 <div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.5rem">
-<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audiobutton>
-<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplaybutton>
-<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Displaybutton>
-<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controllerbutton>
+<button class="btn" onclick="showAudioSettings()" style="background:#22c55e">♫ Audio</button>
+<button class="btn" onclick="showGameplaySettings()" style="background:#6366f1">⚙ Gameplay</button>
+<button class="btn" onclick="showDisplaySettings()" style="background:#8b5cf6">◈ Display</button>
+<button class="btn" onclick="showControllerSettings()" style="background:#0ea5e9">◉ Controller</button>
 </div>
 
 ${inGame ? `
@@ -1103,7 +1103,7 @@ const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
-if(level === 1) return '#000';
+if(level === 1) return '#c0c0c0';
 if(level === 2) return '#0d9488';
 if(level === 3) return '#9333ea';
 if(level === 4) return '#d97706';
@@ -1128,15 +1128,15 @@ const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
 const levelColor = getLevelColor(displayLevel);
 
 html += `
-<div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
+<div style="background:#d4c9a8;border:2px solid #8b7355;border-radius:8px;padding:1rem">
 <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
 <span class="sigil ${cl}" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
 <div>
-<div style="font-weight:bold;font-size:1.1rem">${sig}</div>
-<div style="font-size:0.85rem;opacity:0.8">Level: <span style="color:${levelColor};font-weight:bold">L${displayLevel}</span></div>
+<div style="font-weight:bold;font-size:1.1rem;color:#2a1f0e">${sig}</div>
+<div style="font-size:0.85rem">Level: <span style="color:${levelColor};font-weight:bold">L${displayLevel}</span></div>
 </div>
 </div>
-<div style="font-size:0.9rem;line-height:1.4;color:#4b5563">${desc}</div>
+<div style="font-size:0.9rem;line-height:1.4;color:#4a3728">${desc}</div>
 </div>
 `;
 });
@@ -1157,15 +1157,15 @@ const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
 const levelColor = getLevelColor(displayLevel);
 
 html += `
-<div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
+<div style="background:#d4c9a8;border:2px solid #8b7355;border-radius:8px;padding:1rem">
 <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
 <span class="sigil ${cl}" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
 <div>
-<div style="font-weight:bold;font-size:1.1rem">${sig}</div>
-<div style="font-size:0.85rem;opacity:0.8">Level: <span style="color:${levelColor};font-weight:bold">L${displayLevel}</span></div>
+<div style="font-weight:bold;font-size:1.1rem;color:#2a1f0e">${sig}</div>
+<div style="font-size:0.85rem">Level: <span style="color:${levelColor};font-weight:bold">L${displayLevel}</span></div>
 </div>
 </div>
-<div style="font-size:0.9rem;line-height:1.4;color:#4b5563">${desc}</div>
+<div style="font-size:0.9rem;line-height:1.4;color:#4a3728">${desc}</div>
 </div>
 `;
 });
@@ -1185,15 +1185,15 @@ const desc = SIGIL_DESCRIPTIONS[sig] || 'No description available';
 const levelColor = getLevelColor(level);
 
 html += `
-<div style="background:rgba(0,0,0,0.05);border:2px solid #000;border-radius:8px;padding:1rem">
+<div style="background:#d4c9a8;border:2px solid #8b7355;border-radius:8px;padding:1rem">
 <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem">
 <span class="sigil ${cl} passive" style="font-size:1.2rem;padding:8px 12px">${sigilIconOnly(sig)}</span>
 <div>
-<div style="font-weight:bold;font-size:1.1rem">${sig}</div>
-<div style="font-size:0.85rem;opacity:0.8">Permanent Level: <span style="color:${levelColor};font-weight:bold">L${level}</span></div>
+<div style="font-weight:bold;font-size:1.1rem;color:#2a1f0e">${sig}</div>
+<div style="font-size:0.85rem">Permanent Level: <span style="color:${levelColor};font-weight:bold">L${level}</span></div>
 </div>
 </div>
-<div style="font-size:0.9rem;line-height:1.4;color:#4b5563">${desc}</div>
+<div style="font-size:0.9rem;line-height:1.4;color:#4a3728">${desc}</div>
 </div>
 `;
 });

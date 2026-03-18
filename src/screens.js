@@ -462,7 +462,7 @@ const maxLevel = 4; // All sigils max at perm 4 (Expand can reach effective L5 f
 
 // Show SOLD OUT card for maxed sigils instead of hiding
 if(permLevel >= maxLevel) {
-const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colors = ['#666', '#c0c0c0', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const maxColor = colors[Math.min(currentLevel, colors.length - 1)];
 cards += `
 <div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,255,0.3)">
@@ -484,7 +484,7 @@ const escalation = escalationTable[cappedCount];
 const cost = baseCost + escalation;
 
 const canAfford = S.gold >= cost;
-const colors = ['#666', '#000', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
+const colors = ['#666', '#c0c0c0', '#0d9488', '#9333ea', '#d97706', '#ff00ff'];
 const colorClass = colors[currentLevel] || '#666';
 const nextColorClass = colors[nextLevel] || '#ff00ff';
 // Show cost breakdown if there's escalation
