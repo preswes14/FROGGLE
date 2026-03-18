@@ -2847,20 +2847,20 @@ if(isFirstActionActive || isMidAsteriskAction) {
 // Star: XP multiplier, no roll-down needed
 // (Star doesn't pulse during combat, it's always passive)
 
+// Asterisk: show as fully spent after first action (all pips hollow)
+if(s === 'Asterisk' && h.firstActionUsed && !isInEffect) {
+visualLvl = 0;
+}
+
 const cl = visualLvl===0?'l0':visualLvl===1?'l1':visualLvl===2?'l2':visualLvl===3?'l3':visualLvl===4?'l4':'l5';
 // Allow clicking sigils if: hero hasn't acted, not stunned, and either (no pending action OR pending but no instances committed yet)
 const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances);
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Alpha'].includes(s);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
-// Asterisk expended indicator: red X overlay when first action used
-const asteriskExpended = (s === 'Asterisk' && h.firstActionUsed);
-const asteriskOverlay = asteriskExpended ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1rem;color:#dc2626;font-weight:bold;text-shadow:0 0 3px #000;pointer-events:none">✕</span>' : '';
-const sigilStyle = asteriskExpended ? 'position:relative;opacity:0.5' : '';
 return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
-${sigilStyle ? `style="${sigilStyle}"` : ''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
-ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl)}${asteriskOverlay}</span>`;
+ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl, lvl)}</span>`;
 };
 
 html += `<div class="${rowClass}">`;

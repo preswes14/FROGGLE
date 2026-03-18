@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.86';
+const GAME_VERSION = 'S_1.88';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -193,15 +193,46 @@ if (!imgPath) return `<span>${name}</span>`;
 return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:inline-block;margin-right:0.25em;filter:brightness(0);" alt="${name}">${name}`;
 }
 
-// Helper function to display just the icon
-function sigilIconOnly(name, level = null) {
+// Pip system: geometric dot arrangements replace numeric level indicators
+// Each pip position is colored by its level tier (L1=silver, L2=cyan, L3=purple, L4=gold, L5=magenta)
+// Filled pips = current charges, hollow outlines = spent charges
+const PIP_COLORS = ['#d1d5db', '#22d3ee', '#a855f7', '#f59e0b', '#ff0080'];
+const PIP_POS = [
+  [],                                           // 0
+  [[0, 0]],                                     // 1: single dot
+  [[0, 0], [6, 0]],                             // 2: horizontal pair
+  [[3, 0], [0, 6], [6, 6]],                     // 3: triangle (1 top, 2 bottom)
+  [[0, 0], [6, 0], [0, 6], [6, 6]],             // 4: square (2x2)
+  [[5, 0], [10, 3], [8, 10], [1, 10], [0, 3]]   // 5: pentagram
+];
+const PIP_DIMS = [[0,0],[4,4],[10,4],[10,10],[10,10],[14,14]];
+
+function renderPips(filled, total) {
+  if (total <= 0) return '';
+  const n = Math.min(total, 5);
+  const f = Math.max(0, Math.min(filled, n));
+  const pos = PIP_POS[n];
+  const [w, h] = PIP_DIMS[n];
+  let html = `<span class="pips" style="width:${w}px;height:${h}px">`;
+  for (let i = 0; i < n; i++) {
+    const c = PIP_COLORS[i];
+    const on = i < f;
+    const [x, y] = pos[i];
+    html += `<span class="pip${on ? '' : ' pip-h'}" style="left:${x}px;top:${y}px;${on ? `background:${c};border-color:${c}` : `border-color:${c}`}"></span>`;
+  }
+  html += '</span>';
+  return html;
+}
+
+// Helper function to display just the icon (with optional pip level indicators)
+// level = current/visual level (filled pips), maxLevel = total capacity (total pips)
+function sigilIconOnly(name, level = null, maxLevel = null) {
 const imgPath = SIGIL_IMAGES[name];
 if (!imgPath) return `<span>${name}</span>`;
-// CSS handles coloring via .sigil.l0 img, .sigil.l1 img, etc.
 const icon = `<img src="${imgPath}" style="height:1.4em;vertical-align:middle;display:inline-block;" alt="${name}">`;
-// Add level number as superscript for all levels >= 1
-if (level !== null && level >= 1) {
-return `${icon}<sup>${level}</sup>`;
+if (level !== null) {
+const max = maxLevel !== null ? maxLevel : level;
+if (max > 0) return `${icon}${renderPips(level, max)}`;
 }
 return icon;
 }
