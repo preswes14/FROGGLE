@@ -1909,7 +1909,15 @@ const bestAlly = allies[0];
 const alphaSigil = alphaEnemy.s.find(s => s.sig === 'Alpha');
 const attacks = alphaSigil.level;
 toast(`${alphaEnemy.n} grants ${bestAlly.n} ${attacks} attack${attacks>1?'s':''}!`);
-for(let i = 0; i < attacks; i++) executeEnemyBaseAttack(bestAlly);
+for(let i = 0; i < attacks; i++) {
+if(i === 0) {
+executeEnemyBaseAttack(bestAlly);
+} else {
+scheduleEnemyAction(((idx) => () => {
+if(bestAlly.h > 0) executeEnemyBaseAttack(bestAlly);
+})(i), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
+}
 alphaEnemy.alphaActed = true;
 }, delay);
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
@@ -1961,6 +1969,7 @@ function executeRecruitSigil(recruit, sigil) {
 const {sig, level} = sigil;
 if(sig === 'Attack') {
 for(let i = 0; i < level; i++) {
+if(i === 0) {
 if(S.enemies.length === 0) return;
 const targets = S.enemies.filter(e => e.h > 0);
 if(targets.length === 0) return;
@@ -1968,6 +1977,17 @@ targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) ${sig} attacked ${target.n} for ${recruit.p}!`);
+} else {
+scheduleEnemyAction(((idx) => () => {
+if(S.enemies.length === 0) return;
+const targets = S.enemies.filter(e => e.h > 0);
+if(targets.length === 0) return;
+targets.sort((a, b) => a.h - b.h);
+const target = targets[0];
+dealDamageToEnemy(target, recruit.p);
+toast(`${recruit.n} (Recruit) Attack attacked ${target.n} for ${recruit.p}!`);
+})(i), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 } else if(sig === 'Shield') {
 const shieldAmt = 2 * recruit.p * level;
@@ -2166,7 +2186,14 @@ const targetCount = 1 + expandLevel;
 const attackSigil = enemy.s.find(s => s.sig === 'Attack');
 const attackLevel = attackSigil ? attackSigil.level : 1;
 for(let i = 0; i < attackLevel; i++) {
-executeEnemyAttackOnHeroes(enemy, targetCount, attackLevel > 1 ? `Attack ${i+1}/${attackLevel}` : 'Attack');
+const label = attackLevel > 1 ? `Attack ${i+1}/${attackLevel}` : 'Attack';
+if(i === 0) {
+executeEnemyAttackOnHeroes(enemy, targetCount, label);
+} else {
+scheduleEnemyAction(((idx, lbl) => () => {
+if(enemy.h > 0) executeEnemyAttackOnHeroes(enemy, targetCount, lbl);
+})(i, label), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 }
 
@@ -2177,7 +2204,14 @@ const expandLevel = getEnemyExpandLevel(enemy);
 const targetCount = 1 + expandLevel;
 
 for(let i = 0; i < level; i++) {
-executeEnemyAttackOnHeroes(enemy, targetCount, `Attack ${i+1}/${level}`);
+const lbl = `Attack ${i+1}/${level}`;
+if(i === 0) {
+executeEnemyAttackOnHeroes(enemy, targetCount, lbl);
+} else {
+scheduleEnemyAction(((idx, label) => () => {
+if(enemy.h > 0) executeEnemyAttackOnHeroes(enemy, targetCount, label);
+})(i, lbl), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 } else if(sig === 'Shield') {
 const shieldAmt = 2 * enemy.p * level;
@@ -2225,7 +2259,14 @@ const targetCount = 1 + expandLevel;
 const multiplier = level + 1;
 toast(`${getEnemyDisplayName(enemy)} used Asterisk: ×${multiplier} attacks!`);
 for(let i = 0; i < multiplier; i++) {
-executeEnemyAttackOnHeroes(enemy, targetCount, `Asterisk Attack ${i+1}/${multiplier}`);
+const lbl = `Asterisk Attack ${i+1}/${multiplier}`;
+if(i === 0) {
+executeEnemyAttackOnHeroes(enemy, targetCount, lbl);
+} else {
+scheduleEnemyAction(((idx, label) => () => {
+if(enemy.h > 0) executeEnemyAttackOnHeroes(enemy, targetCount, label);
+})(i, lbl), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
+}
 }
 }
 }
