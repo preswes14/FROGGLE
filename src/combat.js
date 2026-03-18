@@ -2596,7 +2596,7 @@ S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes
 S.heroes.forEach((h,i) => {
 // Add class for crowded lanes (many enemies)
 const laneEnemyCount = (enemyLanes[i] || []).length;
-const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
+const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 4 ? 'crowded-3' : '';
 html += `<div class="combat-lane ${crowdedClass}" role="region" aria-label="Lane ${i+1}: ${h.n}">`;
 html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 

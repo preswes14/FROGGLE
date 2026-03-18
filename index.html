@@ -2835,7 +2835,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.79';
+const GAME_VERSION = 'S_1.81';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9407,7 +9407,7 @@ S.enemies.forEach(e => { if(!enemyLanes[e.li]) enemyLanes[e.li] = []; enemyLanes
 S.heroes.forEach((h,i) => {
 // Add class for crowded lanes (many enemies)
 const laneEnemyCount = (enemyLanes[i] || []).length;
-const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 3 ? 'crowded-3' : '';
+const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 4 ? 'crowded-3' : '';
 html += `<div class="combat-lane ${crowdedClass}" role="region" aria-label="Lane ${i+1}: ${h.n}">`;
 html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
 
@@ -12548,7 +12548,7 @@ function showWishingWell1() {
 const v = document.getElementById('gameView');
 const buttons = `
 <button class="btn risky" onclick="climbWell()">Climb down and get coins</button>
-<button class="btn" onclick="tossWish()">Toss in a coin and make a wish</button>
+<button class="btn" onclick="tossWish()">Each hero tosses in a coin and makes a wish</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
 `;
 v.innerHTML = buildNeutralHTML({

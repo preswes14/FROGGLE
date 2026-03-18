@@ -1957,7 +1957,7 @@ function showWishingWell1() {
 const v = document.getElementById('gameView');
 const buttons = `
 <button class="btn risky" onclick="climbWell()">Climb down and get coins</button>
-<button class="btn" onclick="tossWish()">Toss in a coin and make a wish</button>
+<button class="btn" onclick="tossWish()">Each hero tosses in a coin and makes a wish</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
 `;
 v.innerHTML = buildNeutralHTML({
