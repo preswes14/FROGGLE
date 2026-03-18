@@ -3084,7 +3084,7 @@ const spendStyle = canAfford
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
-<p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem">Current XP: ${S.xp} | Next Level: ${nextCost}XP</p>
+<p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem"><span style="font-size:1.1rem;font-weight:bold;color:#22c55e">${S.xp} XP</span> <span style="color:#888">/ ${nextCost} XP to level up</span></p>
 <div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
 <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
 <button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
@@ -3555,7 +3555,7 @@ html += `
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
-<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 }
 }
@@ -3630,7 +3630,7 @@ html += `
 <div style="background:#1a1a2e;padding:1.5rem;border-radius:8px;border:2px solid #f97316;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#f97316;font-weight:bold;margin:0 0 0.25rem 0">Ghost • Alpha • Grapple</p>
-<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 }
 }
@@ -3670,7 +3670,7 @@ html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
 <p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
-<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">Continue your Adventure to Unlock</p>
+<p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 } else if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
