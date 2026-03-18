@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.89';
+const GAME_VERSION = 'S_1.90';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -194,9 +194,8 @@ return `<img src="${imgPath}" style="height:1em;vertical-align:middle;display:in
 }
 
 // Pip system: geometric dot arrangements replace numeric level indicators
-// Each pip = level tier color (L1=dark, L2=teal, L3=purple, L4=orange, L5=prismatic)
-// Brightened slightly from icon colors for visibility at 4px pip size on dark backgrounds
-const PIP_COLORS = ['#9ca3af', '#2dd4bf', '#a855f7', '#f59e0b', '#ff0080'];
+// Each pip = level tier color (L1=silver, L2=teal, L3=purple, L4=orange, L5=prismatic)
+const PIP_COLORS = ['#c0c0c0', '#2dd4bf', '#a855f7', '#f59e0b', '#ff0080'];
 const PIP_POS = [
   [],                                           // 0
   [[0, 0]],                                     // 1: single dot
