@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.90';
+const GAME_VERSION = 'S_1.91';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -889,7 +889,7 @@ setTimeout(wrappedFn, delay);
 function getLevelDescription(sigilName, level) {
 const levelColors = {
 0: '#666',
-1: '#000',
+1: '#c0c0c0',
 2: '#06b6d4',
 3: '#9333ea',
 4: '#d97706',

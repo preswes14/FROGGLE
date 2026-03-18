@@ -1103,7 +1103,7 @@ const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 
 const getLevelColor = (level) => {
 if(level === 0) return '#666';
-if(level === 1) return '#000';
+if(level === 1) return '#c0c0c0';
 if(level === 2) return '#0d9488';
 if(level === 3) return '#9333ea';
 if(level === 4) return '#d97706';
