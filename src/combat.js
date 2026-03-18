@@ -1896,6 +1896,7 @@ if(drawnSigil) drawnSigil.newlyDrawn = false;
  * 4. Continue to Recruit phase
  */
 function executeAlphaPhase() {
+if(S.combatEnding) return;
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
 if(alphaEnemies.length === 0) { scheduleEnemyAction(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all Alpha enemies in reading order with minimal stagger
@@ -1927,6 +1928,7 @@ scheduleEnemyAction(() => executeRecruitPhase(), delay + T(600));
 }
 
 function executeRecruitPhase() {
+if(S.combatEnding) return;
 if(!S.recruits || S.recruits.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all recruits in reading order with minimal stagger
 let delay = 0;
@@ -1939,6 +1941,7 @@ scheduleEnemyAction(() => executeNormalEnemyPhase(), delay + T(600));
 }
 
 function executeRecruitTurn(recruit) {
+if(S.combatEnding) return;
 if(recruit.st > 0) {
 toast(`${recruit.n} (Recruit) is stunned!`);
 // Clear drawn sigils even when stunned - they don't persist
@@ -2048,6 +2051,7 @@ toast(`${recruit.n} (Recruit) gained ${level} Ghost charge!`);
 }
 
 function executeNormalEnemyPhase() {
+if(S.combatEnding) return;
 // Execute all enemies in reading order (top-down, left-right) with minimal stagger
 const allEnemies = [...S.enemies].sort((a, b) => a.li - b.li); // Sort by lane index
 
@@ -2072,6 +2076,7 @@ scheduleEnemyAction(() => endEnemyTurn(), delay + T(600));
 }
 
 function executeEnemyTurn(enemy) {
+if(S.combatEnding) return;
 // FLYDRA: Dying Flydras don't act
 if(enemy.isFlydra && enemy.flydraState === 'dying') { return; }
 if(enemy.st > 0) {
@@ -2300,6 +2305,7 @@ toast(msg);
 }
 
 function endEnemyTurn() {
+if(S.combatEnding) return;
 // Decrement enemy stun at end of enemy turn (enemies skip their turn, then decrement)
 S.enemies.forEach(e => {
 if(e.st > 0) {
@@ -2316,7 +2322,7 @@ if(r.st === 0) toast(`${r.n} (Recruit) is no longer stunned!`);
 }
 });
 }
-if(checkCombatEnd()) return;
+if(checkCombatEnd() || S.combatEnding) return;
 S.round++;
 
 // Enemies draw sigils at start of player turn (so player can strategize)
