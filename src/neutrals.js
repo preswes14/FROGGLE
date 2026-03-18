@@ -65,13 +65,19 @@ showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigi
 return rollDice(d20Level, 20);
 }
 
-function showD20Result(rolls, best) {
-// Visual dice display with highlighted best roll - improved contrast
+function showD20Result(rolls, best, dc) {
+// Visual dice display with highlighted best roll - color reflects success/fail if DC provided
+const success = dc == null || best >= dc;
 const diceHTML = rolls.map(r => {
 const isBest = r === best;
-return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1.2rem;${isBest ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
+const bg = isBest ? (success ? '#166534' : '#7f1d1d') : '#1e293b';
+const border = isBest ? (success ? '#15803d' : '#dc2626') : '#475569';
+const color = isBest ? (success ? '#bbf7d0' : '#fecaca') : '#f1f5f9';
+const glow = isBest ? (success ? 'box-shadow:0 0 12px rgba(22,163,74,0.6);' : 'box-shadow:0 0 12px rgba(220,38,38,0.6);') : '';
+return `<span style="display:inline-block;width:2.5rem;height:2.5rem;line-height:2.5rem;text-align:center;background:${bg};border:2px solid ${border};border-radius:0.5rem;margin:0.2rem;font-weight:bold;color:${color};font-size:1.2rem;${glow}">${r}</span>`;
 }).join(' ');
-return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#4a4540">Rolling ${rolls.length}d20:</div>${diceHTML}</div>`;
+const dcText = dc != null ? ` (need ${dc}+)` : '';
+return `<div style="margin:0.5rem 0"><div style="font-size:0.9rem;margin-bottom:0.5rem;color:#4a4540">Rolling ${rolls.length}d20${dcText}:</div>${diceHTML}</div>`;
 }
 
 function formatD20Compact(rolls, best) {
@@ -2447,7 +2453,7 @@ const challengeIndex = S.wizardChallengeIndex;
 const dc = S.wizardChallenges[challengeIndex];
 
 const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const rollText = showD20Result(rolls, best, dc);
 
 const v = document.getElementById('gameView');
 
@@ -3222,7 +3228,7 @@ attemptGhostEscape();
 
 function attemptGhostEscape() {
 const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const rollText = showD20Result(rolls, best, ghostEscapeDC);
 
 const v = document.getElementById('gameView');
 
