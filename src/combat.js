@@ -1714,10 +1714,10 @@ S.heroes.forEach(h => { if(h.ls) h.lst++; });
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
 // If tutorial is showing a popup, delay enemy turn until popup is dismissed
 const tutorialBlocking = TutorialManager.onEnemyTurnStart(() => {
-setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
 });
 if(!tutorialBlocking) {
-setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
 }
 }
 }
@@ -1800,6 +1800,35 @@ const aliveFlydras = flydras.filter(f => f.flydraState === 'alive');
 return aliveFlydras.length === 0;
 }
 
+function startRecruitPhase() {
+// Recruit phase runs between player turn and enemy turn
+const aliveRecruits = S.recruits ? S.recruits.filter(r => r.h > 0) : [];
+if(aliveRecruits.length === 0) {
+// No recruits - go straight to enemy turn
+enemyTurn();
+return;
+}
+
+// Show recruit phase banner
+showTurnBanner('recruit-turn', 'Recruit Phase');
+
+// Increment recruit turnsSinceGain (moved from enemyTurn)
+aliveRecruits.forEach(r => {
+if(!r.turnsSinceGain) r.turnsSinceGain = 0;
+r.turnsSinceGain++;
+});
+
+// Execute recruit attacks with stagger
+let delay = T(600);
+aliveRecruits.forEach((recruit, idx) => {
+scheduleEnemyAction(() => executeRecruitTurn(recruit), delay);
+delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY);
+});
+
+// After recruits finish, start enemy turn
+scheduleEnemyAction(() => enemyTurn(), delay + T(600));
+}
+
 function enemyTurn() {
 // FLYDRA: Check for revival at start of enemy turn
 checkFlydraRevival();
@@ -1820,13 +1849,6 @@ S.enemies.forEach(e => {
 e.turnsSinceGain++;
 e.alphaActed = false;
 });
-// Process recruits - increment turnsSinceGain (stun decrement moved to endEnemyTurn)
-if(S.recruits) {
-S.recruits.forEach(r => {
-if(!r.turnsSinceGain) r.turnsSinceGain = 0;
-r.turnsSinceGain++;
-});
-}
 scheduleEnemyAction(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
 }
 
@@ -1893,12 +1915,12 @@ if(drawnSigil) drawnSigil.newlyDrawn = false;
  * 1. Find all non-stunned enemies with Alpha sigil
  * 2. For each Alpha enemy: Grant attacks to best ally
  * 3. Mark Alpha enemy as "acted" (skips normal phase)
- * 4. Continue to Recruit phase
+ * 4. Continue to Normal phase
  */
 function executeAlphaPhase() {
 if(S.combatEnding) return;
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
-if(alphaEnemies.length === 0) { scheduleEnemyAction(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
+if(alphaEnemies.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all Alpha enemies in reading order with minimal stagger
 let delay = 0;
 alphaEnemies.forEach((alphaEnemy, idx) => {
@@ -1924,21 +1946,9 @@ alphaEnemy.alphaActed = true;
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-scheduleEnemyAction(() => executeRecruitPhase(), delay + T(600));
-}
-
-function executeRecruitPhase() {
-if(S.combatEnding) return;
-if(!S.recruits || S.recruits.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
-// Execute all recruits in reading order with minimal stagger
-let delay = 0;
-S.recruits.forEach((recruit, idx) => {
-scheduleEnemyAction(() => executeRecruitTurn(recruit), delay);
-delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
-});
-// Wait for longest animation to complete
 scheduleEnemyAction(() => executeNormalEnemyPhase(), delay + T(600));
 }
+
 
 function executeRecruitTurn(recruit) {
 if(S.combatEnding) return;
