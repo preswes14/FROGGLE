@@ -2992,7 +2992,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.96';
+const GAME_VERSION = 'S_1.97';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -14781,7 +14781,7 @@ ${history.length === 0 ? `
 ` : `
 <div class="pond-water" style="border-radius:20px;border:3px solid rgba(59,130,246,0.3)">
 <div class="lily-pad-container">
-${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
+${history.map((run, idx) => renderLilyPad(run, idx)).reverse().join('')}
 </div>
 </div>
 
