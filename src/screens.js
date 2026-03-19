@@ -148,7 +148,7 @@ ${history.length === 0 ? `
 ` : `
 <div class="pond-water" style="border-radius:20px;border:3px solid rgba(59,130,246,0.3)">
 <div class="lily-pad-container">
-${history.map((run, idx) => renderLilyPad(run, idx)).join('')}
+${history.map((run, idx) => renderLilyPad(run, idx)).reverse().join('')}
 </div>
 </div>
 

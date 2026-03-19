@@ -889,6 +889,11 @@ toast(`Stole ${gold} Gold from ${getEnemyDisplayName(enemy)}!`);
 const heroIdx = S.d20HeroIdx;
 const hero = S.heroes[heroIdx];
 const recruitName = getEnemyDisplayName(enemy);
+// Flydra cannot be recruited
+if(enemy.isFlydra) {
+toast(`The Flydra cannot be reasoned with!`, 2000, 'warning');
+return;
+}
 // Remove enemy from enemies array immediately
 S.enemies = S.enemies.filter(e => e.id !== enemyId);
 if(!S.recruits) S.recruits = [];
@@ -1714,10 +1719,10 @@ S.heroes.forEach(h => { if(h.ls) h.lst++; });
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
 // If tutorial is showing a popup, delay enemy turn until popup is dismissed
 const tutorialBlocking = TutorialManager.onEnemyTurnStart(() => {
-setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
 });
 if(!tutorialBlocking) {
-setTimeout(() => { S.locked = true; enemyTurn(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
+setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
 }
 }
 }
@@ -1800,6 +1805,35 @@ const aliveFlydras = flydras.filter(f => f.flydraState === 'alive');
 return aliveFlydras.length === 0;
 }
 
+function startRecruitPhase() {
+// Recruit phase runs between player turn and enemy turn
+const aliveRecruits = S.recruits ? S.recruits.filter(r => r.h > 0) : [];
+if(aliveRecruits.length === 0) {
+// No recruits - go straight to enemy turn
+enemyTurn();
+return;
+}
+
+// Show recruit phase banner
+showTurnBanner('recruit-turn', 'Recruit Phase');
+
+// Increment recruit turnsSinceGain (moved from enemyTurn)
+aliveRecruits.forEach(r => {
+if(!r.turnsSinceGain) r.turnsSinceGain = 0;
+r.turnsSinceGain++;
+});
+
+// Execute recruit attacks with stagger
+let delay = T(600);
+aliveRecruits.forEach((recruit, idx) => {
+scheduleEnemyAction(() => executeRecruitTurn(recruit), delay);
+delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY);
+});
+
+// After recruits finish, start enemy turn
+scheduleEnemyAction(() => enemyTurn(), delay + T(600));
+}
+
 function enemyTurn() {
 // FLYDRA: Check for revival at start of enemy turn
 checkFlydraRevival();
@@ -1820,13 +1854,6 @@ S.enemies.forEach(e => {
 e.turnsSinceGain++;
 e.alphaActed = false;
 });
-// Process recruits - increment turnsSinceGain (stun decrement moved to endEnemyTurn)
-if(S.recruits) {
-S.recruits.forEach(r => {
-if(!r.turnsSinceGain) r.turnsSinceGain = 0;
-r.turnsSinceGain++;
-});
-}
 scheduleEnemyAction(() => executeAlphaPhase(), T(ANIMATION_TIMINGS.ALPHA_PHASE_START));
 }
 
@@ -1893,12 +1920,12 @@ if(drawnSigil) drawnSigil.newlyDrawn = false;
  * 1. Find all non-stunned enemies with Alpha sigil
  * 2. For each Alpha enemy: Grant attacks to best ally
  * 3. Mark Alpha enemy as "acted" (skips normal phase)
- * 4. Continue to Recruit phase
+ * 4. Continue to Normal phase
  */
 function executeAlphaPhase() {
 if(S.combatEnding) return;
 const alphaEnemies = S.enemies.filter(e => e.st === 0 && e.s.some(sigil => sigil.sig === 'Alpha' && !sigil.perm));
-if(alphaEnemies.length === 0) { scheduleEnemyAction(executeRecruitPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
+if(alphaEnemies.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
 // Execute all Alpha enemies in reading order with minimal stagger
 let delay = 0;
 alphaEnemies.forEach((alphaEnemy, idx) => {
@@ -1924,21 +1951,9 @@ alphaEnemy.alphaActed = true;
 delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
 });
 // Wait for longest animation to complete
-scheduleEnemyAction(() => executeRecruitPhase(), delay + T(600));
-}
-
-function executeRecruitPhase() {
-if(S.combatEnding) return;
-if(!S.recruits || S.recruits.length === 0) { scheduleEnemyAction(executeNormalEnemyPhase, T(ANIMATION_TIMINGS.PHASE_TRANSITION)); return; }
-// Execute all recruits in reading order with minimal stagger
-let delay = 0;
-S.recruits.forEach((recruit, idx) => {
-scheduleEnemyAction(() => executeRecruitTurn(recruit), delay);
-delay += T(ANIMATION_TIMINGS.ENEMY_ACTION_DELAY); // Minimal stagger (was 600ms)
-});
-// Wait for longest animation to complete
 scheduleEnemyAction(() => executeNormalEnemyPhase(), delay + T(600));
 }
+
 
 function executeRecruitTurn(recruit) {
 if(S.combatEnding) return;
@@ -2636,7 +2651,7 @@ const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand turn ${h.lst+1}${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost charges' : ''}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">LAST STAND</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
-if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
@@ -2711,7 +2726,7 @@ html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
-if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;background:#d4c4a8">`;
+if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain">`;
 html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
 // HP bar - visual health indicator
@@ -3146,7 +3161,7 @@ html += `<div class="card hero" style="${cardStyle}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}💥</div>`;
 // Hero image
-if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;background:#d4c4a8;border:2px solid #60a5fa"></div>`;
+if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;border:2px solid #60a5fa"></div>`;
 // Name
 html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
 // HP

@@ -56,13 +56,125 @@ S.neutralDeck.push(`${base}2`);
 }
 
 // ===== D20 ROLLS FOR NEUTRALS =====
-function rollD20Neutral() {
+function getD20NeutralLevel() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
 // Active sigils are stored 0-indexed (L1 = 0), so add 1 for actual level
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
+return ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
+}
+
+function rollD20Neutral() {
+const d20Level = getD20NeutralLevel();
 // TUTORIAL: Explain D20 level affects neutral rolls
 showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
 return rollDice(d20Level, 20);
+}
+
+// Tier colors for each die (index 0 = first die = L1 silver, etc.)
+const DICE_TIER_COLORS = ['#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
+
+function renderDiceTray(options = {}) {
+const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null } = options;
+const d20Level = getD20NeutralLevel();
+const hasDC = dc != null;
+const success = hasDC && best != null && best >= dc;
+const fail = hasDC && best != null && best < dc;
+
+let html = '<div class="dice-tray">';
+html += '<div class="dice-tray-inner">';
+
+for(let i = 0; i < d20Level; i++) {
+const tierColor = DICE_TIER_COLORS[i] || DICE_TIER_COLORS[DICE_TIER_COLORS.length - 1];
+const value = rolled && rolls ? rolls[i] : 20;
+let dieClass = 'dice-tray-die';
+if(rolled && rolls) {
+const isBest = rolls[i] === best;
+if(isBest && best === 20 && !fail) dieClass += ' best-nat20';
+else if(isBest && success) dieClass += ' best-success';
+else if(isBest && fail) dieClass += ' best-fail';
+// No DC: best die gets a neutral highlight (tier-colored glow)
+else if(isBest && !hasDC) dieClass += ' best-success';
+}
+const borderStyle = rolled ? '' : `border-color: ${tierColor}; box-shadow: 0 0 8px ${tierColor}40;`;
+const colorStyle = rolled ? '' : `color: ${tierColor};`;
+html += `<div class="${dieClass}" data-die-index="${i}" style="${borderStyle}${colorStyle}">${value}</div>`;
+}
+
+html += '</div>'; // close dice-tray-inner
+
+if(!rolled && rollCallback) {
+html += `<button class="dice-tray-roll-btn" onclick="${rollCallback}">Roll</button>`;
+}
+
+html += '</div>'; // close dice-tray
+
+if(hasDC && rolled) {
+html += `<div class="dice-tray-dc">${success ? '✓' : '✗'} Need ${dc}+</div>`;
+}
+
+return html;
+}
+
+function animateDiceRoll(callback, dc) {
+const d20Level = getD20NeutralLevel();
+const dice = document.querySelectorAll('.dice-tray-die');
+const rollBtn = document.querySelector('.dice-tray-roll-btn');
+if(rollBtn) rollBtn.disabled = true;
+
+// Play sound
+SoundFX.play('d20roll');
+
+// Animate each die with tumble
+dice.forEach((die, i) => {
+die.classList.add('rolling');
+// Rapid number cycling during animation
+let cycles = 0;
+const maxCycles = 10 + i * 3; // Later dice spin longer
+const cycleInterval = setInterval(() => {
+die.textContent = Math.floor(Math.random() * 20) + 1;
+cycles++;
+if(cycles >= maxCycles) clearInterval(cycleInterval);
+}, 50);
+});
+
+// After animation, show actual results
+setTimeout(() => {
+const result = rollDice(d20Level, 20);
+const { rolls, best } = result;
+const hasDC = dc != null;
+const success = hasDC && best >= dc;
+const fail = hasDC && best < dc;
+
+dice.forEach((die, i) => {
+die.classList.remove('rolling');
+die.textContent = rolls[i];
+const isBest = rolls[i] === best;
+// Reset inline styles
+die.style.borderColor = '';
+die.style.boxShadow = '';
+die.style.color = '';
+if(isBest && best === 20 && !fail) die.classList.add('best-nat20');
+else if(isBest && success) die.classList.add('best-success');
+else if(isBest && fail) die.classList.add('best-fail');
+else if(isBest && !hasDC) die.classList.add('best-success');
+});
+
+// Add DC indicator
+const tray = document.querySelector('.dice-tray');
+if(tray && hasDC) {
+let dcEl = document.querySelector('.dice-tray-dc');
+if(!dcEl) {
+dcEl = document.createElement('div');
+dcEl.className = 'dice-tray-dc';
+tray.parentNode.insertBefore(dcEl, tray.nextSibling);
+}
+dcEl.innerHTML = `${success ? '✓' : '✗'} Need ${dc}+`;
+}
+
+// Remove roll button
+if(rollBtn) rollBtn.remove();
+
+if(callback) callback(rolls, best);
+}, T(700));
 }
 
 function showD20Result(rolls, best, dc) {
@@ -97,7 +209,8 @@ description,
 outcomes = [],
 diceRoll = '',
 buttons = '',
-showStats = true
+showStats = true,
+diceTray = null
 } = options;
 
 let html = `<div class="neutral-container">`;
@@ -118,6 +231,10 @@ outcomes.forEach(outcome => {
 if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
 });
 html += '</div></div>'; // close narrative and header
+
+// Dice tray - always shown on neutral encounters
+// Pass custom diceTray HTML (e.g. with rolled results) or auto-render idle tray
+html += diceTray != null ? diceTray : renderDiceTray({});
 
 // Footer with buttons
 if(buttons) {
@@ -1938,24 +2055,22 @@ toast(`${sig} permanently upgraded to L${bargainDisplayLvl}! (GR unchanged)`, 30
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">"Good choice. See you soon."</div>
-<div class="neutral-outcome">The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper2.png',
+outcomes: ['"Good choice. See you soon."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }, 1000);
 }
 
 function finishDeathsBargain() {
 removeNeutralFromDeck('shopkeeper');
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">"Shame. You don't get a chance like this every day. Oh well, it's your funeral."</div>
-<div class="neutral-outcome">The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper2.png',
+outcomes: ['"Shame. You don\'t get a chance like this every day. Oh well, it\'s your funeral."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 2. WISHING WELL =====
@@ -1975,9 +2090,17 @@ buttons
 }
 
 function climbWell() {
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wishingwell1.png',
+title: 'Climbing the Well',
+description: 'You begin your descent into the dark well...',
+diceTray: renderDiceTray({ rollCallback: 'climbWellRoll()' })
+});
+}
 
+function climbWellRoll() {
+animateDiceRoll(function(rolls, best) {
 let outcome = '';
 let goldGain = 0;
 let hpLoss = 0;
@@ -1999,13 +2122,22 @@ goldGain = 10;
 replaceStage1WithStage2('wishingwell');
 }
 
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/wishingwell1.png',
-title: 'Climbing the Well',
-diceRoll: rollText,
-outcomes: [outcome],
-buttons: `<button class="btn" onclick="applyWellClimb(${hpLoss}, ${goldGain})">Continue</button>`
+// Update narrative and add continue button
+const narrative = document.querySelector('.neutral-narrative');
+if(narrative) {
+narrative.innerHTML = `<div class="neutral-title">Climbing the Well</div>`;
+narrative.innerHTML += `<div class="neutral-outcome">${outcome}</div>`;
+}
+const footer = document.querySelector('.neutral-footer');
+const leftPanel = document.querySelector('.neutral-left');
+if(!footer && leftPanel) {
+const f = document.createElement('div');
+f.className = 'neutral-footer';
+f.innerHTML = `<button class="btn" onclick="applyWellClimb(${hpLoss}, ${goldGain})">Continue</button>`;
+leftPanel.appendChild(f);
+} else if(footer) {
+footer.innerHTML = `<button class="btn" onclick="applyWellClimb(${hpLoss}, ${goldGain})">Continue</button>`;
+}
 });
 }
 
@@ -2149,9 +2281,17 @@ buttons: `
 }
 
 function openChest() {
-const {rolls: trapRolls, best: trapBest} = rollD20Neutral();
-const trapText = showD20Result(trapRolls, trapBest);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest1.png',
+title: 'Opening the Chest',
+description: 'You reach for the chest lid, watching for traps...',
+diceTray: renderDiceTray({ rollCallback: 'openChestRoll()' })
+});
+}
 
+function openChestRoll() {
+animateDiceRoll(function(trapRolls, trapBest) {
 let trapOutcome = '';
 let trapDmg = 0;
 let secretFound = false;
@@ -2169,22 +2309,35 @@ trapOutcome = 'You open the chest without issue. Your keen eyes spot a hidden co
 secretFound = true;
 }
 
-// Show trap result with Continue button
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/treasurechest1.png',
-title: 'Opening the Chest',
-diceRoll: trapText,
-outcomes: [trapOutcome],
-buttons: `<button class="btn" onclick="openChestPart2(${trapDmg}, ${secretFound})">Continue</button>`
+const narrative = document.querySelector('.neutral-narrative');
+if(narrative) {
+narrative.innerHTML = `<div class="neutral-title">Opening the Chest</div><div class="neutral-outcome">${trapOutcome}</div>`;
+}
+const leftPanel = document.querySelector('.neutral-left');
+let footer = document.querySelector('.neutral-footer');
+if(!footer && leftPanel) {
+footer = document.createElement('div');
+footer.className = 'neutral-footer';
+leftPanel.appendChild(footer);
+}
+if(footer) {
+footer.innerHTML = `<button class="btn" onclick="openChestPart2(${trapDmg}, ${secretFound})">Continue</button>`;
+}
 });
 }
 
 function openChestPart2(trapDmg, secretFound) {
-setTimeout(() => {
-const {rolls: contentRolls, best: contentBest} = rollD20Neutral();
-const contentText = showD20Result(contentRolls, contentBest);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest1.png',
+title: 'Chest Contents',
+description: 'You peer inside the chest...',
+diceTray: renderDiceTray({ rollCallback: `openChestPart2Roll(${trapDmg}, ${secretFound})` })
+});
+}
 
+function openChestPart2Roll(trapDmg, secretFound) {
+animateDiceRoll(function(contentRolls, contentBest) {
 let contentOutcome = '';
 let goldGain = 0;
 
@@ -2204,13 +2357,24 @@ replaceStage1WithStage2('treasurechest');
 contentOutcome += ' Inside the secret compartment, you find a small silver key!';
 }
 
+const narrative = document.querySelector('.neutral-narrative');
+if(narrative) {
+narrative.innerHTML = `<div class="neutral-title">Chest Contents</div><div class="neutral-outcome">${contentOutcome}</div>`;
+}
+
 const v = document.getElementById('gameView');
+const leftPanel = document.querySelector('.neutral-left');
+let footer = document.querySelector('.neutral-footer');
+if(!footer && leftPanel) {
+footer = document.createElement('div');
+footer.className = 'neutral-footer';
+leftPanel.appendChild(footer);
+}
+
 if(trapDmg > 0) {
-// Show hero selection for trap damage (exclude Last Stand heroes - they can't take damage)
 let heroButtons = '';
 const eligible = S.heroes.filter(h => !h.ls);
 if(eligible.length === 0) {
-// All heroes in Last Stand - skip trap damage, just award gold
 S.gold += goldGain;
 upd();
 if(goldGain > 0) toast(`Found ${goldGain} Gold!`);
@@ -2221,27 +2385,13 @@ eligible.forEach(h => {
 const idx = S.heroes.indexOf(h);
 heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/treasurechest1.png',
-title: 'Chest Contents',
-description: `Choose which hero takes ${trapDmg} damage:`,
-diceRoll: contentText,
-outcomes: [contentOutcome],
-buttons: heroButtons
-});
+if(footer) footer.innerHTML = heroButtons;
 } else {
-// No trap damage, just show results and continue
 S.gold += goldGain;
 upd();
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/treasurechest1.png',
-title: 'Chest Contents',
-diceRoll: contentText,
-outcomes: [contentOutcome],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
-});
+if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continue</button>`;
 }
-}, 0);
+});
 }
 
 function finishChestOpen(heroIdx, trapDmg, goldGain) {
@@ -2319,17 +2469,27 @@ buttons
 }
 
 function heroApproachesWizard(heroIdx) {
+S.wizardPendingHero = heroIdx;
+const v = document.getElementById('gameView');
 const h = S.heroes[heroIdx];
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard1.png',
+title: 'The Hieroglyphs',
+description: `${h.n} approaches the glowing wall and squints at the strange symbols...`,
+diceTray: renderDiceTray({ rollCallback: `heroApproachesWizardRoll(${heroIdx})` })
+});
+}
 
+function heroApproachesWizardRoll(heroIdx) {
+animateDiceRoll(function(rolls, best) {
+const h = S.heroes[heroIdx];
 const v = document.getElementById('gameView');
 
 if(best >= 1 && best <= 10) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [`${h.n} stares at the glowing symbols but can't make sense of them. The wizard sighs heavily: "You... you don't see it? Hmmm." The wizard turns back to the wall and continues mumbling to himself. He seems to have forgotten about you.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -2378,7 +2538,7 @@ if(!heroHasSigil) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [
 `The hieroglyphs shift around, finally revealing the symbol for ${chosenSigil}! The wizard beams with pride.`,
 `But ${h.n} doesn't possess this sigil. The wizard's face falls: "Ah, shame. Not the outcome I expected. Return when you have become more powerful."`
@@ -2408,8 +2568,9 @@ setTimeout(() => {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'The Hieroglyphs',
-diceRoll: rollText + critText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [
+critText,
 `The hieroglyph reveals itself as the symbol for ${chosenSigil}! "Yes! YES! You see! You understand!" The wizard touches the sigil, then reaches towards ${h.n}.`,
 `${h.n} feels power surge through the party. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels} for all heroes!`,
 '"Your journey has just begun... Seek me again this night." He disappears.'
@@ -2417,6 +2578,7 @@ outcomes: [
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }, 500);
+}); // end animateDiceRoll
 }
 
 function showWizard2() {
@@ -2452,13 +2614,25 @@ const h = S.heroes[heroIdx];
 const challengeIndex = S.wizardChallengeIndex;
 const dc = S.wizardChallenges[challengeIndex];
 
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best, dc);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/wizard2.png',
+title: `Trial ${challengeIndex + 1} - DC ${dc}`,
+description: `${h.n} focuses on the arcane challenge...`,
+diceTray: renderDiceTray({ dc, rollCallback: 'attemptWizardChallengeRoll()' })
+});
+}
 
+function attemptWizardChallengeRoll() {
+const heroIdx = S.wizardHero;
+const h = S.heroes[heroIdx];
+const challengeIndex = S.wizardChallengeIndex;
+const dc = S.wizardChallenges[challengeIndex];
+
+animateDiceRoll(function(rolls, best) {
 const v = document.getElementById('gameView');
 
 if(best < dc) {
-// Failed! Keep what you got
 const upgradeCount = S.wizardUpgradedSigils.length;
 let outcomeText = upgradeCount > 0
 ? `${h.n} earned ${upgradeCount} temporary upgrade${upgradeCount > 1 ? 's' : ''} before failing!`
@@ -2468,8 +2642,9 @@ removeNeutralFromDeck('wizard');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: `Trial ${challengeIndex + 1} - DC ${dc}`,
-diceRoll: rollText + ` - <span style="color:#dc2626">FAILED</span>`,
+diceTray: renderDiceTray({ dc, rolled: true, rolls, best }),
 outcomes: [
+`<span style="color:#dc2626">FAILED</span>`,
 `${h.n} could not quite meet the challenge.`,
 outcomeText,
 '"A good effort, but you have reached your limit. Take what you have earned and go."'
@@ -2479,19 +2654,19 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 return;
 }
 
-// Success! Choose a sigil to upgrade
+// Success!
 const heroSigils = [...h.s];
 if(h.ts) heroSigils.push(...h.ts);
 const availableSigils = heroSigils.filter(sig => !S.wizardUpgradedSigils.includes(sig));
 
 if(availableSigils.length === 0) {
-// No more sigils to upgrade
 removeNeutralFromDeck('wizard');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: `Trial ${challengeIndex + 1} - DC ${dc}`,
-diceRoll: rollText + ` - <span style="color:#22c55e">SUCCESS</span>`,
+diceTray: renderDiceTray({ dc, rolled: true, rolls, best }),
 outcomes: [
+`<span style="color:#22c55e">SUCCESS</span>`,
 `${h.n} passed the trial!`,
 `But ${h.n} has no more sigils available to upgrade!`,
 `Total upgrades earned: ${S.wizardUpgradedSigils.length}`,
@@ -2502,7 +2677,6 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 return;
 }
 
-// Show sigil selection
 let description = `${h.n} passed the trial! Choose a sigil to upgrade temporarily (cannot pick the same sigil twice):`;
 let buttons = '';
 availableSigils.forEach(sig => {
@@ -2514,10 +2688,12 @@ buttons += `<button class="neutral-btn safe" onclick="selectWizardUpgrade('${sig
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: `Trial ${challengeIndex + 1} - DC ${dc}`,
-diceRoll: rollText + ` - <span style="color:#22c55e">SUCCESS</span>`,
+diceTray: renderDiceTray({ dc, rolled: true, rolls, best }),
+outcomes: [`<span style="color:#22c55e">SUCCESS</span>`],
 description,
 buttons
 });
+}, dc);
 }
 
 function selectWizardUpgrade(sig) {
@@ -2593,8 +2769,18 @@ function oracleChoose(heroIdx, stat) {
 S.oracleHero = heroIdx;
 S.oracleStat = stat;
 
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const v = document.getElementById('gameView');
+const h = S.heroes[heroIdx];
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/oracle1.png',
+title: 'The Oracle\'s Fortune',
+description: `The Oracle peers deep into the crystal sphere, channeling ${h.n}'s destiny...`,
+diceTray: renderDiceTray({ rollCallback: `oracleChooseRoll(${heroIdx}, '${stat}')` })
+});
+}
+
+function oracleChooseRoll(heroIdx, stat) {
+animateDiceRoll(function(rolls, best) {
 S.oracleRoll = best;
 
 const h = S.heroes[heroIdx];
@@ -2634,13 +2820,14 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/oracle1.png',
 title: 'The Oracle\'s Fortune',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [
 `${h.n} steps forward seeking ${stat === 'POW' ? 'Power' : 'Life'}.`,
 `The Oracle gazes into the crystal sphere, then speaks: ${fortune}`
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
+}); // end animateDiceRoll
 }
 
 function showOracle2() {
@@ -2745,10 +2932,20 @@ buttons
 }
 
 function sneakByEncampment(heroIdx) {
+S.encampmentHero = heroIdx;
 const hero = S.heroes[heroIdx];
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Sneaking Past',
+description: `${hero.n} carefully tiptoes through the shadows...`,
+diceTray: renderDiceTray({ rollCallback: `sneakByEncampmentRoll(${heroIdx})` })
+});
+}
 
+function sneakByEncampmentRoll(heroIdx) {
+animateDiceRoll(function(rolls, best) {
+const v = document.getElementById('gameView');
 let outcome = '';
 if(best >= 1 && best <= 10) {
 outcome = `Well, that's why the enemies set up a trip wire. It worked. It's an ambush!`;
@@ -2756,38 +2953,32 @@ replaceStage1WithStage2('encampment');
 S.ambushed = true;
 toast('Next combat will be AMBUSHED!', 2400, 'critical');
 
-const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [outcome],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 } else if(best >= 11 && best <= 19) {
 outcome = `You slip past quietly. The enemies remain unaware.`;
 
-const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [outcome],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 } else {
-// Roll 20 - recruit a straggler! Ask which hero should recruit them
 const comp = getEnemyComp(S.floor + 1);
 const stragglerType = comp[Math.floor(Math.random() * comp.length)];
 const base = E[stragglerType];
 
-// Store straggler data for selection
 window.pendingStragglerData = { base, stragglerType };
 
 outcome = `As you sneak by, you spy an enemy straggler who appears to be hiding from the group... It looks like they want to join your party!`;
 
-// Show hero selection for who should recruit
-const v = document.getElementById('gameView');
 let heroButtons = '';
 S.heroes.forEach((h, i) => {
 const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
@@ -2797,11 +2988,12 @@ heroButtons += `<button class="neutral-btn safe" onclick="assignRecruitToHero(${
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past - NAT 20!',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 description: `${outcome}<br><br><strong>Who should recruit the ${base.n}?</strong>`,
 buttons: heroButtons
 });
 }
+});
 }
 
 function assignRecruitToHero(heroIdx) {
@@ -2903,16 +3095,24 @@ nextFloor();
 
 function engageEarlyEncampment(heroIdx) {
 const hero = S.heroes[heroIdx];
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/encampment1.png',
+title: 'Engaging Early',
+description: `${hero.n} leads the charge toward the encampment...`,
+diceTray: renderDiceTray({ rollCallback: `engageEarlyEncampmentRoll(${heroIdx})` })
+});
+}
 
+function engageEarlyEncampmentRoll(heroIdx) {
+animateDiceRoll(function(rolls, best) {
 const v = document.getElementById('gameView');
 
 if(best >= 1 && best <= 15) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Engaging Early',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [`As the heroes sneak up to the camp, a scout's horn sounds. You've been spotted, and you're surrounded! It's an ambush!`],
 buttons: `<button class="btn" onclick="finishEncampmentFail()">Continue</button>`
 });
@@ -2922,7 +3122,7 @@ replaceStage1WithStage2('encampment');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Engaging Early',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [`Your frogs work together to lure one enemy away and take him out! He screams as he dies, though, and by the time you turn, the rest are scrambling to form ranks.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
@@ -2932,11 +3132,12 @@ replaceStage1WithStage2('encampment');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Engaging Early',
-diceRoll: rollText,
+diceTray: renderDiceTray({ rolled: true, rolls, best }),
 outcomes: [`With an excellent ploy, you succeed at picking off 2 enemies! The next combat should be a walk in the pond!`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
+});
 }
 
 function finishEncampmentFail() {
@@ -3108,33 +3309,34 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 function targetRollBetween20s() {
 const state = window.between20sState;
 const v = document.getElementById('gameView');
-// Include both permanent AND temporary upgrades (active sigils stored 0-indexed)
-const d20Level = ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 
-// PHASE 3: Target Roll
-const targetRolls = [];
-for(let i = 0; i < d20Level; i++) {
-targetRolls.push(Math.floor(Math.random() * 20) + 1);
+v.innerHTML = buildNeutralHTML({
+bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
+title: state.stage === 1 ? 'Between the 20s' : 'Between the 20s Extreme',
+description: `Range: <span style="color:#22c55e">${state.minBound}</span> to <span style="color:#22c55e">${state.maxBound}</span>. Rolling target dice...`,
+diceTray: renderDiceTray({ rollCallback: 'targetRollBetween20sRoll()' })
+});
 }
+
+function targetRollBetween20sRoll() {
+const state = window.between20sState;
+animateDiceRoll(function(targetRolls, best) {
+const v = document.getElementById('gameView');
 
 // Check if ANY die lands between bounds (inclusive)
 const winners = targetRolls.filter(r => r >= state.minBound && r <= state.maxBound);
 const won = winners.length > 0;
 
-const targetDisplay = formatDiceRolls(targetRolls);
-
 if(won) {
-// Calculate payout
 let payout = state.wager * (state.stage === 1 ? 2 : 4);
 if(state.stage === 2) {
-payout = Math.min(payout, 40); // Cap at 40G for Stage 2
+payout = Math.min(payout, 40);
 }
 const netGain = payout - state.wager;
-S.gold -= state.wager; // Deduct wager before adding payout
+S.gold -= state.wager;
 S.gold += payout;
 upd();
 
-// Unlock Stage 2 after Stage 1 win
 if(state.stage === 1) {
 replaceStage1WithStage2('gambling');
 toast('Between the 20s Extreme unlocked!', 1800);
@@ -3143,9 +3345,8 @@ toast('Between the 20s Extreme unlocked!', 1800);
 v.innerHTML = buildNeutralHTML({
 bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
 title: state.stage === 1 ? 'Between the 20s - WIN!' : 'Between the 20s Extreme - WIN!',
-description: `Rolling ${d20Level} target ${d20Level === 1 ? 'die' : 'dice'}...`,
+diceTray: renderDiceTray({ rolled: true, rolls: targetRolls, best }),
 outcomes: [
-`${targetDisplay}`,
 `<span style="color:#22c55e">SUCCESS! ${winners.map(w => `[${w}]`).join(' ')} landed in range [${state.minBound}-${state.maxBound}]!</span>`,
 `Won ${payout}G! (Net: +${netGain}G)`
 ],
@@ -3158,15 +3359,15 @@ upd();
 v.innerHTML = buildNeutralHTML({
 bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
 title: state.stage === 1 ? 'Between the 20s - Loss' : 'Between the 20s Extreme - Loss',
-description: `Rolling ${d20Level} target ${d20Level === 1 ? 'die' : 'dice'}...`,
+diceTray: renderDiceTray({ rolled: true, rolls: targetRolls, best }),
 outcomes: [
-`${targetDisplay}`,
 `<span style="color:#ef4444">MISS! No dice landed in range [${state.minBound}-${state.maxBound}].</span>`,
 `Lost ${state.wager}G.`
 ],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
+});
 }
 
 function showGambling2() {
@@ -3227,29 +3428,35 @@ attemptGhostEscape();
 }
 
 function attemptGhostEscape() {
-const {rolls, best} = rollD20Neutral();
-const rollText = showD20Result(rolls, best, ghostEscapeDC);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/ghost1.png',
+title: 'Escaping the Ghost Boys',
+description: `You try to break free from the trance... (DC ${ghostEscapeDC})`,
+diceTray: renderDiceTray({ dc: ghostEscapeDC, rollCallback: 'attemptGhostEscapeRoll()' })
+});
+}
 
+function attemptGhostEscapeRoll() {
+animateDiceRoll(function(rolls, best) {
 const v = document.getElementById('gameView');
 
 if(best >= ghostEscapeDC) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Escaping the Ghost Boys',
-diceRoll: rollText,
+diceTray: renderDiceTray({ dc: ghostEscapeDC, rolled: true, rolls, best }),
 outcomes: ['You clear your head and break free from the strange trance. The boys look sad to stop playing, but let you go. "Come back and play sometime... We\'re so lonely..."'],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 return;
 }
 
-// Failed - show hero selection (exclude Last Stand heroes - they can't take damage)
 let heroButtons = '';
 S.heroes.forEach((h, idx) => {
-if(h.ls) return; // Last Stand heroes can't take damage
+if(h.ls) return;
 heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
 });
-// Safety: if all heroes are in Last Stand, let them escape (prevents soft-lock)
 if(!heroButtons) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
@@ -3262,11 +3469,12 @@ return;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'Trapped with the Ghost Boys',
-diceRoll: rollText,
+diceTray: renderDiceTray({ dc: ghostEscapeDC, rolled: true, rolls, best }),
 description: 'Choose which hero takes 1 damage:',
 outcomes: ['You don\'t notice time passing, but pangs of hunger and fatigue make it clear you\'ve been here longer than it feels like. The boys are having a great time playing.'],
 buttons: heroButtons
 });
+}, ghostEscapeDC);
 }
 
 function applyGhostDamage(heroIdx) {
