@@ -75,7 +75,9 @@ const DICE_TIER_COLORS = ['#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080']
 function renderDiceTray(options = {}) {
 const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null } = options;
 const d20Level = getD20NeutralLevel();
-const success = dc == null || (best != null && best >= dc);
+const hasDC = dc != null;
+const success = hasDC && best != null && best >= dc;
+const fail = hasDC && best != null && best < dc;
 
 let html = '<div class="dice-tray">';
 html += '<div class="dice-tray-inner">';
@@ -86,9 +88,11 @@ const value = rolled && rolls ? rolls[i] : 20;
 let dieClass = 'dice-tray-die';
 if(rolled && rolls) {
 const isBest = rolls[i] === best;
-if(isBest && best === 20) dieClass += ' best-nat20';
+if(isBest && best === 20 && !fail) dieClass += ' best-nat20';
 else if(isBest && success) dieClass += ' best-success';
-else if(isBest && !success) dieClass += ' best-fail';
+else if(isBest && fail) dieClass += ' best-fail';
+// No DC: best die gets a neutral highlight (tier-colored glow)
+else if(isBest && !hasDC) dieClass += ' best-success';
 }
 const borderStyle = rolled ? '' : `border-color: ${tierColor}; box-shadow: 0 0 8px ${tierColor}40;`;
 const colorStyle = rolled ? '' : `color: ${tierColor};`;
@@ -103,7 +107,7 @@ html += `<button class="dice-tray-roll-btn" onclick="${rollCallback}">Roll</butt
 
 html += '</div>'; // close dice-tray
 
-if(dc != null && rolled) {
+if(hasDC && rolled) {
 html += `<div class="dice-tray-dc">${success ? '✓' : '✗'} Need ${dc}+</div>`;
 }
 
@@ -136,7 +140,9 @@ if(cycles >= maxCycles) clearInterval(cycleInterval);
 setTimeout(() => {
 const result = rollDice(d20Level, 20);
 const { rolls, best } = result;
-const success = dc == null || best >= dc;
+const hasDC = dc != null;
+const success = hasDC && best >= dc;
+const fail = hasDC && best < dc;
 
 dice.forEach((die, i) => {
 die.classList.remove('rolling');
@@ -146,14 +152,15 @@ const isBest = rolls[i] === best;
 die.style.borderColor = '';
 die.style.boxShadow = '';
 die.style.color = '';
-if(isBest && best === 20) die.classList.add('best-nat20');
+if(isBest && best === 20 && !fail) die.classList.add('best-nat20');
 else if(isBest && success) die.classList.add('best-success');
-else if(isBest && !success) die.classList.add('best-fail');
+else if(isBest && fail) die.classList.add('best-fail');
+else if(isBest && !hasDC) die.classList.add('best-success');
 });
 
 // Add DC indicator
 const tray = document.querySelector('.dice-tray');
-if(tray && dc != null) {
+if(tray && hasDC) {
 let dcEl = document.querySelector('.dice-tray-dc');
 if(!dcEl) {
 dcEl = document.createElement('div');
@@ -203,7 +210,7 @@ outcomes = [],
 diceRoll = '',
 buttons = '',
 showStats = true,
-diceTray = ''
+diceTray = null
 } = options;
 
 let html = `<div class="neutral-container">`;
@@ -225,10 +232,9 @@ if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
 });
 html += '</div></div>'; // close narrative and header
 
-// Dice tray (between narrative and buttons)
-if(diceTray) {
-html += diceTray;
-}
+// Dice tray - always shown on neutral encounters
+// Pass custom diceTray HTML (e.g. with rolled results) or auto-render idle tray
+html += diceTray != null ? diceTray : renderDiceTray({});
 
 // Footer with buttons
 if(buttons) {
@@ -2049,24 +2055,22 @@ toast(`${sig} permanently upgraded to L${bargainDisplayLvl}! (GR unchanged)`, 30
 removeNeutralFromDeck('shopkeeper');
 setTimeout(() => {
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">"Good choice. See you soon."</div>
-<div class="neutral-outcome">The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper2.png',
+outcomes: ['"Good choice. See you soon."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }, 1000);
 }
 
 function finishDeathsBargain() {
 removeNeutralFromDeck('shopkeeper');
 const v = document.getElementById('gameView');
-v.innerHTML = `
-<div class="neutral-container">
-<div class="neutral-outcome">"Shame. You don't get a chance like this every day. Oh well, it's your funeral."</div>
-<div class="neutral-outcome">The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.</div>
-<button class="btn" onclick="nextFloor()">Continue</button>
-</div>`;
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper2.png',
+outcomes: ['"Shame. You don\'t get a chance like this every day. Oh well, it\'s your funeral."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
 }
 
 // ===== 2. WISHING WELL =====
@@ -2081,7 +2085,6 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wishingwell1.png',
 title: 'The Old Wishing Well',
 description: 'An ancient stone well sits in the center of the chamber. You hear the faint sound of trickling water far below. A glint of gold catches your eye at the bottom.',
-diceTray: renderDiceTray({}),
 buttons
 });
 }
@@ -2270,7 +2273,6 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
 title: 'A Mysterious Chest',
 description: 'An unadorned wooden chest sits against the far wall, worn brass fittings gleaming in the torchlight. No lock is visible, but you spy strange holes in the wall and drops of blood spattered on the ground nearby.',
-diceTray: renderDiceTray({}),
 buttons: `
 <button class="btn risky" onclick="openChest()">Open the chest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -2462,7 +2464,6 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard1.png',
 title: 'Hieroglyphs on the Wall',
 description,
-diceTray: renderDiceTray({}),
 buttons
 });
 }
@@ -2760,7 +2761,6 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/oracle1.png',
 title: 'Consult the Oracle',
 description,
-diceTray: renderDiceTray({}),
 buttons
 });
 }
@@ -2909,7 +2909,6 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Enemy Encampment',
 description: 'From the last chamber\'s exit, you spy some enemies in their encampment, preparing for their next battle. They haven\'t noticed you yet. You might be able to sneak by, or this could be a good chance to get the jump on them.',
-diceTray: renderDiceTray({}),
 buttons: `
 <button class="btn risky" onclick="chooseEncampmentAction('sneak')">Sneak by?</button>
 <button class="btn risky" onclick="chooseEncampmentAction('engage')">Engage early</button>
@@ -3207,7 +3206,6 @@ bgImage: 'assets/neutrals/gambling1.png',
 title: 'Between the 20s',
 description: `A mysterious gambling den beckons. Roll dice to set your range, then try to land between them. Wager: ${wager}G for a ${wager * 2}G payout.`,
 outcomes: [],
-diceTray: renderDiceTray({}),
 buttons: `
 <button class="btn safe" onclick="nextFloor()">Walk away</button>
 <button class="btn risky" onclick="playBetween20s(1, ${wager})">Play (${wager}G)</button>
@@ -3413,7 +3411,6 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'The Haunted Playroom',
 description: 'Various toys and games litter a dusty playroom. Two translucent boys appear before you, giggling. "Play with us! Play with us!" They reach out with spectral hands.',
-diceTray: renderDiceTray({}),
 buttons: `
 <button class="btn danger" onclick="playWithGhostBoys()">Play with the ghost boys</button>
 <button class="btn risky" onclick="nextFloor()">Avoid?</button>
