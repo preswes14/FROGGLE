@@ -23,6 +23,7 @@ savePermanent();
 
 // Show The Pond - a reflective place for remembering past adventures
 function showPond() {
+GameMusic.playScene('lilypad_pond');
 const v = document.getElementById('gameView');
 const history = S.pondHistory || [];
 
@@ -285,8 +286,8 @@ return sorted.length > 0 ? sorted[0][0] : '-';
 
 // ===== DEATH SCREEN =====
 function showDeathScreen() {
-// Music: play game over theme
-GameMusic.playScene('game_over');
+// Music: play death screen theme
+GameMusic.playScene('death_screen');
 savePermanent(); // Save gold, goingRate, sig upgrades
 // Recruits persist until killed - don't clear here
 
@@ -1058,8 +1059,8 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
-// JUICE: Victory treasure sound + happy music!
-GameMusic.playScene('neutral_happy');
+// JUICE: Victory treasure sound + game over (victory) music!
+GameMusic.playScene('game_over');
 SoundFX.play('treasure');
 
 // Record victory to The Pond!

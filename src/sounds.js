@@ -788,20 +788,44 @@ document.addEventListener('touchstart', () => SoundFX.init(), { once: true });
 // Add tracks to GameMusic.tracks, then call GameMusic.preload() at startup.
 const GameMusic = {
   // Track registry: { name: 'assets/music/filename.mp3' }
-  // Naming convention: 'combat1_intro', 'combat1_loop', etc.
+  // Naming convention: 'combat_1', 'neutral_shopkeep1', etc.
   tracks: {
+    // Scene tracks
     'char_select': 'assets/music/Froggle_Char_Select.mp3',
-    'combat1_intro': 'assets/music/Froggle_Combat_1_intro_v2.mp3',
-    'combat1_loop': 'assets/music/Froggle_Combat_1_loop_v2.mp3',
-    'combat_boss': 'assets/music/Froggle_Combat_Boss.mp3',
-    'combat_hard': 'assets/music/Froggle_Combat_Hard.mp3',
-    'game_over': 'assets/music/Froggle_Game_Over_v2.mp3',
-    'neutral_base': 'assets/music/Froggle_Neutral_Base.mp3',
-    'neutral_happy': 'assets/music/Froggle_Neutral_Happy_Final.mp3',
-    'neutral_medium': 'assets/music/Froggle_Neutral_Medium.mp3',
-    'neutral_intense': 'assets/music/Froggle_Neutral_ScaryIntenseFunky.mp3',
-    'neutral_weird': 'assets/music/Froggle_Neutral_Weird.mp3',
     'town_base': 'assets/music/Froggle_Town_Base_v5.mp3',
+    'game_over': 'assets/music/Froggle_Game_Over_v2.mp3',
+    'death_screen': 'assets/music/Froggle_Death_Screen.mp3',
+    'lilypad_pond': 'assets/music/Froggle_Lilypad_Pond.mp3',
+    // Combat tracks (one per odd floor)
+    'combat_1': 'assets/music/Froggle_Combat_1.mp3',
+    'combat_3': 'assets/music/Froggle_Combat_3.mp3',
+    'combat_5': 'assets/music/Froggle_Combat_5.mp3',
+    'combat_7': 'assets/music/Froggle_Combat_7.mp3',
+    'combat_9': 'assets/music/Froggle_Combat_9.mp3',
+    'combat_11': 'assets/music/Froggle_Combat_11.mp3',
+    'combat_13': 'assets/music/Froggle_Combat_13.mp3',
+    'combat_15': 'assets/music/Froggle_Combat_15.mp3',
+    'combat_17': 'assets/music/Froggle_Combat_17.mp3',
+    'combat_19': 'assets/music/Froggle_Combat_19.mp3',
+    // Neutral encounter tracks (specific to each encounter)
+    'neutral_shopkeep1': 'assets/music/Froggle_Neutral_Shopkeep1.mp3',
+    'neutral_shopkeep2': 'assets/music/Froggle_Neutral_Shopkeep2.mp3',
+    'neutral_wishingwell1': 'assets/music/Froggle_Neutral_WishingWell1.mp3',
+    'neutral_wishingwell2': 'assets/music/Froggle_Neutral_WishingWell2.mp3',
+    'neutral_chest1': 'assets/music/Froggle_Neutral_Chest1.mp3',
+    'neutral_chest2': 'assets/music/Froggle_Neutral_Chest2.mp3',
+    'neutral_wizard1': 'assets/music/Froggle_Neutral_Wizard1.mp3',
+    'neutral_wizard2': 'assets/music/Froggle_Neutral_Wizard2.mp3',
+    'neutral_oracle1': 'assets/music/Froggle_Neutral_Oracle1.mp3',
+    'neutral_oracle2': 'assets/music/Froggle_Neutral_Oracle2.mp3',
+    'neutral_encampment1': 'assets/music/Froggle_Neutral_Encampment1.mp3',
+    'neutral_encampment2': 'assets/music/Froggle_Neutral_Encampment2.mp3',
+    'neutral_ghost1': 'assets/music/Froggle_Neutral_GhostBoys_1.mp3',
+    'neutral_ghost2': 'assets/music/Froggle_Neutral_GhostBoys_2.mp3',
+    'neutral_gamble1': 'assets/music/Froggle_Neutral_Gamble1.mp3',
+    'neutral_gamble2': 'assets/music/Froggle_Neutral_Gamble2.mp3',
+    'neutral_royal1': 'assets/music/Froggle_Neutral_Royal1.mp3',
+    'neutral_royal2': 'assets/music/Froggle_Neutral_Royal2.mp3',
   },
   currentTrack: null,
   loaded: false,
@@ -855,14 +879,14 @@ const GameMusic = {
     }
   },
 
-  // Play combat music based on floor number
+  // Play combat music based on floor number (each odd floor has its own track)
   playCombat(floor) {
-    if (floor === 19) {
-      this.play(null, 'combat_boss');
-    } else if (floor >= 11) {
-      this.play(null, 'combat_hard');
+    const trackName = 'combat_' + floor;
+    if (this.tracks[trackName]) {
+      this.play(null, trackName);
     } else {
-      this.play('combat1_intro', 'combat1_loop');
+      // Fallback to floor 1 combat if somehow an unexpected floor
+      this.play(null, 'combat_1');
     }
   },
 
@@ -872,28 +896,29 @@ const GameMusic = {
   },
 
   // Play music for a neutral encounter based on encounter name
+  // Each encounter now has its own dedicated track
   playNeutral(enc) {
     const map = {
-      'shopkeeper1': 'neutral_medium',
-      'shopkeeper2': 'game_over',
-      'wishingwell1': 'neutral_medium',
-      'wishingwell2': 'neutral_happy',
-      'treasurechest1': 'neutral_medium',
-      'treasurechest2': 'neutral_happy',
-      'wizard1': 'neutral_medium',
-      'wizard2': 'neutral_happy',
-      'oracle1': 'neutral_medium',
-      'oracle2': 'neutral_happy',
-      'encampment1': 'neutral_intense',
-      'encampment2': 'neutral_base',
-      'ghost1': 'neutral_weird',
-      'ghost2': 'neutral_base',
-      'gambling1': 'neutral_medium',
-      'gambling2': 'neutral_intense',
-      'royal1': 'neutral_medium',
-      'royal2': 'neutral_happy',
+      'shopkeeper1': 'neutral_shopkeep1',
+      'shopkeeper2': 'neutral_shopkeep2',
+      'wishingwell1': 'neutral_wishingwell1',
+      'wishingwell2': 'neutral_wishingwell2',
+      'treasurechest1': 'neutral_chest1',
+      'treasurechest2': 'neutral_chest2',
+      'wizard1': 'neutral_wizard1',
+      'wizard2': 'neutral_wizard2',
+      'oracle1': 'neutral_oracle1',
+      'oracle2': 'neutral_oracle2',
+      'encampment1': 'neutral_encampment1',
+      'encampment2': 'neutral_encampment2',
+      'ghost1': 'neutral_ghost1',
+      'ghost2': 'neutral_ghost2',
+      'gambling1': 'neutral_gamble1',
+      'gambling2': 'neutral_gamble2',
+      'royal1': 'neutral_royal1',
+      'royal2': 'neutral_royal2',
     };
-    const track = map[enc] || 'neutral_base';
+    const track = map[enc] || 'neutral_chest1';
     this.play(null, track);
   },
 
