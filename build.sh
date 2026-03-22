@@ -53,8 +53,11 @@ if [ "$1" != "--no-bump" ]; then
     fi
 
     # Also update package.json version for electron-builder artifact naming
-    # Convert S_1.09 → 1.9.0 (semver format required by npm)
-    PKG_VERSION=$(echo "$CACHE_VERSION" | sed 's/^0*//' | sed 's/\.0*/./g').0
+    # Convert S_1.98 → 1.98.0 (semver format required by npm)
+    # Split into major.minor, strip leading zeros from each part, reassemble as semver
+    PKG_MAJOR=$(echo "$CACHE_VERSION" | cut -d. -f1 | sed 's/^0*\(.\)/\1/')
+    PKG_MINOR=$(echo "$CACHE_VERSION" | cut -d. -f2 | sed 's/^0*\(.\)/\1/')
+    PKG_VERSION="${PKG_MAJOR}.${PKG_MINOR}.0"
     if [[ "$OSTYPE" == "darwin"* ]]; then
         sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$PKG_VERSION\"/" package.json
     else
