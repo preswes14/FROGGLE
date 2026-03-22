@@ -33,23 +33,29 @@ fi
 
 mkdir -p src build
 
-# Get the line number where <script> starts
-SCRIPT_START=$(grep -n "^<script>$" index.html | head -1 | cut -d: -f1)
+# Find the main script block using the marker (not the early error handler script)
+MARKER_LINE=$(grep -n "FROGGLE_MAIN_SCRIPT_START" index.html | cut -d: -f1)
+if [ -z "$MARKER_LINE" ]; then
+    echo "Error: FROGGLE_MAIN_SCRIPT_START marker not found in index.html"
+    echo "Cannot safely extract without the marker."
+    exit 1
+fi
+
+# Main <script> is the line after the marker
+SCRIPT_START=$((MARKER_LINE + 1))
 SCRIPT_END=$(grep -n "^</script>$" index.html | tail -1 | cut -d: -f1)
 
-echo "Script tag found at lines $SCRIPT_START to $SCRIPT_END"
+echo "Main script found at lines $SCRIPT_START to $SCRIPT_END (marker at $MARKER_LINE)"
 
-# Extract HTML template (before <script>)
+# Extract HTML template (everything before the main <script> tag, including the marker)
 echo "→ Extracting HTML template..."
-head -n $SCRIPT_START index.html > build/template_head.html
-# Remove the <script> line from template_head
 head -n $((SCRIPT_START - 1)) index.html > build/template_head.html
 
 # Extract closing HTML (after </script>)
 echo "→ Extracting closing HTML..."
 tail -n +$SCRIPT_END index.html > build/template_foot.html
 
-# Extract the entire JavaScript content
+# Extract the entire JavaScript content (between <script> and </script>)
 JS_START=$((SCRIPT_START + 1))
 JS_END=$((SCRIPT_END - 1))
 echo "→ Extracting JavaScript (lines $JS_START to $JS_END)..."

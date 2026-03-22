@@ -24,6 +24,7 @@
 <title>FROGGLE</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { font-size: 24px; }
 body { font-family: -apple-system, sans-serif; background: #1a1a1a; color: #f0f0f0; position: fixed; width: 100%; height: 100%; height: 100dvh; overflow: hidden; touch-action: manipulation; }
 /* Hide cursor on Steam Deck / touch devices in Electron */
 body.electron-app { cursor: none; }
@@ -423,7 +424,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 }
 .dice-tray-label {
   font-size: 0.75rem;
-  color: #a89070;
+  color: #d4b896;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: center;
@@ -458,7 +459,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 }
 .dice-tray-dc {
   font-size: 0.85rem;
-  color: #d4a574;
+  color: #e8c49a;
   text-align: center;
   margin-top: 0.25rem;
 }
@@ -1066,6 +1067,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 /* ===== MOBILE LANDSCAPE OPTIMIZATION ===== */
 /* Targets phones in landscape mode (max-height ~500px distinguishes phones from tablets) */
 @media (max-width: 932px) and (orientation: landscape) and (max-height: 500px) {
+  /* Scale back root font-size for cramped phone landscape (still bigger than old 16px default) */
+  html { font-size: 20px; }
   /* Compact header for mobile */
   .header {
     padding: 0.25rem 0.5rem;
@@ -3763,7 +3766,7 @@ if(!tutorialState || S.floor !== 0) return;
 const {action, hero, round} = context;
 
 // Stage transitions based on completed actions
-if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
+if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
 showTutorialPop('ribbleton_healer_d20', "Healer doesn't start with the Attack Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's D20!", () => {
 S.activeIdx = 1;
@@ -6071,7 +6074,14 @@ currentBottom += t.offsetHeight + gap;
 });
 }
 
+let deferredToasts = [];
 function toast(msg, dur=1800, priority='normal') {
+// Defer toasts while a popup is showing so they don't fire behind it
+const popupShowing = document.querySelector('.tutorial-modal-backdrop');
+if(popupShowing) {
+deferredToasts.push({msg, dur, priority});
+return;
+}
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
 S.toastHistory.unshift(textMsg);
@@ -6298,6 +6308,8 @@ return;
 S.toastHistory.unshift(`${message}`);
 if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
 updateToastLog();
+// Pause enemy actions while popup is showing (reuses tooltip pause mechanism)
+tooltipActive = true;
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
@@ -6334,6 +6346,23 @@ window.tutorialCallback = null;
 // Remove ALL backdrops synchronously and aggressively
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
 allBackdrops.forEach(b => b.remove());
+
+// Resume enemy actions that were paused by popup (reuses tooltip pause mechanism)
+// Only resume if no queued popup is about to show (which would re-pause immediately)
+if(!window.tutorialCallback) {
+tooltipActive = false;
+if(tooltipPendingCallbacks.length > 0) {
+const pending = tooltipPendingCallbacks.slice();
+tooltipPendingCallbacks = [];
+pending.forEach(fn => setTimeout(fn, 0));
+}
+// Flush any toasts that were deferred while popup was showing
+if(deferredToasts.length > 0) {
+const toasts = deferredToasts.slice();
+deferredToasts = [];
+toasts.forEach(t => setTimeout(() => toast(t.msg, t.dur, t.priority), 100));
+}
+}
 
 // Use requestAnimationFrame to ensure DOM is updated before callback
 requestAnimationFrame(() => {
@@ -12322,7 +12351,7 @@ const slides = [
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/tapo_normal.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
+{bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; animation: spinTapo 4s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
 html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong></div>`,
 onShow: () => { GameMusic.play(null, 'combat_19'); }},
 {text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
@@ -19740,6 +19769,7 @@ showErrorOverlay('Startup Crash', 'window.onload failed:\n\n' + (e.stack || e.me
   }, { passive: false });
 })();
 
+</script>
 </script>
 </body>
 </html>

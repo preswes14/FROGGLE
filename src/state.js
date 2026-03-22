@@ -574,7 +574,14 @@ currentBottom += t.offsetHeight + gap;
 });
 }
 
+let deferredToasts = [];
 function toast(msg, dur=1800, priority='normal') {
+// Defer toasts while a popup is showing so they don't fire behind it
+const popupShowing = document.querySelector('.tutorial-modal-backdrop');
+if(popupShowing) {
+deferredToasts.push({msg, dur, priority});
+return;
+}
 // Add to history (strip HTML for text log)
 const textMsg = msg.replace(/<[^>]*>/g, '');
 S.toastHistory.unshift(textMsg);
@@ -801,6 +808,8 @@ return;
 S.toastHistory.unshift(`${message}`);
 if(S.toastHistory.length > 20) S.toastHistory = S.toastHistory.slice(0, 20);
 updateToastLog();
+// Pause enemy actions while popup is showing (reuses tooltip pause mechanism)
+tooltipActive = true;
 // Create blocking modal
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
@@ -837,6 +846,23 @@ window.tutorialCallback = null;
 // Remove ALL backdrops synchronously and aggressively
 const allBackdrops = document.querySelectorAll('.tutorial-modal-backdrop');
 allBackdrops.forEach(b => b.remove());
+
+// Resume enemy actions that were paused by popup (reuses tooltip pause mechanism)
+// Only resume if no queued popup is about to show (which would re-pause immediately)
+if(!window.tutorialCallback) {
+tooltipActive = false;
+if(tooltipPendingCallbacks.length > 0) {
+const pending = tooltipPendingCallbacks.slice();
+tooltipPendingCallbacks = [];
+pending.forEach(fn => setTimeout(fn, 0));
+}
+// Flush any toasts that were deferred while popup was showing
+if(deferredToasts.length > 0) {
+const toasts = deferredToasts.slice();
+deferredToasts = [];
+toasts.forEach(t => setTimeout(() => toast(t.msg, t.dur, t.priority), 100));
+}
+}
 
 // Use requestAnimationFrame to ensure DOM is updated before callback
 requestAnimationFrame(() => {
