@@ -832,10 +832,25 @@ const targetNames = S.targets.map(id => {
 const e = S.enemies.find(e => e.id === id);
 return e ? e.n : null;
 }).filter(n => n);
+
+// RECRUIT: special handling — collect candidates, show picker, don't use generic forEach
+if(actionName === 'RECRUIT') {
+const candidates = S.targets.map(id => S.enemies.find(e => e.id === id)).filter(e => e && !e.isFlydra);
+const flydraTargets = S.targets.map(id => S.enemies.find(e => e.id === id)).filter(e => e && e.isFlydra);
+flydraTargets.forEach(() => toast(`The Flydra cannot be reasoned with!`, 2000, 'warning'));
+if(candidates.length === 0) {
+// All targets were Flydra or invalid
+finishD20Asterisk(heroIdx);
+} else {
+handleRecruitResult(heroIdx, candidates);
+}
+return;
+}
+
 S.targets.forEach(targetId => executeD20ActionOnTarget(targetId, actionName));
 if(targetNames.length > 0) {
-const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed', 'RECRUIT': 'recruited'};
-if(actionName !== 'STEAL') toast(`${targetNames.join(', ')} ${actionDesc[actionName]}!`, 2500);
+const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed'};
+if(actionName !== 'STEAL' && actionDesc[actionName]) toast(`${targetNames.join(', ')} ${actionDesc[actionName]}!`, 2500);
 }
 if(S.asteriskD20Repeats > 1) {
 S.asteriskD20Count++;
@@ -885,54 +900,79 @@ const gold = enemy.p;
 S.gold += gold;
 upd();
 toast(`Stole ${gold} Gold from ${getEnemyDisplayName(enemy)}!`);
-} else if(action === 'RECRUIT') {
-const heroIdx = S.d20HeroIdx;
-const hero = S.heroes[heroIdx];
-const recruitName = getEnemyDisplayName(enemy);
-// Flydra cannot be recruited
-if(enemy.isFlydra) {
-toast(`The Flydra cannot be reasoned with!`, 2000, 'warning');
-return;
 }
-// Remove enemy from enemies array immediately
-S.enemies = S.enemies.filter(e => e.id !== enemyId);
+// RECRUIT is handled by handleRecruitResult() in rollD20(), not here
+}
+
+// Handle RECRUIT result: show picker when multiple candidates or existing recruit
+function handleRecruitResult(heroIdx, candidates) {
+const hero = S.heroes[heroIdx];
 if(!S.recruits) S.recruits = [];
 const existingRecruit = S.recruits.find(r => r.recruitedBy === heroIdx);
-if(existingRecruit) {
-// Show choice popup: keep current or replace
-render();
-showRecruitReplaceConfirm(existingRecruit.n, recruitName, () => {
-// KEEP current
-toast(`Kept ${existingRecruit.n}.`, 1200);
-render();
-checkCombatEnd();
-}, () => {
-// REPLACE with new
-S.recruits = S.recruits.filter(r => r.recruitedBy !== heroIdx);
-const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true, s: enemy.s.filter(s => s.perm || s.sig !== 'Attack')};
-S.recruits.push(recruit);
-toast(`${recruitName} replaces ${existingRecruit.n}!`, 1500);
-render();
-checkCombatEnd();
-});
-} else {
-// No existing recruit, just add
 const MAX_RECRUITS = 10;
+
+// Single candidate, no existing recruit — recruit directly
+if(candidates.length === 1 && !existingRecruit) {
+const enemy = candidates[0];
+const recruitName = getEnemyDisplayName(enemy);
+S.enemies = S.enemies.filter(e => e.id !== enemy.id);
 if(S.recruits.length < MAX_RECRUITS) {
 const recruit = {...enemy, recruitedBy: heroIdx, isRecruit: true, s: enemy.s.filter(s => s.perm || s.sig !== 'Attack')};
 S.recruits.push(recruit);
 toast(`${recruitName} recruited by ${hero.n}!`, 1500);
-// QUEST TRACKING: Recruits held
 trackQuestProgress('recruits', S.recruits.length);
 } else {
 toast(`Squad full! Cannot recruit ${recruitName}.`, 1500);
 }
 setTimeout(() => {
 render();
+finishD20Asterisk(heroIdx);
 checkCombatEnd();
 }, 300);
+return;
+}
+
+// Multiple candidates and/or existing recruit — show picker
+// Store candidates on S temporarily for the picker callback
+S.recruitPickerCandidates = candidates;
+S.recruitPickerHeroIdx = heroIdx;
+render();
+showRecruitPicker(heroIdx, candidates, existingRecruit, (chosenEnemy) => {
+const storedCandidates = S.recruitPickerCandidates || candidates;
+delete S.recruitPickerCandidates;
+delete S.recruitPickerHeroIdx;
+
+if(!chosenEnemy) {
+// Kept existing recruit (or chose nobody) — all candidates stay on battlefield
+toast(`Kept ${existingRecruit.n}. The others rejoin the fight!`, 1800);
+} else {
+// Remove chosen enemy from battlefield
+S.enemies = S.enemies.filter(e => e.id !== chosenEnemy.id);
+// Remove existing recruit if replacing
+if(existingRecruit) {
+S.recruits = S.recruits.filter(r => r.recruitedBy !== heroIdx);
+toast(`${getEnemyDisplayName(chosenEnemy)} replaces ${existingRecruit.n}!`, 1500);
+} else {
+toast(`${getEnemyDisplayName(chosenEnemy)} recruited by ${hero.n}!`, 1500);
+}
+if(S.recruits.length < MAX_RECRUITS) {
+const recruit = {...chosenEnemy, recruitedBy: heroIdx, isRecruit: true, s: chosenEnemy.s.filter(s => s.perm || s.sig !== 'Attack')};
+S.recruits.push(recruit);
+trackQuestProgress('recruits', S.recruits.length);
+} else {
+toast(`Squad full!`, 1500);
+}
+// Unchosen candidates remain on battlefield (they're still in S.enemies)
+const unchosen = storedCandidates.filter(e => e.id !== chosenEnemy.id);
+if(unchosen.length > 0) {
+const names = unchosen.map(e => getEnemyDisplayName(e)).join(', ');
+toast(`${names} decided to stay and fight!`, 1800);
 }
 }
+render();
+finishD20Asterisk(heroIdx);
+checkCombatEnd();
+});
 }
 
 function finishD20Asterisk(heroIdx) {

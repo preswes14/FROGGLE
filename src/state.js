@@ -855,29 +855,79 @@ console.error('[TUTORIAL] Callback error:', error);
 });
 }
 
-function showRecruitReplaceConfirm(oldName, newName, onKeep, onReplace) {
+// Show recruit picker — player chooses ONE enemy to recruit from candidates
+// If existingRecruit is non-null, includes option to keep current recruit
+// callback(chosenEnemy) — null if keeping existing, enemy object if picking new
+function showRecruitPicker(heroIdx, candidates, existingRecruit, callback) {
 const backdrop = document.createElement('div');
 backdrop.className = 'tutorial-modal-backdrop';
 backdrop.setAttribute('role', 'presentation');
+
+let title, desc;
+if(existingRecruit && candidates.length === 1) {
+title = 'Replace Recruit?';
+desc = `You already have <strong>${existingRecruit.n}</strong>. Replace with <strong>${candidates[0].n}</strong>?<br><span style="font-size:0.85rem;opacity:0.8">If you keep your current recruit, ${candidates[0].n} will rejoin the enemy team!</span>`;
+} else if(existingRecruit) {
+title = 'Choose Your Recruit';
+desc = `Multiple enemies are willing to join you, but you can only keep one! Your current recruit <strong>${existingRecruit.n}</strong> can also stay.<br><span style="font-size:0.85rem;opacity:0.8">Enemies you don't pick will rejoin the fight!</span>`;
+} else {
+title = 'Choose Your Recruit';
+desc = `Multiple enemies are willing to join you, but you can only recruit one!<br><span style="font-size:0.85rem;opacity:0.8">Enemies you don't pick will rejoin the fight!</span>`;
+}
+
+let buttonsHtml = '';
+
+// Option to keep existing recruit (if any)
+if(existingRecruit) {
+buttonsHtml += `<button onclick="confirmRecruitPick(-1)" style="background:#6b7280;padding:0.6rem 1rem;border:2px solid #9ca3af;border-radius:8px;color:white;font-weight:bold;cursor:pointer;width:100%">Keep ${existingRecruit.n}</button>`;
+}
+
+// One button per candidate
+candidates.forEach((enemy, idx) => {
+const enemyName = enemy.n;
+const statsText = `POW ${enemy.p} / HP ${enemy.h}/${enemy.m}`;
+buttonsHtml += `<button onclick="confirmRecruitPick(${idx})" style="background:#16a34a;padding:0.6rem 1rem;border:2px solid #22c55e;border-radius:8px;color:white;font-weight:bold;cursor:pointer;width:100%">Recruit ${enemyName}<br><span style="font-size:0.8rem;font-weight:normal;opacity:0.9">${statsText}</span></button>`;
+});
+
 backdrop.innerHTML = `
-<div class="tutorial-modal" role="alertdialog" aria-modal="true" aria-label="Replace recruit">
-<h2>Replace Recruit?</h2>
-<p>You already have <strong>${oldName}</strong>. Replace with <strong>${newName}</strong>?</p>
-<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:1rem">
-<button onclick="confirmRecruitReplace(false)" style="background:#6b7280;padding:0.5rem 1rem;border:2px solid #9ca3af;border-radius:8px;color:white;font-weight:bold;cursor:pointer">Keep ${oldName}</button>
-<button onclick="confirmRecruitReplace(true)" style="background:#16a34a;padding:0.5rem 1rem;border:2px solid #22c55e;border-radius:8px;color:white;font-weight:bold;cursor:pointer">Replace with ${newName}</button>
+<div class="tutorial-modal" role="alertdialog" aria-modal="true" aria-label="Choose recruit">
+<h2>${title}</h2>
+<p>${desc}</p>
+<div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:1rem">
+${buttonsHtml}
 </div>
 </div>`;
 document.body.appendChild(backdrop);
-window.recruitReplaceCallback = { onKeep, onReplace };
+window.recruitPickerCallback = callback;
+window.recruitPickerCandidates = candidates;
+}
+
+function confirmRecruitPick(idx) {
+const callback = window.recruitPickerCallback;
+const candidates = window.recruitPickerCandidates;
+document.querySelectorAll('.tutorial-modal-backdrop').forEach(b => b.remove());
+window.recruitPickerCallback = null;
+window.recruitPickerCandidates = null;
+if(!callback) return;
+if(idx === -1) {
+// Keep existing recruit
+callback(null);
+} else {
+callback(candidates[idx]);
+}
+}
+
+// Legacy wrapper — still used by neutrals.js Encampment encounter
+function showRecruitReplaceConfirm(oldName, newName, onKeep, onReplace) {
+showRecruitPicker(0, [{n: newName}], {n: oldName}, (chosen) => {
+if(chosen) onReplace();
+else onKeep();
+});
 }
 
 function confirmRecruitReplace(replace) {
-const callbacks = window.recruitReplaceCallback;
-document.querySelectorAll('.tutorial-modal-backdrop').forEach(b => b.remove());
-window.recruitReplaceCallback = null;
-if(replace && callbacks && callbacks.onReplace) callbacks.onReplace();
-else if(!replace && callbacks && callbacks.onKeep) callbacks.onKeep();
+// Legacy — redirect to new picker system
+confirmRecruitPick(replace ? 0 : -1);
 }
 
 // Placeholder declarations — overridden by slot-based versions below (line ~1270).
