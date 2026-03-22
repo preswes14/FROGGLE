@@ -512,8 +512,8 @@ let html = `
   pointer-events: none;
   z-index: 0;
   animation: reaper-glow 3s ease-in-out infinite;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 90%, transparent 100%);
 }
 .ds-card {
   background: rgba(15,15,35,0.85);
