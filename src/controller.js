@@ -593,7 +593,7 @@ const GamepadController = {
     if (ctx === 'combat' || ctx === 'targeting') {
       this.cycleSigil('prev');
     } else {
-      this.handleDirection('left');
+      this.scrollPage('up');
     }
   },
 
@@ -604,7 +604,7 @@ const GamepadController = {
     if (ctx === 'combat' || ctx === 'targeting') {
       this.cycleSigil('next');
     } else {
-      this.handleDirection('right');
+      this.scrollPage('down');
     }
   },
 

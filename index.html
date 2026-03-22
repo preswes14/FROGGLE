@@ -2997,7 +2997,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_1.99';
+const GAME_VERSION = 'S_2.00';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -18977,7 +18977,7 @@ const GamepadController = {
     if (ctx === 'combat' || ctx === 'targeting') {
       this.cycleSigil('prev');
     } else {
-      this.handleDirection('left');
+      this.scrollPage('up');
     }
   },
 
@@ -18988,7 +18988,7 @@ const GamepadController = {
     if (ctx === 'combat' || ctx === 'targeting') {
       this.cycleSigil('next');
     } else {
-      this.handleDirection('right');
+      this.scrollPage('down');
     }
   },
 
