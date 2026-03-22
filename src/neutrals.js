@@ -1396,7 +1396,7 @@ const slides = [
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/tapo_normal.png', bgStyle: 'animation: spinTapo 1s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
+{bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; animation: spinTapo 4s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
 html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong></div>`,
 onShow: () => { GameMusic.play(null, 'combat_19'); }},
 {text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!",

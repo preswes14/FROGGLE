@@ -765,7 +765,7 @@ if(!tutorialState || S.floor !== 0) return;
 const {action, hero, round} = context;
 
 // Stage transitions based on completed actions
-if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && tutorialState.wolfDamaged && hero === 'Warrior' && round === 1) {
+if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
 showTutorialPop('ribbleton_healer_d20', "Healer doesn't start with the Attack Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's D20!", () => {
 S.activeIdx = 1;
