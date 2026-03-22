@@ -335,7 +335,7 @@ v2.innerHTML = `
 <style>
 @keyframes death-quote-shrink {
   0% { font-size: 1.6rem; opacity: 1; transform: translateY(0); }
-  100% { font-size: 1rem; opacity: 0.85; transform: translateY(0); }
+  100% { font-size: 0.85rem; opacity: 0.85; transform: translateY(0); }
 }
 </style>
 <div id="deathQuoteIntro" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);display:flex;align-items:center;justify-content:center;z-index:999;padding:2rem">
@@ -369,20 +369,117 @@ renderDeathShop(deathQuote, nextRateIncrease, coreSigils, advancedSigils, passiv
 function renderDeathShop(deathQuote, nextRateIncrease, coreSigils, advancedSigils, passiveSigils, allSigils) {
 const v = document.getElementById('gameView');
 
+// Sanity check: if goingRate is very low but sigUpgradeCounts is high, something is wrong
+const allSigs = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const totalUpgradeCounts = allSigs.reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
+const calculateExpectedGoingRate = (n) => {
+  if(n <= 0) return 1;
+  const fullTiers = Math.floor(n / 5);
+  const partial = n % 5;
+  const fullTierSum = 25 * fullTiers * (fullTiers + 1) / 2;
+  const partialSum = partial * 5 * (fullTiers + 1);
+  return 1 + fullTierSum + partialSum;
+};
+const expectedMinGoingRate = calculateExpectedGoingRate(totalUpgradeCounts);
+if (S.goingRate < expectedMinGoingRate && totalUpgradeCounts > 0) {
+  console.warn('[DEATH SCREEN] sigUpgradeCounts out of sync with goingRate. Resetting sigUpgradeCounts.');
+  allSigs.forEach(sig => S.sigUpgradeCounts[sig] = 0);
+  savePermanent();
+  toast('Fixed corrupted upgrade data', 1500);
+}
+
+// Helper function to render sigil upgrade cards (compact for 3-col layout)
+const renderSigilCards = (sigils) => {
+let cards = '';
+sigils.forEach(sig => {
+const permLevel = S.sig[sig] || 0;
+const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
+const isActive = actives.includes(sig);
+const currentLevel = isActive ? permLevel + 1 : permLevel;
+const nextLevel = currentLevel + 1;
+const maxLevel = 4;
+
+if(permLevel >= maxLevel) {
+const colors = ['#94a3b8', '#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
+const maxColor = colors[Math.min(currentLevel, colors.length - 1)];
+cards += `
+<div class="ds-card" style="border-color:${maxColor};box-shadow:0 0 10px rgba(255,0,128,0.3);background:#1a1a2e">
+<div style="font-size:1.1rem;margin-bottom:0.3rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
+<div style="font-size:0.95rem;font-weight:bold;margin-bottom:0.3rem"><span style="color:${maxColor}">L${currentLevel}</span></div>
+<div style="font-size:0.75rem;color:${maxColor};font-weight:bold;text-transform:uppercase;letter-spacing:1px">SOLD OUT</div>
+</div>`;
+return;
+}
+
+const upgradeCount = S.sigUpgradeCounts[sig] || 0;
+const escalationTable = [0, 25, 50, 100, 150];
+const cappedCount = Math.min(upgradeCount, escalationTable.length - 1);
+const cost = S.goingRate + escalationTable[cappedCount];
+const canAfford = S.gold >= cost;
+const colors = ['#94a3b8', '#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
+const colorClass = colors[currentLevel] || '#94a3b8';
+const nextColorClass = colors[nextLevel] || '#ff0080';
+
+cards += `
+<div class="ds-card" style="border-color:${nextColorClass}">
+<div style="font-size:1.1rem;margin-bottom:0.3rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
+<div style="font-size:0.95rem;font-weight:bold;margin-bottom:0.3rem">
+<span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
+</div>
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.35rem 0.5rem;font-size:0.8rem;width:100%;${canAfford ? `border-color:${nextColorClass}` : ''}">
+${canAfford ? 'Purchase' : 'Too Expensive'}
+</button>
+</div>`;
+});
+return cards;
+};
+
+// Locked category render helper
+const renderLockedCategory = (name, sigilNames, color, cost, categoryKey) => {
+const canAfford = S.gold >= cost;
+return `
+<div class="ds-locked" style="border-color:${color};box-shadow:0 0 15px ${color}30">
+<div style="font-size:2rem;margin-bottom:0.5rem;opacity:0.4">⛓</div>
+<p style="color:${color};font-weight:bold;font-size:0.9rem;margin-bottom:0.3rem">${sigilNames}</p>
+<p style="color:#888;font-size:0.75rem;margin-bottom:0.75rem;font-style:italic">${name}</p>
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="unlockSigilCategory('${categoryKey}')" style="padding:0.5rem 1rem;font-size:0.85rem;${canAfford ? `background:linear-gradient(135deg,${color},${color}cc);border-color:${color};color:#fff` : ''}">
+${canAfford ? `UNLOCK - ${cost}G` : `Need ${cost}G`}
+</button>
+</div>`;
+};
+
+// Death Boys top-left cell content
+let deathBoysCell = '';
+if(S.ghostBoysConverted) {
+deathBoysCell = `
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:0.5rem">
+<h3 style="color:#a855f7;font-size:0.95rem;margin:0">The Death Boys</h3>
+<p style="font-size:0.7rem;font-style:italic;opacity:0.7;margin:0;text-align:center">"We work for Death now!"</p>
+<div style="display:flex;gap:0.5rem;margin-top:0.25rem">
+<button class="btn" onclick="showDeathBoyModal('sell')" style="padding:0.4rem 0.75rem;font-size:0.8rem;background:rgba(34,197,94,0.15);border:2px solid rgba(34,197,94,0.5);color:#22c55e">Sell Back</button>
+<button class="btn" onclick="showDeathBoyModal('sacrifice')" style="padding:0.4rem 0.75rem;font-size:0.8rem;background:rgba(168,85,247,0.15);border:2px solid rgba(168,85,247,0.5);color:#a855f7">Sacrifice</button>
+</div>
+</div>`;
+}
+
+// Going Rates top-right cell content
+const goingRatesCell = `
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%">
+<p style="font-size:1.1rem;margin:0 0 0.25rem 0">Gold: <strong style="color:#fbbf24">${S.gold}</strong></p>
+<p style="font-size:0.95rem;margin:0 0 0.4rem 0;font-weight:bold;color:#dc2626">Going Rates</p>
+<div style="display:flex;flex-direction:column;gap:0.15rem;align-items:center">
+${[
+  { label: '→L2', color: '#c0c0c0', esc: 0 },
+  { label: '→L3', color: '#06b6d4', esc: 25 },
+  { label: '→L4', color: '#9333ea', esc: 50 },
+  { label: '→L5', color: '#d97706', esc: 100 }
+].map(t => `<span style="color:${t.color};font-weight:bold;font-size:0.85rem;text-shadow:0 0 6px ${t.color}40"><span style="font-size:0.75rem">${t.label}</span> ${S.goingRate + t.esc}G</span>`).join('')}
+</div>
+<p style="font-size:0.65rem;margin:0.3rem 0 0 0;color:#a89cc8;font-style:italic">+${nextRateIncrease}G per upgrade</p>
+</div>`;
+
 let html = `
 <style>
-@keyframes marquee-flash {
-  0%, 100% { border-color: #dc2626; box-shadow: 0 0 10px rgba(220,38,38,0.8), 0 0 20px rgba(220,38,38,0.5); }
-  50% { border-color: #fbbf24; box-shadow: 0 0 15px rgba(251,191,36,0.9), 0 0 30px rgba(251,191,36,0.6); }
-}
-.going-rate-marquee {
-  animation: marquee-flash 1.5s ease-in-out infinite;
-  border: 4px solid #dc2626;
-  padding: 1.5rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(220,38,38,0.15), rgba(251,191,36,0.1));
-  margin: 1.5rem 0;
-}
 @keyframes death-star-twinkle {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }
@@ -396,184 +493,136 @@ let html = `
   animation-delay: var(--twinkle-delay, 0s);
 }
 @keyframes reaper-glow {
-  0%, 100% { box-shadow: 0 0 30px rgba(220,38,38,0.6), 0 0 60px rgba(220,38,38,0.3); }
-  50% { box-shadow: 0 0 40px rgba(220,38,38,0.8), 0 0 80px rgba(220,38,38,0.4), 0 0 120px rgba(168,85,247,0.2); }
+  0%, 100% { box-shadow: 0 0 20px rgba(220,38,38,0.6), 0 0 40px rgba(220,38,38,0.3); }
+  50% { box-shadow: 0 0 30px rgba(220,38,38,0.8), 0 0 60px rgba(220,38,38,0.4), 0 0 90px rgba(168,85,247,0.2); }
 }
 @keyframes death-quote-shrink {
   0% { font-size: 1.6rem; opacity: 1; }
-  100% { font-size: 1rem; opacity: 0.85; }
+  100% { font-size: 0.85rem; opacity: 0.85; }
+}
+.ds-card {
+  background: rgba(15,15,35,0.8);
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 2px solid;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  text-align: center;
+}
+.ds-locked {
+  background: #1a1a2e;
+  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  border: 3px solid;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+.ds-top-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+.ds-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+.ds-sigil-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+@media (max-width: 700px) {
+  .ds-top-row {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .ds-top-row > div:first-child { order: 2; }
+  .ds-top-row > div:nth-child(2) { order: 1; }
+  .ds-top-row > div:last-child { order: 3; }
+  .ds-main-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
-<div class="death-screen-container" style="position:relative;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);padding:2rem;border-radius:12px;max-width:900px;margin:0 auto;color:#e8e0f0;box-shadow:0 4px 24px rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.3)">
+<div class="death-screen-container" style="position:relative;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);padding:1.25rem;border-radius:12px;max-width:960px;margin:0 auto;color:#e8e0f0;box-shadow:0 4px 24px rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.3)">
 <div class="death-stars" id="deathStars"></div>
 <div style="position:relative;z-index:1">
-<div style="text-align:center;margin-bottom:1.5rem">
-<img src="assets/reaper.png" alt="Death" style="max-width:280px;height:auto;margin:0 auto;display:block;border-radius:12px;border:3px solid #dc2626;animation:reaper-glow 3s ease-in-out infinite">
+
+<!-- TOP ROW: Death Boys | Death Image | Going Rates -->
+<div class="ds-top-row">
+<div>${deathBoysCell}</div>
+<div style="text-align:center">
+<img src="assets/reaper.png" alt="Death" style="max-width:170px;height:auto;display:block;margin:0 auto;border-radius:12px;border:3px solid #dc2626;animation:reaper-glow 3s ease-in-out infinite">
+<h1 style="margin:0.4rem 0 0 0;font-size:1.5rem;color:#dc2626;text-shadow:0 0 15px rgba(220,38,38,0.5)">DEATH'S SHOP</h1>
 </div>
-<h1 style="text-align:center;margin-bottom:0.5rem;font-size:2.2rem;color:#dc2626;text-shadow:0 0 20px rgba(220,38,38,0.5)">DEATH'S SHOP</h1>
-${deathQuote ? `<p id="deathQuoteInline" style="text-align:center;margin-bottom:1rem;font-size:1rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p>` : ''}
-<div class="going-rate-marquee">
-<p style="text-align:center;font-size:1.3rem;margin:0">Gold: <strong style="color:#fbbf24">${S.gold}</strong></p>
-<p style="text-align:center;font-size:1.2rem;margin:0.75rem 0 0.5rem 0;font-weight:bold;color:#dc2626">Going Rates</p>
-<div style="display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap">
-${[
-  { label: '→L2', color: '#c0c0c0', esc: 0 },
-  { label: '→L3', color: '#06b6d4', esc: 25 },
-  { label: '→L4', color: '#9333ea', esc: 50 },
-  { label: '→L5', color: '#d97706', esc: 100 }
-].map(t => `<span style="color:${t.color};font-weight:bold;font-size:1rem;text-shadow:0 0 6px ${t.color}40"><span style="font-size:0.8rem">${t.label}</span> ${S.goingRate + t.esc}G</span>`).join('')}
+<div>${goingRatesCell}</div>
 </div>
-<p style="text-align:center;font-size:0.8rem;margin:0.5rem 0 0 0;color:#a89cc8;font-style:italic">+${nextRateIncrease}G all prices per upgrade</p>
-</div>`;
+
+<!-- SUBTITLE BAR: Death's quote -->
+${deathQuote ? `<div style="text-align:center;margin-bottom:0.75rem;padding:0.4rem 1rem;background:rgba(0,0,0,0.3);border-radius:8px"><p id="deathQuoteInline" style="margin:0;font-size:0.85rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p></div>` : ''}`;
 
 if(S.gold === 0) {
-html += `<p style="text-align:center;margin:2rem 0;font-size:1.2rem;color:#f87171;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
+html += `<p style="text-align:center;margin:2rem 0;font-size:1.1rem;color:#f87171;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
 } else {
-html += `<h3 style="margin-bottom:1rem;text-align:center;font-size:1.3rem;color:#e8e0f0">Upgrade Sigilarium:</h3>`;
 
-// Sanity check: if goingRate is very low but sigUpgradeCounts is high, something is wrong
-// This can happen if save data gets corrupted or from old migration issues
-const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
-const totalUpgradeCounts = allSigils.reduce((sum, sig) => sum + (S.sigUpgradeCounts[sig] || 0), 0);
-// Calculate expected going rate with tiered formula: first 5 upgrades +5 each, next 5 +10 each, etc.
-const calculateExpectedGoingRate = (n) => {
-  if(n <= 0) return 1;
-  const fullTiers = Math.floor(n / 5);
-  const partial = n % 5;
-  // Sum of full tiers: each tier i (0-indexed) adds 5*(i+1)*5 = 25*(i+1)
-  // Sum = 25 * (1+2+...+fullTiers) = 25 * fullTiers * (fullTiers+1) / 2
-  const fullTierSum = 25 * fullTiers * (fullTiers + 1) / 2;
-  // Partial tier adds: partial * 5 * (fullTiers+1)
-  const partialSum = partial * 5 * (fullTiers + 1);
-  return 1 + fullTierSum + partialSum;
-};
-const expectedMinGoingRate = calculateExpectedGoingRate(totalUpgradeCounts);
-if (S.goingRate < expectedMinGoingRate && totalUpgradeCounts > 0) {
-  console.warn('[DEATH SCREEN] sigUpgradeCounts out of sync with goingRate. Resetting sigUpgradeCounts.');
-  console.warn('  goingRate:', S.goingRate, 'totalUpgradeCounts:', totalUpgradeCounts, 'expectedMin:', expectedMinGoingRate);
-  // Reset sigUpgradeCounts to match what goingRate implies
-  allSigils.forEach(sig => S.sigUpgradeCounts[sig] = 0);
-  savePermanent();
-  toast('Fixed corrupted upgrade data', 1500);
-}
+// MAIN 3-COLUMN GRID: Core | Advanced | Passive
+html += `<div class="ds-main-grid">`;
 
-// Helper function to render sigil upgrade cards
-const renderSigilCards = (sigils) => {
-let cards = '';
-sigils.forEach(sig => {
-const permLevel = S.sig[sig] || 0;
-// Actives show their effective level (perm + 1 for display)
-const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
-const isActive = actives.includes(sig);
-const currentLevel = isActive ? permLevel + 1 : permLevel;
-const nextLevel = currentLevel + 1;
-const maxLevel = 4; // All sigils max at perm 4 (Expand can reach effective L5 for Mage/Healer via built-in +1)
-
-// Show SOLD OUT card for maxed sigils instead of hiding
-if(permLevel >= maxLevel) {
-const colors = ['#94a3b8', '#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
-const maxColor = colors[Math.min(currentLevel, colors.length - 1)];
-cards += `
-<div class="death-screen-sigil-card" style="background:#1a1a2e;padding:1rem;border-radius:8px;border:2px solid ${maxColor};box-shadow:0 0 12px rgba(255,0,128,0.3)">
-<div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.1rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
-<div style="font-size:1.2rem;margin-bottom:0.75rem;font-weight:bold">
-<span style="color:${maxColor}">L${currentLevel}</span>
-</div>
-<div style="font-size:1rem;color:${maxColor};font-weight:bold;text-transform:uppercase;letter-spacing:1px">SOLD OUT</div>
-</div>`;
-return;
-}
-
-const upgradeCount = S.sigUpgradeCounts[sig] || 0;
-const baseCost = S.goingRate;
-const escalationTable = [0, 25, 50, 100, 150];
-// Cap upgradeCount to valid table index to prevent undefined escalation
-const cappedCount = Math.min(upgradeCount, escalationTable.length - 1);
-const escalation = escalationTable[cappedCount];
-const cost = baseCost + escalation;
-
-const canAfford = S.gold >= cost;
-const colors = ['#94a3b8', '#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
-const colorClass = colors[currentLevel] || '#94a3b8';
-const nextColorClass = colors[nextLevel] || '#ff0080';
-// Use color-coded borders based on next level (matches Going Rates legend)
-const borderColor = nextColorClass;
-cards += `
-<div class="death-screen-sigil-card" style="background:rgba(15,15,35,0.8);padding:1rem;border-radius:8px;border:2px solid ${borderColor};box-shadow:0 2px 8px rgba(0,0,0,0.3)">
-<div style="font-weight:bold;margin-bottom:0.75rem;font-size:1.3rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
-<div style="font-size:1.1rem;margin-bottom:0.75rem;font-weight:bold">
-<span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
-</div>
-<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="purchaseSigilUpgrade('${sig}', ${cost})" style="padding:0.6rem 1rem;font-size:1rem;width:100%;${canAfford ? `border-color:${nextColorClass}` : ''}">
-${canAfford ? 'Purchase' : 'Too Expensive'}
-</button>
-</div>`;
-});
-return cards;
-};
-
-// Core Sigils
-html += `<h4 style="color:#2c63c7;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Core Sigils</h4>`;
-html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+// Column 1: Core Sigils (2x2)
+html += `<div>
+<h4 style="color:#2c63c7;margin:0 0 0.5rem 0;text-align:center;font-size:1rem">Core Sigils</h4>
+<div class="ds-sigil-grid">`;
 html += renderSigilCards(coreSigils);
-html += `</div>`;
+html += `</div></div>`;
 
-// Advanced Sigils
-html += `<h4 style="color:#f97316;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Advanced Sigils</h4>`;
+// Column 2: Advanced Sigils
+html += `<div>
+<h4 style="color:#f97316;margin:0 0 0.5rem 0;text-align:center;font-size:1rem">Advanced Sigils</h4>`;
 if(S.advancedSigilsUnlocked) {
-html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(advancedSigils);
 html += `</div>`;
 } else {
-const canAffordAdvanced = S.gold >= 20;
-html += `
-<div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #f97316;box-shadow:0 0 20px rgba(249,115,22,0.3);text-align:center">
-<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">⊘ LOCKED</div>
-<p style="color:#f97316;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Ghost • Alpha • Grapple</p>
-<p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock advanced combat techniques</p>
-<button class="btn" ${!canAffordAdvanced ? 'disabled' : ''} onclick="unlockSigilCategory('advanced')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordAdvanced ? 'background:linear-gradient(135deg,#f97316,#ea580c);border-color:#f97316;color:#fff' : ''}">
-${canAffordAdvanced ? 'UNLOCK - 20G' : 'Need 20G to Unlock'}
-</button>
-</div>`;
+html += renderLockedCategory('Unlock advanced combat techniques', 'Ghost • Alpha • Grapple', '#f97316', 20, 'advanced');
 }
+html += `</div>`;
 
-// Passive Sigils
-html += `<h4 style="color:#9333ea;margin:1rem 0 0.5rem 0;text-align:center;font-size:1.1rem">Passive Sigils</h4>`;
+// Column 3: Passive Sigils + Continue button
+html += `<div>
+<h4 style="color:#9333ea;margin:0 0 0.5rem 0;text-align:center;font-size:1rem">Passive Sigils</h4>`;
 if(S.passiveSigilsUnlocked) {
-html += `<div class="death-screen-sigil-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto">`;
+html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(passiveSigils);
 html += `</div>`;
 } else {
-const canAffordPassive = S.gold >= 50;
-html += `
-<div style="background:#1a1a2e;padding:2rem;border-radius:12px;margin-bottom:1.5rem;max-width:850px;margin-left:auto;margin-right:auto;border:3px solid #9333ea;box-shadow:0 0 20px rgba(147,51,234,0.3);text-align:center">
-<div style="font-size:1.2rem;font-weight:bold;margin-bottom:1rem;color:#888">⊘ LOCKED</div>
-<p style="color:#9333ea;font-weight:bold;font-size:1.1rem;margin-bottom:0.5rem">Expand • Asterisk • Star</p>
-<p style="color:#888;font-size:0.9rem;margin-bottom:1rem;font-style:italic">Unlock passive enhancements</p>
-<button class="btn" ${!canAffordPassive ? 'disabled' : ''} onclick="unlockSigilCategory('passive')" style="padding:0.75rem 1.5rem;font-size:1rem;${canAffordPassive ? 'background:linear-gradient(135deg,#9333ea,#7c3aed);border-color:#9333ea;color:#fff' : ''}">
-${canAffordPassive ? 'UNLOCK - 50G' : 'Need 50G to Unlock'}
-</button>
-</div>`;
+html += renderLockedCategory('Unlock passive enhancements', 'Expand • Asterisk • Star', '#9333ea', 50, 'passive');
 }
+// Continue button tucked into bottom of rightmost column
+html += `
+<div style="margin-top:1rem;text-align:center">
+<button class="btn danger" onclick="restartAfterDeath()" style="font-size:1rem;padding:0.6rem 1.5rem;width:100%">Return to Ribbleton</button>
+</div>`;
+html += `</div>`;
+
+html += `</div>`; // close ds-main-grid
 }
 
-// Death Boys (only if Ghost Boys converted)
-if(S.ghostBoysConverted) {
+// No gold fallback still gets Continue button
+if(S.gold === 0) {
 html += `
-<div style="border-top:2px solid rgba(255,255,255,0.2);padding-top:1.5rem;margin-top:2rem">
-<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.5rem;color:#a855f7">The Death Boys</h2>
-<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem;font-style:italic;opacity:0.8">"We work for Death now! It's WAY cooler than being ghosts!"</p>
-<div style="display:flex;justify-content:center;gap:1.5rem;margin-bottom:1.5rem">
-<button class="btn" onclick="showDeathBoyModal('sell')" style="padding:0.75rem 1.5rem;font-size:1rem;background:rgba(34,197,94,0.15);border:2px solid rgba(34,197,94,0.5);color:#22c55e">Sell Back</button>
-<button class="btn" onclick="showDeathBoyModal('sacrifice')" style="padding:0.75rem 1.5rem;font-size:1rem;background:rgba(168,85,247,0.15);border:2px solid rgba(168,85,247,0.5);color:#a855f7">Sacrifice</button>
-</div>
+<div style="text-align:center;margin-top:1.5rem">
+<button class="btn danger" onclick="restartAfterDeath()" style="font-size:1rem;padding:0.6rem 1.5rem">Return to Ribbleton</button>
 </div>`;
 }
 
 html += `
-<div style="text-align:center;margin-top:2rem">
-<button class="btn danger" onclick="restartAfterDeath()" style="font-size:1.2rem;padding:1rem 2rem">Return to Ribbleton</button>
-</div>
 </div>
 </div>`;
 
