@@ -14,6 +14,7 @@ currentSlot: null,
 gold: 0,
 xp: 0,
 levelUpCount: 0,
+runUpgradeHistory: [], // Tracks XP purchases during current run for Pond display
 goingRate: 1,
 runsAttempted: 0,
 startingXP: 0,
@@ -1290,6 +1291,7 @@ const r = JSON.parse(runData);
 S.floor = r.f;
 S.xp = r.x;
 S.levelUpCount = r.luc || 0;
+S.runUpgradeHistory = r.ruh || [];
 S.heroes = r.h;
 S.neutralDeck = r.neutralDeck || [];
 S.lastNeutral = r.lastNeutral || null;
@@ -1420,7 +1422,7 @@ localStorage.setItem('froggle8_current_slot', '1');
 }
 try {
 localStorage.setItem(`froggle8_slot${S.currentSlot}`, JSON.stringify({
-f:S.floor, x:S.xp, luc:S.levelUpCount,
+f:S.floor, x:S.xp, luc:S.levelUpCount, ruh:S.runUpgradeHistory||[],
 h:S.heroes,
 neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
