@@ -435,25 +435,35 @@ if(el) el.classList.remove('hit-flash');
 }
 }
 
+// Get floor-scaled attack slide duration: F1=480ms, F3=460ms, F5=440ms... F19=300ms
+function getAttackSlideDuration() {
+  const floor = (typeof S !== 'undefined' && S.floor) ? S.floor : 1;
+  return Math.max(300, 480 - Math.floor(floor / 2) * 20);
+}
+
 function triggerAttackAnimation(attackerId) {
 const card = document.getElementById(attackerId);
 if(card) {
+const dur = getAttackSlideDuration();
+card.style.animationDuration = (dur / 1000) + 's';
 card.classList.add('attack-slide');
 setTimeout(() => {
 const el = document.getElementById(attackerId);
-if(el) el.classList.remove('attack-slide');
-}, T(ANIMATION_TIMINGS.ATTACK_SLIDE));
+if(el) { el.classList.remove('attack-slide'); el.style.animationDuration = ''; }
+}, T(dur));
 }
 }
 
 function triggerEnemyAttackAnimation(attackerId) {
 const card = document.getElementById(attackerId);
 if(card) {
+const dur = getAttackSlideDuration();
+card.style.animationDuration = (dur / 1000) + 's';
 card.classList.add('enemy-attack-slide');
 setTimeout(() => {
 const el = document.getElementById(attackerId);
-if(el) el.classList.remove('enemy-attack-slide');
-}, T(ANIMATION_TIMINGS.ATTACK_SLIDE));
+if(el) { el.classList.remove('enemy-attack-slide'); el.style.animationDuration = ''; }
+}, T(dur));
 }
 }
 
