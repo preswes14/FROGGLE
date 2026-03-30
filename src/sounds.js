@@ -775,6 +775,77 @@ const SoundFX = {
           o.stop(now + i * 0.1 + 0.2);
         });
         break;
+
+      case 'levelupFanfare':
+        // Distinct level-up fanfare - triumphant 4-note arpeggio with harmonics
+        [523, 659, 784, 1047].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.12);
+          g.gain.setValueAtTime(this.volume * 0.6, now + i * 0.12);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.25);
+          o.type = 'triangle';
+          o.start(now + i * 0.12);
+          o.stop(now + i * 0.12 + 0.25);
+          // Add harmonic overtone
+          const h = this.ctx.createOscillator();
+          const hg = this.ctx.createGain();
+          h.connect(hg);
+          hg.connect(this.ctx.destination);
+          h.frequency.setValueAtTime(freq * 2, now + i * 0.12);
+          hg.gain.setValueAtTime(this.volume * 0.2, now + i * 0.12);
+          hg.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.2);
+          h.type = 'sine';
+          h.start(now + i * 0.12);
+          h.stop(now + i * 0.12 + 0.2);
+        });
+        break;
+
+      case 'questComplete':
+        // Achievement chime - bright ascending sparkle, distinct from coinDrop
+        [1200, 1500, 1800, 2200].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.06);
+          g.gain.setValueAtTime(this.volume * 0.45, now + i * 0.06);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.06 + 0.2);
+          o.type = 'sine';
+          o.start(now + i * 0.06);
+          o.stop(now + i * 0.06 + 0.2);
+        });
+        break;
+
+      case 'gameOverCeremony':
+        // Dramatic descending tone with reverb - sense of finality
+        [600, 500, 400, 300].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.2);
+          o.frequency.exponentialRampToValueAtTime(freq * 0.7, now + i * 0.2 + 0.3);
+          g.gain.setValueAtTime(this.volume * 0.5, now + i * 0.2);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.2 + 0.4);
+          o.type = 'sawtooth';
+          o.start(now + i * 0.2);
+          o.stop(now + i * 0.2 + 0.4);
+        });
+        break;
+
+      case 'enemyCharge':
+        // Low rumbling build-up before enemy attack
+        osc.frequency.setValueAtTime(80, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.25);
+        gain.gain.setValueAtTime(this.volume * 0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.3);
+        break;
     }
   }
 };

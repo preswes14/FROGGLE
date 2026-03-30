@@ -165,6 +165,7 @@ S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
+S.lastTargetPattern={}; // Remember targets: {heroIdx_sigil: [targetIds]} S.rememberedTargetsApplied=false;
 // Clear Alpha state from any previous combat
 S.alphaGrantedActions = []; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
@@ -478,9 +479,28 @@ S.instancesRemaining = level * repeats;
 S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
+S.rememberedTargetsApplied = false;
 // Shield persistence tutorial: show first time player clicks Shield
 if(sig === 'Shield') {
 showTutorialPop('shield_persistence', "Shields cap at max HP, but persist between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!");
+}
+// Apply remembered targets from last time (pre-fill as suggestion, don't auto-confirm)
+const patternKey = heroIdx + '_' + sig;
+const remembered = S.lastTargetPattern[patternKey];
+if(remembered && remembered.length > 0) {
+const tpi = getTargetsPerInstance(sig, heroIdx);
+const isEnemy = needsEnemyTarget(sig);
+const validTargets = remembered.filter(id => {
+  if(isEnemy) return S.enemies.some(e => e.id === id && e.h > 0);
+  return S.heroes.some(h => h.id === id && (h.h > 0 || h.ls));
+}).slice(0, tpi);
+if(validTargets.length > 0) {
+  validTargets.forEach(id => {
+    S.targets.push(id);
+    S.currentInstanceTargets.push(id);
+  });
+  S.rememberedTargetsApplied = true;
+}
 }
 render();
 // Auto-focus target for controller users
@@ -1006,6 +1026,29 @@ S.totalInstances = 0;
 render();
 }
 
+// Target All: auto-fill all target slots for current instance, sorted by lowest HP
+function targetAll() {
+if(S.locked || !S.pending) return;
+const heroIdx = S.activeIdx;
+const tpi = getTargetsPerInstance(S.pending, heroIdx);
+const needsEnemy = needsEnemyTarget(S.pending);
+const available = needsEnemy
+  ? S.enemies.filter(e => e.h > 0 && !S.currentInstanceTargets.includes(e.id))
+  : S.heroes.filter(h => (h.h > 0 || h.ls) && !S.currentInstanceTargets.includes(h.id));
+// Sort by lowest HP first
+available.sort((a, b) => a.h - b.h);
+const slotsToFill = tpi - (S.currentInstanceTargets ? S.currentInstanceTargets.length : 0);
+const toTarget = available.slice(0, slotsToFill);
+toTarget.forEach(t => {
+  S.targets.push(t.id);
+  S.currentInstanceTargets.push(t.id);
+});
+if(toTarget.length > 0) {
+  toast(`Auto-targeted ${toTarget.length} ${needsEnemy ? 'enem' + (toTarget.length === 1 ? 'y' : 'ies') : 'hero' + (toTarget.length === 1 ? '' : 'es')}!`, 1200);
+  confirmTargets();
+}
+}
+
 // Confirm and execute the currently selected targets
 function confirmTargets() {
 if(S.locked) return;
@@ -1030,6 +1073,10 @@ toast('Select at least one target first!');
 return;
 }
 const heroIdx = S.activeIdx;
+// Remember this targeting pattern for next time
+const patternKey = heroIdx + '_' + S.pending;
+S.lastTargetPattern[patternKey] = [...S.currentInstanceTargets];
+S.rememberedTargetsApplied = false;
 
 if(S.pending === 'Attack') {
 // SAFEGUARD: Make a copy of targets before clearing
@@ -1402,24 +1449,31 @@ debugLog('[TUTORIAL] Set wolfDamaged = true');
 }
 }
 });
-// Second pass: Trigger hit animations when attacker "lands" the hit
+// Second pass: Trigger hit animations when attacker "lands" the hit (with impact freeze)
+setTimeout(() => {
+// JUICE: Brief freeze-frame on impact for weight
 setTimeout(() => {
 damagedEnemyIds.forEach((id, idx) => {
 triggerHitAnimation(id);
+// JUICE: Knockback on hit
+triggerKnockback(id);
 // JUICE: Floating damage numbers
 const isBigHit = pow >= 5;
 showFloatingNumber(id, `-${pow}`, isBigHit ? 'critical' : 'damage', idx * 15);
 });
 
-// JUICE: Rapid-fire hit sounds (one per target, staggered)
+// JUICE: Rapid-fire hit sounds (one per target, staggered) + damage-scaled shake
 if(damagedEnemyIds.length > 0) {
 const sfx = pow >= 5 ? 'crit' : 'hit';
 damagedEnemyIds.forEach((_, i) => setTimeout(() => SoundFX.play(sfx), i * 80));
 // Show cumulative damage counter for this hero's turn
 showDamageCounter(S.turnDamage);
+// Damage-scaled screen shake
+triggerScreenShake(pow * damagedEnemyIds.length);
 // Show happy reaction when hero lands a hit
 setHeroReaction(h.id, 'happy', 1000);
 }
+}, T(ANIMATION_TIMINGS.IMPACT_FREEZE));
 }, T(ANIMATION_TIMINGS.ATTACK_IMPACT));
 // Third pass: Handle deaths and cleanup
 const deadEnemies = [];
@@ -1447,7 +1501,7 @@ if(e.n === 'Goblin') tutorialState.goblinKilled = true;
 // Remove dead enemies after short delay for knockout animation
 if(deadEnemies.length > 0) {
 SoundFX.play('croak'); // Froggy croak for enemy defeat
-triggerScreenShake(true); // Heavy shake on enemy defeat
+triggerKillShake(); // Extra-heavy shake on enemy defeat
 // Boss-kill callout for big enemies
 deadEnemies.forEach(e => {
 if(e.n === 'Dragon') toast('Dragon slain!', 2000, 'success');
@@ -1468,7 +1522,7 @@ checkCombatEnd();
 // FLYDRA: Check if all heads are now dying (victory condition)
 if(dyingFlydras.length > 0 && isFlydraDefeated()) {
 SoundFX.play('croak');
-triggerScreenShake(true);
+triggerKillShake();
 setTimeout(() => {
 S.enemies = S.enemies.filter(e => !e.isFlydra);
 render();
@@ -1625,7 +1679,7 @@ handleFlydraDeath(enemy);
 // Check if all Flydra heads are now dying
 if(isFlydraDefeated()) {
 SoundFX.play('croak');
-triggerScreenShake(true);
+triggerKillShake();
 setTimeout(() => {
 S.enemies = S.enemies.filter(e => !e.isFlydra);
 render();
@@ -1638,7 +1692,7 @@ render(); // Re-render to show flipped card
 // JUICE: Knockout animation and death sound
 triggerKnockout(enemy.id);
 SoundFX.play('death');
-triggerScreenShake(true); // Heavy shake on enemy defeat
+triggerKillShake(); // Extra-heavy shake on enemy defeat
 
 // RIBBLETON TUTORIAL: Track Wolf/Goblin/Fly kills
 if(tutorialState && S.floor === 0) {
@@ -2719,7 +2773,7 @@ html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top
 }
 // Show ghost/acted if any
 const lsExtra = [];
-if(h.g > 0) lsExtra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(h.g > 0) lsExtra.push(`${ghostBadges(h.g)}`);
 if(hasActed) lsExtra.push('✓');
 if(lsExtra.length > 0) html += `<div style="text-align:center;font-size:0.7rem;color:#f1f5f9">${lsExtra.join(' ')}</div>`;
 html += `</div>`;
@@ -2740,7 +2794,7 @@ if(h.sh > 0) cardClasses += ' has-shield';
 const isTargeted = S.targets.includes(h.id);
 if(isTargeted) cardClasses += ' targeted';
 const extra = [];
-if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(h.g > 0) extra.push(`${ghostBadges(h.g)}`);
 if(h.st > 0) extra.push(`STUN ${h.st}T`);
 // Show alpha-granted bonus turns remaining for this hero
 if(S.alphaGrantedActions && S.alphaGrantedActions.length > 0) {
@@ -2946,7 +3000,7 @@ return b.h - a.h;
 });
 const recruit = heroRecruits[0];
 const recruitExtra = [];
-if(recruit.g > 0) recruitExtra.push(`${recruit.g}${sigilIconOnly('Ghost')}`);
+if(recruit.g > 0) recruitExtra.push(`${ghostBadges(recruit.g)}`);
 if(recruit.st > 0) recruitExtra.push(`STUN ${recruit.st}T`);
 const recruitShieldClass = recruit.sh > 0 ? ' has-shield' : '';
 html += `<div id="${recruit.id}" class="card hero recruit${recruitShieldClass}">`;
@@ -3026,7 +3080,7 @@ if(selectCount > 0) cardClasses += ' targeted';
 if(e.sh > 0) cardClasses += ' has-shield';
 const extra = [];
 // Show ghost charges if enemy has them
-if(e.g > 0) extra.push(`${e.g}${sigilIconOnly('Ghost')}`);
+if(e.g > 0) extra.push(`${ghostBadges(e.g)}`);
 if(e.st > 0) extra.push(`STUN ${e.st}T`);
 if(selectCount > 0) extra.push(`×${selectCount}`);
 const enemyAriaLabel = `${getEnemyDisplayName(e)} - ${e.h}/${e.m} HP, ${e.p} Power${e.sh > 0 ? ', '+e.sh+' shield' : ''}${e.g > 0 ? ', '+e.g+' ghost' : ''}${e.st > 0 ? ', stunned '+e.st+' turns' : ''}`;
@@ -3135,8 +3189,8 @@ GamepadController.restoreFocusState();
 
 // ===== LEVEL UP =====
 function levelUp() {
-// JUICE: Level up sound + char select music
-SoundFX.play('levelup');
+// JUICE: Level up fanfare + char select music
+SoundFX.play('levelupFanfare');
 GameMusic.playScene('char_select');
 
 // Unlock blue portal after completing Floor 19 (combat before floor 20)
@@ -3197,7 +3251,7 @@ S.heroes.forEach((h, idx) => {
 const heroImage = getHeroImage(h);
 const extra = [];
 if(h.sh > 0) extra.push(`${h.sh}🛡`);
-if(h.g > 0) extra.push(`${h.g}${sigilIconOnly('Ghost')}`);
+if(h.g > 0) extra.push(`${ghostBadges(h.g)}`);
 if(h.st > 0) extra.push(`STUN ${h.st}T`);
 
 let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';

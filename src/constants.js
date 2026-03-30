@@ -392,7 +392,8 @@ return `${prefix}${enemy.n} ${suffix}`;
 
 // Helper for enemy attacks - handles targeting, damage, animations, and toast
 function executeEnemyAttackOnHeroes(enemy, targetCount, attackName = 'Base Attack') {
-// JUICE: Enemy attack slide animation (charges toward heroes)
+// JUICE: Enemy charge sound + attack slide animation
+SoundFX.play('enemyCharge');
 triggerEnemyAttackAnimation(enemy.id);
 
 const targets = selectEnemyTargets(enemy, targetCount);
@@ -414,7 +415,8 @@ targetDetails.push({name: target.n, hpBefore, hpAfter, shBefore, shAfter, shield
 }
 });
 
-// Trigger hit animations when enemy "lands" the hit
+// Trigger hit animations when enemy "lands" the hit (with impact freeze)
+setTimeout(() => {
 setTimeout(() => {
 damagedIds.forEach((id, idx) => {
 triggerHitAnimation(id);
@@ -426,12 +428,13 @@ const hero = S.heroes.find(h => h.id === id);
 if(hero) setHeroReaction(id, 'pained', hero.ls ? 0 : 600);
 });
 
-// JUICE: Rapid-fire hit sounds (one per target, staggered) + screen shake
+// JUICE: Rapid-fire hit sounds (one per target, staggered) + damage-scaled shake
 if(damagedIds.length > 0) {
 const sfx = dmg >= 5 ? 'enemyCrit' : 'enemyHit';
 damagedIds.forEach((_, i) => setTimeout(() => SoundFX.play(sfx), i * 80));
-triggerScreenShake(dmg >= 5); // Heavy shake for big hits
+triggerScreenShake(dmg * damagedIds.length);
 }
+}, ANIMATION_TIMINGS.IMPACT_FREEZE);
 }, ANIMATION_TIMINGS.ATTACK_IMPACT);
 
 if(targetDetails.length > 0) {
@@ -577,14 +580,48 @@ else html += `${h.n}'s Turn`;
 }
 html += '</div>';
 
-// Add action bar when we have targets selected - simplified for controller flow
-// D20_TARGET uses S.targets, other actions use S.currentInstanceTargets
-const hasTargetsForActionBar = S.pending === 'D20_TARGET'
-? (S.targets && S.targets.length > 0)
-: (S.currentInstanceTargets && S.currentInstanceTargets.length > 0);
-if(S.turn === 'player' && S.pending && hasTargetsForActionBar) {
-const targetArray = S.pending === 'D20_TARGET' ? S.targets : S.currentInstanceTargets;
+// Add action bar when we have a pending action - with Target All and Confirm buttons
+if(S.turn === 'player' && S.pending && S.pending !== 'D20_TARGET') {
+const targetArray = S.currentInstanceTargets || [];
 const targetCount = targetArray.length;
+
+// Show Target All button when in targeting mode for multi-target actions
+const isMultiTargetAction = ['Attack', 'Grapple', 'Shield', 'Heal'].includes(S.pending);
+if(isMultiTargetAction) {
+const needsEnemy = ['Attack', 'Grapple'].includes(S.pending);
+const available = needsEnemy
+  ? (S.enemies || []).filter(e => e.h > 0 && !(S.currentInstanceTargets || []).includes(e.id))
+  : (S.heroes || []).filter(h => h.h > 0 || h.ls);
+const heroIdx = S.activeIdx;
+const tpi = typeof getTargetsPerInstance === 'function' ? getTargetsPerInstance(S.pending, heroIdx) : 1;
+const slotsLeft = tpi - targetCount;
+const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
+
+html += '<div class="target-action-bar" style="display:flex;flex-direction:column;gap:0.25rem;align-items:center;margin-top:0.5rem">';
+if(targetCount > 0) {
+  const targetNames = targetArray.map(t => {
+    const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
+    return unit ? unit.n : 'target';
+  }).join(', ');
+  html += `<div style="font-size:0.85rem;opacity:0.9">Target${targetCount > 1 ? 's' : ''}: <strong>${targetNames}</strong></div>`;
+}
+html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center">';
+if(canTargetAll && targetCount === 0) {
+  html += `<button class="btn" onclick="targetAll()" style="padding:0.4rem 1rem;font-size:0.9rem;background:#3b82f6">⚡ Target All</button>`;
+}
+if(targetCount > 0) {
+  html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
+}
+html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
+html += '</div>';
+html += '</div>';
+}
+}
+// D20_TARGET action bar
+if(S.turn === 'player' && S.pending === 'D20_TARGET') {
+const targetArray = S.targets || [];
+const targetCount = targetArray.length;
+if(targetCount > 0) {
 const targetNames = targetArray.map(t => {
 const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
 return unit ? unit.n : 'target';
@@ -596,6 +633,7 @@ html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4r
 html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
 html += '</div>';
 html += '</div>';
+}
 }
 
 return html;
@@ -1030,6 +1068,7 @@ const ANIMATION_TIMINGS = {
   DAMAGE_FLASH: 400,      // .hit-flash animation duration
   ATTACK_SLIDE: 480,      // .attack-slide animation duration
   ATTACK_IMPACT: 190,     // When attacker "lands" hit (40% of attack slide)
+  IMPACT_FREEZE: 65,      // Brief pause on hit for weight/impact feel
   HEAL_FLASH: 480,        // .heal-flash animation duration
   SHIELD_FLASH: 480,      // .shield-flash animation duration
 
@@ -1041,7 +1080,7 @@ const ANIMATION_TIMINGS = {
   TURN_TRANSITION: 400,   // Hero turn → Enemy turn delay
   PHASE_TRANSITION: 300,  // Between enemy phases (Alpha/Recruit/Normal)
   ALPHA_PHASE_START: 500, // Enemy turn start → Alpha phase
-  ENEMY_ACTION_DELAY: 400, // Stagger between enemy actions (slower for readability)
+  ENEMY_ACTION_DELAY: 250, // Stagger between enemy actions
   ENEMY_TURN_END: 400,    // After last enemy action
   ACTION_COMPLETE: 600,   // After hero action completes
 
@@ -1117,15 +1156,58 @@ function showFloatingNumber(targetId, text, type = 'damage', offsetX = 0) {
   setTimeout(() => num.remove(), ANIMATION_TIMINGS.FLOATING_NUMBER);
 }
 
-// Screen shake effect
-function triggerScreenShake(heavy = false) {
+// Screen shake effect - scaled by damage amount
+function triggerScreenShake(heavyOrDamage = false) {
   const gameArea = document.getElementById('gameView');
   if (!gameArea) return;
 
-  const className = heavy ? 'screen-shake-heavy' : 'screen-shake';
+  let className, duration;
+  if (typeof heavyOrDamage === 'number') {
+    // Damage-based shake scaling
+    if (heavyOrDamage >= 6) {
+      className = 'screen-shake-heavy';
+      duration = ANIMATION_TIMINGS.SCREEN_SHAKE_HEAVY;
+    } else if (heavyOrDamage >= 3) {
+      className = 'screen-shake';
+      duration = ANIMATION_TIMINGS.SCREEN_SHAKE;
+    } else {
+      className = 'screen-shake-light';
+      duration = 200;
+    }
+  } else {
+    // Legacy boolean: true = heavy, false = normal
+    className = heavyOrDamage ? 'screen-shake-heavy' : 'screen-shake';
+    duration = heavyOrDamage ? ANIMATION_TIMINGS.SCREEN_SHAKE_HEAVY : ANIMATION_TIMINGS.SCREEN_SHAKE;
+  }
+
+  // Remove any existing shake classes first
+  gameArea.classList.remove('screen-shake-light', 'screen-shake', 'screen-shake-heavy', 'screen-shake-kill');
+  void gameArea.offsetWidth; // Force reflow to restart animation
   gameArea.classList.add(className);
-  setTimeout(() => gameArea.classList.remove(className),
-    heavy ? ANIMATION_TIMINGS.SCREEN_SHAKE_HEAVY : ANIMATION_TIMINGS.SCREEN_SHAKE);
+  setTimeout(() => gameArea.classList.remove(className), duration);
+}
+
+// Extra-heavy shake for kill shots
+function triggerKillShake() {
+  const gameArea = document.getElementById('gameView');
+  if (!gameArea) return;
+  gameArea.classList.remove('screen-shake-light', 'screen-shake', 'screen-shake-heavy', 'screen-shake-kill');
+  void gameArea.offsetWidth;
+  gameArea.classList.add('screen-shake-kill');
+  setTimeout(() => gameArea.classList.remove('screen-shake-kill'), 500);
+}
+
+// Knockback animation on hit
+function triggerKnockback(targetId) {
+  const card = document.getElementById(targetId);
+  if (!card) return;
+  card.classList.remove('knockback');
+  void card.offsetWidth; // Force reflow
+  card.classList.add('knockback');
+  setTimeout(() => {
+    const el = document.getElementById(targetId);
+    if (el) el.classList.remove('knockback');
+  }, 150);
 }
 
 // Confetti celebration - with frog theme!
@@ -1170,6 +1252,17 @@ function spawnConfetti(count = 50) {
   }
 
   setTimeout(() => container.remove(), ANIMATION_TIMINGS.CONFETTI_DURATION + 500);
+}
+
+// Ghost charge badge display - shows small ghost icons instead of text
+function ghostBadges(count) {
+  if (count <= 0) return '';
+  const imgPath = SIGIL_IMAGES['Ghost'];
+  const badge = `<img src="${imgPath}" class="ghost-badge" alt="Ghost">`;
+  if (count <= 4) {
+    return `<span class="ghost-badges">${badge.repeat(count)}</span>`;
+  }
+  return `<span class="ghost-badges">${badge}<span class="ghost-count">×${count}</span></span>`;
 }
 
 // Damage counter display - shows cumulative damage during a hero's turn

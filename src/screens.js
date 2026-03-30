@@ -1140,9 +1140,9 @@ showPedestal();
 
 // ===== WIN =====
 function win() {
-// JUICE: Victory treasure sound + game over (victory) music!
+// JUICE: Victory ceremony sound + game over (victory) music!
 GameMusic.playScene('game_over');
-SoundFX.play('treasure');
+SoundFX.play('gameOverCeremony');
 
 // Record victory to The Pond!
 recordPondHistory('victory');
@@ -2140,7 +2140,7 @@ function claimQuest(questId) {
   }
 
   savePermanent();
-  SoundFX.play('coinDrop');
+  SoundFX.play('questComplete');
   toast(`+${quest.reward}G from "${quest.name}"!`);
 
   // Refresh quest board
