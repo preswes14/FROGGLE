@@ -2691,7 +2691,10 @@ const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand turn ${h.lst+1}${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost charges' : ''}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">LAST STAND</div>`;
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
-if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain;filter:sepia(30%) brightness(0.8);border:2px solid #dc2626"></div>`;
+if(heroImage) {
+const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
+html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};filter:sepia(30%) brightness(0.8);border-color:#dc2626"></div>`;
+}
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
 html += `<div style="font-weight:bold;color:#fbbf24">Turn ${h.lst + 1}</div>`;
@@ -2766,7 +2769,10 @@ html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
-if(heroImage) html += `<img src="${heroImage}" alt="${h.n}" style="width:48px;height:48px;border-radius:4px;object-fit:contain">`;
+if(heroImage) {
+const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
+html += `<img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos}">`;
+}
 html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
 // HP bar - visual health indicator
@@ -2949,7 +2955,7 @@ html += `<div style="text-align:center;font-size:1rem;font-weight:bold;margin-bo
 // Enemy image (retain original enemy type)
 const recruitImageSrc = ENEMY_IMAGES[recruit.n];
 if(recruitImageSrc) {
-html += `<div style="width:50px;height:50px;margin:0 auto 0.25rem;display:flex;align-items:center;justify-content:center"><img src="${recruitImageSrc}" alt="${recruit.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+html += `<div style="width:60px;height:60px;margin:0 auto 0.25rem;display:flex;align-items:center;justify-content:center"><img src="${recruitImageSrc}" alt="${recruit.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem">${recruit.n}</div>`;
 }
@@ -3000,7 +3006,7 @@ html += `<div id="${e.id}" class="card enemy flydra-dying" style="background:lin
 html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#e94560;margin-bottom:0.5rem">${e.n}</div>`;
 // Show greyed-out head image if available
 if(e.flydraHeadImage) {
-html += `<div style="text-align:center;margin:0.5rem 0"><img src="${e.flydraHeadImage}" alt="${e.n}" style="width:50px;height:50px;object-fit:contain;filter:grayscale(80%) brightness(0.5);border-radius:4px"></div>`;
+html += `<div style="text-align:center;margin:0.5rem 0"><img src="${e.flydraHeadImage}" alt="${e.n}" style="width:60px;height:60px;object-fit:contain;filter:grayscale(80%) brightness(0.5);border-radius:4px"></div>`;
 } else {
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#e94560;margin:0.5rem 0">DYING</div>`;
 }
@@ -3033,9 +3039,9 @@ html += `<div style="font-size:1rem;font-weight:bold;min-width:1.2em;text-align:
 // Show enemy image: Flydra head > artwork image > emoji fallback
 const enemyImageSrc = ENEMY_IMAGES[e.n];
 if(e.isFlydra && e.flydraHeadImage) {
-html += `<div style="flex:1;min-width:0;height:50px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" class="flydra-head-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+html += `<div style="flex:1;min-width:0;height:60px;display:flex;align-items:center;justify-content:center"><img src="${e.flydraHeadImage}" alt="${e.n}" class="flydra-head-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else if(enemyImageSrc) {
-html += `<div style="flex:1;min-width:0;height:60px;display:flex;align-items:center;justify-content:center"><img src="${enemyImageSrc}" alt="${e.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
+html += `<div style="flex:1;min-width:0;height:80px;display:flex;align-items:center;justify-content:center"><img src="${enemyImageSrc}" alt="${e.n}" class="enemy-art" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:4px"></div>`;
 } else {
 html += `<div style="flex:1;min-width:0;font-size:0.8rem;font-weight:bold;text-align:center">${e.n}</div>`;
 }
@@ -3201,7 +3207,10 @@ html += `<div class="card hero" style="${cardStyle}">`;
 // Power at top
 html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}💥</div>`;
 // Hero image
-if(heroImage) html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" style="width:56px;height:56px;border-radius:8px;object-fit:contain;border:2px solid #60a5fa"></div>`;
+if(heroImage) {
+const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
+html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};border-color:#60a5fa"></div>`;
+}
 // Name
 html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
 // HP
