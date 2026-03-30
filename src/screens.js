@@ -1041,7 +1041,7 @@ v.innerHTML = `
 <h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">Welcome to the Endgame!</h2>
 
 <p style="margin-bottom:1.5rem;font-size:1.1rem;line-height:1.6">
-You've conquered the Flydra and saved Tapo once... but there's always more to do!
+You've defeated the Flydra and brought Tapo home once... but his craving for Flydra flesh led him right back in!
 </p>
 
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin:2rem 0">
@@ -1424,16 +1424,101 @@ return statTexts.join('! ') + '!';
 };
 
 const slides = [
-{bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, you finally come upon the still form of <strong style='color:#22c55e'>Tapo the Tadpole</strong>..."},
-{bg: 'assets/victory-room.png', text: "Perhaps he succumbed to the FLYDRA's terrible bite? The heroes gather around Tapo..."},
-{bg: 'assets/victory-room.png', text: "With a start, the little tadpole suddenly awakens from his well-earned nap! Clutched in his budding appendages, he holds carvings of the heroes who saved him!"},
+{bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, the heroes burst into the Flydra's lair, ready for anything... except <em>this</em>."},
+{bg: 'assets/victory-room.png', text: "TAPO_EATING_FLYDRA",
+html: `
+<style>
+@keyframes tapoMunch {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-5px) scale(1.05); }
+  60% { transform: translateY(0) scale(0.98); }
+}
+@keyframes flydraFade {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.4; }
+  100% { opacity: 0.6; }
+}
+</style>
+<div style="text-align:center;position:relative;margin:1rem 0">
+<div style="position:relative;display:inline-block">
+<img src="assets/Hydra.png" alt="The defeated Flydra" style="width:280px;height:auto;opacity:0.5;filter:grayscale(0.5) brightness(0.7);animation:flydraFade 3s ease-in-out infinite">
+<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);animation:tapoMunch 1.2s ease-in-out infinite">
+<img src="assets/tapo_normal.png" alt="Tapo munching" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
+</div>
+</div>
+</div>
+<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem"><strong style="color:#22c55e">Tapo</strong> is happily munching on the Flydra's middle head! He took the whole thing down... <em>by himself?!</em><br><br>The little tadpole lets out a triumphant <strong style="color:#fbbf24">BURRRP</strong> and grins.</div>
+`},
+{bg: 'assets/victory-room.png', text: "Scattered around Tapo are small carvings — figurines of the heroes who came to save him! Clutched in his budding appendages, he offers them proudly."},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
 {bg: 'assets/victory-room.png', text: () => `As the statues click into place, a warm ripple of power surges through the heroes. <strong style='color:#fbbf24'>${getSlottedStatsText()}</strong>`, dynamic: true},
-{bg: 'assets/victory-room.png', text: "Exhausted but tingling with power, the heroes hoist Tapo onto their shoulders and begin the long journey back to Ribbleton. Wait... What's this portal?"},
+{bg: 'assets/victory-room.png', text: "The heroes hoist their well-fed tadpole onto their shoulders and begin the journey back to Ribbleton. Wait... What's this portal?"},
 {bg: 'assets/ribbleton.png', text: "WHOOSH! One portal trip later, and the crew is back safe and sound in Ribbleton. Off to the Lilypad Pond for a well-earned night of sleep!"},
 {bg: 'assets/ribbleton.png', text: "INTERSTITIAL_HERO_CARDS", action: 'hero_cards_interstitial'},
-{bg: 'assets/ribbleton.png', text: "As the sun rises, the town of Ribbleton awakens, delighted to see their heroes home safe. There is only one problem... Where is Tapo? Our heroes gear up and take the portal back to the statue room where they found him last time."},
-{bg: 'assets/victory-room.png', bgStyle: 'transform:scaleX(-1)', text: "...and there he is! Staring at YET ANOTHER portal, this one crackling with black and green energy. But before anyone can stop him, the little bugger squirms his way in. <span style='font-size:1.2em;font-weight:bold;color:#22c55e'>Here we go again!</span>"}
+{bgColor: '#0a0a1a',
+html: `
+<style>
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+@keyframes moonGlow {
+  0%, 100% { box-shadow: 0 0 30px rgba(251,191,36,0.3); }
+  50% { box-shadow: 0 0 50px rgba(251,191,36,0.5); }
+}
+@keyframes tummyRumble {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-3px); }
+  40% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes tapoSneak {
+  0% { transform: translateX(0) scaleX(-1); opacity: 1; }
+  100% { transform: translateX(120px) scaleX(-1); opacity: 0; }
+}
+</style>
+<div style="position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden">
+<!-- Stars -->
+<div style="position:absolute;top:10%;left:15%;width:3px;height:3px;background:#fff;border-radius:50%;animation:twinkle 2s ease-in-out infinite"></div>
+<div style="position:absolute;top:8%;left:45%;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 3s ease-in-out 0.5s infinite"></div>
+<div style="position:absolute;top:15%;left:75%;width:3px;height:3px;background:#fff;border-radius:50%;animation:twinkle 2.5s ease-in-out 1s infinite"></div>
+<div style="position:absolute;top:5%;left:60%;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 1.8s ease-in-out 0.3s infinite"></div>
+<div style="position:absolute;top:20%;left:30%;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2.2s ease-in-out 1.5s infinite"></div>
+<div style="position:absolute;top:12%;left:85%;width:3px;height:3px;background:#fff;border-radius:50%;animation:twinkle 2.8s ease-in-out 0.8s infinite"></div>
+<!-- Moon -->
+<div style="position:absolute;top:5%;right:10%;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 35%, #fbbf24, #f59e0b);animation:moonGlow 4s ease-in-out infinite"></div>
+<!-- Sleeping Tapo -->
+<div style="animation:tummyRumble 1.5s ease-in-out 2s 3">
+<img src="assets/tapo_normal.png" alt="Tapo sleeping" style="width:120px;height:auto;filter:brightness(0.7)">
+</div>
+<div style="margin-top:1.5rem;max-width:500px">
+<p style="font-size:1.2rem;line-height:1.8;text-align:center;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">
+That night, Tapo's tummy <strong style="color:#f97316">rumbles</strong>. He tosses and turns. He's tasted <strong style="color:#e94560">Flydra flesh</strong>, and now nothing else will satisfy the craving...
+</p>
+</div>
+</div>
+`, text: "That night, Tapo's tummy rumbles..."},
+{bgColor: '#0a0a1a',
+html: `
+<style>
+@keyframes portalCrackle {
+  0%, 100% { box-shadow: 0 0 30px #22c55e, 0 0 60px rgba(34,197,94,0.3); transform: scale(1); }
+  50% { box-shadow: 0 0 50px #22c55e, 0 0 90px rgba(34,197,94,0.5); transform: scale(1.05); }
+}
+</style>
+<div style="text-align:center">
+<div style="position:relative;display:inline-block;margin:1.5rem 0">
+<div style="width:160px;height:160px;margin:0 auto;border-radius:50%;background:radial-gradient(circle, #22c55e, #064e3b 70%, #000);animation:portalCrackle 1.5s ease-in-out infinite"></div>
+</div>
+<div style="margin:1rem 0">
+<img src="assets/tapo_normal.png" alt="Tapo sneaking" style="width:80px;height:auto;transform:scaleX(-1);filter:drop-shadow(0 0 8px rgba(34,197,94,0.5))">
+</div>
+<p style="font-size:1.2rem;line-height:1.8;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9);max-width:500px;margin:0 auto">
+Tapo sneaks out and finds a newly appeared portal, crackling with <strong style="color:#22c55e">dark green energy</strong>. He knows just where to find more Flydra. Before anyone can stop him, the little bugger squirms his way in. <span style="font-size:1.2em;font-weight:bold;color:#22c55e">Here we go again!</span>
+</p>
+</div>
+`, text: "Tapo sneaks out toward a new portal..."}
 ];
 
 // Custom slide handler for statue slotting and hero cards
@@ -1459,7 +1544,7 @@ window.firstVictorySlideAction = null;
 S.gameMode = 'fu';
 S.forcedFUEntry = true; // Track that this is the forced entry
 savePermanent();
-toast('Tapo has entered the Frogged Up realm! You must follow!', 2500);
+toast('Tapo has gone hunting for Flydra in the Frogged Up realm! You must follow!', 2500);
 setTimeout(() => title(), T(1500));
 };
 
