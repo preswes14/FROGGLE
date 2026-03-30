@@ -733,12 +733,13 @@ const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.75rem 1.5rem;background:rgba(100,100,100,0.8);border:2px solid #666;font-size:1rem">Skip</button>` : '';
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.5rem 1rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
+const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.5rem 1rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
 // Resolve text - may be a function for dynamic content
 const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
 
-// Full-art mode: background image takes up screen, text in bottom bar
+// Full-art mode: background image takes up screen, text bar at top, buttons at bottom corners
 if(slide.bg) {
 const bgStyle = slide.bgStyle || '';
 v.innerHTML = `
@@ -746,17 +747,18 @@ v.innerHTML = `
 <!-- Full-page background image -->
 <img src="${slide.bg}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;${bgStyle}">
 
-<!-- Compact text bar at bottom -->
-<div style="position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.75);padding:0.6rem 1rem 0.5rem 1rem;border-top:2px solid rgba(34,197,94,0.5)">
+<!-- Text bar at top -->
+<div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(34,197,94,0.5)">
 <div style="max-width:700px;margin:0 auto">
 ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-height:1.5;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">${slideText}</div>`}
-<div style="display:flex;gap:0.75rem;justify-content:center;margin-top:0.6rem;flex-wrap:wrap;align-items:center">
-<button class="btn" onclick="continueNarrative()" style="padding:0.4rem 1.25rem;font-size:0.95rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
-${skipButton}
-<span style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
 </div>
 </div>
-</div>
+
+<!-- Continue button - bottom right -->
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.5rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<!-- Skip button - bottom left -->
+${skipButtonFullArt}
+<span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
 </div>`;
 } else {
 // Standard mode: fullscreen centered content with backdrop for readability
@@ -1199,90 +1201,22 @@ overlay.style.cssText = 'background:none;';
 overlay.innerHTML = `
 <div style="position:relative;width:100%;height:100%;overflow:hidden">
 <!-- Full-page Ribbleton background -->
-<img src="assets/ribbleton.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.7)">
+<img src="assets/ribbleton.png" alt="" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:0">
 
-<!-- Content overlay -->
-<div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:1rem">
-<div style="background:rgba(0,0,0,0.85);border-radius:16px;padding:1.5rem;max-width:550px;border:3px solid #dc2626;box-shadow:0 0 30px rgba(220,38,38,0.5)">
-<p style="font-size:1.1rem;line-height:1.6;margin-bottom:1.5rem;color:#fff;text-align:center">
-Strange, hostile creatures have spilled out of the <strong style="color:#dc2626">portal</strong>. Take control of Warrior and Healer to fend them off!
+<!-- Text bar at top -->
+<div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(220,38,38,0.5)">
+<div style="max-width:600px;margin:0 auto">
+<p style="font-size:1.1rem;line-height:1.6;color:#fff;text-align:center;margin:0;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">
+Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to fight off the <strong style="color:#dc2626">hostile creatures</strong> spilling out of the portal!
 </p>
-<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:1.5rem;align-items:center;margin:1.5rem 0">
-<div style="display:flex;gap:0.5rem;align-items:center;justify-content:center">
-<div style="animation:defensiveStance 1.5s ease-in-out infinite">
-<img src="assets/tank_normal.png" alt="Tank" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">On Guard!</div>
-</div>
-<div style="text-align:center">
-<div style="animation:tapoSignatureSmall 3s ease-in-out infinite;display:inline-block">
-<img src="assets/tapo_normal.png" alt="Tapo" style="width:60px;height:auto">
-</div>
-<div style="font-size:0.65rem;color:#22c55e;margin-top:0.25rem">Protected!</div>
-</div>
-<div style="animation:defensiveStance 1.3s ease-in-out infinite">
-<img src="assets/mage_normal.png" alt="Mage" style="width:70px;height:auto;border-radius:6px;border:2px solid #22c55e">
-<div style="text-align:center;font-size:0.65rem;font-weight:bold;margin-top:0.25rem;color:#22c55e">On Guard!</div>
 </div>
 </div>
-<div style="display:flex;flex-direction:column;gap:0.5rem;align-items:center">
-<div style="animation:chargeForward 0.8s ease-out infinite alternate">
-<img src="assets/warrior_normal.png" alt="Warrior" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">Attacking!</div>
-</div>
-<div style="animation:chargeForward 1s ease-out infinite alternate">
-<img src="assets/heal_normal.png" alt="Healer" style="width:80px;height:auto;border-radius:6px;border:2px solid #3b82f6;transform:scaleX(-1)">
-<div style="text-align:center;font-size:0.7rem;font-weight:bold;margin-top:0.25rem;color:#3b82f6">✚ Attacking!</div>
-</div>
-</div>
-<div style="display:flex;flex-direction:column;gap:0.75rem;align-items:center;font-size:2.5rem">
-<div style="animation:enemyThreat 1s ease-in-out infinite"></div>
-<div style="animation:enemyThreat 1.2s ease-in-out infinite"></div>
-</div>
-</div>
-<div style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-<button onclick="dismissStoryOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
-<button onclick="skipTutorialFromOverlay()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#666;color:#fff;border:2px solid #444;border-radius:8px;cursor:pointer">Skip Tutorial</button>
-</div>
-</div>
-</div>
-</div>
-<style>
-@keyframes chargeForward {
-0% { transform: translateX(0) scale(1); }
-100% { transform: translateX(15px) scale(1.05); }
-}
-@keyframes defensiveStance {
-0%, 100% { transform: translateY(0); }
-50% { transform: translateY(-5px); }
-}
-@keyframes enemyThreat {
-0%, 100% { transform: scale(1) rotate(0deg); }
-50% { transform: scale(1.2) rotate(10deg); }
-}
-@keyframes tapoSignatureSmall {
-  /* Quick hop 1 */
-  0% { transform: translateY(0) scaleX(1); }
-  8% { transform: translateY(-12px) scaleX(1); }
-  16% { transform: translateY(0) scaleX(1); }
-  /* Quick hop 2 */
-  24% { transform: translateY(-18px) scaleX(1); }
-  32% { transform: translateY(0) scaleX(1); }
-  /* Flip to face LEFT */
-  36% { transform: translateY(-5px) scaleX(0); }
-  40% { transform: translateY(0) scaleX(-1); }
-  /* Quick hop 1 LEFT */
-  48% { transform: translateY(-12px) scaleX(-1); }
-  56% { transform: translateY(0) scaleX(-1); }
-  /* Quick hop 2 LEFT */
-  64% { transform: translateY(-18px) scaleX(-1); }
-  72% { transform: translateY(0) scaleX(-1); }
-  /* Flip back to RIGHT */
-  76% { transform: translateY(-5px) scaleX(0); }
-  80% { transform: translateY(0) scaleX(1); }
-  /* Pause facing right */
-  100% { transform: translateY(0) scaleX(1); }
-}
-</style>`;
+
+<!-- Let's fight button - bottom right -->
+<button onclick="dismissStoryOverlay()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.5rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
+<!-- Skip button - bottom left -->
+<button onclick="skipTutorialFromOverlay()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.5rem 1rem;font-size:0.8rem;font-weight:bold;background:rgba(100,100,100,0.8);color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
+</div>`;
 document.body.appendChild(overlay);
 }
 
