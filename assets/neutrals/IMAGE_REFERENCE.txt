@@ -1,12 +1,33 @@
-NEUTRAL ENCOUNTER IMAGE REFERENCE
-=================================
-This file documents which image goes with which encounter to prevent future mix-ups.
+NEUTRAL ENCOUNTER IMAGE REFERENCE (Zab Art)
+=============================================
+Professional art by Zab. Each encounter has two stages.
 
-oracle1.png - Hooded figure with scrying bowl/basin (mystic oracle)
-oracle2.png - Oracle's Promise encounter
+encampment1.png  - Encampment stage 1
+encampment2.png  - Encampment stage 2
 
-royal1.png  - Kneeling royal figure with crown (flummoxed royal)
-royal2.png  - Royal Wedding encounter
+gambling1.png    - Gambling stage 1
+gambling2.png    - Gambling stage 2
+
+ghost1.png       - Ghost Boys stage 1
+ghost2.png       - Ghost Boys stage 2
+
+oracle1.png      - Oracle stage 1 (hooded mystic with scrying bowl)
+oracle2.png      - Oracle stage 2
+
+royal1.png       - Royal stage 1 (crowned figure kneeling)
+royal2.png       - Royal stage 2
+
+shopkeeper1.png  - Shopkeeper stage 1
+shopkeeper2.png  - Shopkeeper stage 2
+
+treasurechest1.png - Treasure Chest stage 1
+treasurechest2.png - Treasure Chest stage 2
+
+wishingwell1.png - Wishing Well stage 1
+wishingwell2.png - Wishing Well stage 2
+
+wizard1.png      - Wizard stage 1
+wizard2.png      - Wizard stage 2
 
 DO NOT SWAP oracle1.png and royal1.png - they have been mixed up multiple times!
 - Oracle = hooded mystic with bowl

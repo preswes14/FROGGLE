@@ -3235,7 +3235,7 @@ if(minBound === maxBound) {
 S.gold -= wager;
 upd();
 v.innerHTML = buildNeutralHTML({
-bgImage: stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
+bgImage: stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.png',
 title: stage === 1 ? 'Between the 20s' : 'Between the 20s Extreme',
 description: `Rolling ${boundsCount} dice to set bounds...`,
 outcomes: [
@@ -3270,7 +3270,7 @@ buttons: `
 } else {
 // Stage 2: No backing out, go straight to target roll
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/gambling2.jpeg',
+bgImage: 'assets/neutrals/gambling2.png',
 title: 'Between the 20s Extreme',
 description: `Rolling ${boundsCount} dice to set bounds...`,
 outcomes: [
@@ -3311,7 +3311,7 @@ const state = window.between20sState;
 const v = document.getElementById('gameView');
 
 v.innerHTML = buildNeutralHTML({
-bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
+bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.png',
 title: state.stage === 1 ? 'Between the 20s' : 'Between the 20s Extreme',
 description: `Range: <span style="color:#22c55e">${state.minBound}</span> to <span style="color:#22c55e">${state.maxBound}</span>. Rolling target dice...`,
 diceTray: renderDiceTray({ rollCallback: 'targetRollBetween20sRoll()' })
@@ -3343,7 +3343,7 @@ toast('Between the 20s Extreme unlocked!', 1800);
 }
 
 v.innerHTML = buildNeutralHTML({
-bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
+bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.png',
 title: state.stage === 1 ? 'Between the 20s - WIN!' : 'Between the 20s Extreme - WIN!',
 diceTray: renderDiceTray({ rolled: true, rolls: targetRolls, best }),
 outcomes: [
@@ -3357,7 +3357,7 @@ S.gold -= state.wager;
 upd();
 
 v.innerHTML = buildNeutralHTML({
-bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.jpeg',
+bgImage: state.stage === 1 ? 'assets/neutrals/gambling1.png' : 'assets/neutrals/gambling2.png',
 title: state.stage === 1 ? 'Between the 20s - Loss' : 'Between the 20s Extreme - Loss',
 diceTray: renderDiceTray({ rolled: true, rolls: targetRolls, best }),
 outcomes: [
@@ -3375,7 +3375,7 @@ const v = document.getElementById('gameView');
 // Entry requirement: minimum 2 gold
 if(S.gold < 2) {
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/gambling2.jpeg',
+bgImage: 'assets/neutrals/gambling2.png',
 title: 'Between the 20s Extreme',
 description: 'The high-stakes gambling den glows with intense energy. A sign reads: "Minimum 2 Gold to play - 4x payout, capped at 40G."',
 outcomes: ['<span style="color:#ef4444">You don\'t have enough gold to play.</span>'],
@@ -3393,7 +3393,7 @@ if(wager < 2) wager = 2;
 const potentialPayout = Math.min(wager * 4, 40);
 
 v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/gambling2.jpeg',
+bgImage: 'assets/neutrals/gambling2.png',
 title: 'Between the 20s Extreme',
 description: `The EXTREME version! Only 2 dice for bounds, NO backing out, but ${potentialPayout}G payout! High risk, high reward.`,
 outcomes: ['<span style="color:#3b82f6">WARNING: No safety net here. You\'re all in once you start.</span>'],
