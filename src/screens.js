@@ -11,7 +11,8 @@ outcome: outcome, // 'defeat' or 'victory'
 killedBy: killedBy,
 timestamp: Date.now(),
 xpEarned: S.xp - S.startingXP,
-goldEarned: S.gold
+goldEarned: S.gold,
+upgradeHistory: S.runUpgradeHistory || []
 };
 // Add to history (limit to last 50 runs to save localStorage space)
 S.pondHistory.unshift(entry);
@@ -21,11 +22,22 @@ S.pondHistory = S.pondHistory.slice(0, 50);
 savePermanent();
 }
 
+// Pond mode filter state
+let pondFilter = 'all';
+function filterPond(mode) {
+  pondFilter = mode;
+  showPond();
+}
+
 // Show The Pond - a reflective place for remembering past adventures
 function showPond() {
 GameMusic.playScene('lilypad_pond');
 const v = document.getElementById('gameView');
-const history = S.pondHistory || [];
+const allHistory = S.pondHistory || [];
+// Apply mode filter
+let history = allHistory;
+if(pondFilter === 'Standard') history = allHistory.filter(r => r.gameMode !== 'fu');
+else if(pondFilter === 'fu') history = allHistory.filter(r => r.gameMode === 'fu');
 
 // Generate lily pad for each run
 function renderLilyPad(run, idx) {
@@ -140,6 +152,49 @@ ${S.fuUnlocked ? `<span style="background:linear-gradient(90deg,#ff6b6b,#feca57,
 <span style="color:#64748b;font-size:0.8rem">(bigger = higher floor)</span>
 </div>
 
+${S.fuUnlocked ? `
+<div style="display:flex;justify-content:center;gap:0.5rem;margin-bottom:1rem">
+<button class="btn ${pondFilter === 'all' ? '' : 'secondary'}" onclick="filterPond('all')" style="padding:0.3rem 0.8rem;font-size:0.85rem">All</button>
+<button class="btn ${pondFilter === 'Standard' ? '' : 'secondary'}" onclick="filterPond('Standard')" style="padding:0.3rem 0.8rem;font-size:0.85rem">Standard</button>
+<button class="btn ${pondFilter === 'fu' ? '' : 'secondary'}" onclick="filterPond('fu')" style="padding:0.3rem 0.8rem;font-size:0.85rem">Frogged Up</button>
+</div>
+` : ''}
+`;
+
+// Compute enhanced stats
+const pondTotalRuns = history.length;
+const pondWins = history.filter(r => r.outcome === 'victory').length;
+const pondWinRate = pondTotalRuns > 0 ? Math.round((pondWins / pondTotalRuns) * 100) : 0;
+const pondAvgFloor = pondTotalRuns > 0 ? (history.reduce((s, r) => s + r.floorReached, 0) / pondTotalRuns).toFixed(1) : '0';
+const pondEnemiesKilled = (S.questProgress && S.questProgress.enemiesKilled) || 0;
+
+// Most dangerous floor
+const pondDeathFloors = history.filter(r => r.outcome !== 'victory').map(r => r.floorReached);
+const pondFloorDeathCounts = {};
+pondDeathFloors.forEach(f => { pondFloorDeathCounts[f] = (pondFloorDeathCounts[f] || 0) + 1; });
+const pondDeadliestEntry = Object.entries(pondFloorDeathCounts).sort((a, b) => b[1] - a[1])[0];
+const pondDeadliestFloor = pondDeadliestEntry ? 'F' + pondDeadliestEntry[0] : '-';
+
+// Top winner hero
+const pondHeroWinCounts = {};
+history.filter(r => r.outcome === 'victory').forEach(r => (r.heroes || []).forEach(h => { pondHeroWinCounts[h] = (pondHeroWinCounts[h] || 0) + 1; }));
+const pondTopWinnerEntry = Object.entries(pondHeroWinCounts).sort((a, b) => b[1] - a[1])[0];
+const pondTopWinner = pondTopWinnerEntry ? pondTopWinnerEntry[0] : '-';
+
+// Trend line (last 5 vs previous 5)
+const pondLast5 = history.slice(0, 5);
+const pondPrev5 = history.slice(5, 10);
+const pondLast5Avg = pondLast5.length > 0 ? (pondLast5.reduce((s, r) => s + r.floorReached, 0) / pondLast5.length).toFixed(1) : null;
+const pondPrev5Avg = pondPrev5.length >= 3 ? (pondPrev5.reduce((s, r) => s + r.floorReached, 0) / pondPrev5.length).toFixed(1) : null;
+const pondTrendUp = pondPrev5Avg && pondLast5Avg ? parseFloat(pondLast5Avg) >= parseFloat(pondPrev5Avg) : true;
+
+// Per-mode win rates for subtitle
+const pondStdRuns = history.filter(r => r.gameMode !== 'fu');
+const pondStdWins = pondStdRuns.filter(r => r.outcome === 'victory').length;
+const pondFURuns = history.filter(r => r.gameMode === 'fu');
+const pondFUWins = pondFURuns.filter(r => r.outcome === 'victory').length;
+
+html += `
 ${history.length === 0 ? `
 <div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
 <p style="font-size:2rem;margin-bottom:1rem"></p>
@@ -172,6 +227,41 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).reverse().join('')}
 <div style="color:#94a3b8;font-size:0.85rem">Favorite</div>
 </div>
 </div>
+
+<!-- Enhanced stats row -->
+${pondTotalRuns >= 3 ? `
+<div style="margin-top:0.75rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:0.75rem;text-align:center">
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.4rem;font-weight:bold;color:#22c55e">${pondWinRate}%</div>
+<div style="color:#94a3b8;font-size:0.85rem">Win Rate</div>
+${S.fuUnlocked && pondFilter === 'all' ? `<div style="color:#64748b;font-size:0.7rem">Std ${pondStdRuns.length > 0 ? Math.round((pondStdWins/pondStdRuns.length)*100) : 0}% | FU ${pondFURuns.length > 0 ? Math.round((pondFUWins/pondFURuns.length)*100) : 0}%</div>` : ''}
+</div>
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.4rem;font-weight:bold;color:#a78bfa">${pondAvgFloor}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Avg Floor</div>
+</div>
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.4rem;font-weight:bold;color:#ef4444">${pondDeadliestFloor}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Deadliest</div>
+</div>
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.4rem;font-weight:bold;color:#dc2626">${pondEnemiesKilled}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Enemies Slain</div>
+</div>
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.4rem;font-weight:bold;color:#fbbf24">${pondTopWinner}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Top Winner</div>
+</div>
+</div>
+` : ''}
+
+<!-- Trend line -->
+${pondLast5Avg && pondPrev5Avg ? `
+<p style="text-align:center;margin-top:0.75rem;color:#94a3b8;font-size:0.9rem;font-style:italic">
+Last 5 runs: Floor ${pondLast5Avg} avg
+<span style="color:${pondTrendUp ? '#22c55e' : '#ef4444'}">${pondTrendUp ? '&#9650;' : '&#9660;'} ${pondTrendUp ? 'up' : 'down'} from ${pondPrev5Avg}</span>
+</p>
+` : ''}
 `}
 
 ${S.hasReachedFloor20 ? `
@@ -260,6 +350,19 @@ ${!isVictory && run.killedBy ? `
 ${isVictory ? `
 <div style="text-align:center;margin-top:0.5rem;padding:0.5rem;background:rgba(34,197,94,0.2);border-radius:4px">
 <span style="color:#22c55e;font-weight:bold">Tapo Rescued!</span>
+</div>
+` : ''}
+${run.upgradeHistory && run.upgradeHistory.length > 0 ? `
+<div style="margin-top:0.75rem;border-top:1px solid #334155;padding-top:0.75rem">
+<div style="color:#a78bfa;font-size:0.85rem;font-weight:bold;margin-bottom:0.4rem">Upgrades (${run.upgradeHistory.length})</div>
+<div style="display:flex;flex-wrap:wrap;gap:0.3rem">
+${run.upgradeHistory.map(u => {
+  if(u.type === 'addSigil') return '<span style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.75rem;color:#93c5fd">+' + u.sigil + ' &#8594; ' + u.hero + '</span>';
+  if(u.type === 'upgradeSigil' || u.type === 'upgradePassive') return '<span style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.75rem;color:#86efac">' + u.sigil + ' &#8593;</span>';
+  if(u.type === 'stat') return '<span style="background:rgba(249,115,22,0.2);border:1px solid rgba(249,115,22,0.4);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.75rem;color:#fdba74">' + u.hero + ' ' + u.stat + '&#8593;</span>';
+  return '';
+}).join('')}
+</div>
 </div>
 ` : ''}
 </div>
@@ -416,12 +519,17 @@ const escalationTable = [0, 25, 50, 100, 150];
 const cappedCount = Math.min(upgradeCount, escalationTable.length - 1);
 const cost = S.goingRate + escalationTable[cappedCount];
 const canAfford = S.gold >= cost;
+// Calculate post-purchase Going Rate for cost preview
+const totalUpgradesNow = allSigs.reduce((sum, s) => sum + (S.sigUpgradeCounts[s] || 0), 0);
+const purchaseTier = Math.floor(totalUpgradesNow / 5);
+const purchaseRateIncrease = 5 * (purchaseTier + 1);
+const newGoingRate = S.goingRate + purchaseRateIncrease;
 const colors = ['#94a3b8', '#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
 const colorClass = colors[currentLevel] || '#94a3b8';
 const nextColorClass = colors[nextLevel] || '#ff0080';
 
 cards += `
-<div class="ds-card" style="border-color:${nextColorClass}">
+<div class="ds-card" style="border-color:${nextColorClass}" title="Cost: ${cost}G &#10;Going Rate rises to ${newGoingRate}G (+${purchaseRateIncrease}G)">
 <div style="font-size:1.1rem;margin-bottom:0.3rem">${sigilIconWithTooltip(sig, currentLevel, 750)}</div>
 <div style="font-size:0.95rem;font-weight:bold;margin-bottom:0.3rem">
 <span style="color:${colorClass}">L${currentLevel}</span> → <span style="color:${nextColorClass}">L${nextLevel}</span>
@@ -475,7 +583,7 @@ ${[
   { label: '→L5', color: '#d97706', esc: 100 }
 ].map(t => `<span style="color:${t.color};font-weight:bold;font-size:0.85rem;text-shadow:0 0 6px ${t.color}40"><span style="font-size:0.75rem">${t.label}</span> ${S.goingRate + t.esc}G</span>`).join('')}
 </div>
-<p style="font-size:0.65rem;margin:0.3rem 0 0 0;color:#a89cc8;font-style:italic">+${nextRateIncrease}G per upgrade</p>
+<p style="font-size:0.65rem;margin:0.3rem 0 0 0;color:#a89cc8;font-style:italic">Each upgrade raises Going Rate by ${nextRateIncrease}G</p>
 </div>`;
 
 let html = `
@@ -2339,6 +2447,10 @@ let html = `
   from { transform: translate(-50%, -50%) rotate(0deg); }
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
+@keyframes quest-board-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(251,191,36,0.2); }
+  50% { box-shadow: 0 0 25px rgba(251,191,36,0.5); }
+}
 </style>
 <div class="full-screen-content" style="position:relative;width:100%;overflow:hidden">
 <!-- Full-page background image -->
@@ -2380,17 +2492,15 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
 </div>
 </div>
 
-<!-- Quest Board in bottom-center -->
-<div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);z-index:10">
-  <div onclick="showQuestBoard()" role="button" aria-label="Quest Board - View quests and claim rewards" tabindex="0" style="cursor:pointer;transition:transform 0.2s;text-align:center"
-       onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+<!-- Quest Board Hotspot (positioned over art's wooden board) -->
+<div style="position:absolute;top:25%;right:5%;z-index:10;width:13%;height:25%">
+  <div onclick="showQuestBoard()" role="button" aria-label="Quest Board - View quests and claim rewards" tabindex="0"
+       style="cursor:pointer;width:100%;height:100%;border-radius:6px;transition:all 0.3s;position:relative;${getClaimableQuestCount() > 0 ? 'animation:quest-board-glow 2s ease-in-out infinite;' : ''}"
+       onmouseover="this.style.boxShadow='0 0 20px rgba(251,191,36,0.6)';this.style.background='rgba(251,191,36,0.12)'"
+       onmouseout="this.style.boxShadow='${getClaimableQuestCount() > 0 ? '' : 'none'}';this.style.background='transparent'"
        onkeydown="if(event.key==='Enter')showQuestBoard()"
-       title="View available quests and claim rewards">
-    <div style="width:80px;height:80px;position:relative;background:linear-gradient(135deg, #92400e, #78350f);border-radius:8px;border:4px solid #451a03;box-shadow:0 4px 16px rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center">
-      <span style="font-size:1.5rem;font-weight:bold;color:#fbbf24">QUESTS</span>
-      ${getClaimableQuestCount() > 0 ? `<span style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#000;font-weight:bold;font-size:0.9rem;padding:0.15rem 0.5rem;border-radius:10px;border:2px solid #000;animation:pulse-glow 1.5s ease-in-out infinite">${getClaimableQuestCount()}</span>` : ''}
-    </div>
-    <p style="margin-top:0.4rem;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(146,64,14,0.9);padding:0.2rem 0.6rem;border-radius:4px;border:2px solid #78350f">Quests</p>
+       title="Quest Board">
+    ${getClaimableQuestCount() > 0 ? `<span style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#000;font-weight:bold;font-size:0.9rem;padding:0.15rem 0.5rem;border-radius:10px;border:2px solid #000;animation:pulse-glow 1.5s ease-in-out infinite;z-index:11">${getClaimableQuestCount()}</span>` : ''}
   </div>
 </div>
 </div>`;

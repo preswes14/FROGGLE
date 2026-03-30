@@ -980,6 +980,7 @@ function startTaposBirthdayTutorial() {
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
+S.runUpgradeHistory = [];
 // Initialize sigils to base levels for clean tutorial state
 S.sig = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
@@ -1283,6 +1284,7 @@ function startRibbletonTutorial() {
 S.floor = 0;
 S.xp = 0;
 S.levelUpCount = 0;
+S.runUpgradeHistory = [];
 // Reset Phase 2 tutorial flags to ensure popups show for fresh tutorial
 S.tutorialFlags.ribbleton_warrior_attack = false;
 S.tutorialFlags.ribbleton_targeting = false;
@@ -1621,7 +1623,7 @@ if(sel.length!==requiredHeroes) return;
 const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 
-S.floor=1; S.xp=0; S.levelUpCount=0;
+S.floor=1; S.xp=0; S.levelUpCount=0; S.runUpgradeHistory=[];
 // Reset temporary XP sigil upgrades (these don't persist between runs)
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // Reset recruits from any previous run

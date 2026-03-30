@@ -3404,6 +3404,7 @@ if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'POW'});
 SoundFX.play('powerUp');
 toast(`${S.heroes[idx].n} POW +1!`);
 upd();
@@ -3417,6 +3418,7 @@ S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'HP'});
 SoundFX.play('powerUp');
 toast(`${S.heroes[idx].n} HP +5!`);
 upd();
@@ -3477,6 +3479,7 @@ if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradeSigil', sigil:sig});
 SoundFX.play('powerUp');
 toast(`${sig} upgraded!`);
 upd();
@@ -3552,6 +3555,7 @@ if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
 const h = S.heroes[heroIdx];
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'addSigil', hero:h.n, sigil:sig});
 if(!h.ts) h.ts = [];
 h.ts.push(sig);
 SoundFX.play('powerUp');
@@ -3701,6 +3705,7 @@ const h = S.heroes[heroIdx];
 if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) { toast(`${h.n} already has ${sig}!`); return; }
 S.xp -= cost;
 S.levelUpCount++;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'addSigil', hero:h.n, sigil:sig});
 if(!h.ts) h.ts = [];
 h.ts.push(sig);
 h.ts = sortSigils(h.ts);
@@ -3778,6 +3783,7 @@ if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
 S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradeSigil', sigil:sig});
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const displayLevel = newLevel + 1;  // Internal 0 = display L1, etc.
 SoundFX.play('powerUp');
@@ -3841,6 +3847,7 @@ if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
 S.xp -= cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradePassive', sigil:sig});
 const newLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 // When passive is first acquired (level becomes 1), add it to all heroes' sigil lists
 if(newLevel === 1) {
@@ -3882,6 +3889,7 @@ if(S.xp < cost) return;
 S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'POW'});
 SoundFX.play('powerUp');
 toast(`${S.heroes[idx].n} POW +1!`);
 upd();
@@ -3896,6 +3904,7 @@ S.xp -= cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;
+(S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'HP'});
 SoundFX.play('powerUp');
 if(S.heroes[idx].ls) {
 S.heroes[idx].ls = false;
