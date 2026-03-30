@@ -15209,38 +15209,18 @@ ${S.fuUnlocked ? `
 ` : ''}
 `;
 
-// Compute enhanced stats
+// Compute stats
 const pondTotalRuns = history.length;
 const pondWins = history.filter(r => r.outcome === 'victory').length;
 const pondWinRate = pondTotalRuns > 0 ? Math.round((pondWins / pondTotalRuns) * 100) : 0;
-const pondAvgFloor = pondTotalRuns > 0 ? (history.reduce((s, r) => s + r.floorReached, 0) / pondTotalRuns).toFixed(1) : '0';
 const pondEnemiesKilled = (S.questProgress && S.questProgress.enemiesKilled) || 0;
 
-// Most dangerous floor
-const pondDeathFloors = history.filter(r => r.outcome !== 'victory').map(r => r.floorReached);
-const pondFloorDeathCounts = {};
-pondDeathFloors.forEach(f => { pondFloorDeathCounts[f] = (pondFloorDeathCounts[f] || 0) + 1; });
-const pondDeadliestEntry = Object.entries(pondFloorDeathCounts).sort((a, b) => b[1] - a[1])[0];
-const pondDeadliestFloor = pondDeadliestEntry ? 'F' + pondDeadliestEntry[0] : '-';
-
-// Top winner hero
-const pondHeroWinCounts = {};
-history.filter(r => r.outcome === 'victory').forEach(r => (r.heroes || []).forEach(h => { pondHeroWinCounts[h] = (pondHeroWinCounts[h] || 0) + 1; }));
-const pondTopWinnerEntry = Object.entries(pondHeroWinCounts).sort((a, b) => b[1] - a[1])[0];
-const pondTopWinner = pondTopWinnerEntry ? pondTopWinnerEntry[0] : '-';
-
-// Trend line (last 5 vs previous 5)
+// Trend line (last 5 vs previous 5) - uses XP earned as progress indicator
 const pondLast5 = history.slice(0, 5);
 const pondPrev5 = history.slice(5, 10);
-const pondLast5Avg = pondLast5.length > 0 ? (pondLast5.reduce((s, r) => s + r.floorReached, 0) / pondLast5.length).toFixed(1) : null;
-const pondPrev5Avg = pondPrev5.length >= 3 ? (pondPrev5.reduce((s, r) => s + r.floorReached, 0) / pondPrev5.length).toFixed(1) : null;
+const pondLast5Avg = pondLast5.length > 0 ? (pondLast5.reduce((s, r) => s + (r.xpEarned || 0), 0) / pondLast5.length).toFixed(0) : null;
+const pondPrev5Avg = pondPrev5.length >= 3 ? (pondPrev5.reduce((s, r) => s + (r.xpEarned || 0), 0) / pondPrev5.length).toFixed(0) : null;
 const pondTrendUp = pondPrev5Avg && pondLast5Avg ? parseFloat(pondLast5Avg) >= parseFloat(pondPrev5Avg) : true;
-
-// Per-mode win rates for subtitle
-const pondStdRuns = history.filter(r => r.gameMode !== 'fu');
-const pondStdWins = pondStdRuns.filter(r => r.outcome === 'victory').length;
-const pondFURuns = history.filter(r => r.gameMode === 'fu');
-const pondFUWins = pondFURuns.filter(r => r.outcome === 'victory').length;
 
 html += `
 ${history.length === 0 ? `
@@ -15257,18 +15237,28 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).reverse().join('')}
 </div>
 
 <!-- Stats summary -->
-<div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:0.75rem;text-align:center">
+<div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(90px, 1fr));gap:0.75rem;text-align:center">
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
 <div style="font-size:1.4rem;font-weight:bold;color:#f1f5f9">${history.length}</div>
 <div style="color:#94a3b8;font-size:0.85rem">Journeys</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.4rem;font-weight:bold;color:#fbbf24">${history.filter(r => r.outcome === 'victory').length}</div>
+<div style="font-size:1.4rem;font-weight:bold;color:#fbbf24">${pondWins}</div>
 <div style="color:#94a3b8;font-size:0.85rem">Victories</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
 <div style="font-size:1.4rem;font-weight:bold;color:#60a5fa">${Math.max(...history.map(r => r.floorReached), 0)}</div>
 <div style="color:#94a3b8;font-size:0.85rem">Best Floor</div>
+</div>
+${pondTotalRuns >= 3 ? `
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.4rem;font-weight:bold;color:#22c55e">${pondWinRate}%</div>
+<div style="color:#94a3b8;font-size:0.85rem">Win Rate</div>
+</div>
+` : ''}
+<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
+<div style="font-size:1.4rem;font-weight:bold;color:#ef4444">${pondEnemiesKilled}</div>
+<div style="color:#94a3b8;font-size:0.85rem">Enemies Slain</div>
 </div>
 <div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
 <div style="font-size:1.4rem;font-weight:bold;color:#f59e0b">${getMostUsedHero(history)}</div>
@@ -15276,37 +15266,15 @@ ${history.map((run, idx) => renderLilyPad(run, idx)).reverse().join('')}
 </div>
 </div>
 
-<!-- Enhanced stats row -->
-${pondTotalRuns >= 3 ? `
-<div style="margin-top:0.75rem;display:grid;grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:0.75rem;text-align:center">
-<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.4rem;font-weight:bold;color:#22c55e">${pondWinRate}%</div>
-<div style="color:#94a3b8;font-size:0.85rem">Win Rate</div>
-${S.fuUnlocked && pondFilter === 'all' ? `<div style="color:#64748b;font-size:0.7rem">Std ${pondStdRuns.length > 0 ? Math.round((pondStdWins/pondStdRuns.length)*100) : 0}% | FU ${pondFURuns.length > 0 ? Math.round((pondFUWins/pondFURuns.length)*100) : 0}%</div>` : ''}
+<!-- Hero Stats button -->
+<div style="text-align:center;margin-top:0.75rem">
+<button class="btn" onclick="showHeroStatsModal()" style="padding:0.5rem 1.5rem;font-size:1rem">Hero Stats</button>
 </div>
-<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.4rem;font-weight:bold;color:#a78bfa">${pondAvgFloor}</div>
-<div style="color:#94a3b8;font-size:0.85rem">Avg Floor</div>
-</div>
-<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.4rem;font-weight:bold;color:#ef4444">${pondDeadliestFloor}</div>
-<div style="color:#94a3b8;font-size:0.85rem">Deadliest</div>
-</div>
-<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.4rem;font-weight:bold;color:#dc2626">${pondEnemiesKilled}</div>
-<div style="color:#94a3b8;font-size:0.85rem">Enemies Slain</div>
-</div>
-<div style="background:rgba(30,41,59,0.8);padding:0.75rem;border-radius:8px;border:2px solid #334155">
-<div style="font-size:1.4rem;font-weight:bold;color:#fbbf24">${pondTopWinner}</div>
-<div style="color:#94a3b8;font-size:0.85rem">Top Winner</div>
-</div>
-</div>
-` : ''}
 
 <!-- Trend line -->
 ${pondLast5Avg && pondPrev5Avg ? `
 <p style="text-align:center;margin-top:0.75rem;color:#94a3b8;font-size:0.9rem;font-style:italic">
-Last 5 runs: Floor ${pondLast5Avg} avg
+Last 5 runs: ${pondLast5Avg} XP avg
 <span style="color:${pondTrendUp ? '#22c55e' : '#ef4444'}">${pondTrendUp ? '&#9650;' : '&#9660;'} ${pondTrendUp ? 'up' : 'down'} from ${pondPrev5Avg}</span>
 </p>
 ` : ''}
@@ -15405,9 +15373,10 @@ ${run.upgradeHistory && run.upgradeHistory.length > 0 ? `
 <div style="color:#a78bfa;font-size:0.85rem;font-weight:bold;margin-bottom:0.4rem">Upgrades (${run.upgradeHistory.length})</div>
 <div style="display:flex;flex-wrap:wrap;gap:0.3rem">
 ${run.upgradeHistory.map(u => {
-  if(u.type === 'addSigil') return '<span style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.75rem;color:#93c5fd">+' + u.sigil + ' &#8594; ' + u.hero + '</span>';
-  if(u.type === 'upgradeSigil' || u.type === 'upgradePassive') return '<span style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.4);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.75rem;color:#86efac">' + u.sigil + ' &#8593;</span>';
-  if(u.type === 'stat') return '<span style="background:rgba(249,115,22,0.2);border:1px solid rgba(249,115,22,0.4);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.75rem;color:#fdba74">' + u.hero + ' ' + u.stat + '&#8593;</span>';
+  const pill = 'background:rgba(148,163,184,0.15);border:1px solid rgba(148,163,184,0.3);padding:0.15rem 0.4rem;border-radius:4px;font-size:0.75rem;color:#cbd5e1';
+  if(u.type === 'addSigil') return '<span style="' + pill + '">+' + u.sigil + ' &#8594; ' + u.hero + '</span>';
+  if(u.type === 'upgradeSigil' || u.type === 'upgradePassive') return '<span style="' + pill + '">' + u.sigil + ' &#8593;</span>';
+  if(u.type === 'stat') return '<span style="' + pill + '">' + u.hero + ' ' + u.stat + '&#8593;</span>';
   return '';
 }).join('')}
 </div>
@@ -15433,6 +15402,92 @@ run.heroes.forEach(hero => {
 });
 const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
 return sorted.length > 0 ? sorted[0][0] : '-';
+}
+
+// ===== HERO STATS MODAL =====
+function showHeroStatsModal() {
+const history = S.pondHistory || [];
+const heroes = ['Warrior', 'Tank', 'Mage', 'Healer', 'Tapo'];
+const qp = S.questProgress || {};
+const hp = qp.heroesPlayed || {};
+const hw = qp.heroWins || {};
+
+// Compute per-hero stats from pond history
+function heroStats(heroName) {
+  const runs = history.filter(r => (r.heroes || []).includes(heroName));
+  const wins = runs.filter(r => r.outcome === 'victory').length;
+  const plays = hp[heroName] || runs.length;
+  const winCount = hw[heroName] || wins;
+  const bestFloor = runs.length > 0 ? Math.max(...runs.map(r => r.floorReached)) : 0;
+  const avgFloor = runs.length > 0 ? (runs.reduce((s, r) => s + r.floorReached, 0) / runs.length).toFixed(1) : '-';
+  const figs = (S.pedestal || []).filter(f => f.hero === heroName).length;
+
+  // Most common upgrades from upgradeHistory across all runs with this hero
+  const upgCounts = {};
+  runs.forEach(r => {
+    if(!r.upgradeHistory) return;
+    r.upgradeHistory.forEach(u => {
+      if(u.type === 'addSigil' && u.hero === heroName) {
+        upgCounts[u.sigil] = (upgCounts[u.sigil] || 0) + 1;
+      } else if(u.type === 'stat' && u.hero === heroName) {
+        upgCounts[u.stat] = (upgCounts[u.stat] || 0) + 1;
+      }
+    });
+    // Global sigil upgrades count for all heroes in that run
+    r.upgradeHistory.forEach(u => {
+      if(u.type === 'upgradeSigil' || u.type === 'upgradePassive') {
+        upgCounts[u.sigil] = (upgCounts[u.sigil] || 0) + 1;
+      }
+    });
+  });
+  const topUpgrades = Object.entries(upgCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+  return { plays, winCount, bestFloor, avgFloor, figs, topUpgrades };
+}
+
+const v = document.getElementById('gameView');
+let html = `
+<div class="modal-container" style="max-width:500px;max-height:85vh;overflow-y:auto">
+<div style="background:linear-gradient(135deg,#1e3a5f,#1e293b);padding:1rem;border-radius:8px 8px 0 0;text-align:center">
+<h2 style="margin:0;color:#60a5fa;font-size:1.3rem">Hero Stats</h2>
+</div>
+<div style="padding:1rem;display:flex;flex-direction:column;gap:0.75rem">`;
+
+heroes.forEach(heroName => {
+  const h = heroStats(heroName);
+  if(h.plays === 0) return; // Skip heroes never played
+  const winRate = h.plays > 0 ? Math.round((h.winCount / h.plays) * 100) : 0;
+  const imgPath = HERO_IMAGES[heroName.toLowerCase()] || '';
+
+  html += `
+  <div style="background:rgba(30,41,59,0.8);border:2px solid #334155;border-radius:8px;padding:0.75rem;display:flex;gap:0.75rem;align-items:center">
+    <img src="${imgPath}" alt="${heroName}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid #475569;flex-shrink:0">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:bold;font-size:1rem;color:#f1f5f9;margin-bottom:0.3rem">${heroName}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.2rem 0.75rem;font-size:0.8rem">
+        <span style="color:#94a3b8">Plays: <strong style="color:#f1f5f9">${h.plays}</strong></span>
+        <span style="color:#94a3b8">Wins: <strong style="color:#fbbf24">${h.winCount}</strong> (${winRate}%)</span>
+        <span style="color:#94a3b8">Best: <strong style="color:#60a5fa">F${h.bestFloor}</strong></span>
+        <span style="color:#94a3b8">Avg: <strong style="color:#a78bfa">F${h.avgFloor}</strong></span>
+        ${h.figs > 0 ? `<span style="color:#94a3b8">Figurines: <strong style="color:#f59e0b">${h.figs}</strong></span>` : ''}
+      </div>
+      ${h.topUpgrades.length > 0 ? `
+      <div style="margin-top:0.3rem;font-size:0.75rem;color:#64748b">
+        Top upgrades: ${h.topUpgrades.map(([name, count]) => name + ' (' + count + ')').join(', ')}
+      </div>
+      ` : ''}
+    </div>
+  </div>`;
+});
+
+html += `
+<button class="btn" onclick="this.closest('.modal-container').remove();document.querySelector('.modal-overlay')?.remove()" style="margin-top:0.5rem;width:100%">Close</button>
+</div>
+</div>
+<div class="modal-overlay" onclick="document.querySelector('.modal-container')?.remove();this.remove()"></div>`;
+
+v.insertAdjacentHTML('beforeend', html);
+SoundFX.play('menuOpen');
 }
 
 // ===== DEATH SCREEN =====
