@@ -17,6 +17,16 @@ const HERO_IMAGES = {
         tapo: 'assets/tapo_normal.png'
     };
 
+// Hero portrait crop settings for card display
+// fit: 'cover' crops to show top portion, 'contain' shows whole character
+const HERO_CROP = {
+    'Warrior': { fit: 'cover', pos: 'top center' },
+    'Tank':    { fit: 'cover', pos: 'top center' },
+    'Mage':    { fit: 'cover', pos: 'top center' },
+    'Healer':  { fit: 'cover', pos: 'top center' },
+    'Tapo':    { fit: 'contain', pos: 'center' }
+};
+
 // Hero reaction images (happy/pained expressions)
 const HERO_REACTIONS = {
     warrior: {
