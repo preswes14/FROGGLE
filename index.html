@@ -494,15 +494,17 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .combat-lane.crowded-5 .card.enemy { width: 105px; max-width: 105px; padding: 0.25rem; min-height: 45px; font-size: 0.65rem; }
 .combat-lane.crowded-5 .card.enemy .sigil { width: 16px; height: 16px; font-size: 0.6rem; }
 .combat-lane.crowded-5 .card.enemy .sigil-row { gap: 1px; }
-.card { width: auto; max-width: 160px; border: 3px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; overflow: hidden; word-wrap: break-word; }
+.card { width: auto; max-width: 160px; border: 2px solid #000; border-radius: 8px; padding: 0.5rem; min-height: 70px; font-size: 0.85rem; position: relative; overflow: hidden; word-wrap: break-word; }
 .card-stats { font-size: 0.8rem; text-align: center; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
-.card.hero { background: #15803d; color: white; width: 200px; max-width: 200px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.card.hero { background: radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%); color: white; width: 200px; max-width: 200px; border-radius: 16px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border: 2px solid #22c55e; }
+.card.hero::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #22c55e, #4ade80, #22c55e, transparent); border-radius: 16px 16px 0 0; pointer-events: none; }
 .card.hero .sigil-row { flex-wrap: nowrap; gap: 2px; }
 .card.hero .sigil-row .sigil { flex-shrink: 1; min-width: 28px; min-height: 28px; padding: 4px; font-size: 0.9rem; }
 .card.hero .sigil-row .sigil img { height: 1.3em; }
-.card.enemy { background: #b64141; color: white; width: 170px; }
+.card.enemy { background: radial-gradient(ellipse at 50% 35%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%); color: white; width: 170px; border: 2px solid #dc2626; }
+.card.enemy::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #dc2626, #f87171, #dc2626, transparent); border-radius: 8px 8px 0 0; pointer-events: none; }
 .enemy-art { border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-.hero-portrait { width: 80px; height: 80px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.15); }
+.hero-portrait { width: 80px; height: 80px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6), inset 0 0 12px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.45); }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
 .card.hero.chosen-one::before {
