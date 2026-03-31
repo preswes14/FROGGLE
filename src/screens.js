@@ -2632,8 +2632,8 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
 </div>
 </div>
 
-<!-- Quest Board Hotspot (positioned over art's wooden board) -->
-<div style="position:absolute;top:25%;right:5%;z-index:10;width:13%;height:25%">
+<!-- Quest Board Hotspot (positioned over art's wooden board on right side) -->
+<div style="position:absolute;top:28%;right:18%;z-index:10;width:11%;height:28%">
   <div onclick="showQuestBoard()" role="button" aria-label="Quest Board - View quests and claim rewards" tabindex="0"
        style="cursor:pointer;width:100%;height:100%;border-radius:6px;transition:all 0.3s;position:relative;${getClaimableQuestCount() > 0 ? 'animation:quest-board-glow 2s ease-in-out infinite;' : ''}"
        onmouseover="this.style.boxShadow='0 0 20px rgba(251,191,36,0.6)';this.style.background='rgba(251,191,36,0.12)'"
