@@ -464,8 +464,11 @@ const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
 
-// Select Death quote: scripted for first 3 deaths, then tiered random, then fully random
+// Select Death quote once per death (reuse on shop refreshes from purchases)
 let deathQuote = "";
+if(window._currentDeathQuote) {
+deathQuote = window._currentDeathQuote;
+} else {
 const deathCount = S.usedDeathQuotes.length;
 if(deathCount < DEATH_QUOTES_SCRIPTED.length) {
 // Phase 1: Scripted quotes in exact order
@@ -499,6 +502,8 @@ if(deathQuote === 'DYNAMIC_GLORY') {
 deathQuote = S.heroes && S.heroes.length === 3
     ? "All glory to the... trio of you."
     : "All glory to the... pair of you.";
+}
+window._currentDeathQuote = deathQuote;
 }
 
 // Calculate next upgrade's rate increase (tiered: first 5 +5, next 5 +10, etc.)
@@ -866,8 +871,8 @@ const rateIncrease = 5 * (tier + 1);
 S.goingRate += rateIncrease;
 // QUEST TRACKING: Upgrade purchased
 trackQuestProgress('upgrade');
-// JUICE: Power up sound + screen flash for sigil upgrade
-SoundFX.play('powerUp');
+// JUICE: Cha-ching sound + screen flash for sigil upgrade
+SoundFX.play('chaChing');
 const flash = document.createElement('div');
 flash.className = 'upgrade-flash';
 document.body.appendChild(flash);
@@ -1030,6 +1035,8 @@ actuallyRestartAfterDeath();
 }
 
 function actuallyRestartAfterDeath() {
+// Clear death quote so next death picks a fresh one
+window._currentDeathQuote = null;
 // Increment run number
 S.runNumber++;
 
