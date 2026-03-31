@@ -1136,44 +1136,73 @@ v.innerHTML = `
 </div>
 <p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
-Bellies overflowing, Mage and Tapo return to Ribbleton.
+Bellies overflowing, Mage and Tapo bask in the afternoon sun.
 </p>
-<button onclick="transitionToPortalInvasion()" style="padding:1rem 2rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1.5rem">Continue</button>
+<button onclick="showFlydraAppearance()" style="padding:1rem 2rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1.5rem">Continue</button>
 </div>
 </div>`;
 }
 
-function transitionToPortalInvasion() {
-// Show portal opening narrative
+function showFlydraAppearance() {
+// Flydra appears, furious that its children have been eaten!
 const slides = [
 {
 html: `
-<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:shake 0.5s ease-in-out infinite">DANGER!</h2>
+<h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:flydraShake 0.3s ease-in-out infinite">SHRIIIEEEEK!!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<div style="width:160px;height:160px;margin:0 auto;position:relative;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 40px #dc2626"></div>
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);font-size:3.5rem;animation:spin 2s linear infinite"></div>
+<img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3);animation:flydraDescend 1.5s ease-out">
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
-As Mage and Tapo enter Ribbleton, something seems off..<br>
-Whoa! <strong>A dark portal</strong> is open in the center of square!
+A terrible shriek echoes across Ribbleton! A massive, multi-headed creature descends from the sky — the <strong style="color:#e94560">FLYDRA</strong>, mother of all flies!
 </p>
-<div style="display:flex;justify-content:center;gap:2rem;margin:1rem 0;font-size:2.5rem">
-<div style="animation:enemyAppear 1s ease-out"></div>
-<div style="animation:enemyAppear 1.3s ease-out"></div>
-</div>
+<p style="font-size:1.1rem;line-height:1.7;margin:0.5rem 0;color:#fbbf24;font-style:italic">
+She is FURIOUS that her children have been devoured!
+</p>
 <style>
-@keyframes shake {
+@keyframes flydraShake {
 0%, 100% { transform: translateX(0); }
-25% { transform: translateX(-5px); }
-75% { transform: translateX(5px); }
+25% { transform: translateX(-4px); }
+75% { transform: translateX(4px); }
 }
+@keyframes flydraDescend {
+from { opacity: 0; transform: translateY(-60px) scale(0.7); }
+to { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>
+`
+},
+{
+html: `
+<div style="margin:1.5rem 0;position:relative">
+<!-- Swirling portal with Flydra overlaid -->
+<div style="position:relative;width:220px;height:220px;margin:0 auto">
+<div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 60px #dc2626,0 0 120px rgba(220,38,38,0.3)"></div>
+<img src="assets/Hydra.png" alt="Flydra" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:180px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraPortalHover 2s ease-in-out infinite">
+</div>
+<!-- Enemies spilling out -->
+<div style="display:flex;justify-content:center;gap:2.5rem;margin-top:1rem;font-size:2.5rem">
+<div style="animation:enemyAppear 0.8s ease-out 0.3s both">
+<img src="assets/goblin.png" alt="Goblin" style="width:50px;height:auto" onerror="this.outerHTML='👹'">
+</div>
+<div style="animation:enemyAppear 1s ease-out 0.6s both">
+<img src="assets/wolf.png" alt="Wolf" style="width:50px;height:auto" onerror="this.outerHTML='🐺'">
+</div>
+<div style="animation:enemyAppear 1.2s ease-out 0.9s both">
+<img src="assets/goblin.png" alt="Goblin" style="width:50px;height:auto" onerror="this.outerHTML='👹'">
+</div>
+</div>
+</div>
+<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
+In her rage, the Flydra <strong style="color:#dc2626">tears open a dark portal</strong>! Hostile creatures begin spilling out into Ribbleton!
+</p>
+<style>
 @keyframes narrativePortalPulse {
-0%, 100% { transform: scale(1); opacity: 0.8; }
-50% { transform: scale(1.1); opacity: 1; }
+0%, 100% { transform: scale(1); opacity: 0.85; }
+50% { transform: scale(1.08); opacity: 1; }
 }
-@keyframes spin {
-from { transform: translate(-50%, -50%) rotate(0deg); }
-to { transform: translate(-50%, -50%) rotate(360deg); }
+@keyframes flydraPortalHover {
+0%, 100% { transform: translate(-50%,-55%) scale(1); }
+50% { transform: translate(-50%,-58%) scale(1.05); }
 }
 @keyframes enemyAppear {
 from { transform: scale(0) rotate(-180deg); opacity: 0; }
@@ -1184,14 +1213,18 @@ to { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 ];
 slides.onComplete = () => {
-// Start Phase 2: Portal Invasion
+transitionToPortalInvasion();
+};
+showNarrativeSlide(slides, 0);
+}
+
+function transitionToPortalInvasion() {
+// Start Phase 2: Portal Invasion (Flydra appearance already shown)
 startRibbletonTutorial();
 
 setTimeout(() => {
 showTutorialStoryOverlay();
 }, 100);
-};
-showNarrativeSlide(slides, 0);
 }
 
 function showTutorialStoryOverlay() {
@@ -1208,7 +1241,7 @@ overlay.innerHTML = `
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(220,38,38,0.5)">
 <div style="max-width:600px;margin:0 auto">
 <p style="font-size:1.1rem;line-height:1.6;color:#fff;text-align:center;margin:0;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">
-Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to fight off the <strong style="color:#dc2626">hostile creatures</strong> spilling out of the portal!
+Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to fight off the <strong style="color:#dc2626">hostile creatures</strong> the Flydra unleashed upon Ribbleton!
 </p>
 </div>
 </div>
@@ -1327,16 +1360,17 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "A few stragglers scamper back into the portal - the battle is won! Our Frogventurers wipe their brows and sheathe their weapons. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe\u2026"},
+{bg: 'assets/ribbleton.png', text: "The battle is won! But as the last enemy falls, the <strong style='color:#e94560'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her."},
+{bg: 'assets/ribbleton.png', text: "The heroes catch their breath. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is\u2026"},
 {text: "WAIT... WHERE IS TAPO??!",
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; animation: spinTapo 4s linear infinite;', text: "A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong>",
-html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">A familiar squeal of delight pierces the air as Tapo crawls toward the portal. <strong style='color:#dc2626'>No, Tapo, don't go in there!!</strong></div>`,
+{bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; animation: spinTapo 4s linear infinite;', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
+html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong style='color:#dc2626'>He can't help himself!</strong></div>`,
 onShow: () => { GameMusic.play(null, 'combat_19'); }},
-{text: "But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
-html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px">But it is too late - the portal flares with <strong style='color:#9333ea'>dark energy</strong>. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
+{text: "TAPO, NO!! But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
+html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px"><strong style='color:#dc2626'>TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -3662,7 +3696,7 @@ v.innerHTML = `
 <img src="assets/tapo_old.png" alt="Old Tapo" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
-"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, but that Flydra sure looked yummy..."
+"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, though I must admit — Flydra flesh was quite the delicacy in my younger days. I ate many before I outgrew such things..."
 </div>
 <button class="btn" onclick="oldTapoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
 </div>`;

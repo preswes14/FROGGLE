@@ -1,7 +1,7 @@
 {
   "name": "FROGGLE - Dungeon Crawler",
   "short_name": "FROGGLE",
-  "description": "A tactical dungeon crawler where you save Tapo the Tadpole!",
+  "description": "A tactical dungeon crawler where frogs fight with sigils and dice. Save Tapo the Tadpole!",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#d9cab1",
