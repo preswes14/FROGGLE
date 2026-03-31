@@ -1424,14 +1424,13 @@ return statTexts.join('! ') + '!';
 };
 
 const slides = [
-{bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, the heroes burst into the Flydra's lair, ready for anything... except <em>this</em>."},
-{bg: 'assets/victory-room.png', text: "TAPO_EATING_FLYDRA",
+{bg: 'assets/victory-room.png', text: "19 grueling floors later, the heroes finally find him — Tapo the Tadpole, lying still on the cold stone floor."},
+{bg: 'assets/victory-room.png', text: "TAPO_FOOD_COMA",
 html: `
 <style>
-@keyframes tapoMunch {
+@keyframes tapoSleep {
   0%, 100% { transform: translateY(0) scale(1); }
-  30% { transform: translateY(-5px) scale(1.05); }
-  60% { transform: translateY(0) scale(0.98); }
+  50% { transform: translateY(-3px) scale(1.02); }
 }
 @keyframes flydraFade {
   0% { opacity: 0.6; }
@@ -1442,12 +1441,12 @@ html: `
 <div style="text-align:center;position:relative;margin:1rem 0">
 <div style="position:relative;display:inline-block">
 <img src="assets/Hydra.png" alt="The defeated Flydra" style="width:280px;height:auto;opacity:0.5;filter:grayscale(0.5) brightness(0.7);animation:flydraFade 3s ease-in-out infinite">
-<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);animation:tapoMunch 1.2s ease-in-out infinite">
-<img src="assets/tapo_normal.png" alt="Tapo munching" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:tapoSleep 2s ease-in-out infinite">
+<img src="assets/tapo_normal.png" alt="Tapo in food coma" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
 </div>
 </div>
 </div>
-<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem"><strong style="color:#22c55e">Tapo</strong> is happily munching on the Flydra's middle head! He took the whole thing down... <em>by himself?!</em><br><br>The little tadpole lets out a triumphant <strong style="color:#fbbf24">BURRRP</strong> and grins.</div>
+<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem">But as they rush forward, one tiny eye cracks open. The little tadpole lets out a mighty <strong style="color:#fbbf24">belch</strong>, filling the room with the unmistakable scent of Flydra flesh. His belly is impossibly round. He's fine — just in a food coma.</div>
 `},
 {bg: 'assets/victory-room.png', text: "Scattered around Tapo are small carvings — figurines of the heroes who came to save him! Clutched in his budding appendages, he offers them proudly."},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},

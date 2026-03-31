@@ -3072,7 +3072,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.08';
+const GAME_VERSION = 'S_2.09';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -12438,10 +12438,7 @@ html: `
 <img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3);animation:flydraDescend 1.5s ease-out">
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
-A terrible shriek echoes across Ribbleton! A massive, multi-headed creature descends from the sky — the <strong style="color:#e94560">FLYDRA</strong>, mother of all flies!
-</p>
-<p style="font-size:1.1rem;line-height:1.7;margin:0.5rem 0;color:#fbbf24;font-style:italic">
-She is FURIOUS that her children have been devoured!
+A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong style="color:#e94560">Flydra</strong>, mother of all flies. She saw what you did to her children, and she is not the forgiving type.
 </p>
 <style>
 @keyframes flydraShake {
@@ -12478,7 +12475,7 @@ html: `
 </div>
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
-In her rage, the Flydra <strong style="color:#dc2626">tears open a dark portal</strong>! Hostile creatures begin spilling out into Ribbleton!
+In her rage, the Flydra <strong style="color:#dc2626">tears open a dark portal</strong>! Creatures start pouring out into Ribbleton!
 </p>
 <style>
 @keyframes narrativePortalPulse {
@@ -12526,7 +12523,7 @@ overlay.innerHTML = `
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(220,38,38,0.5)">
 <div style="max-width:600px;margin:0 auto">
 <p style="font-size:1.1rem;line-height:1.6;color:#fff;text-align:center;margin:0;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">
-Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to fight off the <strong style="color:#dc2626">hostile creatures</strong> the Flydra unleashed upon Ribbleton!
+Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to help fight off these creatures!
 </p>
 </div>
 </div>
@@ -14981,7 +14978,7 @@ v.innerHTML = `
 <img src="assets/tapo_old.png" alt="Old Tapo" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
-"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, though I must admit — Flydra flesh was quite the delicacy in my younger days. I ate many before I outgrew such things..."
+"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, Oh, how I gorged myself on succulent Flydra flesh back in my youth... I've outgrown such things now. And yet, I find myself nostalgic for that flavor once more..."
 </div>
 <button class="btn" onclick="oldTapoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
 </div>`;
@@ -16506,14 +16503,13 @@ return statTexts.join('! ') + '!';
 };
 
 const slides = [
-{bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, the heroes burst into the Flydra's lair, ready for anything... except <em>this</em>."},
-{bg: 'assets/victory-room.png', text: "TAPO_EATING_FLYDRA",
+{bg: 'assets/victory-room.png', text: "19 grueling floors later, the heroes finally find him — Tapo the Tadpole, lying still on the cold stone floor."},
+{bg: 'assets/victory-room.png', text: "TAPO_FOOD_COMA",
 html: `
 <style>
-@keyframes tapoMunch {
+@keyframes tapoSleep {
   0%, 100% { transform: translateY(0) scale(1); }
-  30% { transform: translateY(-5px) scale(1.05); }
-  60% { transform: translateY(0) scale(0.98); }
+  50% { transform: translateY(-3px) scale(1.02); }
 }
 @keyframes flydraFade {
   0% { opacity: 0.6; }
@@ -16524,12 +16520,12 @@ html: `
 <div style="text-align:center;position:relative;margin:1rem 0">
 <div style="position:relative;display:inline-block">
 <img src="assets/Hydra.png" alt="The defeated Flydra" style="width:280px;height:auto;opacity:0.5;filter:grayscale(0.5) brightness(0.7);animation:flydraFade 3s ease-in-out infinite">
-<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);animation:tapoMunch 1.2s ease-in-out infinite">
-<img src="assets/tapo_normal.png" alt="Tapo munching" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:tapoSleep 2s ease-in-out infinite">
+<img src="assets/tapo_normal.png" alt="Tapo in food coma" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
 </div>
 </div>
 </div>
-<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem"><strong style="color:#22c55e">Tapo</strong> is happily munching on the Flydra's middle head! He took the whole thing down... <em>by himself?!</em><br><br>The little tadpole lets out a triumphant <strong style="color:#fbbf24">BURRRP</strong> and grins.</div>
+<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem">But as they rush forward, one tiny eye cracks open. The little tadpole lets out a mighty <strong style="color:#fbbf24">belch</strong>, filling the room with the unmistakable scent of Flydra flesh. His belly is impossibly round. He's fine — just in a food coma.</div>
 `},
 {bg: 'assets/victory-room.png', text: "Scattered around Tapo are small carvings — figurines of the heroes who came to save him! Clutched in his budding appendages, he offers them proudly."},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
@@ -18738,7 +18734,7 @@ let html = `
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
 <h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">FROGGLE</h3>
-<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Pursue Tapo through a portal torn open by the vengeful Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
+<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Chase Tapo through a portal torn open by the Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
 <div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem;color:#1a1a1a">
 <h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">HOW LEVEL-UPS WORK</h4>
