@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.10';
+const GAME_VERSION = 'S_2.11';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -101,28 +101,58 @@ function setAllHeroesReaction(reaction, duration = 800) {
     });
 }
 
-// Death's dialogue lines (cycles through without repeating until all used)
-const DEATH_QUOTES = [
-    "Some days you're the sticky tongue, some days you're the fly.",
-    "You must really like pain or something. Weirdo.",
-    "Next time bring me a smoothie or something",
-    "Hey, have you met those ghost boys in the dungeon? I can't get them to make.. you know.. the transition. Help them out, would you?",
-    "Death death lemonade, 'round the coroner I parade. Hehe!",
-    "Ribbit? Ribbbbbit? Rib bit?",
-    "Oh man, a classic green. You just know he's a jumper.",
-    "Hello my baby, hello my honey.",
-    "If you refuse me, honey you'll lose me, and you'll be left alooooooone",
-    "You guys should check out the Discovery Channel to see what normal frogs do",
-    "Toadally froggin died, huh?",
-    "Send me a kiss by wire, honey my heart's on fire",
-    "Maybe try making a beer commercial or something?",
-    "At least you don't have to cross a busy highway!",
-    "Stay out of pots full of lukewarm water!",
-    "Mark Twain keeps my mornings busy *rimshot*",
-    "\"Analyzing humor is like dissecting a frog\". Know why? Look it up.",
-    "Where does \"frog in your throat\" come from? Do you guys know?",
-    "Is this tadpole really worth it?",
-    "Ohh, it's pronounced Ta-po like Tad-pole, not Tah-po. Duh."
+// First 3 deaths are scripted in this exact order
+const DEATH_QUOTES_SCRIPTED = [
+    "I love gold. You love improving your sigils. Let's do some business.",
+    "You can't take it with you. Buy some upgrades.",
+    "Some days you're the sticky tongue, some days you're the fly."
+];
+
+// After scripted quotes, tiers play in order (random within each tier)
+// Once all tiers exhausted, fully random with repeats allowed
+const DEATH_QUOTES_TIERS = [
+    // Tier 1: Game Tips & Obvious Frog Jokes
+    [
+        "Isn't being bankrupt better than being dead?",
+        "Upgrades? Dig' em.",
+        "Toadally froggin died, huh?",
+        "Hey, have you met those ghost boys in the dungeon? I can't get them to make.. you know.. the transition. Help them out, would you?",
+        "Is this tadpole really worth it?",
+        "It's not Tah-po, it's Ta-po, like Tad-pole. Duh."
+    ],
+    // Tier 2: Frog Culture & Character Voice
+    [
+        "Death death lemonade, 'round the coroner I parade. Hehe!",
+        "Ribbit? Ribbbbbit? Rib bit?",
+        "Oh man, a classic green. You just know he's a jumper.",
+        "It's not easy being ivory and covered in a scary cloak",
+        "I'm looking for a dead princess to kiss me, if you know any.",
+        "DYNAMIC_GLORY"
+    ],
+    // Tier 3: Pop Culture & Michigan J. Frog
+    [
+        "Hello my baby, hello my honey.",
+        "If you refuse me, honey you'll lose me, then you'll be left alooooooone",
+        "Send me a kiss by wire, baby my heart's on fire",
+        "You guys should check out the Discovery Channel to see what normal frogs do",
+        "Maybe try making a beer commercial or something?",
+        "At least you don't have to cross a busy highway!",
+        "Stay out of pots full of lukewarm water!",
+        "Mark Twain keeps my mornings busy *rimshot*",
+        "\"Analyzing humor is like dissecting a frog\". Don't ask me how I know that.",
+        "Where does \"frog in your throat\" come from? Do you guys know?"
+    ],
+    // Tier 4: Deep Cuts & Obscure References
+    [
+        "Enemy shield analyzed!",
+        "Frogs in the chat",
+        "Level up your frog high enough and it turns into a ninja. Oh wait, whoops, different game.",
+        "Feels good man",
+        "Support nonviolent protests",
+        "Why wasn't Winky in DKC2 or 3?",
+        "Just use the Masamune",
+        "Ribby and Croaks would have beaten this game by now."
+    ]
 ];
 
 const H = {

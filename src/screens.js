@@ -464,20 +464,41 @@ const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
 
-// Select a random Death quote that hasn't been used yet
+// Select Death quote: scripted for first 3 deaths, then tiered random, then fully random
 let deathQuote = "";
-if(S.usedDeathQuotes.length >= DEATH_QUOTES.length) {
-// All quotes used - reset the pool
-S.usedDeathQuotes = [];
+const deathCount = S.usedDeathQuotes.length;
+if(deathCount < DEATH_QUOTES_SCRIPTED.length) {
+// Phase 1: Scripted quotes in exact order
+deathQuote = DEATH_QUOTES_SCRIPTED[deathCount];
+S.usedDeathQuotes.push('s' + deathCount);
+savePermanent();
+} else {
+// Phase 2: Tiered random, then fully random with repeats
+let picked = false;
+for(let t = 0; t < DEATH_QUOTES_TIERS.length; t++) {
+const tier = DEATH_QUOTES_TIERS[t];
+const available = tier.map((q, i) => ({q, id: 't' + t + '_' + i}))
+    .filter(item => !S.usedDeathQuotes.includes(item.id));
+if(available.length > 0) {
+    const pick = available[Math.floor(Math.random() * available.length)];
+    deathQuote = pick.q;
+    S.usedDeathQuotes.push(pick.id);
+    savePermanent();
+    picked = true;
+    break;
 }
-const availableQuotes = DEATH_QUOTES.filter((_, idx) => !S.usedDeathQuotes.includes(idx));
-if(availableQuotes.length > 0) {
-const randomIdx = Math.floor(Math.random() * availableQuotes.length);
-deathQuote = availableQuotes[randomIdx];
-// Mark this quote as used
-const quoteIndex = DEATH_QUOTES.indexOf(deathQuote);
-S.usedDeathQuotes.push(quoteIndex);
-savePermanent(); // Save the updated usedDeathQuotes
+}
+if(!picked) {
+// All tiers exhausted — fully random, repeats OK
+const allQuotes = DEATH_QUOTES_TIERS.flat();
+deathQuote = allQuotes[Math.floor(Math.random() * allQuotes.length)];
+}
+}
+// Handle dynamic quote
+if(deathQuote === 'DYNAMIC_GLORY') {
+deathQuote = S.heroes && S.heroes.length === 3
+    ? "All glory to the... trio of you."
+    : "All glory to the... pair of you.";
 }
 
 // Calculate next upgrade's rate increase (tiered: first 5 +5, next 5 +10, etc.)
