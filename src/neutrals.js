@@ -1177,15 +1177,21 @@ html: `
 <img src="assets/Hydra.png" alt="Flydra" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:180px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraPortalHover 2s ease-in-out infinite">
 </div>
 <!-- Enemies spilling out -->
-<div style="display:flex;justify-content:center;gap:2.5rem;margin-top:1rem;font-size:2.5rem">
+<div style="display:flex;justify-content:center;gap:1.5rem;margin-top:1rem;font-size:2.5rem;flex-wrap:wrap">
 <div style="animation:enemyAppear 0.8s ease-out 0.3s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:50px;height:auto" onerror="this.outerHTML='👹'">
+<img src="assets/goblin.png" alt="Goblin" style="width:45px;height:auto" onerror="this.outerHTML='👹'">
 </div>
-<div style="animation:enemyAppear 1s ease-out 0.6s both">
-<img src="assets/wolf.png" alt="Wolf" style="width:50px;height:auto" onerror="this.outerHTML='🐺'">
+<div style="animation:enemyAppear 0.9s ease-out 0.5s both">
+<img src="assets/wolf.png" alt="Wolf" style="width:45px;height:auto" onerror="this.outerHTML='🐺'">
 </div>
-<div style="animation:enemyAppear 1.2s ease-out 0.9s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:50px;height:auto" onerror="this.outerHTML='👹'">
+<div style="animation:enemyAppear 1s ease-out 0.7s both">
+<img src="assets/goblin.png" alt="Goblin" style="width:45px;height:auto" onerror="this.outerHTML='👹'">
+</div>
+<div style="animation:enemyAppear 1.1s ease-out 0.9s both">
+<img src="assets/wolf.png" alt="Wolf" style="width:45px;height:auto" onerror="this.outerHTML='🐺'">
+</div>
+<div style="animation:enemyAppear 1.2s ease-out 1.1s both">
+<img src="assets/goblin.png" alt="Goblin" style="width:45px;height:auto" onerror="this.outerHTML='👹'">
 </div>
 </div>
 </div>
