@@ -998,7 +998,7 @@ let html = `
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
 <h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">FROGGLE</h3>
-<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Pursue Tapo through a portal torn open by the vengeful Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
+<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Chase Tapo through a portal torn open by the Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
 <div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem;color:#1a1a1a">
 <h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">HOW LEVEL-UPS WORK</h4>

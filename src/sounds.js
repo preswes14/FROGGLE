@@ -693,6 +693,31 @@ const SoundFX = {
         });
         break;
 
+      case 'chaChing':
+        // Cash register cha-ching for death screen purchases
+        // First hit: metallic ka
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.type = 'square';
+        osc.start(now);
+        osc.stop(now + 0.08);
+        // Second hit: bright ching
+        [2000, 2600, 3200].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + 0.08);
+          g.gain.setValueAtTime(this.volume * (0.35 - i * 0.08), now + 0.08);
+          g.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+          o.type = 'sine';
+          o.start(now + 0.08);
+          o.stop(now + 0.3);
+        });
+        break;
+
       case 'lastStand':
         // Hero entering Last Stand - dramatic descending alarm
         [500, 400, 300, 200].forEach((freq, i) => {

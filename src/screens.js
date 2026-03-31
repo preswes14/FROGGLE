@@ -464,20 +464,46 @@ const advancedSigils = ['Ghost', 'Alpha', 'Grapple'];
 const passiveSigils = ['Expand', 'Asterisk', 'Star'];
 const allSigils = [...coreSigils, ...advancedSigils, ...passiveSigils];
 
-// Select a random Death quote that hasn't been used yet
+// Select Death quote once per death (reuse on shop refreshes from purchases)
 let deathQuote = "";
-if(S.usedDeathQuotes.length >= DEATH_QUOTES.length) {
-// All quotes used - reset the pool
-S.usedDeathQuotes = [];
+if(window._currentDeathQuote) {
+deathQuote = window._currentDeathQuote;
+} else {
+const deathCount = S.usedDeathQuotes.length;
+if(deathCount < DEATH_QUOTES_SCRIPTED.length) {
+// Phase 1: Scripted quotes in exact order
+deathQuote = DEATH_QUOTES_SCRIPTED[deathCount];
+S.usedDeathQuotes.push('s' + deathCount);
+savePermanent();
+} else {
+// Phase 2: Tiered random, then fully random with repeats
+let picked = false;
+for(let t = 0; t < DEATH_QUOTES_TIERS.length; t++) {
+const tier = DEATH_QUOTES_TIERS[t];
+const available = tier.map((q, i) => ({q, id: 't' + t + '_' + i}))
+    .filter(item => !S.usedDeathQuotes.includes(item.id));
+if(available.length > 0) {
+    const pick = available[Math.floor(Math.random() * available.length)];
+    deathQuote = pick.q;
+    S.usedDeathQuotes.push(pick.id);
+    savePermanent();
+    picked = true;
+    break;
 }
-const availableQuotes = DEATH_QUOTES.filter((_, idx) => !S.usedDeathQuotes.includes(idx));
-if(availableQuotes.length > 0) {
-const randomIdx = Math.floor(Math.random() * availableQuotes.length);
-deathQuote = availableQuotes[randomIdx];
-// Mark this quote as used
-const quoteIndex = DEATH_QUOTES.indexOf(deathQuote);
-S.usedDeathQuotes.push(quoteIndex);
-savePermanent(); // Save the updated usedDeathQuotes
+}
+if(!picked) {
+// All tiers exhausted — fully random, repeats OK
+const allQuotes = DEATH_QUOTES_TIERS.flat();
+deathQuote = allQuotes[Math.floor(Math.random() * allQuotes.length)];
+}
+}
+// Handle dynamic quote
+if(deathQuote === 'DYNAMIC_GLORY') {
+deathQuote = S.heroes && S.heroes.length === 3
+    ? "All glory to the... trio of you."
+    : "All glory to the... pair of you.";
+}
+window._currentDeathQuote = deathQuote;
 }
 
 // Calculate next upgrade's rate increase (tiered: first 5 +5, next 5 +10, etc.)
@@ -845,8 +871,8 @@ const rateIncrease = 5 * (tier + 1);
 S.goingRate += rateIncrease;
 // QUEST TRACKING: Upgrade purchased
 trackQuestProgress('upgrade');
-// JUICE: Power up sound + screen flash for sigil upgrade
-SoundFX.play('powerUp');
+// JUICE: Cha-ching sound + screen flash for sigil upgrade
+SoundFX.play('chaChing');
 const flash = document.createElement('div');
 flash.className = 'upgrade-flash';
 document.body.appendChild(flash);
@@ -1009,6 +1035,8 @@ actuallyRestartAfterDeath();
 }
 
 function actuallyRestartAfterDeath() {
+// Clear death quote so next death picks a fresh one
+window._currentDeathQuote = null;
 // Increment run number
 S.runNumber++;
 
@@ -1424,14 +1452,13 @@ return statTexts.join('! ') + '!';
 };
 
 const slides = [
-{bg: 'assets/victory-room.png', text: "After traversing 19 precarious floors, the heroes burst into the Flydra's lair, ready for anything... except <em>this</em>."},
-{bg: 'assets/victory-room.png', text: "TAPO_EATING_FLYDRA",
+{bg: 'assets/victory-room.png', text: "19 grueling floors later, the heroes finally find him — Tapo the Tadpole, lying still on the cold stone floor."},
+{bg: 'assets/victory-room.png', text: "TAPO_FOOD_COMA",
 html: `
 <style>
-@keyframes tapoMunch {
+@keyframes tapoSleep {
   0%, 100% { transform: translateY(0) scale(1); }
-  30% { transform: translateY(-5px) scale(1.05); }
-  60% { transform: translateY(0) scale(0.98); }
+  50% { transform: translateY(-3px) scale(1.02); }
 }
 @keyframes flydraFade {
   0% { opacity: 0.6; }
@@ -1442,12 +1469,12 @@ html: `
 <div style="text-align:center;position:relative;margin:1rem 0">
 <div style="position:relative;display:inline-block">
 <img src="assets/Hydra.png" alt="The defeated Flydra" style="width:280px;height:auto;opacity:0.5;filter:grayscale(0.5) brightness(0.7);animation:flydraFade 3s ease-in-out infinite">
-<div style="position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);animation:tapoMunch 1.2s ease-in-out infinite">
-<img src="assets/tapo_normal.png" alt="Tapo munching" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:tapoSleep 2s ease-in-out infinite">
+<img src="assets/tapo_normal.png" alt="Tapo in food coma" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
 </div>
 </div>
 </div>
-<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem"><strong style="color:#22c55e">Tapo</strong> is happily munching on the Flydra's middle head! He took the whole thing down... <em>by himself?!</em><br><br>The little tadpole lets out a triumphant <strong style="color:#fbbf24">BURRRP</strong> and grins.</div>
+<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem">But as they rush forward, one tiny eye cracks open. The little tadpole lets out a mighty <strong style="color:#fbbf24">belch</strong>, filling the room with the unmistakable scent of Flydra flesh.</div>
 `},
 {bg: 'assets/victory-room.png', text: "Scattered around Tapo are small carvings — figurines of the heroes who came to save him! Clutched in his budding appendages, he offers them proudly."},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},

@@ -1153,10 +1153,7 @@ html: `
 <img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3);animation:flydraDescend 1.5s ease-out">
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
-A terrible shriek echoes across Ribbleton! A massive, multi-headed creature descends from the sky — the <strong style="color:#e94560">FLYDRA</strong>, mother of all flies!
-</p>
-<p style="font-size:1.1rem;line-height:1.7;margin:0.5rem 0;color:#fbbf24;font-style:italic">
-She is FURIOUS that her children have been devoured!
+A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong style="color:#e94560">Flydra</strong>, mother of all flies. She saw what you did to her children, and she is not the forgiving type.
 </p>
 <style>
 @keyframes flydraShake {
@@ -1180,20 +1177,26 @@ html: `
 <img src="assets/Hydra.png" alt="Flydra" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:180px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraPortalHover 2s ease-in-out infinite">
 </div>
 <!-- Enemies spilling out -->
-<div style="display:flex;justify-content:center;gap:2.5rem;margin-top:1rem;font-size:2.5rem">
+<div style="display:flex;justify-content:center;gap:1.5rem;margin-top:1rem;font-size:2.5rem;flex-wrap:wrap">
 <div style="animation:enemyAppear 0.8s ease-out 0.3s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:50px;height:auto" onerror="this.outerHTML='👹'">
+<img src="assets/goblin.png" alt="Goblin" style="width:45px;height:auto" onerror="this.outerHTML='👹'">
 </div>
-<div style="animation:enemyAppear 1s ease-out 0.6s both">
-<img src="assets/wolf.png" alt="Wolf" style="width:50px;height:auto" onerror="this.outerHTML='🐺'">
+<div style="animation:enemyAppear 0.9s ease-out 0.5s both">
+<img src="assets/wolf.png" alt="Wolf" style="width:45px;height:auto" onerror="this.outerHTML='🐺'">
 </div>
-<div style="animation:enemyAppear 1.2s ease-out 0.9s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:50px;height:auto" onerror="this.outerHTML='👹'">
+<div style="animation:enemyAppear 1s ease-out 0.7s both">
+<img src="assets/goblin.png" alt="Goblin" style="width:45px;height:auto" onerror="this.outerHTML='👹'">
+</div>
+<div style="animation:enemyAppear 1.1s ease-out 0.9s both">
+<img src="assets/wolf.png" alt="Wolf" style="width:45px;height:auto" onerror="this.outerHTML='🐺'">
+</div>
+<div style="animation:enemyAppear 1.2s ease-out 1.1s both">
+<img src="assets/goblin.png" alt="Goblin" style="width:45px;height:auto" onerror="this.outerHTML='👹'">
 </div>
 </div>
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
-In her rage, the Flydra <strong style="color:#dc2626">tears open a dark portal</strong>! Hostile creatures begin spilling out into Ribbleton!
+In her rage, the Flydra <strong style="color:#dc2626">tears open a dark portal</strong>! Creatures start pouring out into Ribbleton!
 </p>
 <style>
 @keyframes narrativePortalPulse {
@@ -1241,7 +1244,7 @@ overlay.innerHTML = `
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(220,38,38,0.5)">
 <div style="max-width:600px;margin:0 auto">
 <p style="font-size:1.1rem;line-height:1.6;color:#fff;text-align:center;margin:0;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">
-Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to fight off the <strong style="color:#dc2626">hostile creatures</strong> the Flydra unleashed upon Ribbleton!
+Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to help fight off these creatures!
 </p>
 </div>
 </div>
@@ -3696,7 +3699,7 @@ v.innerHTML = `
 <img src="assets/tapo_old.png" alt="Old Tapo" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #8b5cf6;box-shadow:0 0 20px rgba(139,92,246,0.5)">
 <div class="neutral-title" style="color:#8b5cf6;font-size:1.8rem">The Master of Space and Time</div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;background:rgba(139,92,246,0.1);border-radius:8px;margin:1rem 0">
-"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, though I must admit — Flydra flesh was quite the delicacy in my younger days. I ate many before I outgrew such things..."
+"Noble frogs of my youth, do you understand? Of course not... For you are the true tadpoles, on this fleeting cosmic scale. But you cannot understand, not as I have understood... There is only love, and joy, and progress... And flies. I have transcended the need for food, Oh, how I gorged myself on succulent Flydra flesh back in my youth... I've outgrown such things now. And yet, I find myself nostalgic for that flavor once more..."
 </div>
 <button class="btn" onclick="oldTapoTransform()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1);font-size:1.2rem;padding:1rem 2rem;margin-top:1rem">Continue</button>
 </div>`;
