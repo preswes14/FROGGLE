@@ -10,7 +10,7 @@ FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all g
 - Mobile-first, PWA installable
 - Steam Deck controller support
 - Font: Fredoka One bundled locally (`assets/fonts/fredoka-one.otf`)
-- Art assets: Professional replacements paid for and incoming — current placeholder art will be swapped
+- Art assets: Professional art by Harimoon (heroes/enemies) and Zab (neutral backgrounds/environments)
 
 ## Development
 - Feature branches: `claude/` prefix, push when complete
