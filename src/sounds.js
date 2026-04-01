@@ -9,7 +9,20 @@ const SoundFX = {
   musicGain: null,    // Gain node for music volume control
 
   init() {
-    if (this.ctx) return;
+    if (this.ctx) {
+      // Context exists but may be suspended (created before user gesture) - resume it
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().then(() => {
+          // Re-trigger current music if GameMusic had a track queued
+          if (typeof GameMusic !== 'undefined' && GameMusic.currentTrack) {
+            const track = GameMusic.currentTrack;
+            GameMusic.currentTrack = null; // Clear so play() doesn't skip as "already playing"
+            GameMusic.play(null, track);
+          }
+        });
+      }
+      return;
+    }
     try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       // Create music gain node

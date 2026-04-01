@@ -250,6 +250,15 @@ const GamepadController = {
       }
     };
     document.addEventListener('touchstart', this._onTouchStart, { passive: true });
+
+    // Mouse movement deactivates controller mode (restores cursor)
+    this._onMouseMove = () => {
+      if (this.active) {
+        debugLog('[CONTROLLER] Mouse detected, deactivating controller mode');
+        this.deactivate();
+      }
+    };
+    document.addEventListener('mousemove', this._onMouseMove, { passive: true });
   },
 
   // Keyboard handler - primary input for Steam Deck browser mode
@@ -299,12 +308,13 @@ const GamepadController = {
           break;
 
         // B button - Escape OR Backspace (Steam browser template uses Backspace)
+        // Note: Escape/Backspace should NOT activate controller mode (common desktop keys)
         case 'Escape':
         case 'Backspace':
           if (this.shouldAllowAction('B')) {
             this.handleB();
           }
-          handled = true;
+          e.preventDefault();
           break;
 
         // Tab for navigation

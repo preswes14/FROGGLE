@@ -664,8 +664,8 @@ function showConfirmModal(message, onConfirm, onCancel) {
     <h3>Confirm</h3>
     <p>${message}</p>
     <div class="confirm-modal-buttons">
-      <button class="btn confirm-btn-yes" style="background:linear-gradient(135deg,#22c55e,#16a34a);min-width:100px">Yes</button>
-      <button class="btn confirm-btn-no" style="background:linear-gradient(135deg,#ef4444,#dc2626);min-width:100px">No</button>
+      <button class="btn confirm-btn-yes" style="background:linear-gradient(135deg,#22c55e,#16a34a);min-width:100px;white-space:nowrap">Yes</button>
+      <button class="btn confirm-btn-no" style="background:linear-gradient(135deg,#ef4444,#dc2626);min-width:100px;white-space:nowrap">No</button>
     </div>
   `;
 
