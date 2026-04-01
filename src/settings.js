@@ -909,22 +909,22 @@ Your total sigil level = Permanent (Gold) + Temporary (XP) upgrades.`
 },
 {
 q: "Why does Attack show as L1 when I haven't upgraded it?",
-a: `Active sigils (Attack, Shield, Heal, Grapple, Ghost, D20, Alpha) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
-<strong>Example:</strong> Attack storage level 0 = displays as L1 (1 attack per action)<br>
-Attack storage level 1 = displays as L2 (2 attacks per action)<br><br>
+a: `Active sigils (${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}, ${sigilText('Grapple')}, ${sigilText('Ghost')}, ${sigilText('D20')}, ${sigilText('Alpha')}) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
+<strong>Example:</strong> ${sigilText('Attack')} storage level 0 = displays as L1 (1 attack per action)<br>
+${sigilText('Attack')} storage level 1 = displays as L2 (2 attacks per action)<br><br>
 The upgrade cost is based on <em>storage level</em>, not display level. So upgrading from display L1 to L2 costs the price for storage level 0→1.`
 },
 {
 q: "What happens if I run out of enemies before using all my Expand targets?",
-a: `If you have Expand and select targets for multi-instance actions (Attack, Shield, Heal), you might run out of valid targets mid-instance. When this happens, you'll see a "wasted targets" message.<br><br>
-<strong>Example:</strong> You have Attack L2 with Expand L1 (3 total targets). There are only 2 enemies left. You can attack both enemies, but the 3rd target slot is wasted - you still get both attacks, but you can't use the extra Expand slot.<br><br>
+a: `If you have ${sigilText('Expand')} and select targets for multi-instance actions (${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}), you might run out of valid targets mid-instance. When this happens, you'll see a "wasted targets" message.<br><br>
+<strong>Example:</strong> You have ${sigilText('Attack')} L2 with ${sigilText('Expand')} L1 (3 total targets). There are only 2 enemies left. You can attack both enemies, but the 3rd target slot is wasted - you still get both attacks, but you can't use the extra ${sigilText('Expand')} slot.<br><br>
 This is intentional! Plan your actions carefully.`
 },
 {
 q: "How does Last Stand work and how long does it last?",
-a: `When a hero reaches 0 HP (and has no Ghost charges), they enter <strong>Last Stand</strong> instead of dying immediately. In Last Stand:<br><br>
-• They can ONLY use D20 gambits (no other actions)<br>
-• Each turn in Last Stand increases D20 difficulty by +2 DC<br>
+a: `When a hero reaches 0 HP (and has no ${sigilText('Ghost')} charges), they enter <strong>Last Stand</strong> instead of dying immediately. In Last Stand:<br><br>
+• They can ONLY use ${sigilText('D20')} gambits (no other actions)<br>
+• Each turn in Last Stand increases ${sigilText('D20')} difficulty by +2 DC<br>
 • CONFUSE caps at DC 20; other gambits keep climbing<br>
 • If healed, they revive with the healed HP amount<br><br>
 <strong>Last Stand Turn counter (CONFUSE example):</strong><br>
@@ -938,21 +938,21 @@ You have a few turns to heal your Last Stand heroes before DCs become impossible
 },
 {
 q: "How do Grapple and stun work?",
-a: `<strong>Grapple</strong> stuns a target for a number of turns equal to the Grapple level (L1 = 1 turn, L2 = 2 turns, etc.). The user takes recoil damage equal to the target's POW.<br><br>
+a: `${sigilText('Grapple')} stuns a target for a number of turns equal to the ${sigilText('Grapple')} level (L1 = 1 turn, L2 = 2 turns, etc.). The user takes recoil damage equal to the target's POW.<br><br>
 <strong>Stun rules (same for everyone):</strong><br>
 • Stun never stacks. If a target is already stunned for 2 turns and gets stunned for 1, nothing changes<br>
 • A new stun only takes effect if its duration exceeds the remaining stun<br>
 • Stunned units skip their action but still progress (enemies draw sigils, rage cycles, etc.)<br>
 • All stun counters decrement at the end of each enemy turn<br><br>
 <strong>Sources of stun:</strong><br>
-• Player Grapple: stun for Grapple level turns<br>
-• D20 STARTLE: stun for 1 turn<br>
-• Enemy Grapple: stun for sigil level turns<br>
+• Player ${sigilText('Grapple')}: stun for ${sigilText('Grapple')} level turns<br>
+• ${sigilText('D20')} STARTLE: stun for 1 turn<br>
+• Enemy ${sigilText('Grapple')}: stun for sigil level turns<br>
 • Floor 11 Ambush: all heroes stunned for 1 turn`
 },
 {
 q: "How many recruits can I have? What happens to them?",
-a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<br><br>
+a: `Recruits are enemies you've converted to your side via ${sigilText('D20')} RECRUIT (DC 20):<br><br>
 • Each hero can have <strong>1 recruit</strong> (recruiting another replaces the first)<br>
 • Recruits persist between battles until killed<br>
 • Recruits fight in their hero's lane and attack enemies<br>
@@ -962,7 +962,7 @@ a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<
 {
 q: "Do shields carry over between battles?",
 a: `<strong>Yes!</strong> Shields persist between battles and cap at max HP.<br><br>
-This means you can "shield farm" by using Shield sigils on the last enemy of a floor to enter the next floor with full shields. Combined with Asterisk or Alpha, this can make you nearly invincible!<br><br>
+This means you can "shield farm" by using ${sigilText('Shield')} sigils on the last enemy of a floor to enter the next floor with full shields. Combined with ${sigilText('Asterisk')} or ${sigilText('Alpha')}, this can make you nearly invincible!<br><br>
 <br><em style="font-size:0.9em;opacity:0.9">(Strategy tip: Before finishing a floor, use any remaining actions to shield up your team!)</em>`
 },
 {
@@ -980,15 +980,15 @@ a: `There are TWO types of sigil upgrades:<br><br>
 },
 {
 q: "What are Star and Asterisk sigils?",
-a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5× XP bonus per Star level.<br>
-• 2 heroes with Star L1 = +1.0× bonus = 2× total XP<br>
-• Star is extremely powerful for long-term scaling!<br><br>
-<strong>Asterisk:</strong> PASSIVE - Next action triggers +X times! Resets after each battle.<br>
-• Asterisk L1: First action triggers ×2<br>
-• Asterisk L4: First action triggers ×5<br>
-• Works with ANY action: Attack, Shield, Heal, D20 gambits, etc.<br>
+a: `<strong>${sigilText('Star')}:</strong> Passive XP multiplier. Each hero with ${sigilText('Star')} adds +0.5× XP bonus per ${sigilText('Star')} level.<br>
+• 2 heroes with ${sigilText('Star')} L1 = +1.0× bonus = 2× total XP<br>
+• ${sigilText('Star')} is extremely powerful for long-term scaling!<br><br>
+<strong>${sigilText('Asterisk')}:</strong> PASSIVE - Next action triggers +X times! Resets after each battle.<br>
+• ${sigilText('Asterisk')} L1: First action triggers ×2<br>
+• ${sigilText('Asterisk')} L4: First action triggers ×5<br>
+• Works with ANY action: ${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}, ${sigilText('D20')} gambits, etc.<br>
 • No activation needed - happens automatically on your first action<br>
-• Can be combined with Alpha for devastating combos!`
+• Can be combined with ${sigilText('Alpha')} for devastating combos!`
 }
 ];
 

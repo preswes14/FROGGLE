@@ -795,7 +795,7 @@ html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(advancedSigils);
 html += `</div>`;
 } else {
-html += renderLockedCategory('Unlock advanced combat techniques', 'Ghost • Alpha • Grapple', '#f97316', 20, 'advanced');
+html += renderLockedCategory('Unlock advanced combat techniques', `${sigilText('Ghost')} • ${sigilText('Alpha')} • ${sigilText('Grapple')}`, '#f97316', 20, 'advanced');
 }
 html += `</div>`;
 
@@ -807,7 +807,7 @@ html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(passiveSigils);
 html += `</div>`;
 } else {
-html += renderLockedCategory('Unlock passive enhancements', 'Expand • Asterisk • Star', '#9333ea', 50, 'passive');
+html += renderLockedCategory('Unlock passive enhancements', `${sigilText('Expand')} • ${sigilText('Asterisk')} • ${sigilText('Star')}`, '#9333ea', 50, 'passive');
 }
 // Continue button tucked into bottom of rightmost column
 html += `

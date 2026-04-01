@@ -65,7 +65,7 @@ return ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 function rollD20Neutral() {
 const d20Level = getD20NeutralLevel();
 // TUTORIAL: Explain D20 level affects neutral rolls
-showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
+showTutorialPop('neutral_d20_level', `${sigilText('D20')} checks out-of-combat use your ${sigilText('D20')} Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!`);
 return rollDice(d20Level, 20);
 }
 
@@ -210,7 +210,8 @@ outcomes = [],
 diceRoll = '',
 buttons = '',
 showStats = true,
-diceTray = null
+diceTray = null,
+overlays = []
 } = options;
 
 let html = `<div class="neutral-container">`;
@@ -243,8 +244,13 @@ html += `<div class="neutral-footer">${buttons}</div>`;
 
 html += '</div>'; // close neutral-left
 
-// Right side - Art
-html += `<div class="neutral-right" style="background-image: url('${bgImage}')"></div>`;
+// Right side - Art (with optional sigil overlays)
+html += `<div class="neutral-right" style="position:relative;background-image: url('${bgImage}')">`;
+overlays.forEach(ov => {
+const rotate = ov.rotation ? `transform:rotate(${ov.rotation}deg);` : '';
+html += `<img src="${ov.src}" alt="${ov.alt || ''}" style="position:absolute;top:${ov.top};left:${ov.left};width:${ov.width};${rotate}pointer-events:none;filter:drop-shadow(0 0 8px rgba(255,215,0,0.6));">`;
+});
+html += `</div>`;
 
 html += '</div>'; // close container
 return html;
@@ -985,7 +991,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage has <strong>Attack</strong> (an active sigil that costs your turn) and <strong>Expand</strong> (a passive sigil with automatic effects). Use Attack to hit 2 flies at once!", () => {
+showTutorialPop('tapo_first_attack', `Mage has ${sigilText('Attack')} (an active sigil that costs your turn) and ${sigilText('Expand')} (a passive sigil with automatic effects). Use ${sigilText('Attack')} to hit 2 flies at once!`, () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
@@ -1303,7 +1309,7 @@ remaining.forEach(r => r.remove());
 // Wait for DOM to fully update before showing popup
 requestAnimationFrame(() => {
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior doesn't start with Expand, but he does have +1 to POW! Take out that Wolf before it chomps on your Healer! Click the Warrior's Attack sigil.<br><br>(Enemies will usually attack whoever is closest to them, but you can be more strategic)", () => {
+showTutorialPop('ribbleton_warrior_attack', `In FROGGLE, you'll usually control 2 heroes. Warrior doesn't start with ${sigilText('Expand')}, but he does have +1 to POW! Take out that Wolf before it chomps on your Healer! Click the Warrior's ${sigilText('Attack')} sigil.<br><br>(Enemies will usually attack whoever is closest to them, but you can be more strategic)`, () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -2567,10 +2573,21 @@ critText,
 `${h.n} feels power surge through the party. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels} for all heroes!`,
 '"Your journey has just begun... Seek me again this night." He disappears.'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: [{
+src: SIGIL_IMAGES[chosenSigil],
+alt: chosenSigil,
+top: '28%', left: '38%', width: '24%', rotation: -8
+}]
 });
 }, 500);
 }); // end animateDiceRoll
+}
+
+// Wizard wall sigil overlay - reused across all wizard2 screens
+function wizardWallOverlay() {
+if(!S.wizardSigil || !SIGIL_IMAGES[S.wizardSigil]) return [];
+return [{ src: SIGIL_IMAGES[S.wizardSigil], alt: S.wizardSigil, top: '28%', left: '38%', width: '24%', rotation: -8 }];
 }
 
 function showWizard2() {
@@ -2592,7 +2609,8 @@ bgImage: 'assets/neutrals/wizard2.png',
 title: 'Trials of Arcane Power',
 description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#4a4540">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
 buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
-<button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
+<button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`,
+overlays: wizardWallOverlay()
 });
 }
 
@@ -2611,7 +2629,8 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: `Trial ${challengeIndex + 1} - DC ${dc}`,
 description: `${h.n} focuses on the arcane challenge...`,
-diceTray: renderDiceTray({ dc, rollCallback: 'attemptWizardChallengeRoll()' })
+diceTray: renderDiceTray({ dc, rollCallback: 'attemptWizardChallengeRoll()' }),
+overlays: wizardWallOverlay()
 });
 }
 
@@ -2641,7 +2660,8 @@ outcomes: [
 outcomeText,
 '"A good effort, but you have reached your limit. Take what you have earned and go."'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 return;
 }
@@ -2664,7 +2684,8 @@ outcomes: [
 `Total upgrades earned: ${S.wizardUpgradedSigils.length}`,
 '"You have taken all I can offer. Go now."'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 return;
 }
@@ -2683,7 +2704,8 @@ title: `Trial ${challengeIndex + 1} - DC ${dc}`,
 diceTray: renderDiceTray({ dc, rolled: true, rolls, best }),
 outcomes: [`<span style="color:#22c55e">SUCCESS</span>`],
 description,
-buttons
+buttons,
+overlays: wizardWallOverlay()
 });
 }, dc);
 }
@@ -2718,7 +2740,8 @@ outcomes: [
 `Total upgrades: ${S.wizardUpgradedSigils.length}`,
 '"Merlin\'s Toad! You have proven yourself worthy. Now go forth with your newfound power, my disciple!"'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 }, ANIMATION_TIMINGS.ACTION_COMPLETE);
 } else {
@@ -2733,7 +2756,8 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 outcomes: ['The wizard\'s glow fades. "You would refuse my arcane boons? Very well." He grabs his books and disappears.'],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 }
 
@@ -3678,7 +3702,11 @@ bgImage: 'assets/neutrals/royal2.png',
 title: 'Royal Wedding',
 description: `The ${askerTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?" The ${belovedTitle} beside them nods warmly.`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
-buttons
+buttons,
+overlays: [
+{ src: SIGIL_IMAGES[sigil1], alt: sigil1, top: '35%', left: '18%', width: '16%', rotation: 0 },
+{ src: SIGIL_IMAGES[sigil2], alt: sigil2, top: '35%', left: '66%', width: '16%', rotation: 0 }
+]
 });
 }
 

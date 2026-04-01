@@ -699,7 +699,7 @@ target.h -= dmg;
 if(options.isHero && !target.ls && target.h > 0 && target.h < target.m * 0.3) {
 // Check if this is the first time we're warning about low HP (and not in tutorial)
 if(!S.tutorialFlags.last_stand_warning && !(tutorialState && S.floor === 0)) {
-showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0 HP, they'll enter Last Stand mode - they can only use D20 gambits, and each turn makes survival harder. Use Ghost charges or heal up to avoid it!`);
+showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0 HP, they'll enter Last Stand mode - they can only use ${sigilText('D20')} gambits, and each turn makes survival harder. Use ${sigilText('Ghost')} charges or heal up to avoid it!`);
 }
 }
 
@@ -751,7 +751,7 @@ if(!options.silent) {
 toast(`${target.n} entered Last Stand!`, 3000, 'critical');
 // Skip Last Stand explanation during tutorial - Tapo intervention prevents it
 if(!(tutorialState && S.floor === 0)) {
-showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
+showTutorialPop('last_stand_intro', `When a hero drops to 0 HP, they enter Last Stand! They can only use ${sigilText('D20')} gambits, and each turn makes success harder. ${sigilText('Heal')} them to bring them back!`);
 }
 }
 }
@@ -846,7 +846,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Healer doesn't start with the Attack Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's D20!", () => {
+showTutorialPop('ribbleton_healer_d20', `Healer doesn't start with the ${sigilText('Attack')} Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's ${sigilText('D20')}!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -888,7 +888,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -901,7 +901,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -922,7 +922,7 @@ tutorialState.stage = 'shield_sigil';
 upd();
 render();
 // PROMPT 5: Enemy Sigils + Shield
-showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Try to defeat him before he can shield!", () => {
+showTutorialPop('enemies_get_sigils', `Enemies draw sigils too! The Goblin drew ${sigilText('Shield')} - he'll activate it AFTER attacking this turn, then it's gone. Try to defeat him before he can shield!`, () => {
 // Player can now act freely - handoff popup will show after they take an action
 tutorialState.stage = 'free';
 render();
@@ -1072,6 +1072,14 @@ pending.forEach(fn => setTimeout(fn, 0));
 // Helper to create sigil with tooltip (for death screen with longer hover time)
 function sigilIconWithTooltip(sig, level = 1, hoverDelay = 500) {
 return `<span onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sig}', this, ${level}), ${hoverDelay})" ontouchend="hideTooltip()">${sigilIcon(sig)}</span>`;
+}
+
+// Inline sigil icon + name with tooltip for use in popup/tutorial/FAQ text
+// Shows colored icon (no brightness filter) so it works on both light and dark backgrounds
+function sigilText(name) {
+const imgPath = SIGIL_IMAGES[name];
+if (!imgPath) return name;
+return `<span style="white-space:nowrap;cursor:help" onmouseenter="showTooltip('${name}', this, 1)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${name}', this, 1), 500)" ontouchend="hideTooltip()"><img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;margin-right:0.15em;" alt="${name}">${name}</span>`;
 }
 
 function generateFibonacci(n) {

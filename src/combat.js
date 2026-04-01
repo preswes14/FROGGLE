@@ -461,7 +461,7 @@ if(sig === 'Ghost') {
 const level = getLevel('Ghost', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Ghost! Add it in Level-Up menu (costs XP).`); return; }
 // Ghost tutorial: show first time player clicks Ghost
-showTutorialPop('ghost_intro', "Ghost prevents the next lethal hit! Each charge blocks one otherwise-fatal blow, and charges persist between battles. Max 9 charges per hero.");
+showTutorialPop('ghost_intro', `${sigilText('Ghost')} prevents the next lethal hit! Each charge blocks one otherwise-fatal blow, and charges persist between battles. Max 9 charges per hero.`);
 const totalCharges = level * repeats;
 h.g = Math.min((h.g || 0) + totalCharges, 9);
 toast(`${h.n} gained ${totalCharges} Ghost charge${totalCharges>1?'s':''}!`);
@@ -482,7 +482,7 @@ S.currentInstanceTargets = [];
 S.rememberedTargetsApplied = false;
 // Shield persistence tutorial: show first time player clicks Shield
 if(sig === 'Shield') {
-showTutorialPop('shield_persistence', "Shields cap at max HP, but persist between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!");
+showTutorialPop('shield_persistence', `${sigilText('Shield')} caps at max HP, but persists between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!`);
 }
 // Apply remembered targets from last time (pre-fill as suggestion, don't auto-confirm)
 const patternKey = heroIdx + '_' + sig;
@@ -513,7 +513,7 @@ autoFocusTargetForController(heroIdx, 'hero');
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
 // Grapple tutorial: show first time player clicks Grapple
-showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Stun doesn't stack - a new stun only matters if it's longer than the remaining one.");
+showTutorialPop('grapple_intro', `${sigilText('Grapple')} stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Stun doesn't stack - a new stun only matters if it's longer than the remaining one.`);
 S.pending = 'Grapple';
 S.grappleRepeats = repeats;
 S.grappleLevel = level;
@@ -524,7 +524,7 @@ autoFocusTargetForController(heroIdx, 'enemy');
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 // Alpha tutorial: show first time player clicks Alpha
-showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant an ally multiple turns! Great ROI.");
+showTutorialPop('alpha_intro', `${sigilText('Alpha')} lets a hero give their turn to an ally. At higher ${sigilText('Alpha')} levels, one use can grant an ally multiple turns! Great ROI.`);
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
@@ -715,7 +715,7 @@ S.d20HeroIdx = heroIdx;
 
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
-showTutorialPop('healer_expand_explain', "Healer has Expand, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!", () => {
+showTutorialPop('healer_expand_explain', `Healer has ${sigilText('Expand')}, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!`, () => {
 // Allow free targeting after popup - stage stays 'd20_menu' for fudged roll but targeting is unrestricted
 S.pending = 'D20_TARGET';
 S.targets = [];
@@ -2703,7 +2703,7 @@ tutorialState.stage = 'targeting_wolf';
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Remember how Healer was able to target 2 earlier? She can do that with her Heal, too! Try it out!", () => {
+showTutorialPop('ribbleton_expand', `Remember how Healer was able to target 2 earlier? She can do that with her ${sigilText('Heal')}, too! Try it out!`, () => {
 render();
 });
 return;
@@ -3632,7 +3632,7 @@ v.innerHTML = `
 
 // NEW: Add Active Sigil to Hero (only active sigils)
 function addActiveToHero() {
-showTutorialPop('levelup_add_active', "Teach a hero a NEW active ability! Heroes only get 1 action per turn, but more choices = more tactics. Pick a hero, then pick the sigil they'll learn!");
+showTutorialPop('levelup_add_active', `Teach a hero a NEW active ability! Heroes only get 1 action per turn, but more choices = more tactics. Pick a hero, then pick the sigil they'll learn!`);
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to Hero</h2>
@@ -3720,7 +3720,7 @@ levelUpMenu();
 
 // NEW: Upgrade Active Sigil (All Heroes)
 function upgradeActiveSigil() {
-showTutorialPop('levelup_upgrade_active', "Upgrading an active sigil makes it MORE POWERFUL <em>for every hero who has or gains that sigil!</em> For example, Attack L2 = hit twice, Shield L2 = 4×POW shields!");
+showTutorialPop('levelup_upgrade_active', `Upgrading an active sigil makes it MORE POWERFUL <em>for every hero who has or gains that sigil!</em> For example, ${sigilText('Attack')} L2 = hit twice, ${sigilText('Shield')} L2 = 4×POW shields!`);
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Active Sigil</h2>
@@ -3795,7 +3795,7 @@ levelUpMenu();
 
 // NEW: Add/Upgrade Passive Sigil (All Heroes)
 function upgradePassiveSigil() {
-showTutorialPop('levelup_upgrade_passive', "Once upgraded, Passive sigils (Expand, Asterisk, Star) work AUTOMATICALLY for ALL heroes! They enhance your abilities without needing to click them.");
+showTutorialPop('levelup_upgrade_passive', `Once upgraded, Passive sigils (${sigilText('Expand')}, ${sigilText('Asterisk')}, ${sigilText('Star')}) work AUTOMATICALLY for ALL heroes! They enhance your abilities without needing to click them.`);
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive Sigil</h2>
@@ -3806,7 +3806,7 @@ if(!S.passiveSigilsUnlocked) {
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
-<p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
+<p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">${sigilText('Expand')} • ${sigilText('Asterisk')} • ${sigilText('Star')}</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 } else if(S.xp < cost) {
@@ -3823,7 +3823,7 @@ html += `<p style="text-align:center;margin-bottom:1rem">All passive sigils maxe
 } else {
 html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
 <h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">Passive Sigils</h3>
-<p style="font-size:0.85rem;margin:0;line-height:1.4"><strong>Expand:</strong> +1 target for Attack/Shield/Heal<br><strong>Asterisk:</strong> Next action triggers multiple times<br><strong>Star:</strong> Multiply XP earned in combat</p>
+<p style="font-size:0.85rem;margin:0;line-height:1.4"><strong>${sigilText('Expand')}:</strong> +1 target for ${sigilText('Attack')}/${sigilText('Shield')}/${sigilText('Heal')}<br><strong>${sigilText('Asterisk')}:</strong> Next action triggers multiple times<br><strong>${sigilText('Star')}:</strong> Multiply XP earned in combat</p>
 </div>`;
 
 available.forEach(sig => {
