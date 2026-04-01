@@ -2720,7 +2720,7 @@ S.heroes.forEach((h,i) => {
 const laneEnemyCount = (enemyLanes[i] || []).length;
 const crowdedClass = laneEnemyCount >= 5 ? 'crowded-5' : laneEnemyCount >= 4 ? 'crowded-3' : '';
 html += `<div class="combat-lane ${crowdedClass}" role="region" aria-label="Lane ${i+1}: ${h.n}">`;
-html += '<div class="lane-content" style="display:flex;gap:0.75rem;justify-content:flex-start;align-items:stretch">';
+html += '<div class="lane-content" style="display:flex;gap:0.4rem;justify-content:flex-start;align-items:stretch">';
 
 // Hero section (right side of their zone, 38% width) - row-reverse so recruits (rendered after) appear to the LEFT of hero
 html += '<div style="flex:0 0 38%;display:flex;flex-direction:row-reverse;gap:0.3rem;align-items:flex-start;justify-content:flex-start">';
