@@ -18,12 +18,12 @@ const HERO_IMAGES = {
     };
 
 // Hero portrait crop settings for card display
-// fit: 'cover' crops to show top portion, 'contain' shows whole character
+// fit: 'contain' shows whole character with transparent background
 const HERO_CROP = {
-    'Warrior': { fit: 'cover', pos: 'top center' },
-    'Tank':    { fit: 'cover', pos: 'top center' },
-    'Mage':    { fit: 'cover', pos: 'center 15%' },
-    'Healer':  { fit: 'cover', pos: 'top center' },
+    'Warrior': { fit: 'contain', pos: 'center' },
+    'Tank':    { fit: 'contain', pos: 'center' },
+    'Mage':    { fit: 'contain', pos: 'center' },
+    'Healer':  { fit: 'contain', pos: 'center' },
     'Tapo':    { fit: 'contain', pos: 'center' }
 };
 
