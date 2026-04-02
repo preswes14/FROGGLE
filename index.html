@@ -3772,7 +3772,7 @@ target.h -= dmg;
 if(options.isHero && !target.ls && target.h > 0 && target.h < target.m * 0.3) {
 // Check if this is the first time we're warning about low HP (and not in tutorial)
 if(!S.tutorialFlags.last_stand_warning && !(tutorialState && S.floor === 0)) {
-showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0 HP, they'll enter Last Stand mode - they can only use D20 gambits, and each turn makes survival harder. Use Ghost charges or heal up to avoid it!`);
+showTutorialPop('last_stand_warning', `${target.n} is in danger! If they reach 0 HP, they'll enter Last Stand mode - they can only use ${sigilText('D20')} gambits, and each turn makes survival harder. Use ${sigilText('Ghost')} charges or heal up to avoid it!`);
 }
 }
 
@@ -3824,7 +3824,7 @@ if(!options.silent) {
 toast(`${target.n} entered Last Stand!`, 3000, 'critical');
 // Skip Last Stand explanation during tutorial - Tapo intervention prevents it
 if(!(tutorialState && S.floor === 0)) {
-showTutorialPop('last_stand_intro', "When a hero drops to 0 HP, they enter Last Stand! They can only use D20 gambits, and each turn makes success harder. Heal them to bring them back!");
+showTutorialPop('last_stand_intro', `When a hero drops to 0 HP, they enter Last Stand! They can only use ${sigilText('D20')} gambits, and each turn makes success harder. ${sigilText('Heal')} them to bring them back!`);
 }
 }
 }
@@ -3919,7 +3919,7 @@ const {action, hero, round} = context;
 // Stage transitions based on completed actions
 if((tutorialState.stage === 'warrior_attack' || tutorialState.stage === 'targeting_wolf') && hero === 'Warrior' && round === 1) {
 tutorialState.stage = 'healer_d20';
-showTutorialPop('ribbleton_healer_d20', "Healer doesn't start with the Attack Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's D20!", () => {
+showTutorialPop('ribbleton_healer_d20', `Healer doesn't start with the ${sigilText('Attack')} Sigil, but they can still do some damage with a Gambit - a powerful action that depends on a die roll! Click the Healer's ${sigilText('D20')}!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -3961,7 +3961,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -3974,7 +3974,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', "Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her Heal sigil!", () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -3995,7 +3995,7 @@ tutorialState.stage = 'shield_sigil';
 upd();
 render();
 // PROMPT 5: Enemy Sigils + Shield
-showTutorialPop('enemies_get_sigils', "Enemies draw sigils too! The Goblin drew Shield - he'll activate it AFTER attacking this turn, then it's gone. Try to defeat him before he can shield!", () => {
+showTutorialPop('enemies_get_sigils', `Enemies draw sigils too! The Goblin drew ${sigilText('Shield')} - he'll activate it AFTER attacking this turn, then it's gone. Try to defeat him before he can shield!`, () => {
 // Player can now act freely - handoff popup will show after they take an action
 tutorialState.stage = 'free';
 render();
@@ -4145,6 +4145,14 @@ pending.forEach(fn => setTimeout(fn, 0));
 // Helper to create sigil with tooltip (for death screen with longer hover time)
 function sigilIconWithTooltip(sig, level = 1, hoverDelay = 500) {
 return `<span onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${sig}', this, ${level}), ${hoverDelay})" ontouchend="hideTooltip()">${sigilIcon(sig)}</span>`;
+}
+
+// Inline sigil icon + name with tooltip for use in popup/tutorial/FAQ text
+// Shows colored icon (no brightness filter) so it works on both light and dark backgrounds
+function sigilText(name) {
+const imgPath = SIGIL_IMAGES[name];
+if (!imgPath) return name;
+return `<span style="white-space:nowrap;cursor:help" onmouseenter="showTooltip('${name}', this, 1)" onmouseleave="hideTooltip()" ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${name}', this, 1), 500)" ontouchend="hideTooltip()"><img src="${imgPath}" style="height:1.2em;vertical-align:middle;display:inline-block;margin-right:0.15em;" alt="${name}">${name}</span>`;
 }
 
 function generateFibonacci(n) {
@@ -7895,7 +7903,7 @@ if(sig === 'Ghost') {
 const level = getLevel('Ghost', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Ghost! Add it in Level-Up menu (costs XP).`); return; }
 // Ghost tutorial: show first time player clicks Ghost
-showTutorialPop('ghost_intro', "Ghost prevents the next lethal hit! Each charge blocks one otherwise-fatal blow, and charges persist between battles. Max 9 charges per hero.");
+showTutorialPop('ghost_intro', `${sigilText('Ghost')} prevents the next lethal hit! Each charge blocks one otherwise-fatal blow, and charges persist between battles. Max 9 charges per hero.`);
 const totalCharges = level * repeats;
 h.g = Math.min((h.g || 0) + totalCharges, 9);
 toast(`${h.n} gained ${totalCharges} Ghost charge${totalCharges>1?'s':''}!`);
@@ -7916,7 +7924,7 @@ S.currentInstanceTargets = [];
 S.rememberedTargetsApplied = false;
 // Shield persistence tutorial: show first time player clicks Shield
 if(sig === 'Shield') {
-showTutorialPop('shield_persistence', "Shields cap at max HP, but persist between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!");
+showTutorialPop('shield_persistence', `${sigilText('Shield')} caps at max HP, but persists between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!`);
 }
 // Apply remembered targets from last time (pre-fill as suggestion, don't auto-confirm)
 const patternKey = heroIdx + '_' + sig;
@@ -7947,7 +7955,7 @@ autoFocusTargetForController(heroIdx, 'hero');
 const level = getLevel('Grapple', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Grapple! Add it in Level-Up menu (costs XP).`); return; }
 // Grapple tutorial: show first time player clicks Grapple
-showTutorialPop('grapple_intro', "Grapple stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Stun doesn't stack - a new stun only matters if it's longer than the remaining one.");
+showTutorialPop('grapple_intro', `${sigilText('Grapple')} stuns an enemy for 1 or more turns, but your hero takes recoil damage equal to the target's POW. Stun doesn't stack - a new stun only matters if it's longer than the remaining one.`);
 S.pending = 'Grapple';
 S.grappleRepeats = repeats;
 S.grappleLevel = level;
@@ -7958,7 +7966,7 @@ autoFocusTargetForController(heroIdx, 'enemy');
 const level = getLevel('Alpha', heroIdx);
 if(level === 0) { toast(`${h.n} doesn't have Alpha! Add it in Level-Up menu (costs XP).`); return; }
 // Alpha tutorial: show first time player clicks Alpha
-showTutorialPop('alpha_intro', "Alpha lets a hero give their turn to an ally. At higher Alpha levels, one use can grant an ally multiple turns! Great ROI.");
+showTutorialPop('alpha_intro', `${sigilText('Alpha')} lets a hero give their turn to an ally. At higher ${sigilText('Alpha')} levels, one use can grant an ally multiple turns! Great ROI.`);
 const expandLevel = getLevel('Expand', heroIdx);
 const targetsNeeded = 1 + expandLevel;
 S.pending = 'Alpha';
@@ -8149,7 +8157,7 @@ S.d20HeroIdx = heroIdx;
 
 // RIBBLETON TUTORIAL: Show Expand explanation after choosing CONFUSE
 if(tutorialState && S.floor === 0 && tutorialState.stage === 'd20_menu' && actionName === 'CONFUSE') {
-showTutorialPop('healer_expand_explain', "Healer has Expand, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!", () => {
+showTutorialPop('healer_expand_explain', `Healer has ${sigilText('Expand')}, which adds extra targets to actions! This lets you Confuse multiple enemies at once. Try selecting 2 enemies!`, () => {
 // Allow free targeting after popup - stage stays 'd20_menu' for fudged roll but targeting is unrestricted
 S.pending = 'D20_TARGET';
 S.targets = [];
@@ -10137,7 +10145,7 @@ tutorialState.stage = 'targeting_wolf';
 // PROMPT 4: Heal + Expand (BATCHED)
 else if(tutorialState.stage === 'healer_heal' && S.pending === 'Heal' && S.currentInstanceTargets.length === 0 && S.targets.length === 0) {
 tutorialState.stage = 'expand_targets';
-showTutorialPop('ribbleton_expand', "Remember how Healer was able to target 2 earlier? She can do that with her Heal, too! Try it out!", () => {
+showTutorialPop('ribbleton_expand', `Remember how Healer was able to target 2 earlier? She can do that with her ${sigilText('Heal')}, too! Try it out!`, () => {
 render();
 });
 return;
@@ -11066,7 +11074,7 @@ v.innerHTML = `
 
 // NEW: Add Active Sigil to Hero (only active sigils)
 function addActiveToHero() {
-showTutorialPop('levelup_add_active', "Teach a hero a NEW active ability! Heroes only get 1 action per turn, but more choices = more tactics. Pick a hero, then pick the sigil they'll learn!");
+showTutorialPop('levelup_add_active', `Teach a hero a NEW active ability! Heroes only get 1 action per turn, but more choices = more tactics. Pick a hero, then pick the sigil they'll learn!`);
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to Hero</h2>
@@ -11154,7 +11162,7 @@ levelUpMenu();
 
 // NEW: Upgrade Active Sigil (All Heroes)
 function upgradeActiveSigil() {
-showTutorialPop('levelup_upgrade_active', "Upgrading an active sigil makes it MORE POWERFUL <em>for every hero who has or gains that sigil!</em> For example, Attack L2 = hit twice, Shield L2 = 4×POW shields!");
+showTutorialPop('levelup_upgrade_active', `Upgrading an active sigil makes it MORE POWERFUL <em>for every hero who has or gains that sigil!</em> For example, ${sigilText('Attack')} L2 = hit twice, ${sigilText('Shield')} L2 = 4×POW shields!`);
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Active Sigil</h2>
@@ -11229,7 +11237,7 @@ levelUpMenu();
 
 // NEW: Add/Upgrade Passive Sigil (All Heroes)
 function upgradePassiveSigil() {
-showTutorialPop('levelup_upgrade_passive', "Once upgraded, Passive sigils (Expand, Asterisk, Star) work AUTOMATICALLY for ALL heroes! They enhance your abilities without needing to click them.");
+showTutorialPop('levelup_upgrade_passive', `Once upgraded, Passive sigils (${sigilText('Expand')}, ${sigilText('Asterisk')}, ${sigilText('Star')}) work AUTOMATICALLY for ALL heroes! They enhance your abilities without needing to click them.`);
 const cost = getXPCost(S.levelUpCount);
 const v = document.getElementById('gameView');
 let html = `<h2 style="text-align:center;margin-bottom:1rem">Add/Upgrade Passive Sigil</h2>
@@ -11240,7 +11248,7 @@ if(!S.passiveSigilsUnlocked) {
 html += `
 <div style="background:#1a1a2e;padding:2rem;border-radius:8px;border:2px solid #9333ea;text-align:center;opacity:0.8">
 <div style="font-size:1rem;font-weight:bold;margin-bottom:0.5rem">⊘ LOCKED</div>
-<p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">Expand • Asterisk • Star</p>
+<p style="color:#9333ea;font-weight:bold;margin:0 0 0.25rem 0">${sigilText('Expand')} • ${sigilText('Asterisk')} • ${sigilText('Star')}</p>
 <p style="color:#888;font-size:0.85rem;margin:0;font-style:italic">${S.tutorialFlags.death_intro ? 'Visit Death to Unlock' : 'Continue your Adventure to Unlock'}</p>
 </div>`;
 } else if(S.xp < cost) {
@@ -11257,7 +11265,7 @@ html += `<p style="text-align:center;margin-bottom:1rem">All passive sigils maxe
 } else {
 html += `<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:1rem;margin-bottom:1rem">
 <h3 style="color:#9333ea;margin:0 0 0.5rem 0;font-size:1rem">Passive Sigils</h3>
-<p style="font-size:0.85rem;margin:0;line-height:1.4"><strong>Expand:</strong> +1 target for Attack/Shield/Heal<br><strong>Asterisk:</strong> Next action triggers multiple times<br><strong>Star:</strong> Multiply XP earned in combat</p>
+<p style="font-size:0.85rem;margin:0;line-height:1.4"><strong>${sigilText('Expand')}:</strong> +1 target for ${sigilText('Attack')}/${sigilText('Shield')}/${sigilText('Heal')}<br><strong>${sigilText('Asterisk')}:</strong> Next action triggers multiple times<br><strong>${sigilText('Star')}:</strong> Multiply XP earned in combat</p>
 </div>`;
 
 available.forEach(sig => {
@@ -11419,7 +11427,7 @@ return ((S.sig.D20 || 0) + (S.tempSigUpgrades.D20 || 0)) + 1;
 function rollD20Neutral() {
 const d20Level = getD20NeutralLevel();
 // TUTORIAL: Explain D20 level affects neutral rolls
-showTutorialPop('neutral_d20_level', "D20 checks out-of-combat use your D20 Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!");
+showTutorialPop('neutral_d20_level', `${sigilText('D20')} checks out-of-combat use your ${sigilText('D20')} Sigil Level, too! Leveling it up grants bonus dice every time you roll, and you keep the highest result!`);
 return rollDice(d20Level, 20);
 }
 
@@ -11564,7 +11572,8 @@ outcomes = [],
 diceRoll = '',
 buttons = '',
 showStats = true,
-diceTray = null
+diceTray = null,
+overlays = []
 } = options;
 
 let html = `<div class="neutral-container">`;
@@ -11597,8 +11606,13 @@ html += `<div class="neutral-footer">${buttons}</div>`;
 
 html += '</div>'; // close neutral-left
 
-// Right side - Art
-html += `<div class="neutral-right" style="background-image: url('${bgImage}')"></div>`;
+// Right side - Art (with optional sigil overlays)
+html += `<div class="neutral-right" style="position:relative;background-image: url('${bgImage}')">`;
+overlays.forEach(ov => {
+const rotate = ov.rotation ? `transform:rotate(${ov.rotation}deg);` : '';
+html += `<img src="${ov.src}" alt="${ov.alt || ''}" style="position:absolute;top:${ov.top};left:${ov.left};width:${ov.width};${rotate}pointer-events:none;filter:drop-shadow(0 0 8px rgba(255,215,0,0.6));">`;
+});
+html += `</div>`;
 
 html += '</div>'; // close container
 return html;
@@ -12339,7 +12353,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', "Mage has <strong>Attack</strong> (an active sigil that costs your turn) and <strong>Expand</strong> (a passive sigil with automatic effects). Use Attack to hit 2 flies at once!", () => {
+showTutorialPop('tapo_first_attack', `Mage has ${sigilText('Attack')} (an active sigil that costs your turn) and ${sigilText('Expand')} (a passive sigil with automatic effects). Use ${sigilText('Attack')} to hit 2 flies at once!`, () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
@@ -12657,7 +12671,7 @@ remaining.forEach(r => r.remove());
 // Wait for DOM to fully update before showing popup
 requestAnimationFrame(() => {
 // PROMPT 1: Warrior Attack + Targeting (BATCHED)
-showTutorialPop('ribbleton_warrior_attack', "In FROGGLE, you'll usually control 2 heroes. Warrior doesn't start with Expand, but he does have +1 to POW! Take out that Wolf before it chomps on your Healer! Click the Warrior's Attack sigil.<br><br>(Enemies will usually attack whoever is closest to them, but you can be more strategic)", () => {
+showTutorialPop('ribbleton_warrior_attack', `In FROGGLE, you'll usually control 2 heroes. Warrior doesn't start with ${sigilText('Expand')}, but he does have +1 to POW! Take out that Wolf before it chomps on your Healer! Click the Warrior's ${sigilText('Attack')} sigil.<br><br>(Enemies will usually attack whoever is closest to them, but you can be more strategic)`, () => {
 debugLog('[TUTORIAL] Prompt 1 dismissed - transitioning to warrior_attack stage');
 tutorialState.stage = 'warrior_attack';
 S.activeIdx = 0;
@@ -13921,10 +13935,21 @@ critText,
 `${h.n} feels power surge through the party. ${chosenSigil} temporarily upgraded from L${currentLevel} to L${currentLevel + bonusLevels} for all heroes!`,
 '"Your journey has just begun... Seek me again this night." He disappears.'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: [{
+src: SIGIL_IMAGES[chosenSigil],
+alt: chosenSigil,
+top: '28%', left: '38%', width: '24%', rotation: -8
+}]
 });
 }, 500);
 }); // end animateDiceRoll
+}
+
+// Wizard wall sigil overlay - reused across all wizard2 screens
+function wizardWallOverlay() {
+if(!S.wizardSigil || !SIGIL_IMAGES[S.wizardSigil]) return [];
+return [{ src: SIGIL_IMAGES[S.wizardSigil], alt: S.wizardSigil, top: '28%', left: '38%', width: '24%', rotation: -8 }];
 }
 
 function showWizard2() {
@@ -13946,7 +13971,8 @@ bgImage: 'assets/neutrals/wizard2.png',
 title: 'Trials of Arcane Power',
 description: 'The wizard\'s eyes gleam with arcane power: "You have returned! Just as I knew you would. You are ready now to face my trials. Each success earns you greater strength!"<br><br><div style="font-size:0.85rem;margin-top:1rem;color:#4a4540">Four trials: DC 5, DC 10, DC 15, DC 20<br>Each success: Choose a sigil to upgrade temporarily<br>On failure: Keep all upgrades earned so far</div>',
 buttons: `<button class="btn risky" onclick="startWizardChallenges()">Accept the Trials</button>
-<button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`
+<button class="btn secondary" onclick="declineWizardChallenges()">Decline</button>`,
+overlays: wizardWallOverlay()
 });
 }
 
@@ -13965,7 +13991,8 @@ v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 title: `Trial ${challengeIndex + 1} - DC ${dc}`,
 description: `${h.n} focuses on the arcane challenge...`,
-diceTray: renderDiceTray({ dc, rollCallback: 'attemptWizardChallengeRoll()' })
+diceTray: renderDiceTray({ dc, rollCallback: 'attemptWizardChallengeRoll()' }),
+overlays: wizardWallOverlay()
 });
 }
 
@@ -13995,7 +14022,8 @@ outcomes: [
 outcomeText,
 '"A good effort, but you have reached your limit. Take what you have earned and go."'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 return;
 }
@@ -14018,7 +14046,8 @@ outcomes: [
 `Total upgrades earned: ${S.wizardUpgradedSigils.length}`,
 '"You have taken all I can offer. Go now."'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 return;
 }
@@ -14037,7 +14066,8 @@ title: `Trial ${challengeIndex + 1} - DC ${dc}`,
 diceTray: renderDiceTray({ dc, rolled: true, rolls, best }),
 outcomes: [`<span style="color:#22c55e">SUCCESS</span>`],
 description,
-buttons
+buttons,
+overlays: wizardWallOverlay()
 });
 }, dc);
 }
@@ -14072,7 +14102,8 @@ outcomes: [
 `Total upgrades: ${S.wizardUpgradedSigils.length}`,
 '"Merlin\'s Toad! You have proven yourself worthy. Now go forth with your newfound power, my disciple!"'
 ],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 }, ANIMATION_TIMINGS.ACTION_COMPLETE);
 } else {
@@ -14087,7 +14118,8 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wizard2.png',
 outcomes: ['The wizard\'s glow fades. "You would refuse my arcane boons? Very well." He grabs his books and disappears.'],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`,
+overlays: wizardWallOverlay()
 });
 }
 
@@ -15032,7 +15064,11 @@ bgImage: 'assets/neutrals/royal2.png',
 title: 'Royal Wedding',
 description: `The ${askerTitle} welcomes you with a grand sweep of their open arms. "Ah, here are the very heroes who saved our wedding day, my love! Shall we give them the blessing we discussed?" The ${belovedTitle} beside them nods warmly.`,
 outcomes: ['Each wears a garment displaying a sigil of power. As thanks for your help, you may choose one:'],
-buttons
+buttons,
+overlays: [
+{ src: SIGIL_IMAGES[sigil1], alt: sigil1, top: '35%', left: '18%', width: '16%', rotation: 0 },
+{ src: SIGIL_IMAGES[sigil2], alt: sigil2, top: '35%', left: '66%', width: '16%', rotation: 0 }
+]
 });
 }
 
@@ -15968,7 +16004,7 @@ html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(advancedSigils);
 html += `</div>`;
 } else {
-html += renderLockedCategory('Unlock advanced combat techniques', 'Ghost • Alpha • Grapple', '#f97316', 20, 'advanced');
+html += renderLockedCategory('Unlock advanced combat techniques', `${sigilText('Ghost')} • ${sigilText('Alpha')} • ${sigilText('Grapple')}`, '#f97316', 20, 'advanced');
 }
 html += `</div>`;
 
@@ -15980,7 +16016,7 @@ html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(passiveSigils);
 html += `</div>`;
 } else {
-html += renderLockedCategory('Unlock passive enhancements', 'Expand • Asterisk • Star', '#9333ea', 50, 'passive');
+html += renderLockedCategory('Unlock passive enhancements', `${sigilText('Expand')} • ${sigilText('Asterisk')} • ${sigilText('Star')}`, '#9333ea', 50, 'passive');
 }
 // Continue button tucked into bottom of rightmost column
 html += `
@@ -18767,22 +18803,22 @@ Your total sigil level = Permanent (Gold) + Temporary (XP) upgrades.`
 },
 {
 q: "Why does Attack show as L1 when I haven't upgraded it?",
-a: `Active sigils (Attack, Shield, Heal, Grapple, Ghost, D20, Alpha) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
-<strong>Example:</strong> Attack storage level 0 = displays as L1 (1 attack per action)<br>
-Attack storage level 1 = displays as L2 (2 attacks per action)<br><br>
+a: `Active sigils (${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}, ${sigilText('Grapple')}, ${sigilText('Ghost')}, ${sigilText('D20')}, ${sigilText('Alpha')}) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
+<strong>Example:</strong> ${sigilText('Attack')} storage level 0 = displays as L1 (1 attack per action)<br>
+${sigilText('Attack')} storage level 1 = displays as L2 (2 attacks per action)<br><br>
 The upgrade cost is based on <em>storage level</em>, not display level. So upgrading from display L1 to L2 costs the price for storage level 0→1.`
 },
 {
 q: "What happens if I run out of enemies before using all my Expand targets?",
-a: `If you have Expand and select targets for multi-instance actions (Attack, Shield, Heal), you might run out of valid targets mid-instance. When this happens, you'll see a "wasted targets" message.<br><br>
-<strong>Example:</strong> You have Attack L2 with Expand L1 (3 total targets). There are only 2 enemies left. You can attack both enemies, but the 3rd target slot is wasted - you still get both attacks, but you can't use the extra Expand slot.<br><br>
+a: `If you have ${sigilText('Expand')} and select targets for multi-instance actions (${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}), you might run out of valid targets mid-instance. When this happens, you'll see a "wasted targets" message.<br><br>
+<strong>Example:</strong> You have ${sigilText('Attack')} L2 with ${sigilText('Expand')} L1 (3 total targets). There are only 2 enemies left. You can attack both enemies, but the 3rd target slot is wasted - you still get both attacks, but you can't use the extra ${sigilText('Expand')} slot.<br><br>
 This is intentional! Plan your actions carefully.`
 },
 {
 q: "How does Last Stand work and how long does it last?",
-a: `When a hero reaches 0 HP (and has no Ghost charges), they enter <strong>Last Stand</strong> instead of dying immediately. In Last Stand:<br><br>
-• They can ONLY use D20 gambits (no other actions)<br>
-• Each turn in Last Stand increases D20 difficulty by +2 DC<br>
+a: `When a hero reaches 0 HP (and has no ${sigilText('Ghost')} charges), they enter <strong>Last Stand</strong> instead of dying immediately. In Last Stand:<br><br>
+• They can ONLY use ${sigilText('D20')} gambits (no other actions)<br>
+• Each turn in Last Stand increases ${sigilText('D20')} difficulty by +2 DC<br>
 • CONFUSE caps at DC 20; other gambits keep climbing<br>
 • If healed, they revive with the healed HP amount<br><br>
 <strong>Last Stand Turn counter (CONFUSE example):</strong><br>
@@ -18796,21 +18832,21 @@ You have a few turns to heal your Last Stand heroes before DCs become impossible
 },
 {
 q: "How do Grapple and stun work?",
-a: `<strong>Grapple</strong> stuns a target for a number of turns equal to the Grapple level (L1 = 1 turn, L2 = 2 turns, etc.). The user takes recoil damage equal to the target's POW.<br><br>
+a: `${sigilText('Grapple')} stuns a target for a number of turns equal to the ${sigilText('Grapple')} level (L1 = 1 turn, L2 = 2 turns, etc.). The user takes recoil damage equal to the target's POW.<br><br>
 <strong>Stun rules (same for everyone):</strong><br>
 • Stun never stacks. If a target is already stunned for 2 turns and gets stunned for 1, nothing changes<br>
 • A new stun only takes effect if its duration exceeds the remaining stun<br>
 • Stunned units skip their action but still progress (enemies draw sigils, rage cycles, etc.)<br>
 • All stun counters decrement at the end of each enemy turn<br><br>
 <strong>Sources of stun:</strong><br>
-• Player Grapple: stun for Grapple level turns<br>
-• D20 STARTLE: stun for 1 turn<br>
-• Enemy Grapple: stun for sigil level turns<br>
+• Player ${sigilText('Grapple')}: stun for ${sigilText('Grapple')} level turns<br>
+• ${sigilText('D20')} STARTLE: stun for 1 turn<br>
+• Enemy ${sigilText('Grapple')}: stun for sigil level turns<br>
 • Floor 11 Ambush: all heroes stunned for 1 turn`
 },
 {
 q: "How many recruits can I have? What happens to them?",
-a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<br><br>
+a: `Recruits are enemies you've converted to your side via ${sigilText('D20')} RECRUIT (DC 20):<br><br>
 • Each hero can have <strong>1 recruit</strong> (recruiting another replaces the first)<br>
 • Recruits persist between battles until killed<br>
 • Recruits fight in their hero's lane and attack enemies<br>
@@ -18820,7 +18856,7 @@ a: `Recruits are enemies you've converted to your side via D20 RECRUIT (DC 20):<
 {
 q: "Do shields carry over between battles?",
 a: `<strong>Yes!</strong> Shields persist between battles and cap at max HP.<br><br>
-This means you can "shield farm" by using Shield sigils on the last enemy of a floor to enter the next floor with full shields. Combined with Asterisk or Alpha, this can make you nearly invincible!<br><br>
+This means you can "shield farm" by using ${sigilText('Shield')} sigils on the last enemy of a floor to enter the next floor with full shields. Combined with ${sigilText('Asterisk')} or ${sigilText('Alpha')}, this can make you nearly invincible!<br><br>
 <br><em style="font-size:0.9em;opacity:0.9">(Strategy tip: Before finishing a floor, use any remaining actions to shield up your team!)</em>`
 },
 {
@@ -18838,15 +18874,15 @@ a: `There are TWO types of sigil upgrades:<br><br>
 },
 {
 q: "What are Star and Asterisk sigils?",
-a: `<strong>Star:</strong> Passive XP multiplier. Each hero with Star adds +0.5× XP bonus per Star level.<br>
-• 2 heroes with Star L1 = +1.0× bonus = 2× total XP<br>
-• Star is extremely powerful for long-term scaling!<br><br>
-<strong>Asterisk:</strong> PASSIVE - Next action triggers +X times! Resets after each battle.<br>
-• Asterisk L1: First action triggers ×2<br>
-• Asterisk L4: First action triggers ×5<br>
-• Works with ANY action: Attack, Shield, Heal, D20 gambits, etc.<br>
+a: `<strong>${sigilText('Star')}:</strong> Passive XP multiplier. Each hero with ${sigilText('Star')} adds +0.5× XP bonus per ${sigilText('Star')} level.<br>
+• 2 heroes with ${sigilText('Star')} L1 = +1.0× bonus = 2× total XP<br>
+• ${sigilText('Star')} is extremely powerful for long-term scaling!<br><br>
+<strong>${sigilText('Asterisk')}:</strong> PASSIVE - Next action triggers +X times! Resets after each battle.<br>
+• ${sigilText('Asterisk')} L1: First action triggers ×2<br>
+• ${sigilText('Asterisk')} L4: First action triggers ×5<br>
+• Works with ANY action: ${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}, ${sigilText('D20')} gambits, etc.<br>
 • No activation needed - happens automatically on your first action<br>
-• Can be combined with Alpha for devastating combos!`
+• Can be combined with ${sigilText('Alpha')} for devastating combos!`
 }
 ];
 
