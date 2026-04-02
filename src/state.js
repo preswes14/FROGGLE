@@ -1335,13 +1335,16 @@ setTimeout(() => transitionScreen(showDeathScreen), 500);
 return true;
 }
 // CRITICAL: Check for invalid tutorial floor save (floor 0)
-// Tutorial shouldn't be saved mid-combat - advance to floor 1
+// Tutorial has a single checkpoint at the end of Combat 1 - anything before that is invalid
+// Delete the run save entirely and return to title screen
 if(S.floor === 0) {
-debugLog('[SAVE] Detected invalid tutorial save: floor 0, advancing to floor 1');
-S.floor = 1;
-// Clear the corrupted save and re-save with correct floor
+debugLog('[SAVE] Detected invalid tutorial save: floor 0, clearing run and returning to title');
 localStorage.removeItem(`froggle8_slot${slot}`);
-saveGame();
+S.heroes = [];
+S.floor = 0;
+toast('Tutorial progress cleared - please restart!', 2000);
+setTimeout(() => mainTitlePage(), 500);
+return true;
 }
 upd();
 startFloor(S.floor);

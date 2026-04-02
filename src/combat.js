@@ -2744,10 +2744,9 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = getHeroImage(h);
 html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand turn ${h.lst+1}${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost charges' : ''}" style="background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626" ${onclick}>`;
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">LAST STAND</div>`;
-html += `<div style="text-align:center;font-size:0.8rem;font-weight:bold;color:#f1f5f9;margin-bottom:0.25rem">${h.n}</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
-html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};filter:sepia(30%) brightness(0.8);border-color:#dc2626"></div>`;
+html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait hero-portrait-lg" style="object-fit:${crop.fit};object-position:${crop.pos};filter:sepia(30%) brightness(0.8);border-color:#dc2626"></div>`;
 }
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
@@ -2818,14 +2817,12 @@ html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#
 } else if(hasActed && !isTargetable) {
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fff;background:#64748b;padding:2px 6px;border-radius:4px;margin-bottom:4px">DONE</div>`;
 }
-// Name at top
-html += `<div style="text-align:center;font-size:0.75rem;font-weight:bold;margin-bottom:0.25rem;opacity:0.8">${h.n}</div>`;
 // POW - portrait - HP (horizontal)
 html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">`;
 html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
-html += `<img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos}">`;
+html += `<img src="${heroImage}" alt="${h.n}" class="hero-portrait hero-portrait-lg" style="object-fit:${crop.fit};object-position:${crop.pos}">`;
 }
 html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
