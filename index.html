@@ -7157,17 +7157,33 @@ toast('Continuing from last defeat...', 1800);
 setTimeout(() => transitionScreen(showDeathScreen), 500);
 return true;
 }
-// CRITICAL: Check for invalid tutorial floor save (floor 0)
-// Tutorial has a single checkpoint at the end of Combat 1 - anything before that is invalid
-// Delete the run save entirely and return to title screen
+// Tutorial checkpoint system for floor 0 saves
+// Checkpoint 0 = no progress (mid-fly-battle) → clear and restart
+// Checkpoint 1 = fly battle done → resume at Phase 2 (Ribbleton combat)
+// Checkpoint 2 = tutorial done → go to Ribbleton hub
 if(S.floor === 0) {
-debugLog('[SAVE] Detected invalid tutorial save: floor 0, clearing run and returning to title');
+const checkpoint = S.tutorialCheckpoint || 0;
+debugLog('[SAVE] Tutorial save detected, checkpoint:', checkpoint);
 localStorage.removeItem(`froggle8_slot${slot}`);
+if(checkpoint === 0) {
+debugLog('[SAVE] Checkpoint 0: No tutorial progress, returning to title');
 S.heroes = [];
 S.floor = 0;
 toast('Tutorial progress cleared - please restart!', 2000);
 setTimeout(() => mainTitlePage(), 500);
 return true;
+} else if(checkpoint === 1) {
+debugLog('[SAVE] Checkpoint 1: Resuming at Ribbleton combat (Phase 2)');
+toast('Resuming tutorial...', 1500);
+setTimeout(() => startRibbletonTutorial(), 500);
+return true;
+} else {
+debugLog('[SAVE] Checkpoint 2: Tutorial complete, going to Ribbleton');
+S.tutorialCheckpoint = 2;
+toast('Welcome back!', 1500);
+setTimeout(() => showRibbleton(), 500);
+return true;
+}
 }
 upd();
 startFloor(S.floor);
@@ -7228,7 +7244,8 @@ musicVolume: S.musicVolume,
 pondHistory: S.pondHistory,
 questsCompleted: S.questsCompleted,
 questsClaimed: S.questsClaimed,
-questProgress: S.questProgress
+questProgress: S.questProgress,
+tutorialCheckpoint: S.tutorialCheckpoint || 0
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -7315,8 +7332,8 @@ function suspendGame() {
 if(S.suspended) return;
 S.suspended = true;
 
-// Immediately save if we have an active run
-if(S.currentSlot != null && S.heroes.length > 0) {
+// Immediately save if we have an active run (skip if tutorial before checkpoint 1)
+if(S.currentSlot != null && S.heroes.length > 0 && !(S.floor === 0 && (S.tutorialCheckpoint || 0) < 1)) {
 saveGame();
 debugLog('[SUSPEND] Game saved on suspend');
 }
@@ -7421,6 +7438,8 @@ resumeGame();
 
 // Handle page unload (close tab, navigate away)
 window.addEventListener('pagehide', () => {
+// Don't save during tutorial before fly battle checkpoint
+if(S.floor === 0 && (S.tutorialCheckpoint || 0) < 1) return;
 if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 debugLog('[PAGEHIDE] Game saved before unload');
@@ -7429,13 +7448,17 @@ debugLog('[PAGEHIDE] Game saved before unload');
 
 // Also handle beforeunload for older browsers
 window.addEventListener('beforeunload', (e) => {
+// Don't save during tutorial before fly battle checkpoint
+if(S.floor === 0 && (S.tutorialCheckpoint || 0) < 1) {
+// Warn that progress will be lost
+if(S.heroes.length > 0) {
+e.preventDefault();
+e.returnValue = '';
+}
+return;
+}
 if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
-}
-// Warn during tutorial since tutorial progress isn't saved
-if(S.floor === 0 && S.heroes.length > 0) {
-e.preventDefault();
-e.returnValue = ''; // Required for Chrome/Edge to show confirmation dialog
 }
 });
 
@@ -12195,6 +12218,9 @@ setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPL
 // ===== RIBBLETON TUTORIAL INTRO =====
 function showTutorialStory() {
 debugLog('[FROGGLE] showTutorialStory START');
+// Reset tutorial checkpoint for fresh tutorial
+S.tutorialCheckpoint = 0;
+savePermanent();
 const slides = [
 {
 // Full-art: Ribbleton background with text overlay
@@ -12503,6 +12529,10 @@ finishTaposBirthdayPhase();
 }
 
 function finishTaposBirthdayPhase() {
+// Tutorial checkpoint 1: Fly battle complete
+S.tutorialCheckpoint = 1;
+savePermanent();
+debugLog('[TUTORIAL] Checkpoint 1 saved: Fly battle complete');
 // Phase 1 victory celebration
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
@@ -12767,6 +12797,10 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
+// Tutorial checkpoint 2: Tutorial fully complete, normal saves take over
+S.tutorialCheckpoint = 2;
+savePermanent();
+debugLog('[TUTORIAL] Checkpoint 2 saved: Tutorial complete');
 GameMusic.stop();
 const v = document.getElementById('gameView');
 if(!v) {
@@ -20539,6 +20573,7 @@ if(j.questProgress) {
   if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
 }
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+S.tutorialCheckpoint = j.tutorialCheckpoint || 0;
 S.currentSlot = slot;
 debugLog('[FROGGLE] Loaded slot-specific permanent data');
 } catch(e) {

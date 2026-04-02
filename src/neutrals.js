@@ -833,6 +833,9 @@ setTimeout(() => transitionScreen(showTitleCard), ANIMATION_TIMINGS.ACTION_COMPL
 // ===== RIBBLETON TUTORIAL INTRO =====
 function showTutorialStory() {
 debugLog('[FROGGLE] showTutorialStory START');
+// Reset tutorial checkpoint for fresh tutorial
+S.tutorialCheckpoint = 0;
+savePermanent();
 const slides = [
 {
 // Full-art: Ribbleton background with text overlay
@@ -1141,6 +1144,10 @@ finishTaposBirthdayPhase();
 }
 
 function finishTaposBirthdayPhase() {
+// Tutorial checkpoint 1: Fly battle complete
+S.tutorialCheckpoint = 1;
+savePermanent();
+debugLog('[TUTORIAL] Checkpoint 1 saved: Fly battle complete');
 // Phase 1 victory celebration
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
@@ -1405,6 +1412,10 @@ showNarrativeSlide(slides, 0);
 }
 
 function showTitleCard() {
+// Tutorial checkpoint 2: Tutorial fully complete, normal saves take over
+S.tutorialCheckpoint = 2;
+savePermanent();
+debugLog('[TUTORIAL] Checkpoint 2 saved: Tutorial complete');
 GameMusic.stop();
 const v = document.getElementById('gameView');
 if(!v) {
