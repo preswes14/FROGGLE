@@ -18,12 +18,12 @@ const HERO_IMAGES = {
     };
 
 // Hero portrait crop settings for card display
-// fit: 'cover' crops to show top portion, 'contain' shows whole character
+// fit: 'contain' shows whole character with transparent background
 const HERO_CROP = {
-    'Warrior': { fit: 'cover', pos: 'top center' },
-    'Tank':    { fit: 'cover', pos: 'top center' },
-    'Mage':    { fit: 'cover', pos: 'center 15%' },
-    'Healer':  { fit: 'cover', pos: 'top center' },
+    'Warrior': { fit: 'contain', pos: 'center' },
+    'Tank':    { fit: 'contain', pos: 'center' },
+    'Mage':    { fit: 'contain', pos: 'center' },
+    'Healer':  { fit: 'contain', pos: 'center' },
     'Tapo':    { fit: 'contain', pos: 'center' }
 };
 
@@ -240,12 +240,12 @@ const PIP_COLORS = ['#c0c0c0', '#2dd4bf', '#a855f7', '#f59e0b', '#ff0080'];
 const PIP_POS = [
   [],                                           // 0
   [[0, 0]],                                     // 1: single dot
-  [[0, 0], [6, 0]],                             // 2: horizontal pair
-  [[3, 0], [0, 6], [6, 6]],                     // 3: triangle (1 top, 2 bottom)
-  [[0, 0], [6, 0], [0, 6], [6, 6]],             // 4: square (2x2)
-  [[5, 0], [10, 3], [8, 10], [1, 10], [0, 3]]   // 5: pentagram
+  [[0, 0], [7, 0]],                             // 2: horizontal pair
+  [[3, 0], [0, 7], [7, 7]],                     // 3: triangle (1 top, 2 bottom)
+  [[0, 0], [7, 0], [0, 7], [7, 7]],             // 4: square (2x2)
+  [[5, 0], [11, 3], [9, 11], [1, 11], [0, 3]]   // 5: pentagram
 ];
-const PIP_DIMS = [[0,0],[4,4],[10,4],[10,10],[10,10],[14,14]];
+const PIP_DIMS = [[0,0],[6,6],[12,6],[12,12],[12,12],[16,16]];
 
 function renderPips(filled, total) {
   if (total <= 0) return '';

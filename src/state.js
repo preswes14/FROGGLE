@@ -1334,14 +1334,33 @@ toast('Continuing from last defeat...', 1800);
 setTimeout(() => transitionScreen(showDeathScreen), 500);
 return true;
 }
-// CRITICAL: Check for invalid tutorial floor save (floor 0)
-// Tutorial shouldn't be saved mid-combat - advance to floor 1
+// Tutorial checkpoint system for floor 0 saves
+// Checkpoint 0 = no progress (mid-fly-battle) → clear and restart
+// Checkpoint 1 = fly battle done → resume at Phase 2 (Ribbleton combat)
+// Checkpoint 2 = tutorial done → go to Ribbleton hub
 if(S.floor === 0) {
-debugLog('[SAVE] Detected invalid tutorial save: floor 0, advancing to floor 1');
-S.floor = 1;
-// Clear the corrupted save and re-save with correct floor
+const checkpoint = S.tutorialCheckpoint || 0;
+debugLog('[SAVE] Tutorial save detected, checkpoint:', checkpoint);
 localStorage.removeItem(`froggle8_slot${slot}`);
-saveGame();
+if(checkpoint === 0) {
+debugLog('[SAVE] Checkpoint 0: No tutorial progress, returning to title');
+S.heroes = [];
+S.floor = 0;
+toast('Tutorial progress cleared - please restart!', 2000);
+setTimeout(() => mainTitlePage(), 500);
+return true;
+} else if(checkpoint === 1) {
+debugLog('[SAVE] Checkpoint 1: Resuming at Ribbleton combat (Phase 2)');
+toast('Resuming tutorial...', 1500);
+setTimeout(() => startRibbletonTutorial(), 500);
+return true;
+} else {
+debugLog('[SAVE] Checkpoint 2: Tutorial complete, going to Ribbleton');
+S.tutorialCheckpoint = 2;
+toast('Welcome back!', 1500);
+setTimeout(() => showRibbleton(), 500);
+return true;
+}
 }
 upd();
 startFloor(S.floor);
@@ -1402,7 +1421,8 @@ musicVolume: S.musicVolume,
 pondHistory: S.pondHistory,
 questsCompleted: S.questsCompleted,
 questsClaimed: S.questsClaimed,
-questProgress: S.questProgress
+questProgress: S.questProgress,
+tutorialCheckpoint: S.tutorialCheckpoint || 0
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -1489,8 +1509,8 @@ function suspendGame() {
 if(S.suspended) return;
 S.suspended = true;
 
-// Immediately save if we have an active run
-if(S.currentSlot != null && S.heroes.length > 0) {
+// Immediately save if we have an active run (skip if tutorial before checkpoint 1)
+if(S.currentSlot != null && S.heroes.length > 0 && !(S.floor === 0 && (S.tutorialCheckpoint || 0) < 1)) {
 saveGame();
 debugLog('[SUSPEND] Game saved on suspend');
 }
@@ -1595,6 +1615,8 @@ resumeGame();
 
 // Handle page unload (close tab, navigate away)
 window.addEventListener('pagehide', () => {
+// Don't save during tutorial before fly battle checkpoint
+if(S.floor === 0 && (S.tutorialCheckpoint || 0) < 1) return;
 if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
 debugLog('[PAGEHIDE] Game saved before unload');
@@ -1603,13 +1625,17 @@ debugLog('[PAGEHIDE] Game saved before unload');
 
 // Also handle beforeunload for older browsers
 window.addEventListener('beforeunload', (e) => {
+// Don't save during tutorial before fly battle checkpoint
+if(S.floor === 0 && (S.tutorialCheckpoint || 0) < 1) {
+// Warn that progress will be lost
+if(S.heroes.length > 0) {
+e.preventDefault();
+e.returnValue = '';
+}
+return;
+}
 if(S.currentSlot != null && S.heroes.length > 0) {
 saveGame();
-}
-// Warn during tutorial since tutorial progress isn't saved
-if(S.floor === 0 && S.heroes.length > 0) {
-e.preventDefault();
-e.returnValue = ''; // Required for Chrome/Edge to show confirmation dialog
 }
 });
 

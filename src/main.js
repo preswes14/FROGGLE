@@ -153,6 +153,7 @@ if(j.questProgress) {
   if(!S.questProgress.enemyTypesDefeated) S.questProgress.enemyTypesDefeated = { Goblin: false, Wolf: false, Orc: false, Giant: false, 'Cave Troll': false, Dragon: false, Flydra: false };
 }
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+S.tutorialCheckpoint = j.tutorialCheckpoint || 0;
 S.currentSlot = slot;
 debugLog('[FROGGLE] Loaded slot-specific permanent data');
 } catch(e) {

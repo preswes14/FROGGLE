@@ -44,6 +44,30 @@ let html = `
 <input type="number" id="debugFloorInput" min="1" max="19" value="${S.floor}" style="width:60px;padding:0.25rem;margin:0 0.5rem;font-size:1rem">
 <button class="btn" onclick="debugJumpFloor()" style="display:inline-block;width:auto;padding:0.5rem 1rem;margin:0;font-size:0.9rem;min-height:auto">Go</button>
 </div>
+<div style="margin:0.5rem 0">
+<label style="color:white;font-size:0.9rem">Preview Neutral Encounter:</label>
+<select id="debugNeutralSelect" style="padding:0.25rem;margin:0.25rem 0;font-size:0.9rem;width:100%">
+<option value="shopkeeper1">Shopkeeper (Stage 1)</option>
+<option value="shopkeeper2">Shopkeeper (Stage 2)</option>
+<option value="wishingwell1">Wishing Well (Stage 1)</option>
+<option value="wishingwell2">Wishing Well (Stage 2)</option>
+<option value="treasurechest1">Treasure Chest (Stage 1)</option>
+<option value="treasurechest2">Treasure Chest (Stage 2)</option>
+<option value="wizard1">Wizard (Stage 1)</option>
+<option value="wizard2">Wizard (Stage 2)</option>
+<option value="oracle1">Oracle (Stage 1)</option>
+<option value="oracle2">Oracle (Stage 2)</option>
+<option value="encampment1">Encampment (Stage 1)</option>
+<option value="encampment2">Encampment (Stage 2)</option>
+<option value="gambling1">Gambling (Stage 1)</option>
+<option value="gambling2">Gambling (Stage 2)</option>
+<option value="ghost1">Ghost Boys (Stage 1)</option>
+<option value="ghost2">Ghost Boys (Stage 2)</option>
+<option value="royal1">Royal (Stage 1)</option>
+<option value="royal2">Royal (Stage 2)</option>
+</select>
+<button class="btn" onclick="debugPreviewNeutral()" style="margin-top:0.25rem;background:#8b5cf6">Preview</button>
+</div>
 
 <h3 class="modal-section-title green">Sigil Levels</h3>
 <div style="margin:0.5rem 0">
@@ -1225,6 +1249,35 @@ S.xp += 100;
 upd();
 toast('Added 100 XP!', 1200);
 closeDebugMenu();
+}
+
+function debugPreviewNeutral() {
+const select = document.getElementById('debugNeutralSelect');
+const enc = select.value;
+closeDebugMenu();
+// Set up minimal state needed for neutral encounters
+if(!S.heroes || S.heroes.length === 0) {
+toast('Need active heroes to preview neutrals!', 1500);
+return;
+}
+// Dispatch to encounter function directly
+const dispatch = {
+shopkeeper1: showShopkeeper1, shopkeeper2: showShopkeeper2,
+wishingwell1: showWishingWell1, wishingwell2: showWishingWell2,
+treasurechest1: showTreasureChest1, treasurechest2: showTreasureChest2,
+wizard1: showWizard1, wizard2: showWizard2,
+oracle1: showOracle1, oracle2: showOracle2,
+encampment1: showEncampment1, encampment2: showEncampment2,
+gambling1: showGambling1, gambling2: showGambling2,
+ghost1: showGhost1, ghost2: showGhost2,
+royal1: showRoyal1, royal2: showRoyal2
+};
+if(dispatch[enc]) {
+toast(`Previewing: ${enc}`, 1200);
+dispatch[enc]();
+} else {
+toast('Unknown encounter!', 1200);
+}
 }
 
 function debugJumpFloor() {
