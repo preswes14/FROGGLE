@@ -2746,7 +2746,7 @@ html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand 
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">LAST STAND</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'contain', pos: 'center' };
-html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait hero-portrait-lg" style="object-fit:${crop.fit};object-position:${crop.pos};filter:sepia(30%) brightness(0.8)"></div>`;
+html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};filter:sepia(30%) brightness(0.8)"></div>`;
 }
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
@@ -2822,7 +2822,7 @@ html += `<div style="display:flex;align-items:center;justify-content:space-betwe
 html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
-html += `<img src="${heroImage}" alt="${h.n}" class="hero-portrait hero-portrait-lg" style="object-fit:${crop.fit};object-position:${crop.pos}">`;
+html += `<img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos}">`;
 }
 html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
