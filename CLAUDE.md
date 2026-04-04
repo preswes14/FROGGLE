@@ -7,10 +7,19 @@ FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all g
 - "Emoji" and "Unicode symbol" are used interchangeably in this project's docs — the UI uses Unicode symbols (✦, ≡, ⚙, etc.) but we refer to them casually as emojis
 - Single HTML file (~18,800 lines) with embedded JS/CSS
 - localStorage for saves (no backend/cloud sync)
-- Mobile-first, PWA installable
+- **Desktop/Steam Deck first** — design for 1280x800 (Deck) and 1080p+ (desktop), scale down for mobile only if needed later. Never let mobile constraints drive layout decisions.
+- PWA installable
 - Steam Deck controller support
 - Font: Fredoka One bundled locally (`assets/fonts/fredoka-one.otf`)
 - Art assets: Professional art by Harimoon (heroes/enemies) and Zab (neutral backgrounds/environments)
+
+## UI Design Principles
+- **Expand to fit, never truncate** — containers grow to accommodate their content. Never use `text-overflow: ellipsis` or `overflow: hidden` on text. If something doesn't fit, make the container bigger.
+- **Desktop/Deck first** — base styles target 1280x800+. Don't add defensive mobile sizing (tiny padding, cramped min-widths) to the base CSS. Mobile breakpoints are secondary overrides.
+- **Transparency and context** — modals/overlays should let the player see the game behind them (~80% opacity backgrounds). Don't wall off context.
+- **Minimal chrome** — reduce borders, remove hero names from cards (portraits identify), lean on art over labels.
+- **Fixed layout geometry** — elements that appear/disappear (action buttons, status text) should reserve their space so content below never jumps.
+- **Let things breathe** — generous padding and sizing for buttons, cards, and text. This is a desktop game, not a phone app fighting for pixels.
 
 ## Development
 - Feature branches: `claude/` prefix, push when complete
