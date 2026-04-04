@@ -71,10 +71,11 @@ extract.sh            # Extract modules from index.html
 10. main.js (init, must be last)
 
 ### Editing Workflow
-1. Edit files in `src/`
+1. Edit files in `src/` (never run `extract.sh` mid-session — it can silently merge modules if section markers are missing)
 2. Run `./build.sh` to rebuild `index.html`
 3. Test in browser
-4. Commit both `src/` and `index.html`
+4. Before committing, run `git diff --stat` and sanity-check the line counts. A typical feature commit should be **under 1,000 lines changed** across src/ files. If you see 3,000+ lines in a single module or unexpected deletions/additions in modules you didn't edit, something went wrong (likely an `extract.sh` mishap). Fix before committing.
+5. Commit both `src/` and `index.html`
 
 ---
 
