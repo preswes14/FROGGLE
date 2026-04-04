@@ -705,7 +705,7 @@ debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
 const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.5rem 1rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
-const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.5rem 1rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
+const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.5rem 0.5rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
 // Resolve text - may be a function for dynamic content
 const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
@@ -726,7 +726,7 @@ ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-heigh
 </div>
 
 <!-- Continue button - bottom right -->
-<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.5rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.1rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 <!-- Skip button - bottom left -->
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
@@ -840,13 +840,14 @@ const slides = [
 {
 // Full-art: Ribbleton background with text overlay
 bg: 'assets/ribbleton.png',
-text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">Ribbleton</strong>.<br><br>Today is a very special day!! Why, you ask?`
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Welcome to <strong style="color:#22c55e">Ribbleton!</strong></h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">A beautiful, tranquil town. Today is a very special day!</p>`
 },
 {
 // Tapo's birthday celebration - all heroes on Ribbleton background
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0">The whole town is celebrating the little tadpole's special day!</p>`,
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">The whole town is celebrating the little tadpole's&nbsp;special&nbsp;day!</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -870,15 +871,83 @@ style.textContent = `
   79.5% { transform: translateY(-8px) scaleX(0); }
   83.5% { transform: translateY(0) scaleX(1); }
   100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes tankIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  10%  { transform: translateY(-8px) scaleX(1); }
+  20%  { transform: translateY(0) scaleX(1); }
+  30%  { transform: translateY(-12px) scaleX(1); }
+  40%  { transform: translateY(0) scaleX(1); }
+  41%  { transform: translateY(-5px) scaleX(0); }
+  44%  { transform: translateY(0) scaleX(-1); }
+  55%  { transform: translateY(0) scaleX(-1); }
+  65%  { transform: translateY(-8px) scaleX(-1); }
+  75%  { transform: translateY(0) scaleX(-1); }
+  85%  { transform: translateY(-12px) scaleX(-1); }
+  90%  { transform: translateY(0) scaleX(-1); }
+  91%  { transform: translateY(-5px) scaleX(0); }
+  94%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes warriorIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  8%   { transform: translateY(-14px) scaleX(1); }
+  16%  { transform: translateY(0) scaleX(1); }
+  24%  { transform: translateY(-18px) scaleX(1); }
+  32%  { transform: translateY(0) scaleX(1); }
+  33.5%{ transform: translateY(-6px) scaleX(0); }
+  37%  { transform: translateY(0) scaleX(-1); }
+  50%  { transform: translateY(0) scaleX(-1); }
+  58%  { transform: translateY(-14px) scaleX(-1); }
+  66%  { transform: translateY(0) scaleX(-1); }
+  74%  { transform: translateY(-18px) scaleX(-1); }
+  82%  { transform: translateY(0) scaleX(-1); }
+  83.5%{ transform: translateY(-6px) scaleX(0); }
+  87%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes mageIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  7%   { transform: translateY(-16px) scaleX(1); }
+  14%  { transform: translateY(0) scaleX(1); }
+  22%  { transform: translateY(-22px) scaleX(1); }
+  30%  { transform: translateY(0) scaleX(1); }
+  31.5%{ transform: translateY(-7px) scaleX(0); }
+  35%  { transform: translateY(0) scaleX(-1); }
+  48%  { transform: translateY(0) scaleX(-1); }
+  55%  { transform: translateY(-16px) scaleX(-1); }
+  62%  { transform: translateY(0) scaleX(-1); }
+  70%  { transform: translateY(-22px) scaleX(-1); }
+  78%  { transform: translateY(0) scaleX(-1); }
+  79.5%{ transform: translateY(-7px) scaleX(0); }
+  83%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes healerIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  9%   { transform: translateY(-12px) scaleX(1); }
+  18%  { transform: translateY(0) scaleX(1); }
+  27%  { transform: translateY(-16px) scaleX(1); }
+  36%  { transform: translateY(0) scaleX(1); }
+  37.5%{ transform: translateY(-6px) scaleX(0); }
+  41%  { transform: translateY(0) scaleX(-1); }
+  52%  { transform: translateY(0) scaleX(-1); }
+  61%  { transform: translateY(-12px) scaleX(-1); }
+  70%  { transform: translateY(0) scaleX(-1); }
+  79%  { transform: translateY(-16px) scaleX(-1); }
+  84%  { transform: translateY(0) scaleX(-1); }
+  85.5%{ transform: translateY(-6px) scaleX(0); }
+  89%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
 }`;
 container.appendChild(style);
 // Place heroes scattered around the town
 const heroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '10%', bottom: '22%', width: '95px' },
-  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '24%', bottom: '20%', width: '90px' },
-  { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '28%', width: '70px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
-  { src: 'assets/mage_normal.png', alt: 'Mage', left: '66%', bottom: '25%', width: '85px' },
-  { src: 'assets/heal_normal.png', alt: 'Healer', left: '80%', bottom: '22%', width: '85px' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: '8%', bottom: '18%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '22%', bottom: '18%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
+  { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '120px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
+  { src: 'assets/mage_normal.png', alt: 'Mage', left: '65%', bottom: '20%', width: '145px', anim: 'mageIdle 3.8s ease-in-out infinite' },
+  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '18%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
 heroes.forEach(h => {
   const img = document.createElement('img');
@@ -919,39 +988,111 @@ style.textContent = `
   83.5% { transform: translateY(0) scaleX(1); }
   100% { transform: translateY(0) scaleX(1); }
 }
+@keyframes tankIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  10%  { transform: translateY(-8px) scaleX(1); }
+  20%  { transform: translateY(0) scaleX(1); }
+  30%  { transform: translateY(-12px) scaleX(1); }
+  40%  { transform: translateY(0) scaleX(1); }
+  41%  { transform: translateY(-5px) scaleX(0); }
+  44%  { transform: translateY(0) scaleX(-1); }
+  55%  { transform: translateY(0) scaleX(-1); }
+  65%  { transform: translateY(-8px) scaleX(-1); }
+  75%  { transform: translateY(0) scaleX(-1); }
+  85%  { transform: translateY(-12px) scaleX(-1); }
+  90%  { transform: translateY(0) scaleX(-1); }
+  91%  { transform: translateY(-5px) scaleX(0); }
+  94%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes warriorIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  8%   { transform: translateY(-14px) scaleX(1); }
+  16%  { transform: translateY(0) scaleX(1); }
+  24%  { transform: translateY(-18px) scaleX(1); }
+  32%  { transform: translateY(0) scaleX(1); }
+  33.5%{ transform: translateY(-6px) scaleX(0); }
+  37%  { transform: translateY(0) scaleX(-1); }
+  50%  { transform: translateY(0) scaleX(-1); }
+  58%  { transform: translateY(-14px) scaleX(-1); }
+  66%  { transform: translateY(0) scaleX(-1); }
+  74%  { transform: translateY(-18px) scaleX(-1); }
+  82%  { transform: translateY(0) scaleX(-1); }
+  83.5%{ transform: translateY(-6px) scaleX(0); }
+  87%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes healerIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  9%   { transform: translateY(-12px) scaleX(1); }
+  18%  { transform: translateY(0) scaleX(1); }
+  27%  { transform: translateY(-16px) scaleX(1); }
+  36%  { transform: translateY(0) scaleX(1); }
+  37.5%{ transform: translateY(-6px) scaleX(0); }
+  41%  { transform: translateY(0) scaleX(-1); }
+  52%  { transform: translateY(0) scaleX(-1); }
+  61%  { transform: translateY(-12px) scaleX(-1); }
+  70%  { transform: translateY(0) scaleX(-1); }
+  79%  { transform: translateY(-16px) scaleX(-1); }
+  84%  { transform: translateY(0) scaleX(-1); }
+  85.5%{ transform: translateY(-6px) scaleX(0); }
+  89%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
 @keyframes mageWalkToTapo {
-  0% { left: 25%; }
-  100% { left: 42%; }
+  0% { left: 65%; }
+  100% { left: 52%; }
 }
 @keyframes walkOffRight {
   0% { transform: translateX(0); }
   100% { transform: translateX(120vw); }
+}
+@keyframes tapoVault {
+  0%   { transform: translate(0, 0) scaleX(1); }
+  15%  { transform: translate(8vw, 0) scaleX(1); }
+  35%  { transform: translate(20vw, -40vh) scaleX(1); }
+  55%  { transform: translate(32vw, -15vh) scaleX(1); }
+  70%  { transform: translate(40vw, 0) scaleX(1); }
+  100% { transform: translate(120vw, 0) scaleX(1); }
 }`;
 container.appendChild(style);
-// Place Tapo (stationary with hop animation, waiting for Mage)
+// Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
+const bgHeroes = [
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: '8%', bottom: '18%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '22%', bottom: '18%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
+  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '18%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
+];
+bgHeroes.forEach(h => {
+  const img = document.createElement('img');
+  img.src = h.src;
+  img.alt = h.alt;
+  img.style.cssText = `position:absolute;left:${h.left};bottom:${h.bottom};width:${h.width};height:auto;z-index:4;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:${h.anim}`;
+  container.appendChild(img);
+});
+// Place Tapo (in the fountain with hop animation, waiting for Mage)
 const tapo = document.createElement('img');
 tapo.src = 'assets/tapo_normal.png';
 tapo.alt = 'Tapo';
 tapo.id = 'mage-teach-tapo';
-tapo.style.cssText = 'position:absolute;left:52%;bottom:28%;width:70px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:tapoSignature 3.6s ease-in-out infinite';
+tapo.style.cssText = 'position:absolute;left:48%;bottom:15%;width:120px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:tapoSignature 3.6s ease-in-out infinite';
 container.appendChild(tapo);
-// Place Mage (walks toward Tapo over 2s)
+// Place Mage (walks toward Tapo from right side over 2s)
 const mage = document.createElement('img');
 mage.src = 'assets/mage_happy.png';
 mage.alt = 'Mage';
 mage.id = 'mage-teach-mage';
-mage.style.cssText = 'position:absolute;left:25%;bottom:25%;width:85px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:mageWalkToTapo 2s ease-in-out forwards';
+mage.style.cssText = 'position:absolute;left:65%;bottom:20%;width:145px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:mageWalkToTapo 2s ease-in-out forwards';
 container.appendChild(mage);
-// After 2s walk + 1.5s pause = 3.5s, both walk off screen together
+// After 2s walk + 1.5s pause = 3.5s, Mage walks off right, Tapo vaults over quest board
 setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (mageEl) {
+    mageEl.style.left = '52%';
     mageEl.style.animation = 'walkOffRight 2s ease-in forwards';
-    mageEl.style.left = '42%';
   }
   if (tapoEl) {
-    tapoEl.style.animation = 'walkOffRight 2s ease-in forwards';
+    tapoEl.style.animation = 'tapoVault 2.5s ease-in-out forwards';
   }
 }, 3500);
 }
@@ -959,12 +1100,13 @@ setTimeout(() => {
 ];
 slides.skippable = true;
 slides.onComplete = () => {
-// Start Phase 1: Tapo's Birthday tutorial
+// Show interstitial before fly fight
+showTutorialInterstitial('Tutorial', "Catchin' Flies", () => {
 startTaposBirthdayTutorial();
-
 setTimeout(() => {
 showTaposBirthdayOverlay();
 }, 100);
+});
 };
 debugLog('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
 showNarrativeSlide(slides, 0);
@@ -1254,12 +1396,13 @@ showNarrativeSlide(slides, 0);
 }
 
 function transitionToPortalInvasion() {
-// Start Phase 2: Portal Invasion (Flydra appearance already shown)
+// Show interstitial before portal invasion
+showTutorialInterstitial('Tutorial', 'Protect the Tadpole!', () => {
 startRibbletonTutorial();
-
 setTimeout(() => {
 showTutorialStoryOverlay();
 }, 100);
+});
 }
 
 function showTutorialStoryOverlay() {
@@ -1833,6 +1976,24 @@ ghost2: 'Passing On',
 royal1: 'The Flummoxed Royal',
 royal2: 'Royal Wedding'
 };
+
+function showTutorialInterstitial(title, subtitle, callback) {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
+<div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem;font-family:'Fredoka One',cursive">${title}</div>
+<div style="font-size:1.8rem;font-style:italic;font-family:'Fredoka One',cursive">${subtitle}</div>
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>`;
+setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
+}
 
 function showNeutralInterstitial(f, encName, callback) {
 const displayName = NEUTRAL_NAMES[encName] || encName;
@@ -3853,5 +4014,6 @@ savePermanent();
 // Show the actual death screen with upgrades
 showDeathScreen();
 }
+
 
 
