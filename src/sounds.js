@@ -1077,4 +1077,3 @@ function setMusicVolume(vol) {
   savePermanent();
 }
 
-
