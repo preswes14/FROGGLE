@@ -504,7 +504,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .card.enemy { background: radial-gradient(ellipse at 50% 35%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%); color: white; width: 170px; border: 2px solid #dc2626; }
 .card.enemy::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #dc2626, #f87171, #dc2626, transparent); border-radius: 8px 8px 0 0; pointer-events: none; }
 .enemy-art { border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-.hero-portrait { width: 100px; height: 100px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6), inset 0 0 12px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.45); }
+.hero-portrait { width: 110px; height: 110px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: none; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
 .card.hero.chosen-one::before {
@@ -633,10 +633,10 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .sigil-row.compact { gap: 3px; }
 .sigil-row.compact .sigil { padding: 6px; font-size: 0.75rem; min-width: 40px; min-height: 40px; }
 .sigil-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0; }
-.sigil { border: none; border-radius: 6px; padding: 10px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 44px; min-height: 44px; max-width: 56px; width: auto; font-weight: 900; background: transparent; text-shadow: none; flex-shrink: 0; }
+.sigil { border: none; border-radius: 6px; padding: 10px; font-size: 1.1rem; display: inline-flex; align-items: center; justify-content: center; margin: 2px; min-width: 44px; min-height: 44px; max-width: 56px; width: auto; font-weight: 900; background: transparent; text-shadow: none; flex-shrink: 0; position: relative; }
 .sigil img { width: auto; height: 1.6em; object-fit: contain; }
 /* Pip level indicators */
-.pips { position: relative; display: inline-block; vertical-align: super; margin-left: 2px; flex-shrink: 0; }
+.pips { position: absolute; top: -2px; left: -2px; display: inline-block; margin-left: 0; flex-shrink: 0; }
 .pip { position: absolute; width: 4px; height: 4px; border-radius: 50%; border: 1px solid transparent; box-sizing: border-box; }
 .pip-h { background: transparent !important; }
 .sigil-row.compact .pips { transform: scale(0.8); transform-origin: top right; }
@@ -649,7 +649,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .sigil.l0 { color: #94a3b8; opacity: 0.55; }
 .sigil.l0 img { filter: brightness(0) saturate(100%) opacity(0.4); }
 .sigil.l1 { color: #c0c0c0; } /* Silver */
-.sigil.l1 img { filter: brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(85%); }
+.sigil.l1 img { filter: brightness(0) saturate(100%) invert(84%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(90%) contrast(85%) drop-shadow(1px 0 0 #000) drop-shadow(-1px 0 0 #000) drop-shadow(0 1px 0 #000) drop-shadow(0 -1px 0 #000); }
 .sigil.l2 { color: #06b6d4; }
 .sigil.l2 img { filter: invert(56%) sepia(81%) saturate(1239%) hue-rotate(166deg) brightness(95%) contrast(94%); }
 .sigil.l3 { color: #9333ea; }
@@ -665,7 +665,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 /* Passive sigils: circular with colored border ring, dark interior */
 .sigil.passive { position: relative; border-radius: 50%; border: 2.5px solid; background: #0f172a; aspect-ratio: 1; min-width: 44px; max-width: 56px; padding: 8px; box-sizing: border-box; }
 .sigil.passive img { filter: brightness(0) invert(1) !important; } /* White icon */
-.sigil.passive .pips { position: absolute; top: -4px; right: -4px; margin-left: 0; }
+.sigil.passive .pips { position: absolute; top: -4px; left: -4px; margin-left: 0; }
 .sigil.passive.l0 { border-color: #4b5563; opacity: 0.7; }
 .sigil.passive.l0 img { filter: brightness(0.3) !important; } /* Grey icon when spent */
 .sigil.passive.l1 { border-color: #c0c0c0; } /* Silver */
@@ -1145,8 +1145,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
     height: 32px !important;
   }
   .hero-portrait {
-    width: 48px !important;
-    height: 48px !important;
+    width: 60px !important;
+    height: 60px !important;
   }
 
   .card-emoji {
@@ -1206,8 +1206,14 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
   /* Combat header compact */
   .combat-header {
-    padding: 0.4rem;
-    margin-bottom: 0.4rem;
+    padding: 0.3rem 0.4rem;
+    margin-bottom: 0.3rem;
+  }
+  .combat-header-row {
+    min-height: 1.2rem;
+  }
+  .combat-header-row-buttons {
+    min-height: 2rem;
   }
   .combat-header-title {
     font-size: 0.85rem;
@@ -1887,11 +1893,29 @@ img[src*="tank_normal"] {
 .combat-header {
   text-align: center;
   font-weight: bold;
-  padding: 0.75rem;
+  padding: 0.5rem 0.75rem;
   background: rgba(0,0,0,0.05);
   border-radius: 6px;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   position: relative;
+}
+
+.combat-header-row {
+  min-height: 1.4rem;
+}
+
+.combat-header-row-buttons {
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.combat-header-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .combat-header-title {
@@ -1901,13 +1925,11 @@ img[src*="tank_normal"] {
 
 .combat-header-subtitle {
   font-size: 0.85rem;
-  margin-top: 0.25rem;
 }
 
 .combat-header-info {
   font-size: 0.75rem;
   opacity: 0.8;
-  margin-top: 0.25rem;
 }
 
 .section-label {
@@ -2613,12 +2635,12 @@ body.high-contrast *:focus-visible {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(0, 0, 0, 0.8);
   border: 3px solid #f97316;
   border-radius: 12px;
   padding: 2rem;
   z-index: 100000;
-  max-width: 400px;
+  max-width: 500px;
   width: 90%;
   text-align: center;
   color: white;
@@ -2635,6 +2657,12 @@ body.high-contrast *:focus-visible {
   display: flex;
   gap: 1rem;
   justify-content: center;
+}
+.confirm-modal-buttons .btn {
+  width: auto;
+  min-width: 120px;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 .confirm-modal-overlay {
   position: fixed;
@@ -3093,11 +3121,11 @@ const HERO_IMAGES = {
 // Hero portrait crop settings for card display
 // fit: 'contain' shows whole character with transparent background
 const HERO_CROP = {
-    'Warrior': { fit: 'contain', pos: 'center' },
-    'Tank':    { fit: 'contain', pos: 'center' },
-    'Mage':    { fit: 'contain', pos: 'center' },
-    'Healer':  { fit: 'contain', pos: 'center' },
-    'Tapo':    { fit: 'contain', pos: 'center' }
+    'Warrior': { fit: 'cover', pos: 'top center' },
+    'Tank':    { fit: 'cover', pos: 'top center' },
+    'Mage':    { fit: 'cover', pos: 'top center' },
+    'Healer':  { fit: 'cover', pos: 'top center' },
+    'Tapo':    { fit: 'cover', pos: 'top center' }
 };
 
 // Hero reaction images (happy/pained expressions)
@@ -3633,63 +3661,57 @@ return html;
 
 // Render combat status header
 function renderCombatStatusHeader() {
-let html = '<div class="combat-header">';
+// Row 1: Action title (always present, fixed height)
+let titleHtml = '';
+// Row 2: Target/instance info (always present, fixed height)
+let infoHtml = '';
+// Row 3: Action buttons (always present, fixed height)
+let buttonsHtml = '';
+
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
-html += `<div class="combat-header-title">Enemy Turn</div>`;
-html += `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
+titleHtml = `<div class="combat-header-title">Enemy Turn</div>`;
+infoHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
 } else {
-html += 'Enemy Turn…';
+titleHtml = `<div class="combat-header-title">Enemy Turn…</div>`;
 }
 } else if(S.pending === 'D20_TARGET') {
 const heroIdx = S.d20HeroIdx;
 const maxTargets = 1 + getLevel('Expand', heroIdx);
 const selected = S.targets.length;
-html += `<div class="combat-header-title">${S.d20Action} (DC ${S.d20DC})</div>`;
+titleHtml = `<div class="combat-header-title">${S.d20Action} (DC ${S.d20DC})</div>`;
 const targetText = maxTargets >= 2 ? `targets: ${selected}/${maxTargets}` : 'Select target';
-html += `<div class="combat-header-subtitle">${targetText}</div>`;
+infoHtml = `<div class="combat-header-subtitle">${targetText}</div>`;
+// D20_TARGET buttons
+const targetArray = S.targets || [];
+const targetCount = targetArray.length;
+if(targetCount > 0) {
+const targetNames = targetArray.map(t => {
+const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
+return unit ? unit.n : 'target';
+}).join(', ');
+infoHtml = `<div class="combat-header-subtitle">${targetText} — ${targetNames}</div>`;
+buttonsHtml = `<div class="combat-header-buttons"><button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button><button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button></div>`;
+}
 } else if(S.pending) {
 const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
 const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
+titleHtml = `<div class="combat-header-title">${S.pending}</div>`;
+
 if(isMultiInstance(S.pending)) {
 const targetsInInstance = S.currentInstanceTargets.length;
-html += `<div class="combat-header-title">${S.pending}</div>`;
 const targetText = targetsPerInstance >= 2 ? `targets: ${targetsInInstance}/${targetsPerInstance}` : `Select ${targetType}`;
-html += `<div class="combat-header-subtitle">${targetText}</div>`;
-html += `<div class="combat-header-info">${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
+infoHtml = `<div class="combat-header-subtitle">${targetText} · ${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
 } else {
 const selected = S.targets.length;
 const max = targetsPerInstance;
-html += `<div class="combat-header-title">${S.pending}</div>`;
 const targetText = max >= 2 ? `targets: ${selected}/${max}` : `Select ${targetType}`;
-html += `<div class="combat-header-subtitle">${targetText}</div>`;
+infoHtml = `<div class="combat-header-subtitle">${targetText}</div>`;
 }
-} else if(S.activeIdx === -1) {
-const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
-const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
-if(allStunned) {
-html += `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
-html += `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
-html += `<button class="btn" onclick="confirmAmbushSkip()" style="margin-top:0.5rem;padding:0.5rem 1.5rem">Continue to Enemy Turn</button>`;
-} else {
-html += `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
-html += `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
-}
-} else {
-const h = S.heroes[S.activeIdx];
-if(h) {
-if(h.ls) html += `${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!`;
-else html += `${h.n}'s Turn`;
-}
-}
-html += '</div>';
 
-// Add action bar when we have a pending action - with Target All and Confirm buttons
-if(S.turn === 'player' && S.pending && S.pending !== 'D20_TARGET') {
+// Action buttons for all pending actions (not D20_TARGET, handled above)
 const targetArray = S.currentInstanceTargets || [];
 const targetCount = targetArray.length;
-
-// Show Target All button when in targeting mode for multi-target actions
 const isMultiTargetAction = ['Attack', 'Grapple', 'Shield', 'Heal'].includes(S.pending);
 if(isMultiTargetAction) {
 const needsEnemy = ['Attack', 'Grapple'].includes(S.pending);
@@ -3701,45 +3723,41 @@ const tpi = typeof getTargetsPerInstance === 'function' ? getTargetsPerInstance(
 const slotsLeft = tpi - targetCount;
 const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
 
-html += '<div class="target-action-bar" style="display:flex;flex-direction:column;gap:0.25rem;align-items:center;margin-top:0.5rem">';
-if(targetCount > 0) {
-  const targetNames = targetArray.map(t => {
-    const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
-    return unit ? unit.n : 'target';
-  }).join(', ');
-  html += `<div style="font-size:0.85rem;opacity:0.9">Target${targetCount > 1 ? 's' : ''}: <strong>${targetNames}</strong></div>`;
-}
-html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center">';
+let btns = '';
 if(canTargetAll && targetCount === 0) {
-  html += `<button class="btn" onclick="targetAll()" style="padding:0.4rem 1rem;font-size:0.9rem;background:#3b82f6">⚡ Target All</button>`;
+  btns += `<button class="btn" onclick="targetAll()" style="padding:0.4rem 1rem;font-size:0.9rem;background:#3b82f6">⚡ Target All</button>`;
 }
 if(targetCount > 0) {
-  html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
+  btns += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
 }
-html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
-html += '</div>';
-html += '</div>';
+btns += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
+buttonsHtml = `<div class="combat-header-buttons">${btns}</div>`;
 }
+} else if(S.activeIdx === -1) {
+const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
+const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
+if(allStunned) {
+titleHtml = `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
+infoHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
+buttonsHtml = `<div class="combat-header-buttons"><button class="btn" onclick="confirmAmbushSkip()" style="padding:0.5rem 1.5rem">Continue to Enemy Turn</button></div>`;
+} else {
+titleHtml = `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
+infoHtml = `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
 }
-// D20_TARGET action bar
-if(S.turn === 'player' && S.pending === 'D20_TARGET') {
-const targetArray = S.targets || [];
-const targetCount = targetArray.length;
-if(targetCount > 0) {
-const targetNames = targetArray.map(t => {
-const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
-return unit ? unit.n : 'target';
-}).join(', ');
-html += '<div class="target-action-bar" style="display:flex;flex-direction:column;gap:0.25rem;align-items:center;margin-top:0.5rem">';
-html += `<div style="font-size:0.85rem;opacity:0.9">Target${targetCount > 1 ? 's' : ''}: <strong>${targetNames}</strong></div>`;
-html += '<div style="display:flex;gap:0.5rem">';
-html += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
-html += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
-html += '</div>';
-html += '</div>';
+} else {
+const h = S.heroes[S.activeIdx];
+if(h) {
+if(h.ls) titleHtml = `<div class="combat-header-title">${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!</div>`;
+else titleHtml = `<div class="combat-header-title">${h.n}'s Turn</div>`;
 }
 }
 
+// Build final HTML with 3 fixed-height rows
+let html = '<div class="combat-header">';
+html += `<div class="combat-header-row combat-header-row-title">${titleHtml}</div>`;
+html += `<div class="combat-header-row combat-header-row-info">${infoHtml}</div>`;
+html += `<div class="combat-header-row combat-header-row-buttons">${buttonsHtml}</div>`;
+html += '</div>';
 return html;
 }
 
@@ -4423,6 +4441,323 @@ function triggerKnockout(targetId) {
   card.classList.add('knockout');
   // Don't remove - the card will be removed from DOM anyway
 }
+
+
+// Steam Integration Module
+// Provides achievement unlocking and Steam API features
+// Works via IPC when running in Electron, gracefully degrades in browser
+
+const Steam = {
+  initialized: false,
+  achievements: new Set(), // Track unlocked achievements locally
+
+  // Achievement API names (must match Steam dashboard config)
+  ACHIEVEMENTS: {
+    // Tier 1: First Steps
+    FIRST_LAUNCH: 'FIRST_LAUNCH',
+    TUTORIAL_COMPLETE: 'TUTORIAL_COMPLETE',
+    FLOOR_1_COMPLETE: 'FLOOR_1_COMPLETE',
+    FIRST_DRAGON: 'FIRST_DRAGON',
+    FIRST_DEATH: 'FIRST_DEATH',
+    FIRST_UPGRADE: 'FIRST_UPGRADE',
+    GOLD_100: 'GOLD_100',
+    GOLD_1000: 'GOLD_1000',
+    NEUTRAL_STAGE2_UNLOCK: 'NEUTRAL_STAGE2_UNLOCK',
+    SIGILS_5_ON_HERO: 'SIGILS_5_ON_HERO',
+    SIGIL_MAXED_RUN: 'SIGIL_MAXED_RUN',
+    XP_100_FLOOR: 'XP_100_FLOOR',
+    ALL_PASSIVES: 'ALL_PASSIVES',
+    FIRST_STATUETTE: 'FIRST_STATUETTE',
+    ALL_STATUETTES: 'ALL_STATUETTES',
+
+    // Tier 2: Core Progression
+    STAGE2_CLEAR: 'STAGE2_CLEAR',
+    ALL_STAGE2_UNLOCK: 'ALL_STAGE2_UNLOCK',
+    ALL_STAGE2_CLEAR: 'ALL_STAGE2_CLEAR',
+    ALL_SIGILS_L1: 'ALL_SIGILS_L1',
+    SIGIL_MAXED_PERM: 'SIGIL_MAXED_PERM',
+    ALL_SIGILS_MAXED: 'ALL_SIGILS_MAXED',
+    MEET_GHOST_BOYS: 'MEET_GHOST_BOYS',
+    WIN_ALL_HEROES: 'WIN_ALL_HEROES',
+
+    // Tier 3: Challenge & Mastery
+    RAPID_FIRE_20: 'RAPID_FIRE_20',
+    GHOST_MAXED: 'GHOST_MAXED',
+    AMBUSH_UNTOUCHABLE: 'AMBUSH_UNTOUCHABLE',
+    BESTIARY_COMPLETE: 'BESTIARY_COMPLETE',
+
+    // Tier 4: Prestige
+    FIRST_STAND: 'FIRST_STAND',
+
+    // Hidden/Secret
+    GHOST_BOYS_REALIZE: 'GHOST_BOYS_REALIZE',
+
+    // FU Mode
+    FU_FLOOR_CLEAR: 'FU_FLOOR_CLEAR',
+    RECRUITS_3: 'RECRUITS_3',
+    FU_COMPLETE: 'FU_COMPLETE',
+    FU_TAPO: 'FU_TAPO',
+    FU_TRIPLE_TAPO: 'FU_TRIPLE_TAPO'
+  },
+
+  // Initialize Steam - call from electron-main via preload
+  init() {
+    // Check if we're in Electron with Steam bridge
+    if (window.steamBridge) {
+      this.initialized = window.steamBridge.initialized;
+      if (this.initialized) {
+        console.log('[Steam] Connected to Steam API');
+        // Load already-unlocked achievements from Steam
+        this.syncAchievements();
+      }
+    } else {
+      console.log('[Steam] Running in browser mode - achievements disabled');
+    }
+    return this.initialized;
+  },
+
+  // Sync achievements from Steam (so we don't re-unlock)
+  syncAchievements() {
+    if (!this.initialized || !window.steamBridge) return;
+    try {
+      const unlocked = window.steamBridge.getUnlockedAchievements();
+      if (unlocked && Array.isArray(unlocked)) {
+        unlocked.forEach(a => this.achievements.add(a));
+        console.log(`[Steam] Synced ${unlocked.length} achievements`);
+      }
+    } catch (e) {
+      console.warn('[Steam] Failed to sync achievements:', e);
+    }
+  },
+
+  // Unlock an achievement
+  unlock(achievementId) {
+    // Already unlocked locally? Skip
+    if (this.achievements.has(achievementId)) {
+      return false;
+    }
+
+    // Mark as unlocked locally (prevents duplicate calls)
+    this.achievements.add(achievementId);
+
+    // If Steam is connected, unlock via API
+    if (this.initialized && window.steamBridge) {
+      try {
+        const result = window.steamBridge.unlockAchievement(achievementId);
+        if (result) {
+          console.log(`[Steam] Achievement unlocked: ${achievementId}`);
+        }
+        return result;
+      } catch (e) {
+        console.warn(`[Steam] Failed to unlock ${achievementId}:`, e);
+        return false;
+      }
+    }
+
+    // Not in Steam - just log it
+    console.log(`[Steam] Achievement (offline): ${achievementId}`);
+    return false;
+  },
+
+  // Check if achievement is unlocked
+  isUnlocked(achievementId) {
+    return this.achievements.has(achievementId);
+  },
+
+  // Get Steam user info (display name, Steam ID)
+  getUserInfo() {
+    if (!this.initialized || !window.steamBridge) {
+      return null;
+    }
+    try {
+      return window.steamBridge.getUserInfo();
+    } catch (e) {
+      return null;
+    }
+  },
+
+  // Clear an achievement (for testing only)
+  clearAchievement(achievementId) {
+    if (!this.initialized || !window.steamBridge) return false;
+    try {
+      this.achievements.delete(achievementId);
+      return window.steamBridge.clearAchievement(achievementId);
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // Clear ALL achievements (for testing only)
+  clearAllAchievements() {
+    if (!this.initialized || !window.steamBridge) return false;
+    try {
+      this.achievements.clear();
+      return window.steamBridge.clearAllAchievements();
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // ============================================
+  // STATS API
+  // ============================================
+
+  // Stat names (must match Steam dashboard config)
+  STATS: {
+    TOTAL_RUNS: 'total_runs',
+    TOTAL_WINS: 'total_wins',
+    TOTAL_DEATHS: 'total_deaths',
+    TOTAL_GOLD_EARNED: 'total_gold_earned',
+    TOTAL_XP_EARNED: 'total_xp_earned',
+    TOTAL_ENEMIES_KILLED: 'total_enemies_killed',
+    TOTAL_DRAGONS_KILLED: 'total_dragons_killed',
+    TOTAL_FLYDRAS_KILLED: 'total_flydras_killed',
+    HIGHEST_FLOOR: 'highest_floor',
+    FASTEST_WIN_SECONDS: 'fastest_win_seconds',
+    TOTAL_DAMAGE_DEALT: 'total_damage_dealt',
+    TOTAL_HEALING_DONE: 'total_healing_done',
+    TOTAL_SHIELD_GRANTED: 'total_shield_granted',
+    TOTAL_D20_ROLLS: 'total_d20_rolls',
+    TOTAL_RECRUITS: 'total_recruits',
+    FU_WINS: 'fu_wins'
+  },
+
+  // Set a stat value
+  setStat(statName, value) {
+    if (!this.initialized || !window.steamBridge) {
+      console.log(`[Steam] Stat (offline): ${statName} = ${value}`);
+      return false;
+    }
+    try {
+      return window.steamBridge.setStat(statName, value);
+    } catch (e) {
+      console.warn(`[Steam] Failed to set stat ${statName}:`, e);
+      return false;
+    }
+  },
+
+  // Get a stat value
+  getStat(statName) {
+    if (!this.initialized || !window.steamBridge) return 0;
+    try {
+      return window.steamBridge.getStat(statName);
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  // Increment a stat by amount (convenience method)
+  incrementStat(statName, amount = 1) {
+    const current = this.getStat(statName);
+    return this.setStat(statName, current + amount);
+  },
+
+  // Set stat only if new value is higher (for high scores)
+  setStatIfHigher(statName, value) {
+    const current = this.getStat(statName);
+    if (value > current) {
+      return this.setStat(statName, value);
+    }
+    return false;
+  },
+
+  // Set stat only if new value is lower (for speed records)
+  setStatIfLower(statName, value) {
+    const current = this.getStat(statName);
+    if (current === 0 || value < current) {
+      return this.setStat(statName, value);
+    }
+    return false;
+  },
+
+  // Store stats to Steam (call after batch updates)
+  storeStats() {
+    if (!this.initialized || !window.steamBridge) return false;
+    try {
+      return window.steamBridge.storeStats();
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // ============================================
+  // CLOUD SAVE API
+  // ============================================
+
+  // Cloud save file name
+  CLOUD_SAVE_FILE: 'froggle_save.json',
+
+  // Save game data to Steam Cloud
+  cloudSave(data) {
+    if (!this.initialized || !window.steamBridge) {
+      console.log('[Steam] Cloud save (offline) - using localStorage only');
+      return false;
+    }
+    try {
+      const jsonStr = typeof data === 'string' ? data : JSON.stringify(data);
+      const result = window.steamBridge.cloudSave(this.CLOUD_SAVE_FILE, jsonStr);
+      if (result) {
+        console.log('[Steam] Cloud save successful');
+      }
+      return result;
+    } catch (e) {
+      console.warn('[Steam] Cloud save failed:', e);
+      return false;
+    }
+  },
+
+  // Load game data from Steam Cloud
+  cloudLoad() {
+    if (!this.initialized || !window.steamBridge) {
+      console.log('[Steam] Cloud load (offline) - using localStorage only');
+      return null;
+    }
+    try {
+      const data = window.steamBridge.cloudLoad(this.CLOUD_SAVE_FILE);
+      if (data) {
+        console.log('[Steam] Cloud load successful');
+        return JSON.parse(data);
+      }
+      return null;
+    } catch (e) {
+      console.warn('[Steam] Cloud load failed:', e);
+      return null;
+    }
+  },
+
+  // Check if cloud save exists
+  cloudExists() {
+    if (!this.initialized || !window.steamBridge) return false;
+    try {
+      return window.steamBridge.cloudExists(this.CLOUD_SAVE_FILE);
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // Delete cloud save (for testing/reset)
+  cloudDelete() {
+    if (!this.initialized || !window.steamBridge) return false;
+    try {
+      return window.steamBridge.cloudDelete(this.CLOUD_SAVE_FILE);
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // Get cloud storage quota info
+  cloudQuota() {
+    if (!this.initialized || !window.steamBridge) return null;
+    try {
+      return window.steamBridge.cloudQuota();
+    } catch (e) {
+      return null;
+    }
+  }
+};
+
+// Make available globally
+window.Steam = Steam;
 
 
 // Steam Integration Module
@@ -12090,7 +12425,7 @@ debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
 const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.5rem 1rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
-const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.5rem 1rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
+const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.5rem 0.5rem;font-size:0.8rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
 // Resolve text - may be a function for dynamic content
 const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
@@ -12111,7 +12446,7 @@ ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-heigh
 </div>
 
 <!-- Continue button - bottom right -->
-<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.5rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.1rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
 <!-- Skip button - bottom left -->
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
@@ -12225,13 +12560,14 @@ const slides = [
 {
 // Full-art: Ribbleton background with text overlay
 bg: 'assets/ribbleton.png',
-text: `Welcome to the beautiful, tranquil town of <strong style="color:#22c55e">Ribbleton</strong>.<br><br>Today is a very special day!! Why, you ask?`
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Welcome to <strong style="color:#22c55e">Ribbleton!</strong></h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">A beautiful, tranquil town. Today is a very special day!</p>`
 },
 {
 // Tapo's birthday celebration - all heroes on Ribbleton background
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0">The whole town is celebrating the little tadpole's special day!</p>`,
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">The whole town is celebrating the little tadpole's&nbsp;special&nbsp;day!</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -12255,15 +12591,83 @@ style.textContent = `
   79.5% { transform: translateY(-8px) scaleX(0); }
   83.5% { transform: translateY(0) scaleX(1); }
   100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes tankIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  10%  { transform: translateY(-8px) scaleX(1); }
+  20%  { transform: translateY(0) scaleX(1); }
+  30%  { transform: translateY(-12px) scaleX(1); }
+  40%  { transform: translateY(0) scaleX(1); }
+  41%  { transform: translateY(-5px) scaleX(0); }
+  44%  { transform: translateY(0) scaleX(-1); }
+  55%  { transform: translateY(0) scaleX(-1); }
+  65%  { transform: translateY(-8px) scaleX(-1); }
+  75%  { transform: translateY(0) scaleX(-1); }
+  85%  { transform: translateY(-12px) scaleX(-1); }
+  90%  { transform: translateY(0) scaleX(-1); }
+  91%  { transform: translateY(-5px) scaleX(0); }
+  94%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes warriorIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  8%   { transform: translateY(-14px) scaleX(1); }
+  16%  { transform: translateY(0) scaleX(1); }
+  24%  { transform: translateY(-18px) scaleX(1); }
+  32%  { transform: translateY(0) scaleX(1); }
+  33.5%{ transform: translateY(-6px) scaleX(0); }
+  37%  { transform: translateY(0) scaleX(-1); }
+  50%  { transform: translateY(0) scaleX(-1); }
+  58%  { transform: translateY(-14px) scaleX(-1); }
+  66%  { transform: translateY(0) scaleX(-1); }
+  74%  { transform: translateY(-18px) scaleX(-1); }
+  82%  { transform: translateY(0) scaleX(-1); }
+  83.5%{ transform: translateY(-6px) scaleX(0); }
+  87%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes mageIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  7%   { transform: translateY(-16px) scaleX(1); }
+  14%  { transform: translateY(0) scaleX(1); }
+  22%  { transform: translateY(-22px) scaleX(1); }
+  30%  { transform: translateY(0) scaleX(1); }
+  31.5%{ transform: translateY(-7px) scaleX(0); }
+  35%  { transform: translateY(0) scaleX(-1); }
+  48%  { transform: translateY(0) scaleX(-1); }
+  55%  { transform: translateY(-16px) scaleX(-1); }
+  62%  { transform: translateY(0) scaleX(-1); }
+  70%  { transform: translateY(-22px) scaleX(-1); }
+  78%  { transform: translateY(0) scaleX(-1); }
+  79.5%{ transform: translateY(-7px) scaleX(0); }
+  83%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes healerIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  9%   { transform: translateY(-12px) scaleX(1); }
+  18%  { transform: translateY(0) scaleX(1); }
+  27%  { transform: translateY(-16px) scaleX(1); }
+  36%  { transform: translateY(0) scaleX(1); }
+  37.5%{ transform: translateY(-6px) scaleX(0); }
+  41%  { transform: translateY(0) scaleX(-1); }
+  52%  { transform: translateY(0) scaleX(-1); }
+  61%  { transform: translateY(-12px) scaleX(-1); }
+  70%  { transform: translateY(0) scaleX(-1); }
+  79%  { transform: translateY(-16px) scaleX(-1); }
+  84%  { transform: translateY(0) scaleX(-1); }
+  85.5%{ transform: translateY(-6px) scaleX(0); }
+  89%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
 }`;
 container.appendChild(style);
 // Place heroes scattered around the town
 const heroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '10%', bottom: '22%', width: '95px' },
-  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '24%', bottom: '20%', width: '90px' },
-  { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '28%', width: '70px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
-  { src: 'assets/mage_normal.png', alt: 'Mage', left: '66%', bottom: '25%', width: '85px' },
-  { src: 'assets/heal_normal.png', alt: 'Healer', left: '80%', bottom: '22%', width: '85px' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: '8%', bottom: '18%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '22%', bottom: '18%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
+  { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '120px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
+  { src: 'assets/mage_normal.png', alt: 'Mage', left: '65%', bottom: '20%', width: '145px', anim: 'mageIdle 3.8s ease-in-out infinite' },
+  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '18%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
 heroes.forEach(h => {
   const img = document.createElement('img');
@@ -12304,39 +12708,111 @@ style.textContent = `
   83.5% { transform: translateY(0) scaleX(1); }
   100% { transform: translateY(0) scaleX(1); }
 }
+@keyframes tankIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  10%  { transform: translateY(-8px) scaleX(1); }
+  20%  { transform: translateY(0) scaleX(1); }
+  30%  { transform: translateY(-12px) scaleX(1); }
+  40%  { transform: translateY(0) scaleX(1); }
+  41%  { transform: translateY(-5px) scaleX(0); }
+  44%  { transform: translateY(0) scaleX(-1); }
+  55%  { transform: translateY(0) scaleX(-1); }
+  65%  { transform: translateY(-8px) scaleX(-1); }
+  75%  { transform: translateY(0) scaleX(-1); }
+  85%  { transform: translateY(-12px) scaleX(-1); }
+  90%  { transform: translateY(0) scaleX(-1); }
+  91%  { transform: translateY(-5px) scaleX(0); }
+  94%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes warriorIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  8%   { transform: translateY(-14px) scaleX(1); }
+  16%  { transform: translateY(0) scaleX(1); }
+  24%  { transform: translateY(-18px) scaleX(1); }
+  32%  { transform: translateY(0) scaleX(1); }
+  33.5%{ transform: translateY(-6px) scaleX(0); }
+  37%  { transform: translateY(0) scaleX(-1); }
+  50%  { transform: translateY(0) scaleX(-1); }
+  58%  { transform: translateY(-14px) scaleX(-1); }
+  66%  { transform: translateY(0) scaleX(-1); }
+  74%  { transform: translateY(-18px) scaleX(-1); }
+  82%  { transform: translateY(0) scaleX(-1); }
+  83.5%{ transform: translateY(-6px) scaleX(0); }
+  87%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes healerIdle {
+  0%   { transform: translateY(0) scaleX(1); }
+  9%   { transform: translateY(-12px) scaleX(1); }
+  18%  { transform: translateY(0) scaleX(1); }
+  27%  { transform: translateY(-16px) scaleX(1); }
+  36%  { transform: translateY(0) scaleX(1); }
+  37.5%{ transform: translateY(-6px) scaleX(0); }
+  41%  { transform: translateY(0) scaleX(-1); }
+  52%  { transform: translateY(0) scaleX(-1); }
+  61%  { transform: translateY(-12px) scaleX(-1); }
+  70%  { transform: translateY(0) scaleX(-1); }
+  79%  { transform: translateY(-16px) scaleX(-1); }
+  84%  { transform: translateY(0) scaleX(-1); }
+  85.5%{ transform: translateY(-6px) scaleX(0); }
+  89%  { transform: translateY(0) scaleX(1); }
+  100% { transform: translateY(0) scaleX(1); }
+}
 @keyframes mageWalkToTapo {
-  0% { left: 25%; }
-  100% { left: 42%; }
+  0% { left: 65%; }
+  100% { left: 52%; }
 }
 @keyframes walkOffRight {
   0% { transform: translateX(0); }
   100% { transform: translateX(120vw); }
+}
+@keyframes tapoVault {
+  0%   { transform: translate(0, 0) scaleX(1); }
+  15%  { transform: translate(8vw, 0) scaleX(1); }
+  35%  { transform: translate(20vw, -40vh) scaleX(1); }
+  55%  { transform: translate(32vw, -15vh) scaleX(1); }
+  70%  { transform: translate(40vw, 0) scaleX(1); }
+  100% { transform: translate(120vw, 0) scaleX(1); }
 }`;
 container.appendChild(style);
-// Place Tapo (stationary with hop animation, waiting for Mage)
+// Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
+const bgHeroes = [
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: '8%', bottom: '18%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '22%', bottom: '18%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
+  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '18%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
+];
+bgHeroes.forEach(h => {
+  const img = document.createElement('img');
+  img.src = h.src;
+  img.alt = h.alt;
+  img.style.cssText = `position:absolute;left:${h.left};bottom:${h.bottom};width:${h.width};height:auto;z-index:4;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:${h.anim}`;
+  container.appendChild(img);
+});
+// Place Tapo (in the fountain with hop animation, waiting for Mage)
 const tapo = document.createElement('img');
 tapo.src = 'assets/tapo_normal.png';
 tapo.alt = 'Tapo';
 tapo.id = 'mage-teach-tapo';
-tapo.style.cssText = 'position:absolute;left:52%;bottom:28%;width:70px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:tapoSignature 3.6s ease-in-out infinite';
+tapo.style.cssText = 'position:absolute;left:48%;bottom:15%;width:120px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:tapoSignature 3.6s ease-in-out infinite';
 container.appendChild(tapo);
-// Place Mage (walks toward Tapo over 2s)
+// Place Mage (walks toward Tapo from right side over 2s)
 const mage = document.createElement('img');
 mage.src = 'assets/mage_happy.png';
 mage.alt = 'Mage';
 mage.id = 'mage-teach-mage';
-mage.style.cssText = 'position:absolute;left:25%;bottom:25%;width:85px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:mageWalkToTapo 2s ease-in-out forwards';
+mage.style.cssText = 'position:absolute;left:65%;bottom:20%;width:145px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:mageWalkToTapo 2s ease-in-out forwards';
 container.appendChild(mage);
-// After 2s walk + 1.5s pause = 3.5s, both walk off screen together
+// After 2s walk + 1.5s pause = 3.5s, Mage walks off right, Tapo vaults over quest board
 setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (mageEl) {
+    mageEl.style.left = '52%';
     mageEl.style.animation = 'walkOffRight 2s ease-in forwards';
-    mageEl.style.left = '42%';
   }
   if (tapoEl) {
-    tapoEl.style.animation = 'walkOffRight 2s ease-in forwards';
+    tapoEl.style.animation = 'tapoVault 2.5s ease-in-out forwards';
   }
 }, 3500);
 }
@@ -12344,12 +12820,13 @@ setTimeout(() => {
 ];
 slides.skippable = true;
 slides.onComplete = () => {
-// Start Phase 1: Tapo's Birthday tutorial
+// Show interstitial before fly fight
+showTutorialInterstitial('Tutorial', "Catchin' Flies", () => {
 startTaposBirthdayTutorial();
-
 setTimeout(() => {
 showTaposBirthdayOverlay();
 }, 100);
+});
 };
 debugLog('[FROGGLE] About to call showNarrativeSlide with', slides.length, 'slides');
 showNarrativeSlide(slides, 0);
@@ -12639,12 +13116,13 @@ showNarrativeSlide(slides, 0);
 }
 
 function transitionToPortalInvasion() {
-// Start Phase 2: Portal Invasion (Flydra appearance already shown)
+// Show interstitial before portal invasion
+showTutorialInterstitial('Tutorial', 'Protect the Tadpole!', () => {
 startRibbletonTutorial();
-
 setTimeout(() => {
 showTutorialStoryOverlay();
 }, 100);
+});
 }
 
 function showTutorialStoryOverlay() {
@@ -13218,6 +13696,24 @@ ghost2: 'Passing On',
 royal1: 'The Flummoxed Royal',
 royal2: 'Royal Wedding'
 };
+
+function showTutorialInterstitial(title, subtitle, callback) {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="position:fixed;top:0;left:0;width:100%;height:100vh;background:#000;display:flex;align-items:center;justify-content:center;z-index:30000">
+<div style="text-align:center;color:#fff;animation:fadeIn 0.5s ease">
+<div style="font-size:2.5rem;font-weight:bold;margin-bottom:1rem;font-family:'Fredoka One',cursive">${title}</div>
+<div style="font-size:1.8rem;font-style:italic;font-family:'Fredoka One',cursive">${subtitle}</div>
+</div>
+</div>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>`;
+setTimeout(callback, T(ANIMATION_TIMINGS.FLOOR_INTERSTITIAL));
+}
 
 function showNeutralInterstitial(f, encName, callback) {
 const displayName = NEUTRAL_NAMES[encName] || encName;
@@ -15238,6 +15734,7 @@ savePermanent();
 // Show the actual death screen with upgrades
 showDeathScreen();
 }
+
 
 
 
@@ -20652,6 +21149,7 @@ showErrorOverlay('Startup Crash', 'window.onload failed:\n\n' + (e.stack || e.me
   }, { passive: false });
 })();
 
+</script>
 </script>
 </body>
 </html>
