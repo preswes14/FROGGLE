@@ -365,7 +365,7 @@ const hp = qp.heroesPlayed || {};
 const hw = qp.heroWins || {};
 
 // Compute per-hero stats from pond history
-function heroStats(heroName) {
+function getHeroRunStats(heroName) {
   const runs = history.filter(r => (r.heroes || []).includes(heroName));
   const wins = runs.filter(r => r.outcome === 'victory').length;
   const plays = hp[heroName] || runs.length;
@@ -406,7 +406,7 @@ let html = `
 <div style="padding:1rem;display:flex;flex-direction:column;gap:0.75rem">`;
 
 heroes.forEach(heroName => {
-  const h = heroStats(heroName);
+  const h = getHeroRunStats(heroName);
   if(h.plays === 0) return; // Skip heroes never played
   const winRate = h.plays > 0 ? Math.round((h.winCount / h.plays) * 100) : 0;
   const imgPath = HERO_IMAGES[heroName.toLowerCase()] || '';
@@ -1247,7 +1247,7 @@ const placedCount = S.pedestal.filter(p => p.mode === S.gameMode).length;
 let html = `
 <div style="width:100%;height:100vh;position:relative;background:#1a1a1a;overflow:hidden">
 <!-- Pedestal image as background, centered -->
-<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:95%;height:90%;background-image:url('assets/neutrals/statue2.png');background-size:contain;background-position:center;background-repeat:no-repeat">
+<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:95%;height:90%;background-size:contain;background-position:center;background-repeat:no-repeat">
 ${heroLabelsHTML}
 ${statLabelsHTML}
 ${slotsHTML}
