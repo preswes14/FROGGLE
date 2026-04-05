@@ -1460,7 +1460,10 @@ wizardUpgradedSigils: S.wizardUpgradedSigils || [],
 royalQuestActive: S.royalQuestActive || false,
 royalQuestCompleted: S.royalQuestCompleted || false,
 royalAskerTitle: S.royalAskerTitle || null,
-royalBelovedTitle: S.royalBelovedTitle || null
+royalBelovedTitle: S.royalBelovedTitle || null,
+encampmentEarlyKills: S.encampmentEarlyKills || 0,
+pendingNewRecruit: S.pendingNewRecruit || null,
+pendingOldRecruitId: S.pendingOldRecruitId || null
 }));
 savePermanent();
 } catch(e) {

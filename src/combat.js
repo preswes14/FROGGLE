@@ -646,7 +646,7 @@ const isTutorial = tutorialState && S.floor === 0 && tutorialState.stage === 'd2
 let html = '';
 if(isTutorial) {
 // Tutorial version: overlay on left side only, keep enemies visible
-html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:380px;background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
+html = '<div style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:calc(100vw - 20px);background:white;border:4px solid #3b82f6;border-radius:12px;padding:1.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
 html += '<h3 style="margin-bottom:1rem;color:#1e3a5f">D20: Attempt A Gambit</h3>';
 html += `<div class="choice" onclick="selectD20Action(${heroIdx}, 10, 'CONFUSE')" style="margin-bottom:0.5rem;background:#3b82f6;border:3px solid #f97316;font-size:1.1rem;cursor:pointer">
 <strong style="font-size:1.2rem">DC 10: CONFUSE</strong><br>
@@ -2252,7 +2252,7 @@ const added = new Set();
 
 // 1. Primary target: Hero in enemy's lane
 const primaryHero = S.heroes[enemy.li];
-if(primaryHero && primaryHero.h > 0) {
+if(primaryHero && primaryHero.h > 0 && !primaryHero.ls) {
 targets.push(primaryHero);
 added.add(primaryHero.id);
 }
@@ -2269,7 +2269,7 @@ added.add(primaryRecruit.id);
 if(targets.length >= count) return targets;
 
 // 3-4. Expand to nearby heroes by distance from primary lane
-const aliveHeroes = S.heroes.filter(h => h.h > 0 && !added.has(h.id));
+const aliveHeroes = S.heroes.filter(h => h.h > 0 && !added.has(h.id) && !h.ls);
 // Sort by distance from enemy lane
 aliveHeroes.sort((a, b) => {
 const aIdx = S.heroes.indexOf(a);
