@@ -600,8 +600,6 @@ S.ghostBoysConverted = false;
 S.advancedSigilsUnlocked = false;
 S.passiveSigilsUnlocked = false;
 if(DEMO_MODE) {
-S.advancedSigilsUnlocked = true;
-S.passiveSigilsUnlocked = true;
 S.demoNeutralIndex = 0;
 }
 S.gameMode = 'Standard';

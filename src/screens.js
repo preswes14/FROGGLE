@@ -452,6 +452,20 @@ savePermanent(); // Save gold, goingRate, sig upgrades
 // QUEST TRACKING: Run completed (death)
 trackQuestProgress('runComplete');
 
+// DEMO MODE: Graduated sigil category unlocks
+// Run 1 death → unlock advanced, Run 2 death → unlock passives
+if(DEMO_MODE) {
+if(!S.advancedSigilsUnlocked) {
+S.advancedSigilsUnlocked = true;
+savePermanent();
+toast('Advanced Sigils Unlocked!', 1500);
+} else if(!S.passiveSigilsUnlocked) {
+S.passiveSigilsUnlocked = true;
+savePermanent();
+toast('Passive Sigils Unlocked!', 1500);
+}
+}
+
 // Check if this is the first time meeting Death
 if(!S.tutorialFlags.death_intro && !S.cutsceneDisabled) {
 showDeathIntroDialogue();
@@ -1335,6 +1349,15 @@ GameMusic.playScene('game_over');
 SoundFX.play('gameOverCeremony');
 recordPondHistory('demo_complete');
 trackQuestProgress('runComplete');
+
+// Graduated sigil unlock (same as death screen)
+if(!S.advancedSigilsUnlocked) {
+S.advancedSigilsUnlocked = true;
+toast('Advanced Sigils Unlocked!', 1500);
+} else if(!S.passiveSigilsUnlocked) {
+S.passiveSigilsUnlocked = true;
+toast('Passive Sigils Unlocked!', 1500);
+}
 
 // Reset run state (mirrors win() cleanup)
 S.xp = 0;
