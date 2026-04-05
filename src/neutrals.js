@@ -1,5 +1,11 @@
 // ===== NEUTRAL DECK SYSTEM =====
 function initNeutralDeck() {
+if(DEMO_MODE) {
+S.demoStage2Pending = null;
+S.neutralDeck = [];
+S.lastNeutral = null;
+return;
+}
 S.neutralDeck = [
 'shopkeeper1', 'wishingwell1', 'treasurechest1',
 'wizard1', 'oracle1', 'encampment1',
@@ -9,6 +15,44 @@ S.lastNeutral = null;
 }
 
 function getNeutralEncounter() {
+// DEMO MODE: Deterministic cycling through all 9 neutrals
+if(DEMO_MODE) {
+const order = DEMO_NEUTRAL_ORDER;
+if(S.floor === 2) {
+  // Floor 2: next unseen stage 1
+  const base = order[S.demoNeutralIndex % order.length];
+  const enc = base + '1';
+  S.lastNeutral = enc;
+  // Advance index (this neutral is now "seen")
+  S.demoNeutralIndex = (S.demoNeutralIndex + 1) % order.length;
+  savePermanent();
+  return enc;
+}
+if(S.floor === 4) {
+  // If stage 2 was earned on floor 2, guarantee it
+  if(S.demoStage2Pending) {
+    const enc = S.demoStage2Pending + '2';
+    S.lastNeutral = enc;
+    S.demoStage2Pending = null;
+    return enc;
+  }
+  // Special case: Royal uses quest flags, not replaceStage1WithStage2
+  if(S.royalQuestActive && S.royalQuestCompleted) {
+    S.lastNeutral = 'royal2';
+    return 'royal2';
+  }
+  // No stage 2 earned: show next unseen stage 1
+  const base = order[S.demoNeutralIndex % order.length];
+  const enc = base + '1';
+  S.lastNeutral = enc;
+  S.demoNeutralIndex = (S.demoNeutralIndex + 1) % order.length;
+  savePermanent();
+  return enc;
+}
+// Fallback (shouldn't happen — only floors 2 and 4 are neutral before orc wall)
+return 'oracle1';
+}
+
 // FIRST RUN ONLY: Floor 2 gets Oracle Stage 1 as a safe intro to neutrals
 if(S.floor === 2 && S.runsAttempted === 1) {
 S.lastNeutral = 'oracle1';
@@ -53,6 +97,9 @@ S.neutralDeck = S.neutralDeck.filter(n => !n.startsWith(base));
 function replaceStage1WithStage2(base) {
 S.neutralDeck = S.neutralDeck.filter(n => n !== `${base}1`);
 S.neutralDeck.push(`${base}2`);
+if(DEMO_MODE) {
+S.demoStage2Pending = base;
+}
 }
 
 // ===== D20 ROLLS FOR NEUTRALS =====
@@ -552,6 +599,11 @@ S.questProgress = {
 S.ghostBoysConverted = false;
 S.advancedSigilsUnlocked = false;
 S.passiveSigilsUnlocked = false;
+if(DEMO_MODE) {
+S.advancedSigilsUnlocked = true;
+S.passiveSigilsUnlocked = true;
+S.demoNeutralIndex = 0;
+}
 S.gameMode = 'Standard';
 S.tutorialFlags = {};
 S.usedDeathQuotes = [];

@@ -91,6 +91,10 @@ advancedSigilsUnlocked: false,   // Death screen: Advanced sigils (Ghost, Alpha,
 passiveSigilsUnlocked: false,    // Death screen: Passive sigils (Expand, Asterisk, Star) purchasable
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
+// ===== DEMO MODE STATE (persistent across runs) =====
+demoNeutralIndex: 0,             // Index into DEMO_NEUTRAL_ORDER for next unseen neutral
+demoStage2Pending: null,         // Base name of neutral upgraded to stage 2 mid-run (for floor 4)
+
 // ===== QUEST BOARD STATE (persistent) =====
 questsCompleted: {},             // Quest IDs that have been turned in: {quest_id: true}
 questsClaimed: {},               // Quest IDs that have been claimed (rewards collected): {quest_id: true}
@@ -1067,6 +1071,7 @@ S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
 S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
+S.demoNeutralIndex = j.demoNeutralIndex || 0;
 S.runNumber = j.runNumber || 1;
 S.runsAttempted = j.runsAttempted || 0;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
@@ -1253,6 +1258,7 @@ S.forcedFUEntry = j.forcedFUEntry || false;
 S.tapoUnlocked = j.tapoUnlocked || false;
 S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
 S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
+S.demoNeutralIndex = j.demoNeutralIndex || 0;
 S.runNumber = j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tutorialDisabled = j.tutorialDisabled || false;
@@ -1311,6 +1317,7 @@ S.royalQuestActive = r.royalQuestActive || false;
 S.royalQuestCompleted = r.royalQuestCompleted || false;
 S.royalAskerTitle = r.royalAskerTitle || null;
 S.royalBelovedTitle = r.royalBelovedTitle || null;
+S.demoStage2Pending = r.demoStage2Pending || null;
 S.recruits = []; // Recruits don't persist across saves
 S.heroes.forEach(h => {
 if(!h.ts) h.ts = [];
@@ -1422,7 +1429,8 @@ pondHistory: S.pondHistory,
 questsCompleted: S.questsCompleted,
 questsClaimed: S.questsClaimed,
 questProgress: S.questProgress,
-tutorialCheckpoint: S.tutorialCheckpoint || 0
+tutorialCheckpoint: S.tutorialCheckpoint || 0,
+demoNeutralIndex: S.demoNeutralIndex || 0
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -1463,7 +1471,8 @@ royalAskerTitle: S.royalAskerTitle || null,
 royalBelovedTitle: S.royalBelovedTitle || null,
 encampmentEarlyKills: S.encampmentEarlyKills || 0,
 pendingNewRecruit: S.pendingNewRecruit || null,
-pendingOldRecruitId: S.pendingOldRecruitId || null
+pendingOldRecruitId: S.pendingOldRecruitId || null,
+demoStage2Pending: S.demoStage2Pending || null
 }));
 savePermanent();
 } catch(e) {
