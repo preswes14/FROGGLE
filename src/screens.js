@@ -452,6 +452,20 @@ savePermanent(); // Save gold, goingRate, sig upgrades
 // QUEST TRACKING: Run completed (death)
 trackQuestProgress('runComplete');
 
+// DEMO MODE: Graduated sigil category unlocks
+// Run 1 death → unlock advanced, Run 2 death → unlock passives
+if(DEMO_MODE) {
+if(!S.advancedSigilsUnlocked) {
+S.advancedSigilsUnlocked = true;
+savePermanent();
+toast('Advanced Sigils Unlocked!', 1500);
+} else if(!S.passiveSigilsUnlocked) {
+S.passiveSigilsUnlocked = true;
+savePermanent();
+toast('Passive Sigils Unlocked!', 1500);
+}
+}
+
 // Check if this is the first time meeting Death
 if(!S.tutorialFlags.death_intro && !S.cutsceneDisabled) {
 showDeathIntroDialogue();
@@ -1330,6 +1344,46 @@ showPedestal();
 }
 
 // ===== WIN =====
+function showDemoComplete() {
+GameMusic.playScene('game_over');
+SoundFX.play('gameOverCeremony');
+recordPondHistory('demo_complete');
+trackQuestProgress('runComplete');
+
+// Graduated sigil unlock (same as death screen)
+if(!S.advancedSigilsUnlocked) {
+S.advancedSigilsUnlocked = true;
+toast('Advanced Sigils Unlocked!', 1500);
+} else if(!S.passiveSigilsUnlocked) {
+S.passiveSigilsUnlocked = true;
+toast('Passive Sigils Unlocked!', 1500);
+}
+
+// Reset run state (mirrors win() cleanup)
+S.xp = 0;
+S.levelUpCount = 0;
+S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
+S.recruits = [];
+S.runsAttempted++;
+S.runNumber = S.runsAttempted;
+savePermanent();
+
+const neutralsSeen = S.demoNeutralIndex;
+const total = DEMO_NEUTRAL_ORDER.length;
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div style="text-align:center;padding:2rem">
+<h1 style="color:#22c55e;font-size:2.5rem;margin-bottom:1rem">DEMO COMPLETE!</h1>
+<p style="font-size:1.3rem;margin-bottom:1rem">You conquered the Orc Wall!</p>
+<p style="margin-bottom:1.5rem;opacity:0.8;font-size:1.1rem">In the full game, the adventure continues through 20 floors of increasingly dangerous enemies, deeper neutral encounters, champion figurines, and more.</p>
+<div style="background:rgba(34,197,94,0.15);padding:1rem;border-radius:8px;margin:1.5rem auto;max-width:400px;border:2px solid #22c55e">
+<p style="margin:0;font-size:1.1rem">Neutral Encounters Explored: <strong>${Math.min(neutralsSeen, total)}</strong> / ${total}</p>
+</div>
+<p style="margin-bottom:2rem;opacity:0.7">Play again to discover ${neutralsSeen < total ? 'new' : 'more'} neutral encounters!</p>
+<button class="btn" onclick="showRibbleton()" style="padding:1rem 2rem;font-size:1.2rem">Play Again</button>
+</div>`;
+}
+
 function win() {
 // JUICE: Victory ceremony sound + game over (victory) music!
 GameMusic.playScene('game_over');

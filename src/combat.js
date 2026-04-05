@@ -94,6 +94,7 @@ if(f === 20 && S.gameMode === 'fu') {
 showOldTapo();
 return;
 }
+if(DEMO_MODE && f >= 6) { showDemoComplete(); return; }
 if(f >= 20) { win(); return; }
 // Floor 11 is always ambushed (Goblin Army)
 if(f === 11) {

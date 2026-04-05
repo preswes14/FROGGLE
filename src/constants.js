@@ -1,11 +1,19 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.18';
+const GAME_VERSION = 'S_2.20';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
 function debugLog(...args) {
 if(typeof S !== 'undefined' && S.debugMode) console.log(...args);
 }
+
+// ===== DEMO MODE =====
+const DEMO_MODE = true;
+const DEMO_NEUTRAL_ORDER = [
+'oracle', 'shopkeeper', 'treasurechest',
+'wizard', 'wishingwell', 'encampment',
+'gambling', 'ghost', 'royal'
+];
 
 // ===== GAME DATA =====
 // Hero images
