@@ -1490,7 +1490,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:500px">
 <h2>Reinforcements!</h2>
-<p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these creatures!</p>
+<p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
 <button onclick="skipTutorialFromOverlay()" style="padding:0.5rem 1rem;font-size:0.8rem;font-weight:bold;background:rgba(100,100,100,0.8);color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
 <button onclick="dismissStoryOverlay()" style="padding:0.8rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
