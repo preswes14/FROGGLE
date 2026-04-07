@@ -754,8 +754,8 @@ const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.25rem 0.5rem;font-size:0.65rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
-const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.25rem 0.25rem;font-size:0.65rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.2rem 0.4rem;font-size:0.6rem;max-width:3.5rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
+const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.2rem 0.4rem;font-size:0.6rem;max-width:3.5rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
 // Resolve text - may be a function for dynamic content
 const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
@@ -993,11 +993,11 @@ style.textContent = `
 container.appendChild(style);
 // Place heroes scattered around the town
 const heroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '15%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
-  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '28%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
   { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '120px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
   { src: 'assets/mage_normal.png', alt: 'Mage', left: '68%', bottom: '20%', width: '145px', anim: 'mageIdle 3.8s ease-in-out infinite' },
-  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '18%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
+  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '23%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
 heroes.forEach(h => {
   const img = document.createElement('img');
@@ -1091,10 +1091,10 @@ style.textContent = `
 }
 @keyframes tapoVaultToMage {
   0%   { transform: translate(0, 0) scaleX(1); }
-  25%  { transform: translate(10vw, -35vh) scaleX(1); }
-  50%  { transform: translate(20vw, -10vh) scaleX(1); }
-  75%  { transform: translate(28vw, 0) scaleX(1); }
-  100% { transform: translate(28vw, 0) scaleX(1); }
+  25%  { transform: translate(8vw, -35vh) scaleX(1); }
+  50%  { transform: translate(16vw, -10vh) scaleX(1); }
+  75%  { transform: translate(22vw, 0) scaleX(1); }
+  100% { transform: translate(22vw, 0) scaleX(1); }
 }
 @keyframes doubleJump {
   0%   { transform: translateY(0); }
@@ -1111,9 +1111,9 @@ style.textContent = `
 container.appendChild(style);
 // Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
 const bgHeroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '15%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
-  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '28%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
-  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '18%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
+  { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '23%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
 bgHeroes.forEach(h => {
   const img = document.createElement('img');
@@ -1136,12 +1136,17 @@ mage.alt = 'Mage';
 mage.id = 'mage-teach-mage';
 mage.style.cssText = 'position:absolute;left:65%;bottom:20%;width:145px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:mageIdle 3.8s ease-in-out infinite';
 container.appendChild(mage);
-// After 2.5s (Tapo lands next to Mage), both do a synchronized double jump
+// After 2.5s (Tapo lands next to Mage), pin Tapo's position and both do a synchronized double jump
 setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
+  if (tapoEl) {
+    // Pin Tapo to landed position so he doesn't snap back to left:35%
+    tapoEl.style.left = '57%';
+    tapoEl.style.transform = 'none';
+    tapoEl.style.animation = 'doubleJump 1s ease-in-out';
+  }
   if (mageEl) mageEl.style.animation = 'doubleJump 1s ease-in-out';
-  if (tapoEl) tapoEl.style.animation = 'doubleJump 1s ease-in-out';
 }, 2500);
 // After 4s (jump done), both slide off to the right
 setTimeout(() => {
@@ -1191,7 +1196,7 @@ allBackdrops.forEach(backdrop => backdrop.remove());
 console.error('[TUTORIAL] Error removing Tapo birthday backdrops:', error);
 }
 // Show first tutorial popup - explain Expand from the start
-showTutorialPop('tapo_first_attack', `FROGGLE is about using powerful abilities represented by <b>sigils</b>! Mage has ${sigilText('Attack')} (an active sigil that costs your turn) and ${sigilText('Expand')} (a passive sigil with automatic effects). Use ${sigilText('Attack')} to hit 2 flies at once!`, () => {
+showTutorialPop('tapo_first_attack', `FROGGLE is about using powerful abilities, represented by <b>sigils</b>! Mage has ${sigilText('Attack')} (an active sigil that costs your turn) and ${sigilText('Expand')} (a passive sigil with automatic effects). Use ${sigilText('Attack')} to hit 2 flies at once!`, () => {
 tutorialState.stage = 'catching_flies';
 // Mage is happy to teach Tapo to catch flies!
 const mage = S.heroes.find(h => h.n === 'Mage');
