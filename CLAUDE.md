@@ -144,6 +144,10 @@ Stun never stacks from any source. A new stun only takes effect if its duration 
 | Healer | 1 | 5 | Heal, D20, Expand | Support (Expand always +1 level higher) |
 | Tapo | 1 | 1 | D20 (+ any gold-upgraded sigils) | Unlockable, versatile |
 
+**Hero Image Notes:**
+- Mage images are swapped: `mage_happy.png` (pointing pose) = default/neutral, `mage_normal.png` (fire pose) = happy/attack reaction
+- Hero art faces inconsistent directions — see `HERO_FACES_RIGHT` in constants.js and `heroFlipStyle()` for per-image flipping
+
 ### Sigils (10 Types)
 
 **Active Sigils** (use hero's action):
@@ -242,6 +246,11 @@ Defined in `E` object (constants.js).
 | Using `if(S.currentSlot)` for slot check | Use `if(S.currentSlot != null)` — slot could be 0 (falsy) |
 | Not resetting unlock flags in `createNewSlot()` | Reset `ghostBoysConverted`, `advancedSigilsUnlocked`, `passiveSigilsUnlocked` |
 | Assuming stun stacks | ALL stun uses `Math.max(st, duration)` — never stacks from any source |
+| Editing CSS in `index.html` directly | **Edit `build/template_head.html` instead.** `build.sh` regenerates `index.html` from the template, wiping direct edits. CSS lives in `build/template_head.html`. |
+| Missing responsive CSS overrides | `.combat-lane` (and other classes) have padding/sizing overrides at 768px, 1024px, 1280px, 1440px, 1920px, and Steam Deck breakpoints. Changing the base rule alone does nothing on desktop. Check ALL media queries. |
+| Blanket `scaleX(-1)` on hero images | Hero art faces inconsistent directions. Use `heroFlipStyle(src)` which checks `HERO_FACES_RIGHT` map. Only warrior_normal, warrior_happy, and mage_normal face right natively; the other 12 need flipping. |
+| Adding `build/` files to git | `build/` is in `.gitignore`. Use `git add -f` only if intentional. The template is a build intermediate — `index.html` is the tracked source of truth. |
+| CSS `transform` on animated elements | Setting inline `transform:scaleX(-1)` on an element with a CSS animation gets overridden — the animation's `transform` wins. Wrap in a parent `<div style="transform:scaleX(-1)">` or bake the flip into the keyframes. |
 
 ---
 
