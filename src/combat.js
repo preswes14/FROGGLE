@@ -504,6 +504,11 @@ if(validTargets.length > 0) {
     S.currentInstanceTargets.push(id);
   });
   S.rememberedTargetsApplied = true;
+  // Auto-confirm if remembered targets fill the instance completely
+  if(S.currentInstanceTargets.length >= getTargetsPerInstance(sig, heroIdx)) {
+    confirmTargets();
+    return;
+  }
 }
 }
 render();
@@ -1186,8 +1191,17 @@ if(S.currentInstanceTargets.includes(id)) {
 }
 // Check if we can add more
 if(S.currentInstanceTargets.length >= targetsPerInstance) {
-  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
-  return;
+  if(S.rememberedTargetsApplied) {
+    // Replace remembered targets with new selection
+    S.currentInstanceTargets.forEach(oldId => {
+      S.targets = S.targets.filter(t => t !== oldId);
+    });
+    S.currentInstanceTargets = [];
+    S.rememberedTargetsApplied = false;
+  } else {
+    toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+    return;
+  }
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
@@ -1213,8 +1227,16 @@ if(S.currentInstanceTargets.includes(id)) {
 }
 // Check if we can add more
 if(S.currentInstanceTargets.length >= targetsPerInstance) {
-  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
-  return;
+  if(S.rememberedTargetsApplied) {
+    S.currentInstanceTargets.forEach(oldId => {
+      S.targets = S.targets.filter(t => t !== oldId);
+    });
+    S.currentInstanceTargets = [];
+    S.rememberedTargetsApplied = false;
+  } else {
+    toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+    return;
+  }
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
@@ -1261,8 +1283,16 @@ if(S.currentInstanceTargets.includes(id)) {
 }
 // Check if we can add more
 if(S.currentInstanceTargets.length >= targetsPerInstance) {
-  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
-  return;
+  if(S.rememberedTargetsApplied) {
+    S.currentInstanceTargets.forEach(oldId => {
+      S.targets = S.targets.filter(t => t !== oldId);
+    });
+    S.currentInstanceTargets = [];
+    S.rememberedTargetsApplied = false;
+  } else {
+    toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+    return;
+  }
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);

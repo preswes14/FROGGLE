@@ -641,7 +641,7 @@ const slotsLeft = tpi - targetCount;
 const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
 
 let btns = '';
-if(canTargetAll && targetCount === 0) {
+if(canTargetAll && targetCount === 0 && tpi > 1) {
   btns += `<button class="btn" onclick="targetAll()" style="padding:0.4rem 1rem;font-size:0.9rem;background:#3b82f6">⚡ Target All</button>`;
 }
 if(targetCount > 0) {
@@ -670,6 +670,9 @@ else titleHtml = `<div class="combat-header-title">${h.n}'s Turn</div>`;
 }
 
 // Build final HTML with 3 fixed-height rows
+// Use hidden placeholders when rows are empty to prevent layout shift
+if(!infoHtml) infoHtml = '<div class="combat-header-subtitle" style="visibility:hidden">&nbsp;</div>';
+if(!buttonsHtml) buttonsHtml = '<div class="combat-header-buttons" style="visibility:hidden"><button class="btn" style="padding:0.4rem 1rem;font-size:0.9rem">&nbsp;</button></div>';
 let html = '<div class="combat-header">';
 html += `<div class="combat-header-row combat-header-row-title">${titleHtml}</div>`;
 html += `<div class="combat-header-row combat-header-row-info">${infoHtml}</div>`;
