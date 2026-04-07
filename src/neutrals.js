@@ -1748,7 +1748,7 @@ v.innerHTML = `
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(-1.05,1.05);' : 'filter:brightness(0.7);transform:scaleX(-1);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scaleX(-1) scale(1.05);' : 'filter:brightness(0.7);transform:scaleX(-1);'}">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
 <div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
@@ -4057,7 +4057,7 @@ v.innerHTML = `
 "Ah! I know!" <em>*Poof*</em>
 </div>
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo_normal.png" alt="Baby Tapo" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3;transform:scaleX(-1)">
+<div style="transform:scaleX(-1);display:inline-block"><img src="assets/tapo_normal.png" alt="Baby Tapo" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3"></div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;margin:1rem 0">
 <em>Squeals.</em> The heroes know this sound well - Baby Tapo is hungry for flies!
 </div>

@@ -1849,7 +1849,7 @@ v.innerHTML = `
 
 <div style="text-align:center;margin:2rem 0">
 <div style="display:inline-block;animation:tapoSignatureVictory 4.8s ease-in-out infinite">
-<img src="assets/tapo_normal.png" alt="Tapo celebrating" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto;transform:scaleX(-1)">
+<img src="assets/tapo_normal.png" alt="Tapo celebrating" style="max-width:250px;height:auto;display:block;margin:0 auto 2rem auto">
 </div>
 </div>
 
