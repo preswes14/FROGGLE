@@ -891,13 +891,13 @@ const slides = [
 // Full-art: Ribbleton background with text overlay
 bg: 'assets/ribbleton.png',
 html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Welcome to <strong style="color:#22c55e">Ribbleton!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">A beautiful, tranquil town. Today is a very special day!</p>`
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">Today is a very special day in this beautiful, tranquil town. Why, you ask?</p>`
 },
 {
 // Tapo's birthday celebration - all heroes on Ribbleton background
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">Today is a very special day in this beautiful, tranquil town. Why, you ask? The whole town has gathered to celebrate the little tadpole's&nbsp;special&nbsp;day!</p>`,
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">It's <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">The whole town has gathered to celebrate the little tadpole's&nbsp;special&nbsp;day!</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
