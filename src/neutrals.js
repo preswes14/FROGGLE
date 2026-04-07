@@ -1091,10 +1091,10 @@ style.textContent = `
 }
 @keyframes tapoVaultToMage {
   0%   { transform: translate(0, 0) scaleX(1); }
-  25%  { transform: translate(8vw, -35vh) scaleX(1); }
-  50%  { transform: translate(16vw, -10vh) scaleX(1); }
-  75%  { transform: translate(22vw, 0) scaleX(1); }
-  100% { transform: translate(22vw, 0) scaleX(1); }
+  20%  { transform: translate(6vw, -25vh) scaleX(1); }
+  50%  { transform: translate(14vw, -38vh) scaleX(1); }
+  80%  { transform: translate(24vw, -8vh) scaleX(1); }
+  100% { transform: translate(28vw, 5vh) scaleX(1); }
 }
 @keyframes doubleJump {
   0%   { transform: translateY(0); }
@@ -1127,7 +1127,7 @@ const tapo = document.createElement('img');
 tapo.src = 'assets/tapo_normal.png';
 tapo.alt = 'Tapo';
 tapo.id = 'mage-teach-tapo';
-tapo.style.cssText = 'position:absolute;left:35%;bottom:20%;width:120px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:tapoVaultToMage 2s ease-in-out forwards';
+tapo.style.cssText = 'position:absolute;left:48%;bottom:15%;width:120px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:tapoVaultToMage 2s ease-in-out forwards';
 container.appendChild(tapo);
 // Place Mage (stays in position with idle animation)
 const mage = document.createElement('img');
@@ -1141,8 +1141,9 @@ setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (tapoEl) {
-    // Pin Tapo to landed position so he doesn't snap back to left:35%
-    tapoEl.style.left = '57%';
+    // Pin Tapo to landed position so he doesn't snap back
+    tapoEl.style.left = '76%';
+    tapoEl.style.bottom = '20%';
     tapoEl.style.transform = 'none';
     tapoEl.style.animation = 'doubleJump 1s ease-in-out';
   }
