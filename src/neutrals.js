@@ -103,8 +103,11 @@ S.demoStage2Pending = base;
 }
 
 // ===== NEUTRAL CHOICE SYSTEM =====
-// Pick two different neutral encounters for the player to choose between
-function getTwoNeutralEncounters(f) {
+// Pick N different neutral encounters for the player to choose between
+// Standard mode: 2 picks, Frogged Up mode: 3 picks
+function getNeutralEncounterChoices(f) {
+const count = S.gameMode === 'fu' ? 3 : 2;
+
 // Build available pool (same rules as getNeutralEncounter)
 let available = [...S.neutralDeck];
 
@@ -112,37 +115,34 @@ let available = [...S.neutralDeck];
 if(S.lastNeutral) {
 const base = S.lastNeutral.replace(/[12]$/, '');
 const filtered = available.filter(n => !n.startsWith(base));
-if(filtered.length >= 2) available = filtered;
+if(filtered.length >= count) available = filtered;
 }
 
 // Floor 10: block encampment (Floor 11 is always ambush)
 if(f === 10) {
 const filtered = available.filter(n => !n.startsWith('encampment'));
-if(filtered.length >= 2) available = filtered;
+if(filtered.length >= count) available = filtered;
 }
 
 // Floor 18: prioritize Stage 2s
 if(f === 18) {
 const stage2s = available.filter(n => n.includes('2'));
-if(stage2s.length >= 2) available = stage2s;
+if(stage2s.length >= count) available = stage2s;
 }
 
-// Pick two different encounters
-const pick1Idx = Math.floor(Math.random() * available.length);
-const pick1 = available[pick1Idx];
-// Remove pick1 and its base type from pool for pick2
-const base1 = pick1.replace(/[12]$/, '');
-let remaining = available.filter((n, i) => i !== pick1Idx && !n.startsWith(base1));
-if(remaining.length === 0) {
-// Fallback: allow same base type but not same encounter
-remaining = available.filter((n, i) => i !== pick1Idx);
+// Pick N different encounters, each from a different base type
+const picks = [];
+let pool = [...available];
+for(let i = 0; i < count; i++) {
+if(pool.length === 0) pool = [...available]; // fallback: reuse pool
+const idx = Math.floor(Math.random() * pool.length);
+const pick = pool[idx];
+picks.push(pick);
+// Remove this pick and its base type from pool
+const base = pick.replace(/[12]$/, '');
+pool = pool.filter(n => !n.startsWith(base));
 }
-if(remaining.length === 0) {
-// Only one encounter available — return it twice (shouldn't happen)
-return [pick1, pick1];
-}
-const pick2 = remaining[Math.floor(Math.random() * remaining.length)];
-return [pick1, pick2];
+return picks;
 }
 
 // Get display name for a neutral, respecting discovery state
@@ -164,15 +164,39 @@ savePermanent();
 }
 }
 
-// Show the neutral choice screen with two doors
+// Show the neutral choice screen with doors
 function showNeutralChoice(f) {
-const picks = getTwoNeutralEncounters(f);
-const name1 = getNeutralDisplayName(picks[0]);
-const name2 = getNeutralDisplayName(picks[1]);
-const isStage2_1 = picks[0].includes('2');
-const isStage2_2 = picks[1].includes('2');
+const picks = getNeutralEncounterChoices(f);
+const isFU = S.gameMode === 'fu';
 
 SoundFX.play('floorEnter');
+
+// Build door HTML for each pick
+// FU mode: middle door (index 1) is always revealed, sides are always ???????
+// Standard mode: use normal discovery rules
+function getDoorName(enc, idx) {
+if(isFU) {
+  // Middle door (index 1) always revealed, sides always mystery
+  return idx === 1 ? (NEUTRAL_NAMES[enc] || enc) : '???????';
+}
+return getNeutralDisplayName(enc);
+}
+
+let doorsHTML = '';
+for(let i = 0; i < picks.length; i++) {
+const enc = picks[i];
+const isStage2 = enc.includes('2');
+const name = getDoorName(enc, i);
+doorsHTML += `
+  <div class="neutral-choice-door ${isStage2 ? 'stage2' : ''}" onclick="selectNeutralDoor(${i})" tabindex="0">
+    <div class="door-frame ${isStage2 ? 'stage2' : ''}">
+      <div class="door-surface">
+        <div class="door-handle"></div>
+      </div>
+    </div>
+    <div class="door-label ${isStage2 ? 'stage2' : ''}">${name}</div>
+  </div>`;
+}
 
 const v = document.getElementById('gameView');
 v.innerHTML = `
@@ -181,23 +205,8 @@ v.innerHTML = `
   <div class="neutral-choice-floor">Floor ${f}</div>
   <div class="neutral-choice-subtitle">Choose your path</div>
 </div>
-<div class="neutral-choice-doors">
-  <div class="neutral-choice-door ${isStage2_1 ? 'stage2' : ''}" onclick="selectNeutralDoor(0)" tabindex="0">
-    <div class="door-frame ${isStage2_1 ? 'stage2' : ''}">
-      <div class="door-surface">
-        <div class="door-handle"></div>
-      </div>
-    </div>
-    <div class="door-label ${isStage2_1 ? 'stage2' : ''}">${name1}</div>
-  </div>
-  <div class="neutral-choice-door ${isStage2_2 ? 'stage2' : ''}" onclick="selectNeutralDoor(1)" tabindex="0">
-    <div class="door-frame ${isStage2_2 ? 'stage2' : ''}">
-      <div class="door-surface">
-        <div class="door-handle"></div>
-      </div>
-    </div>
-    <div class="door-label ${isStage2_2 ? 'stage2' : ''}">${name2}</div>
-  </div>
+<div class="neutral-choice-doors ${isFU ? 'three-doors' : ''}">
+  ${doorsHTML}
 </div>
 </div>`;
 
