@@ -891,13 +891,13 @@ const slides = [
 // Full-art: Ribbleton background with text overlay
 bg: 'assets/ribbleton.png',
 html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Welcome to <strong style="color:#22c55e">Ribbleton!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">A beautiful, tranquil town. Today is a very special day!</p>`
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">Today is a very special day in this beautiful, tranquil town. Why, you ask?</p>`
 },
 {
 // Tapo's birthday celebration - all heroes on Ribbleton background
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">Today is a very special day in this beautiful, tranquil town. Why, you ask? The whole town has gathered to celebrate the little tadpole's&nbsp;special&nbsp;day!</p>`,
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">It's <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">The whole town has gathered to celebrate the little tadpole's&nbsp;special&nbsp;day!</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -1390,7 +1390,7 @@ v.innerHTML = `
 </div>
 <p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
-Bellies overflowing, Mage and Tapo bask in the afternoon sun.
+Bellies overflowing, the pair gleefully makes their way back to Ribbleton.
 </p>
 <button onclick="showFlydraAppearance()" style="padding:1rem 2rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1.5rem">Continue</button>
 </div>
@@ -1490,7 +1490,7 @@ overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:500px">
 <h2>Reinforcements!</h2>
-<p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, have rushed in to help fight off these creatures!</p>
+<p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
 <button onclick="skipTutorialFromOverlay()" style="padding:0.5rem 1rem;font-size:0.8rem;font-weight:bold;background:rgba(100,100,100,0.8);color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
 <button onclick="dismissStoryOverlay()" style="padding:0.8rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
