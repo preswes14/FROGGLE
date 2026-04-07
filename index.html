@@ -3282,6 +3282,128 @@ body.controller-active .controller-prompts {
   from { transform: translate(-50%,-50%) rotate(0deg); }
   to { transform: translate(-50%,-50%) rotate(-360deg); }
 }
+
+/* ===== NEUTRAL CHOICE SCREEN (Door Selection) ===== */
+.neutral-choice-screen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 30000;
+  animation: fadeIn 0.5s ease;
+}
+.neutral-choice-header {
+  text-align: center; margin-bottom: 2.5rem;
+}
+.neutral-choice-floor {
+  font-size: 2rem; font-weight: bold; color: #e2e8f0;
+  font-family: 'Fredoka One', cursive; margin-bottom: 0.3rem;
+}
+.neutral-choice-subtitle {
+  font-size: 1.2rem; color: #94a3b8; font-style: italic;
+  font-family: 'Fredoka One', cursive;
+}
+.neutral-choice-doors {
+  display: flex; gap: 4rem; align-items: flex-end; justify-content: center;
+}
+.neutral-choice-door {
+  display: flex; flex-direction: column; align-items: center;
+  cursor: pointer; transition: transform 0.2s ease;
+}
+.neutral-choice-door:hover {
+  transform: translateY(-8px);
+}
+.neutral-choice-door:hover .door-surface {
+  background: linear-gradient(180deg, #5b4a3a 0%, #4a3928 100%);
+  box-shadow: 0 0 25px rgba(251, 191, 36, 0.3);
+}
+.door-frame {
+  width: 140px; height: 210px; padding: 8px;
+  background: linear-gradient(135deg, #6b5b4f 0%, #8b7355 50%, #6b5b4f 100%);
+  border-radius: 70px 70px 4px 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  position: relative;
+}
+.door-frame.stage2 {
+  background: linear-gradient(135deg, #a8a9b4 0%, #d4d5e0 25%, #e8e9f4 50%, #d4d5e0 75%, #a8a9b4 100%);
+  box-shadow: 0 4px 20px rgba(200,200,220,0.4), inset 0 1px 0 rgba(255,255,255,0.5),
+              0 0 30px rgba(200,210,240,0.2);
+}
+.door-surface {
+  width: 100%; height: 100%;
+  background: linear-gradient(180deg, #4a3928 0%, #3d2e1e 100%);
+  border-radius: 66px 66px 2px 2px;
+  position: relative;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  /* Wood grain effect */
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 14px,
+    rgba(0,0,0,0.08) 14px,
+    rgba(0,0,0,0.08) 15px
+  );
+}
+.door-frame.stage2 .door-surface {
+  background: linear-gradient(180deg, #4a3928 0%, #3d2e1e 100%);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 14px,
+    rgba(0,0,0,0.08) 14px,
+    rgba(0,0,0,0.08) 15px
+  );
+  border: 1px solid rgba(200,210,240,0.3);
+}
+.door-handle {
+  position: absolute; right: 16px; top: 50%;
+  width: 12px; height: 12px;
+  background: radial-gradient(circle, #d4a853 0%, #b8860b 100%);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.3);
+}
+.door-frame.stage2 .door-handle {
+  background: radial-gradient(circle, #e8e9f4 0%, #c0c0d0 100%);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.5),
+              0 0 8px rgba(200,210,240,0.4);
+}
+.door-label {
+  margin-top: 1rem;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.1rem; color: #e2e8f0;
+  text-align: center; max-width: 160px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+.door-label.stage2 {
+  color: #e8e9f4;
+  text-shadow: 0 0 10px rgba(200,210,240,0.5), 0 2px 4px rgba(0,0,0,0.5);
+}
+/* Platinum shimmer on stage2 door frame */
+.door-frame.stage2::before {
+  content: '';
+  position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: 72px 72px 6px 6px;
+  background: linear-gradient(135deg,
+    transparent 0%, rgba(200,210,240,0.4) 25%,
+    rgba(255,255,255,0.6) 50%, rgba(200,210,240,0.4) 75%, transparent 100%);
+  background-size: 200% 200%;
+  animation: platinumShimmer 3s ease-in-out infinite;
+  z-index: -1;
+}
+@keyframes platinumShimmer {
+  0% { background-position: 200% 200%; }
+  100% { background-position: -200% -200%; }
+}
+
+/* Responsive: smaller doors on narrow screens */
+@media (max-width: 768px) {
+  .neutral-choice-doors { gap: 2rem; }
+  .door-frame { width: 110px; height: 165px; }
+  .door-frame { border-radius: 55px 55px 4px 4px; }
+  .door-surface { border-radius: 51px 51px 2px 2px; }
+  .door-frame.stage2::before { border-radius: 57px 57px 6px 6px; }
+  .neutral-choice-floor { font-size: 1.6rem; }
+  .door-label { font-size: 0.95rem; max-width: 130px; }
+}
 </style>
 </head>
 <body>
@@ -6189,6 +6311,9 @@ advancedSigilsUnlocked: false,   // Death screen: Advanced sigils (Ghost, Alpha,
 passiveSigilsUnlocked: false,    // Death screen: Passive sigils (Expand, Asterisk, Star) purchasable
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
+// ===== NEUTRAL DISCOVERY STATE (persistent) =====
+neutralsDiscovered: {},          // {shopkeeper: true, oracle: true, ...} — tracks which neutral base types have been visited
+
 // ===== DEMO MODE STATE (persistent across runs) =====
 demoNeutralIndex: 0,             // Index into DEMO_NEUTRAL_ORDER for next unseen neutral
 demoStage2Pending: null,         // Base name of neutral upgraded to stage 2 mid-run (for floor 4)
@@ -7205,6 +7330,7 @@ if(j.questProgress) {
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
+S.neutralsDiscovered = j.neutralsDiscovered || {};
 } catch(e) {
 console.warn('[SAVE] Failed to load permanent data:', e);
 // Continue with defaults if load fails
@@ -7377,6 +7503,7 @@ document.body.classList.toggle('high-contrast', !!S.highContrastMode);
 // Apply volume settings to audio system
 if(typeof applyVolumeSettings === 'function') applyVolumeSettings();
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+S.neutralsDiscovered = j.neutralsDiscovered || {};
 // Load quest data with defaults
 S.questsCompleted = j.questsCompleted || {};
 S.questsClaimed = j.questsClaimed || {};
@@ -7528,7 +7655,8 @@ questsCompleted: S.questsCompleted,
 questsClaimed: S.questsClaimed,
 questProgress: S.questProgress,
 tutorialCheckpoint: S.tutorialCheckpoint || 0,
-demoNeutralIndex: S.demoNeutralIndex || 0
+demoNeutralIndex: S.demoNeutralIndex || 0,
+neutralsDiscovered: S.neutralsDiscovered || {}
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
@@ -11808,6 +11936,170 @@ S.demoStage2Pending = base;
 }
 }
 
+// ===== NEUTRAL CHOICE SYSTEM =====
+// Pick two different neutral encounters for the player to choose between
+function getTwoNeutralEncounters(f) {
+// Build available pool (same rules as getNeutralEncounter)
+let available = [...S.neutralDeck];
+
+// Back-to-back prevention
+if(S.lastNeutral) {
+const base = S.lastNeutral.replace(/[12]$/, '');
+const filtered = available.filter(n => !n.startsWith(base));
+if(filtered.length >= 2) available = filtered;
+}
+
+// Floor 10: block encampment (Floor 11 is always ambush)
+if(f === 10) {
+const filtered = available.filter(n => !n.startsWith('encampment'));
+if(filtered.length >= 2) available = filtered;
+}
+
+// Floor 18: prioritize Stage 2s
+if(f === 18) {
+const stage2s = available.filter(n => n.includes('2'));
+if(stage2s.length >= 2) available = stage2s;
+}
+
+// Pick two different encounters
+const pick1Idx = Math.floor(Math.random() * available.length);
+const pick1 = available[pick1Idx];
+// Remove pick1 and its base type from pool for pick2
+const base1 = pick1.replace(/[12]$/, '');
+let remaining = available.filter((n, i) => i !== pick1Idx && !n.startsWith(base1));
+if(remaining.length === 0) {
+// Fallback: allow same base type but not same encounter
+remaining = available.filter((n, i) => i !== pick1Idx);
+}
+if(remaining.length === 0) {
+// Only one encounter available — return it twice (shouldn't happen)
+return [pick1, pick1];
+}
+const pick2 = remaining[Math.floor(Math.random() * remaining.length)];
+return [pick1, pick2];
+}
+
+// Get display name for a neutral, respecting discovery state
+function getNeutralDisplayName(enc) {
+const base = enc.replace(/[12]$/, '');
+if(S.neutralsDiscovered && S.neutralsDiscovered[base]) {
+return NEUTRAL_NAMES[enc] || enc;
+}
+return '???????';
+}
+
+// Mark a neutral base type as discovered
+function discoverNeutral(enc) {
+const base = enc.replace(/[12]$/, '');
+if(!S.neutralsDiscovered) S.neutralsDiscovered = {};
+if(!S.neutralsDiscovered[base]) {
+S.neutralsDiscovered[base] = true;
+savePermanent();
+}
+}
+
+// Show the neutral choice screen with two doors
+function showNeutralChoice(f) {
+const picks = getTwoNeutralEncounters(f);
+const name1 = getNeutralDisplayName(picks[0]);
+const name2 = getNeutralDisplayName(picks[1]);
+const isStage2_1 = picks[0].includes('2');
+const isStage2_2 = picks[1].includes('2');
+
+SoundFX.play('floorEnter');
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-choice-screen">
+<div class="neutral-choice-header">
+  <div class="neutral-choice-floor">Floor ${f}</div>
+  <div class="neutral-choice-subtitle">Choose your path</div>
+</div>
+<div class="neutral-choice-doors">
+  <div class="neutral-choice-door ${isStage2_1 ? 'stage2' : ''}" onclick="selectNeutralDoor(0)" tabindex="0">
+    <div class="door-frame ${isStage2_1 ? 'stage2' : ''}">
+      <div class="door-surface">
+        <div class="door-handle"></div>
+      </div>
+    </div>
+    <div class="door-label ${isStage2_1 ? 'stage2' : ''}">${name1}</div>
+  </div>
+  <div class="neutral-choice-door ${isStage2_2 ? 'stage2' : ''}" onclick="selectNeutralDoor(1)" tabindex="0">
+    <div class="door-frame ${isStage2_2 ? 'stage2' : ''}">
+      <div class="door-surface">
+        <div class="door-handle"></div>
+      </div>
+    </div>
+    <div class="door-label ${isStage2_2 ? 'stage2' : ''}">${name2}</div>
+  </div>
+</div>
+</div>`;
+
+// Store picks for selection handler
+S._neutralChoicePicks = picks;
+S._neutralChoiceFloor = f;
+}
+
+// Handle door selection
+function selectNeutralDoor(idx) {
+const picks = S._neutralChoicePicks;
+const f = S._neutralChoiceFloor;
+if(!picks) return;
+const chosen = picks[idx];
+S.lastNeutral = chosen;
+delete S._neutralChoicePicks;
+delete S._neutralChoiceFloor;
+SoundFX.play('levelupFanfare');
+// Launch the chosen neutral encounter
+launchNeutral(f, chosen);
+}
+
+// Launch a specific neutral encounter (used by both choice screen and forced encounters)
+function launchNeutral(f, enc) {
+// Mark as discovered
+discoverNeutral(enc);
+
+// Ghost boys converted special case
+if(S.ghostBoysConverted && enc.startsWith('ghost')) {
+GameMusic.playScene('neutral_ghost1');
+showEmptyPlayroom();
+return;
+}
+
+// Music
+GameMusic.playNeutral(enc);
+
+const launchEncounter = () => {
+if(enc === 'shopkeeper1') showShopkeeper1();
+else if(enc === 'shopkeeper2') showShopkeeper2();
+else if(enc === 'wishingwell1') showWishingWell1();
+else if(enc === 'wishingwell2') showWishingWell2();
+else if(enc === 'treasurechest1') showTreasureChest1();
+else if(enc === 'treasurechest2') showTreasureChest2();
+else if(enc === 'wizard1') showWizard1();
+else if(enc === 'wizard2') showWizard2();
+else if(enc === 'oracle1') showOracle1();
+else if(enc === 'oracle2') showOracle2();
+else if(enc === 'encampment1') showEncampment1();
+else if(enc === 'encampment2') showEncampment2();
+else if(enc === 'gambling1') showGambling1();
+else if(enc === 'gambling2') showGambling2();
+else if(enc === 'ghost1') showGhost1();
+else if(enc === 'ghost2') showGhost2();
+else if(enc === 'royal1') showRoyal1();
+else if(enc === 'royal2') showRoyal2();
+else {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<h2 style="text-align:center;margin:2rem 0">Floor ${f}</h2>
+<p style="text-align:center;margin-bottom:2rem">${enc}</p>
+<button class="btn" onclick="nextFloor()">Continue</button>`;
+}
+};
+
+showNeutralInterstitial(f, enc, launchEncounter);
+}
+
 // ===== D20 ROLLS FOR NEUTRALS =====
 function getD20NeutralLevel() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
@@ -13585,53 +13877,28 @@ if(header) header.style.display = 'flex';
 const gameArea = document.getElementById('gameView');
 if(gameArea) gameArea.classList.add('no-scroll');
 upd();
+
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
 showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities! You can walk straight through, or take a risk for potential rewards.");
 }
 
+// DEMO MODE or forced encounters: use old single-pick system
+if(DEMO_MODE) {
 const enc = getNeutralEncounter();
-
-if(S.ghostBoysConverted && enc.startsWith('ghost')) {
-// Music: play ghost boys theme for empty playroom
-GameMusic.playScene('neutral_ghost1');
-showEmptyPlayroom();
+launchNeutral(f, enc);
 return;
 }
 
-// Music: play encounter-specific neutral music
-GameMusic.playNeutral(enc);
-
-// Show interstitial then launch encounter
-const launchEncounter = () => {
-if(enc === 'shopkeeper1') showShopkeeper1();
-else if(enc === 'shopkeeper2') showShopkeeper2();
-else if(enc === 'wishingwell1') showWishingWell1();
-else if(enc === 'wishingwell2') showWishingWell2();
-else if(enc === 'treasurechest1') showTreasureChest1();
-else if(enc === 'treasurechest2') showTreasureChest2();
-else if(enc === 'wizard1') showWizard1();
-else if(enc === 'wizard2') showWizard2();
-else if(enc === 'oracle1') showOracle1();
-else if(enc === 'oracle2') showOracle2();
-else if(enc === 'encampment1') showEncampment1();
-else if(enc === 'encampment2') showEncampment2();
-else if(enc === 'gambling1') showGambling1();
-else if(enc === 'gambling2') showGambling2();
-else if(enc === 'ghost1') showGhost1();
-else if(enc === 'ghost2') showGhost2();
-else if(enc === 'royal1') showRoyal1();
-else if(enc === 'royal2') showRoyal2();
-else {
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<h2 style="text-align:center;margin:2rem 0">Floor ${f}</h2>
-<p style="text-align:center;margin-bottom:2rem">${enc}</p>
-<button class="btn" onclick="nextFloor()">Continue</button>`;
+// First run Floor 2: forced Oracle, no choice
+if(f === 2 && S.runsAttempted === 1) {
+S.lastNeutral = 'oracle1';
+launchNeutral(f, 'oracle1');
+return;
 }
-};
 
-showNeutralInterstitial(f, enc, launchEncounter);
+// Normal: show choice screen with two doors
+showNeutralChoice(f);
 }
 
 // ===== 1. SHOPKEEPER =====

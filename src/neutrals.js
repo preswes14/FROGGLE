@@ -102,6 +102,170 @@ S.demoStage2Pending = base;
 }
 }
 
+// ===== NEUTRAL CHOICE SYSTEM =====
+// Pick two different neutral encounters for the player to choose between
+function getTwoNeutralEncounters(f) {
+// Build available pool (same rules as getNeutralEncounter)
+let available = [...S.neutralDeck];
+
+// Back-to-back prevention
+if(S.lastNeutral) {
+const base = S.lastNeutral.replace(/[12]$/, '');
+const filtered = available.filter(n => !n.startsWith(base));
+if(filtered.length >= 2) available = filtered;
+}
+
+// Floor 10: block encampment (Floor 11 is always ambush)
+if(f === 10) {
+const filtered = available.filter(n => !n.startsWith('encampment'));
+if(filtered.length >= 2) available = filtered;
+}
+
+// Floor 18: prioritize Stage 2s
+if(f === 18) {
+const stage2s = available.filter(n => n.includes('2'));
+if(stage2s.length >= 2) available = stage2s;
+}
+
+// Pick two different encounters
+const pick1Idx = Math.floor(Math.random() * available.length);
+const pick1 = available[pick1Idx];
+// Remove pick1 and its base type from pool for pick2
+const base1 = pick1.replace(/[12]$/, '');
+let remaining = available.filter((n, i) => i !== pick1Idx && !n.startsWith(base1));
+if(remaining.length === 0) {
+// Fallback: allow same base type but not same encounter
+remaining = available.filter((n, i) => i !== pick1Idx);
+}
+if(remaining.length === 0) {
+// Only one encounter available — return it twice (shouldn't happen)
+return [pick1, pick1];
+}
+const pick2 = remaining[Math.floor(Math.random() * remaining.length)];
+return [pick1, pick2];
+}
+
+// Get display name for a neutral, respecting discovery state
+function getNeutralDisplayName(enc) {
+const base = enc.replace(/[12]$/, '');
+if(S.neutralsDiscovered && S.neutralsDiscovered[base]) {
+return NEUTRAL_NAMES[enc] || enc;
+}
+return '???????';
+}
+
+// Mark a neutral base type as discovered
+function discoverNeutral(enc) {
+const base = enc.replace(/[12]$/, '');
+if(!S.neutralsDiscovered) S.neutralsDiscovered = {};
+if(!S.neutralsDiscovered[base]) {
+S.neutralsDiscovered[base] = true;
+savePermanent();
+}
+}
+
+// Show the neutral choice screen with two doors
+function showNeutralChoice(f) {
+const picks = getTwoNeutralEncounters(f);
+const name1 = getNeutralDisplayName(picks[0]);
+const name2 = getNeutralDisplayName(picks[1]);
+const isStage2_1 = picks[0].includes('2');
+const isStage2_2 = picks[1].includes('2');
+
+SoundFX.play('floorEnter');
+
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<div class="neutral-choice-screen">
+<div class="neutral-choice-header">
+  <div class="neutral-choice-floor">Floor ${f}</div>
+  <div class="neutral-choice-subtitle">Choose your path</div>
+</div>
+<div class="neutral-choice-doors">
+  <div class="neutral-choice-door ${isStage2_1 ? 'stage2' : ''}" onclick="selectNeutralDoor(0)" tabindex="0">
+    <div class="door-frame ${isStage2_1 ? 'stage2' : ''}">
+      <div class="door-surface">
+        <div class="door-handle"></div>
+      </div>
+    </div>
+    <div class="door-label ${isStage2_1 ? 'stage2' : ''}">${name1}</div>
+  </div>
+  <div class="neutral-choice-door ${isStage2_2 ? 'stage2' : ''}" onclick="selectNeutralDoor(1)" tabindex="0">
+    <div class="door-frame ${isStage2_2 ? 'stage2' : ''}">
+      <div class="door-surface">
+        <div class="door-handle"></div>
+      </div>
+    </div>
+    <div class="door-label ${isStage2_2 ? 'stage2' : ''}">${name2}</div>
+  </div>
+</div>
+</div>`;
+
+// Store picks for selection handler
+S._neutralChoicePicks = picks;
+S._neutralChoiceFloor = f;
+}
+
+// Handle door selection
+function selectNeutralDoor(idx) {
+const picks = S._neutralChoicePicks;
+const f = S._neutralChoiceFloor;
+if(!picks) return;
+const chosen = picks[idx];
+S.lastNeutral = chosen;
+delete S._neutralChoicePicks;
+delete S._neutralChoiceFloor;
+SoundFX.play('levelupFanfare');
+// Launch the chosen neutral encounter
+launchNeutral(f, chosen);
+}
+
+// Launch a specific neutral encounter (used by both choice screen and forced encounters)
+function launchNeutral(f, enc) {
+// Mark as discovered
+discoverNeutral(enc);
+
+// Ghost boys converted special case
+if(S.ghostBoysConverted && enc.startsWith('ghost')) {
+GameMusic.playScene('neutral_ghost1');
+showEmptyPlayroom();
+return;
+}
+
+// Music
+GameMusic.playNeutral(enc);
+
+const launchEncounter = () => {
+if(enc === 'shopkeeper1') showShopkeeper1();
+else if(enc === 'shopkeeper2') showShopkeeper2();
+else if(enc === 'wishingwell1') showWishingWell1();
+else if(enc === 'wishingwell2') showWishingWell2();
+else if(enc === 'treasurechest1') showTreasureChest1();
+else if(enc === 'treasurechest2') showTreasureChest2();
+else if(enc === 'wizard1') showWizard1();
+else if(enc === 'wizard2') showWizard2();
+else if(enc === 'oracle1') showOracle1();
+else if(enc === 'oracle2') showOracle2();
+else if(enc === 'encampment1') showEncampment1();
+else if(enc === 'encampment2') showEncampment2();
+else if(enc === 'gambling1') showGambling1();
+else if(enc === 'gambling2') showGambling2();
+else if(enc === 'ghost1') showGhost1();
+else if(enc === 'ghost2') showGhost2();
+else if(enc === 'royal1') showRoyal1();
+else if(enc === 'royal2') showRoyal2();
+else {
+const v = document.getElementById('gameView');
+v.innerHTML = `
+<h2 style="text-align:center;margin:2rem 0">Floor ${f}</h2>
+<p style="text-align:center;margin-bottom:2rem">${enc}</p>
+<button class="btn" onclick="nextFloor()">Continue</button>`;
+}
+};
+
+showNeutralInterstitial(f, enc, launchEncounter);
+}
+
 // ===== D20 ROLLS FOR NEUTRALS =====
 function getD20NeutralLevel() {
 // Include both permanent AND temporary upgrades for neutral D20 rolls
@@ -1879,53 +2043,28 @@ if(header) header.style.display = 'flex';
 const gameArea = document.getElementById('gameView');
 if(gameArea) gameArea.classList.add('no-scroll');
 upd();
+
 // TUTORIAL: Show neutral intro on Floor 2
 if(f === 2) {
 showTutorialPop('neutral_intro', "Neutral floors offer choices and opportunities! You can walk straight through, or take a risk for potential rewards.");
 }
 
+// DEMO MODE or forced encounters: use old single-pick system
+if(DEMO_MODE) {
 const enc = getNeutralEncounter();
-
-if(S.ghostBoysConverted && enc.startsWith('ghost')) {
-// Music: play ghost boys theme for empty playroom
-GameMusic.playScene('neutral_ghost1');
-showEmptyPlayroom();
+launchNeutral(f, enc);
 return;
 }
 
-// Music: play encounter-specific neutral music
-GameMusic.playNeutral(enc);
-
-// Show interstitial then launch encounter
-const launchEncounter = () => {
-if(enc === 'shopkeeper1') showShopkeeper1();
-else if(enc === 'shopkeeper2') showShopkeeper2();
-else if(enc === 'wishingwell1') showWishingWell1();
-else if(enc === 'wishingwell2') showWishingWell2();
-else if(enc === 'treasurechest1') showTreasureChest1();
-else if(enc === 'treasurechest2') showTreasureChest2();
-else if(enc === 'wizard1') showWizard1();
-else if(enc === 'wizard2') showWizard2();
-else if(enc === 'oracle1') showOracle1();
-else if(enc === 'oracle2') showOracle2();
-else if(enc === 'encampment1') showEncampment1();
-else if(enc === 'encampment2') showEncampment2();
-else if(enc === 'gambling1') showGambling1();
-else if(enc === 'gambling2') showGambling2();
-else if(enc === 'ghost1') showGhost1();
-else if(enc === 'ghost2') showGhost2();
-else if(enc === 'royal1') showRoyal1();
-else if(enc === 'royal2') showRoyal2();
-else {
-const v = document.getElementById('gameView');
-v.innerHTML = `
-<h2 style="text-align:center;margin:2rem 0">Floor ${f}</h2>
-<p style="text-align:center;margin-bottom:2rem">${enc}</p>
-<button class="btn" onclick="nextFloor()">Continue</button>`;
+// First run Floor 2: forced Oracle, no choice
+if(f === 2 && S.runsAttempted === 1) {
+S.lastNeutral = 'oracle1';
+launchNeutral(f, 'oracle1');
+return;
 }
-};
 
-showNeutralInterstitial(f, enc, launchEncounter);
+// Normal: show choice screen with two doors
+showNeutralChoice(f);
 }
 
 // ===== 1. SHOPKEEPER =====
