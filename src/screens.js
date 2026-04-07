@@ -413,7 +413,7 @@ heroes.forEach(heroName => {
 
   html += `
   <div style="background:rgba(30,41,59,0.8);border:2px solid #334155;border-radius:8px;padding:0.75rem;display:flex;gap:0.75rem;align-items:center">
-    <img src="${imgPath}" alt="${heroName}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid #475569;flex-shrink:0;transform:scaleX(-1)">
+    <img src="${imgPath}" alt="${heroName}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid #475569;flex-shrink:0;${heroFlipStyle(imgPath)}">
     <div style="flex:1;min-width:0">
       <div style="font-weight:bold;font-size:1rem;color:#f1f5f9;margin-bottom:0.3rem">${heroName}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.2rem 0.75rem;font-size:0.8rem">

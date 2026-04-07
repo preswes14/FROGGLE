@@ -505,7 +505,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .card.enemy.flydra { width: 200px; max-width: 200px; }
 .card.enemy::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #dc2626, #f87171, #dc2626, transparent); border-radius: 8px 8px 0 0; pointer-events: none; }
 .enemy-art { border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-.hero-portrait { width: 140px; height: 140px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: none; transform: scaleX(-1); }
+.hero-portrait { width: 140px; height: 140px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: none; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
 .card.hero.chosen-one::before {
@@ -3102,7 +3102,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.33';
+const GAME_VERSION = 'S_2.35';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3161,6 +3161,16 @@ const HERO_REACTIONS = {
         pained: 'assets/tapo_pain.png'
     }
 };
+
+// Hero images that already face right in the raw art (all others face left)
+const HERO_FACES_RIGHT = {
+    'assets/warrior_normal.png': true,
+    'assets/warrior_happy.png': true,
+    'assets/mage_normal.png': true,
+};
+function heroFlipStyle(src) {
+    return HERO_FACES_RIGHT[src] ? '' : 'transform:scaleX(-1);';
+}
 
 // Get hero image based on current reaction state
 function getHeroImage(hero) {
@@ -10258,7 +10268,7 @@ html += `<div id="${h.id}" class="${lsClasses}" aria-label="${h.n} - Last Stand 
 html += `<div style="text-align:center;font-size:0.7rem;font-weight:bold;color:#fca5a5;margin-bottom:0.25rem;animation:pulse-text 1s infinite">LAST STAND</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'contain', pos: 'center' };
-html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};filter:sepia(30%) brightness(0.8)"></div>`;
+html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};filter:sepia(30%) brightness(0.8);${heroFlipStyle(heroImage)}"></div>`;
 }
 html += `<div style="text-align:center;font-size:1rem;font-weight:bold;color:#dc2626;margin:0.3rem 0">DOWN</div>`;
 html += `<div style="text-align:center;font-size:0.75rem;color:#fca5a5;line-height:1.3;padding:0.25rem">`;
@@ -10334,7 +10344,7 @@ html += `<div style="display:flex;align-items:center;justify-content:space-betwe
 html += `<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${h.p}💥</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
-html += `<img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos}">`;
+html += `<img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};${heroFlipStyle(heroImage)}">`;
 }
 html += `<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${h.h}/${h.m}</div><div style="font-size:0.9rem">❤</div></div>`;
 html += `</div>`;
@@ -10772,7 +10782,7 @@ html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-
 // Hero image
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
-html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};border-color:#60a5fa"></div>`;
+html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};border-color:#60a5fa;${heroFlipStyle(heroImage)}"></div>`;
 }
 // Name
 html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
@@ -11756,8 +11766,8 @@ v.innerHTML = `
 <div class="title-container">
 <!-- Background image - landscape for wide screens, portrait for narrow -->
 <picture>
-<source media="(min-aspect-ratio: 1/1)" srcset="assets/screen3.png">
-<img src="assets/screen3.png" alt="FROGGLE" class="title-bg-image">
+<source media="(min-aspect-ratio: 1/1)" srcset="assets/main_capsule.png">
+<img src="assets/main_capsule.png" alt="FROGGLE" class="title-bg-image">
 </picture>
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
@@ -12326,7 +12336,7 @@ html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:c
 // Tapo's birthday celebration - all heroes on Ribbleton background
 bg: 'assets/ribbleton.png',
 html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">The whole town is celebrating the little tadpole's&nbsp;special&nbsp;day!</p>`,
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">Today is a very special day in this beautiful, tranquil town. Why, you ask? The whole town has gathered to celebrate the little tadpole's&nbsp;special&nbsp;day!</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -12441,8 +12451,8 @@ heroes.forEach(h => {
 {
 // Mage teaching Tapo - mage walks to Tapo then both walk off screen
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.7rem;margin-bottom:0.25rem;color:#fff">A Special Gift</h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0">As a birthday gift, <strong>Mage</strong> has promised to teach Tapo how to catch flies.</p>`,
+html: `<h2 style="font-size:1.7rem;margin-bottom:0.25rem;color:#22c55e;text-align:center">A Special Gift</h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">As a birthday gift, <strong>Mage</strong> has promised to teach Tapo how to catch flies.</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -13177,7 +13187,7 @@ v.innerHTML = `
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scaleX(-1) scale(1.05);' : 'filter:brightness(0.7);transform:scaleX(-1);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${heroFlipStyle(HERO_IMAGES[hero])}${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);' : 'filter:brightness(0.7);'}">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
 <div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
@@ -13278,7 +13288,7 @@ cardEl.innerHTML = `
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
 <div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem;color:#1a1a1a">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;transform:scaleX(-1)">` : ''}
+${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;${heroFlipStyle(hPixelImage)}">` : ''}
 <div style="font-size:0.7rem;color:#374151">${hData.pow}💥 | ${hData.hp}❤</div>
 <div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
 <div style="font-size:0.65rem;color:#16a34a;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
@@ -15987,7 +15997,7 @@ heroes.forEach(heroName => {
 
   html += `
   <div style="background:rgba(30,41,59,0.8);border:2px solid #334155;border-radius:8px;padding:0.75rem;display:flex;gap:0.75rem;align-items:center">
-    <img src="${imgPath}" alt="${heroName}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid #475569;flex-shrink:0;transform:scaleX(-1)">
+    <img src="${imgPath}" alt="${heroName}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid #475569;flex-shrink:0;${heroFlipStyle(imgPath)}">
     <div style="flex:1;min-width:0">
       <div style="font-weight:bold;font-size:1rem;color:#f1f5f9;margin-bottom:0.3rem">${heroName}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.2rem 0.75rem;font-size:0.8rem">

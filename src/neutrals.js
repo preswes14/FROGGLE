@@ -327,8 +327,8 @@ v.innerHTML = `
 <div class="title-container">
 <!-- Background image - landscape for wide screens, portrait for narrow -->
 <picture>
-<source media="(min-aspect-ratio: 1/1)" srcset="assets/screen3.png">
-<img src="assets/screen3.png" alt="FROGGLE" class="title-bg-image">
+<source media="(min-aspect-ratio: 1/1)" srcset="assets/main_capsule.png">
+<img src="assets/main_capsule.png" alt="FROGGLE" class="title-bg-image">
 </picture>
 <!-- Version badge -->
 <div class="title-version">v${GAME_VERSION}</div>
@@ -897,7 +897,7 @@ html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:c
 // Tapo's birthday celebration - all heroes on Ribbleton background
 bg: 'assets/ribbleton.png',
 html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Today is <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">The whole town is celebrating the little tadpole's&nbsp;special&nbsp;day!</p>`,
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">Today is a very special day in this beautiful, tranquil town. Why, you ask? The whole town has gathered to celebrate the little tadpole's&nbsp;special&nbsp;day!</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -1012,8 +1012,8 @@ heroes.forEach(h => {
 {
 // Mage teaching Tapo - mage walks to Tapo then both walk off screen
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.7rem;margin-bottom:0.25rem;color:#fff">A Special Gift</h2>
-<p style="font-size:1.1rem;color:#f5f5f5;margin:0">As a birthday gift, <strong>Mage</strong> has promised to teach Tapo how to catch flies.</p>`,
+html: `<h2 style="font-size:1.7rem;margin-bottom:0.25rem;color:#22c55e;text-align:center">A Special Gift</h2>
+<p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">As a birthday gift, <strong>Mage</strong> has promised to teach Tapo how to catch flies.</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -1748,7 +1748,7 @@ v.innerHTML = `
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scaleX(-1) scale(1.05);' : 'filter:brightness(0.7);transform:scaleX(-1);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${heroFlipStyle(HERO_IMAGES[hero])}${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);' : 'filter:brightness(0.7);'}">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
 <div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
@@ -1849,7 +1849,7 @@ cardEl.innerHTML = `
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
 <div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem;color:#1a1a1a">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;transform:scaleX(-1)">` : ''}
+${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;${heroFlipStyle(hPixelImage)}">` : ''}
 <div style="font-size:0.7rem;color:#374151">${hData.pow}💥 | ${hData.hp}❤</div>
 <div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
 <div style="font-size:0.65rem;color:#16a34a;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>

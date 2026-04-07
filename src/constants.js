@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.33';
+const GAME_VERSION = 'S_2.35';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -58,6 +58,16 @@ const HERO_REACTIONS = {
         pained: 'assets/tapo_pain.png'
     }
 };
+
+// Hero images that already face right in the raw art (all others face left)
+const HERO_FACES_RIGHT = {
+    'assets/warrior_normal.png': true,
+    'assets/warrior_happy.png': true,
+    'assets/mage_normal.png': true,
+};
+function heroFlipStyle(src) {
+    return HERO_FACES_RIGHT[src] ? '' : 'transform:scaleX(-1);';
+}
 
 // Get hero image based on current reaction state
 function getHeroImage(hero) {
