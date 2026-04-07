@@ -413,7 +413,7 @@ heroes.forEach(heroName => {
 
   html += `
   <div style="background:rgba(30,41,59,0.8);border:2px solid #334155;border-radius:8px;padding:0.75rem;display:flex;gap:0.75rem;align-items:center">
-    <img src="${imgPath}" alt="${heroName}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid #475569;flex-shrink:0">
+    <img src="${imgPath}" alt="${heroName}" style="width:60px;height:60px;border-radius:8px;object-fit:cover;border:2px solid #475569;flex-shrink:0;transform:scaleX(-1)">
     <div style="flex:1;min-width:0">
       <div style="font-weight:bold;font-size:1rem;color:#f1f5f9;margin-bottom:0.3rem">${heroName}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.2rem 0.75rem;font-size:0.8rem">
@@ -1524,7 +1524,7 @@ html: `
 <div style="position:relative;display:inline-block">
 <img src="assets/Hydra.png" alt="The defeated Flydra" style="width:280px;height:auto;opacity:0.5;filter:grayscale(0.5) brightness(0.7);animation:flydraFade 3s ease-in-out infinite">
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:tapoSleep 2s ease-in-out infinite">
-<img src="assets/tapo_normal.png" alt="Tapo in food coma" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6))">
+<img src="assets/tapo_normal.png" alt="Tapo in food coma" style="width:90px;height:auto;filter:drop-shadow(0 0 10px rgba(34,197,94,0.6));transform:scaleX(-1)">
 </div>
 </div>
 </div>
@@ -1571,7 +1571,7 @@ html: `
 <div style="position:absolute;top:5%;right:10%;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 35%, #fbbf24, #f59e0b);animation:moonGlow 4s ease-in-out infinite"></div>
 <!-- Sleeping Tapo -->
 <div style="animation:tummyRumble 1.5s ease-in-out 2s 3">
-<img src="assets/tapo_normal.png" alt="Tapo sleeping" style="width:120px;height:auto;filter:brightness(0.7)">
+<img src="assets/tapo_normal.png" alt="Tapo sleeping" style="width:120px;height:auto;filter:brightness(0.7);transform:scaleX(-1)">
 </div>
 <div style="margin-top:1.5rem;max-width:500px">
 <p style="font-size:1.2rem;line-height:1.8;text-align:center;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">
@@ -1807,7 +1807,7 @@ ${!tapoInParty ? `<p style="margin-top:1.5rem;font-style:italic;color:#fbbf24">N
 
 <div style="background:rgba(251,191,36,0.2);padding:1.5rem;border-radius:8px;margin:2rem 0;border:2px solid #22c55e">
 <h3 style="text-align:center;margin-bottom:1rem">TAPO UNLOCKED!</h3>
-<img src="assets/tapo_normal.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px">
+<img src="assets/tapo_normal.png" alt="Tapo the Tadpole" style="max-width:200px;height:auto;display:block;margin:1rem auto;border-radius:8px;transform:scaleX(-1)">
 <p style="text-align:center;margin-top:1rem">Tapo the Tadpole is now available as a playable hero!</p>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-top:0.5rem">Stats: 1 POW, 1 HP • Starts with D20 + any upgraded passives</p>
 <p style="text-align:center;font-size:0.85rem;opacity:0.6;margin-top:0.5rem;font-style:italic">(Glass cannon mode activated)</p>
@@ -1896,7 +1896,7 @@ let html = `
 if(S.gameMode === 'fu') {
 html += `<p style="text-align:center;margin-bottom:2rem;font-size:1.2rem">You conquered the Frogged Up realm once again!<br>Impressive.</p>`;
 } else {
-html += `<img src="assets/tapo_normal.png" alt="Tapo saved!" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000">`;
+html += `<img src="assets/tapo_normal.png" alt="Tapo saved!" style="max-width:100%;height:auto;max-width:400px;margin:1rem auto;display:block;border-radius:8px;border:3px solid #000;transform:scaleX(-1)">`;
 html += `<p style="text-align:center;margin-bottom:1rem;font-size:1.2rem;font-weight:bold">You saved Tapo the Tadpole!</p>`;
 
 // Check if they've explored FU mode and show conditional text

@@ -1110,9 +1110,21 @@ style.textContent = `
   75%  { transform: translateY(0); }
   100% { transform: translateY(0); }
 }
+@keyframes doubleJumpFlipped {
+  0%   { transform: translateY(0) scaleX(-1); }
+  20%  { transform: translateY(-25px) scaleX(-1); }
+  35%  { transform: translateY(0) scaleX(-1); }
+  55%  { transform: translateY(-40px) scaleX(-1); }
+  75%  { transform: translateY(0) scaleX(-1); }
+  100% { transform: translateY(0) scaleX(-1); }
+}
 @keyframes walkOffRight {
   0% { transform: translateX(0); }
   100% { transform: translateX(120vw); }
+}
+@keyframes walkOffRightFlipped {
+  0% { transform: translateX(0) scaleX(-1); }
+  100% { transform: translateX(120vw) scaleX(-1); }
 }`;
 container.appendChild(style);
 // Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
@@ -1142,25 +1154,26 @@ mage.alt = 'Mage';
 mage.id = 'mage-teach-mage';
 mage.style.cssText = 'position:absolute;left:65%;bottom:20%;width:145px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:mageIdle 3.8s ease-in-out infinite';
 container.appendChild(mage);
-// Vault ends at 1.6s — immediately start double jump (zero gap)
+// Vault ends at 1.6s — Mage turns to face Tapo (flipped), both double jump
 setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (tapoEl) {
-    // Pin Tapo to landed position so he doesn't snap back
     tapoEl.style.left = '76%';
     tapoEl.style.bottom = '20%';
     tapoEl.style.transform = 'none';
     tapoEl.style.animation = 'doubleJump 0.8s ease-in-out';
   }
-  if (mageEl) mageEl.style.animation = 'doubleJump 0.8s ease-in-out';
+  if (mageEl) {
+    mageEl.style.animation = 'doubleJumpFlipped 0.8s ease-in-out forwards';
+  }
 }, 1600);
-// Jump ends at 2.4s — immediately walk off (zero gap)
+// Jump ends at 2.4s — Tapo flips to face right, both walk off together
 setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
-  if (mageEl) mageEl.style.animation = 'walkOffRight 1.6s ease-in forwards';
-  if (tapoEl) tapoEl.style.animation = 'walkOffRight 1.6s ease-in forwards';
+  if (mageEl) mageEl.style.animation = 'walkOffRightFlipped 1.6s ease-in forwards';
+  if (tapoEl) tapoEl.style.animation = 'walkOffRightFlipped 1.6s ease-in forwards';
 }, 2400);
 }
 }
@@ -1257,7 +1270,7 @@ overlay.innerHTML = `
 <div class="tutorial-modal" style="max-width:600px">
 <div style="text-align:center">
 <div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:1rem">
-<img src="assets/tapo_normal.png" alt="Tapo" style="width:120px;height:auto">
+<img src="assets/tapo_normal.png" alt="Tapo" style="width:120px;height:auto;transform:scaleX(-1)">
 </div>
 <h2 style="color:#22c55e;margin-bottom:1rem">Tapo to the Rescue!</h2>
 <p style="font-size:1.1rem;line-height:1.7;margin-bottom:1.5rem">
@@ -1373,7 +1386,7 @@ v.innerHTML = `
 <div style="max-width:600px;text-align:center">
 <h2 style="font-size:2.5rem;margin-bottom:0.5rem;color:#22c55e">Success!!</h2>
 <div style="animation:danceTapo 0.5s ease-in-out infinite;margin:1rem 0">
-<img src="assets/tapo_normal.png" alt="Tapo" style="width:100px;height:auto">
+<img src="assets/tapo_normal.png" alt="Tapo" style="width:100px;height:auto;transform:scaleX(-1)">
 </div>
 <p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
@@ -1735,7 +1748,7 @@ v.innerHTML = `
 <div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scale(1.05);' : 'filter:brightness(0.7);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);transform:scaleX(-1) scale(1.05);' : 'filter:brightness(0.7);transform:scaleX(-1);'}">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
 <div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
@@ -1836,7 +1849,7 @@ cardEl.innerHTML = `
 onclick="event.stopPropagation();toggleHeroSelection('${h}')">
 <div style="text-align:center">
 <div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem;color:#1a1a1a">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem">` : ''}
+${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;transform:scaleX(-1)">` : ''}
 <div style="font-size:0.7rem;color:#374151">${hData.pow}💥 | ${hData.hp}❤</div>
 <div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
 <div style="font-size:0.65rem;color:#16a34a;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
@@ -4044,7 +4057,7 @@ v.innerHTML = `
 "Ah! I know!" <em>*Poof*</em>
 </div>
 <div style="text-align:center;margin:2rem 0">
-<img src="assets/tapo_normal.png" alt="Baby Tapo" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3">
+<div style="transform:scaleX(-1);display:inline-block"><img src="assets/tapo_normal.png" alt="Baby Tapo" style="max-width:100%;height:auto;max-width:300px;margin:0 auto 1rem auto;display:block;animation:bounce 1s ease-in-out 3"></div>
 <div class="neutral-desc" style="font-size:1.1rem;line-height:1.8;padding:1rem;margin:1rem 0">
 <em>Squeals.</em> The heroes know this sound well - Baby Tapo is hungry for flies!
 </div>
