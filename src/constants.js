@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.36';
+const GAME_VERSION = 'S_2.37';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -20,7 +20,7 @@ const DEMO_NEUTRAL_ORDER = [
 const HERO_IMAGES = {
         warrior: 'assets/warrior_normal.png',
         tank: 'assets/tank_normal.png',
-        mage: 'assets/mage_normal.png',
+        mage: 'assets/mage_happy.png',
         healer: 'assets/heal_normal.png',
         tapo: 'assets/tapo_normal.png'
     };
@@ -46,7 +46,7 @@ const HERO_REACTIONS = {
         pained: 'assets/tank_pain.png'
     },
     mage: {
-        happy: 'assets/mage_happy.png',
+        happy: 'assets/mage_normal.png',
         pained: 'assets/mage_pain.png'
     },
     healer: {
