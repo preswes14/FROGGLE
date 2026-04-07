@@ -443,6 +443,9 @@ if(h.st > 0) { toast(`${h.n} is stunned!`); return; }
 if(h.ls && sig !== 'D20') { toast('Last Stand - D20 only!'); return; }
 S.activeIdx = heroIdx;
 SoundFX.play('select');
+// Reset target debounce for new action
+lastTargetId = null;
+lastTargetTime = 0;
 
 // PASSIVE ASTERISK: Auto-apply on first action per combat
 const asteriskLevel = getLevel('Asterisk', heroIdx);
