@@ -91,6 +91,9 @@ advancedSigilsUnlocked: false,   // Death screen: Advanced sigils (Ghost, Alpha,
 passiveSigilsUnlocked: false,    // Death screen: Passive sigils (Expand, Asterisk, Star) purchasable
 pondHistory: [],                 // Run history for "The Pond" - [{runNumber, heroes, floorReached, gameMode, outcome, killedBy, timestamp}]
 
+// ===== NEUTRAL DISCOVERY STATE (persistent) =====
+neutralsDiscovered: {},          // {shopkeeper: true, oracle: true, ...} — tracks which neutral base types have been visited
+
 // ===== DEMO MODE STATE (persistent across runs) =====
 demoNeutralIndex: 0,             // Index into DEMO_NEUTRAL_ORDER for next unseen neutral
 demoStage2Pending: null,         // Base name of neutral upgraded to stage 2 mid-run (for floor 4)
@@ -1107,6 +1110,7 @@ if(j.questProgress) {
 if(j.tutorialFlags) {
 Object.assign(S.tutorialFlags, j.tutorialFlags);
 }
+S.neutralsDiscovered = j.neutralsDiscovered || {};
 } catch(e) {
 console.warn('[SAVE] Failed to load permanent data:', e);
 // Continue with defaults if load fails
@@ -1279,6 +1283,7 @@ document.body.classList.toggle('high-contrast', !!S.highContrastMode);
 // Apply volume settings to audio system
 if(typeof applyVolumeSettings === 'function') applyVolumeSettings();
 if(j.tutorialFlags) Object.assign(S.tutorialFlags, j.tutorialFlags);
+S.neutralsDiscovered = j.neutralsDiscovered || {};
 // Load quest data with defaults
 S.questsCompleted = j.questsCompleted || {};
 S.questsClaimed = j.questsClaimed || {};
@@ -1430,7 +1435,8 @@ questsCompleted: S.questsCompleted,
 questsClaimed: S.questsClaimed,
 questProgress: S.questProgress,
 tutorialCheckpoint: S.tutorialCheckpoint || 0,
-demoNeutralIndex: S.demoNeutralIndex || 0
+demoNeutralIndex: S.demoNeutralIndex || 0,
+neutralsDiscovered: S.neutralsDiscovered || {}
 }));
 } catch(e) {
 console.warn('[SAVE] Failed to save permanent data:', e);
