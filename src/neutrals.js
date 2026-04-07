@@ -166,8 +166,13 @@ savePermanent();
 
 // Show the neutral choice screen with doors
 function showNeutralChoice(f) {
-const picks = getNeutralEncounterChoices(f);
+let picks = getNeutralEncounterChoices(f);
 const isFU = S.gameMode === 'fu';
+
+// First run Floor 2: all doors lead to Oracle (teaches the door mechanic)
+if(f === 2 && S.runsAttempted === 1) {
+picks = picks.map(() => 'oracle1');
+}
 
 SoundFX.play('floorEnter');
 
@@ -2065,14 +2070,7 @@ launchNeutral(f, enc);
 return;
 }
 
-// First run Floor 2: forced Oracle, no choice
-if(f === 2 && S.runsAttempted === 1) {
-S.lastNeutral = 'oracle1';
-launchNeutral(f, 'oracle1');
-return;
-}
-
-// Normal: show choice screen with two doors
+// Normal: show choice screen with doors
 showNeutralChoice(f);
 }
 
