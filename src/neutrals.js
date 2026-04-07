@@ -854,7 +854,7 @@ If you need help, look for the:
 <p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
 (Help/tips can be disabled in Settings)
 </p>
-<button onclick="confirmSkipTutorial()" style="padding:0.75rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;display:block;margin:0 auto">Let's go!</button>
+<button onclick="confirmSkipTutorial()" class="tutorial-btn" style="padding:0.75rem 2rem;font-size:1.1rem;display:block;margin:0 auto">Let's go!</button>
 </div>`;
 document.body.appendChild(overlay);
 window.skipTutorialProceedCallback = proceedCallback;
@@ -890,107 +890,18 @@ const slides = [
 {
 // Full-art: Ribbleton background with text overlay
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Welcome to <strong style="color:#22c55e">Ribbleton!</strong></h2>
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">Welcome to <strong class="text-tapo">Ribbleton!</strong></h2>
 <p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">Today is a very special day in this beautiful, tranquil town. Why, you ask?</p>`
 },
 {
 // Tapo's birthday celebration - all heroes on Ribbleton background
 bg: 'assets/ribbleton.png',
-html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">It's <strong style="color:#22c55e">Tapo's First Birthday!</strong></h2>
+html: `<h2 style="font-size:1.8rem;margin-bottom:0.25rem;color:#fff;text-align:center">It's <strong class="text-tapo">Tapo's First Birthday!</strong></h2>
 <p style="font-size:1.1rem;color:#f5f5f5;margin:0;text-align:center">The whole town has gathered to celebrate the little tadpole's&nbsp;special&nbsp;day!</p>`,
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
-// Inject tapoSignature keyframes
-const style = document.createElement('style');
-style.textContent = `
-@keyframes tapoSignature {
-  0% { transform: translateY(0) scaleX(1); }
-  7% { transform: translateY(-20px) scaleX(1); }
-  14% { transform: translateY(0) scaleX(1); }
-  21% { transform: translateY(-28px) scaleX(1); }
-  28% { transform: translateY(0) scaleX(1); }
-  29.5% { transform: translateY(-8px) scaleX(0); }
-  33.5% { transform: translateY(0) scaleX(-1); }
-  47% { transform: translateY(0) scaleX(-1); }
-  50% { transform: translateY(0) scaleX(-1); }
-  57% { transform: translateY(-20px) scaleX(-1); }
-  64% { transform: translateY(0) scaleX(-1); }
-  71% { transform: translateY(-28px) scaleX(-1); }
-  78% { transform: translateY(0) scaleX(-1); }
-  79.5% { transform: translateY(-8px) scaleX(0); }
-  83.5% { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes tankIdle {
-  0%   { transform: translateY(0) scaleX(1); }
-  10%  { transform: translateY(-8px) scaleX(1); }
-  20%  { transform: translateY(0) scaleX(1); }
-  30%  { transform: translateY(-12px) scaleX(1); }
-  40%  { transform: translateY(0) scaleX(1); }
-  41%  { transform: translateY(-5px) scaleX(0); }
-  44%  { transform: translateY(0) scaleX(-1); }
-  55%  { transform: translateY(0) scaleX(-1); }
-  65%  { transform: translateY(-8px) scaleX(-1); }
-  75%  { transform: translateY(0) scaleX(-1); }
-  85%  { transform: translateY(-12px) scaleX(-1); }
-  90%  { transform: translateY(0) scaleX(-1); }
-  91%  { transform: translateY(-5px) scaleX(0); }
-  94%  { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes warriorIdle {
-  0%   { transform: translateY(0) scaleX(1); }
-  8%   { transform: translateY(-14px) scaleX(1); }
-  16%  { transform: translateY(0) scaleX(1); }
-  24%  { transform: translateY(-18px) scaleX(1); }
-  32%  { transform: translateY(0) scaleX(1); }
-  33.5%{ transform: translateY(-6px) scaleX(0); }
-  37%  { transform: translateY(0) scaleX(-1); }
-  50%  { transform: translateY(0) scaleX(-1); }
-  58%  { transform: translateY(-14px) scaleX(-1); }
-  66%  { transform: translateY(0) scaleX(-1); }
-  74%  { transform: translateY(-18px) scaleX(-1); }
-  82%  { transform: translateY(0) scaleX(-1); }
-  83.5%{ transform: translateY(-6px) scaleX(0); }
-  87%  { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes mageIdle {
-  0%   { transform: translateY(0) scaleX(1); }
-  7%   { transform: translateY(-16px) scaleX(1); }
-  14%  { transform: translateY(0) scaleX(1); }
-  22%  { transform: translateY(-22px) scaleX(1); }
-  30%  { transform: translateY(0) scaleX(1); }
-  31.5%{ transform: translateY(-7px) scaleX(0); }
-  35%  { transform: translateY(0) scaleX(-1); }
-  48%  { transform: translateY(0) scaleX(-1); }
-  55%  { transform: translateY(-16px) scaleX(-1); }
-  62%  { transform: translateY(0) scaleX(-1); }
-  70%  { transform: translateY(-22px) scaleX(-1); }
-  78%  { transform: translateY(0) scaleX(-1); }
-  79.5%{ transform: translateY(-7px) scaleX(0); }
-  83%  { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes healerIdle {
-  0%   { transform: translateY(0) scaleX(1); }
-  9%   { transform: translateY(-12px) scaleX(1); }
-  18%  { transform: translateY(0) scaleX(1); }
-  27%  { transform: translateY(-16px) scaleX(1); }
-  36%  { transform: translateY(0) scaleX(1); }
-  37.5%{ transform: translateY(-6px) scaleX(0); }
-  41%  { transform: translateY(0) scaleX(-1); }
-  52%  { transform: translateY(0) scaleX(-1); }
-  61%  { transform: translateY(-12px) scaleX(-1); }
-  70%  { transform: translateY(0) scaleX(-1); }
-  79%  { transform: translateY(-16px) scaleX(-1); }
-  84%  { transform: translateY(0) scaleX(-1); }
-  85.5%{ transform: translateY(-6px) scaleX(0); }
-  89%  { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}`;
-container.appendChild(style);
+// Keyframes (tapoSignature, tankIdle, warriorIdle, mageIdle, healerIdle) defined in template_head.html
 // Place heroes scattered around the town
 const heroes = [
   { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
@@ -1003,7 +914,8 @@ heroes.forEach(h => {
   const img = document.createElement('img');
   img.src = h.src;
   img.alt = h.alt;
-  img.style.cssText = `position:absolute;left:${h.left};bottom:${h.bottom};width:${h.width};height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5))`;
+  img.className = 'tutorial-sprite';
+  img.style.cssText = `left:${h.left};bottom:${h.bottom};width:${h.width};z-index:5`;
   if (h.anim) img.style.animation = h.anim;
   container.appendChild(img);
 });
@@ -1017,116 +929,7 @@ html: `<h2 style="font-size:1.7rem;margin-bottom:0.25rem;color:#22c55e;text-alig
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
-// Inject animations
-const style = document.createElement('style');
-style.textContent = `
-@keyframes tapoSignature {
-  0% { transform: translateY(0) scaleX(1); }
-  7% { transform: translateY(-20px) scaleX(1); }
-  14% { transform: translateY(0) scaleX(1); }
-  21% { transform: translateY(-28px) scaleX(1); }
-  28% { transform: translateY(0) scaleX(1); }
-  29.5% { transform: translateY(-8px) scaleX(0); }
-  33.5% { transform: translateY(0) scaleX(-1); }
-  47% { transform: translateY(0) scaleX(-1); }
-  50% { transform: translateY(0) scaleX(-1); }
-  57% { transform: translateY(-20px) scaleX(-1); }
-  64% { transform: translateY(0) scaleX(-1); }
-  71% { transform: translateY(-28px) scaleX(-1); }
-  78% { transform: translateY(0) scaleX(-1); }
-  79.5% { transform: translateY(-8px) scaleX(0); }
-  83.5% { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes tankIdle {
-  0%   { transform: translateY(0) scaleX(1); }
-  10%  { transform: translateY(-8px) scaleX(1); }
-  20%  { transform: translateY(0) scaleX(1); }
-  30%  { transform: translateY(-12px) scaleX(1); }
-  40%  { transform: translateY(0) scaleX(1); }
-  41%  { transform: translateY(-5px) scaleX(0); }
-  44%  { transform: translateY(0) scaleX(-1); }
-  55%  { transform: translateY(0) scaleX(-1); }
-  65%  { transform: translateY(-8px) scaleX(-1); }
-  75%  { transform: translateY(0) scaleX(-1); }
-  85%  { transform: translateY(-12px) scaleX(-1); }
-  90%  { transform: translateY(0) scaleX(-1); }
-  91%  { transform: translateY(-5px) scaleX(0); }
-  94%  { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes warriorIdle {
-  0%   { transform: translateY(0) scaleX(1); }
-  8%   { transform: translateY(-14px) scaleX(1); }
-  16%  { transform: translateY(0) scaleX(1); }
-  24%  { transform: translateY(-18px) scaleX(1); }
-  32%  { transform: translateY(0) scaleX(1); }
-  33.5%{ transform: translateY(-6px) scaleX(0); }
-  37%  { transform: translateY(0) scaleX(-1); }
-  50%  { transform: translateY(0) scaleX(-1); }
-  58%  { transform: translateY(-14px) scaleX(-1); }
-  66%  { transform: translateY(0) scaleX(-1); }
-  74%  { transform: translateY(-18px) scaleX(-1); }
-  82%  { transform: translateY(0) scaleX(-1); }
-  83.5%{ transform: translateY(-6px) scaleX(0); }
-  87%  { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes healerIdle {
-  0%   { transform: translateY(0) scaleX(1); }
-  9%   { transform: translateY(-12px) scaleX(1); }
-  18%  { transform: translateY(0) scaleX(1); }
-  27%  { transform: translateY(-16px) scaleX(1); }
-  36%  { transform: translateY(0) scaleX(1); }
-  37.5%{ transform: translateY(-6px) scaleX(0); }
-  41%  { transform: translateY(0) scaleX(-1); }
-  52%  { transform: translateY(0) scaleX(-1); }
-  61%  { transform: translateY(-12px) scaleX(-1); }
-  70%  { transform: translateY(0) scaleX(-1); }
-  79%  { transform: translateY(-16px) scaleX(-1); }
-  84%  { transform: translateY(0) scaleX(-1); }
-  85.5%{ transform: translateY(-6px) scaleX(0); }
-  89%  { transform: translateY(0) scaleX(1); }
-  100% { transform: translateY(0) scaleX(1); }
-}
-@keyframes tapoVaultToMage {
-  0%   { transform: translate(0, 0) scaleX(1); }
-  10%  { transform: translate(3vw, -14vh) scaleX(1); }
-  20%  { transform: translate(6vw, -25vh) scaleX(1); }
-  30%  { transform: translate(9vw, -33vh) scaleX(1); }
-  40%  { transform: translate(12vw, -37vh) scaleX(1); }
-  50%  { transform: translate(15vw, -38vh) scaleX(1); }
-  60%  { transform: translate(18vw, -34vh) scaleX(1); }
-  70%  { transform: translate(21vw, -25vh) scaleX(1); }
-  80%  { transform: translate(24vw, -13vh) scaleX(1); }
-  90%  { transform: translate(26vw, -2vh) scaleX(1); }
-  100% { transform: translate(28vw, 5vh) scaleX(1); }
-}
-@keyframes doubleJump {
-  0%   { transform: translateY(0); }
-  20%  { transform: translateY(-25px); }
-  35%  { transform: translateY(0); }
-  55%  { transform: translateY(-40px); }
-  75%  { transform: translateY(0); }
-  100% { transform: translateY(0); }
-}
-@keyframes doubleJumpFlipped {
-  0%   { transform: translateY(0) scaleX(-1); }
-  20%  { transform: translateY(-25px) scaleX(-1); }
-  35%  { transform: translateY(0) scaleX(-1); }
-  55%  { transform: translateY(-40px) scaleX(-1); }
-  75%  { transform: translateY(0) scaleX(-1); }
-  100% { transform: translateY(0) scaleX(-1); }
-}
-@keyframes walkOffRight {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(120vw); }
-}
-@keyframes walkOffRightFlipped {
-  0% { transform: translateX(0) scaleX(-1); }
-  100% { transform: translateX(120vw) scaleX(-1); }
-}`;
-container.appendChild(style);
+// Keyframes defined in template_head.html
 // Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
 const bgHeroes = [
   { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
@@ -1137,7 +940,8 @@ bgHeroes.forEach(h => {
   const img = document.createElement('img');
   img.src = h.src;
   img.alt = h.alt;
-  img.style.cssText = `position:absolute;left:${h.left};bottom:${h.bottom};width:${h.width};height:auto;z-index:4;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:${h.anim}`;
+  img.className = 'tutorial-sprite';
+  img.style.cssText = `left:${h.left};bottom:${h.bottom};width:${h.width};z-index:4;animation:${h.anim}`;
   container.appendChild(img);
 });
 // Place Tapo (behind quest board area, will vault over to Mage)
@@ -1145,14 +949,16 @@ const tapo = document.createElement('img');
 tapo.src = 'assets/tapo_normal.png';
 tapo.alt = 'Tapo';
 tapo.id = 'mage-teach-tapo';
-tapo.style.cssText = 'position:absolute;left:48%;bottom:15%;width:120px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:tapoVaultToMage 1.6s linear forwards';
+tapo.className = 'tutorial-sprite';
+tapo.style.cssText = 'left:48%;bottom:15%;width:120px;z-index:5;animation:tapoVaultToMage 1.6s linear forwards';
 container.appendChild(tapo);
 // Place Mage (stays in position with idle animation)
 const mage = document.createElement('img');
 mage.src = 'assets/mage_happy.png';
 mage.alt = 'Mage';
 mage.id = 'mage-teach-mage';
-mage.style.cssText = 'position:absolute;left:65%;bottom:20%;width:145px;height:auto;z-index:5;filter:drop-shadow(2px 2px 4px rgba(0,0,0,0.5));animation:mageIdle 3.8s ease-in-out infinite';
+mage.className = 'tutorial-sprite';
+mage.style.cssText = 'left:65%;bottom:20%;width:145px;z-index:5;animation:mageIdle 3.8s ease-in-out infinite';
 container.appendChild(mage);
 // Vault ends at 1.6s — Mage turns to face Tapo (flipped), both double jump
 setTimeout(() => {
@@ -1274,42 +1080,18 @@ overlay.innerHTML = `
 </div>
 <h2 style="color:#22c55e;margin-bottom:1rem">Tapo to the Rescue!</h2>
 <p style="font-size:1.1rem;line-height:1.7;margin-bottom:1.5rem">
-Just as the ${flyText} ${flyCount === 1 ? 'is' : 'are'} about to finish off Mage, <strong style="color:#22c55e">Tapo</strong> leaps into action!
+Just as the ${flyText} ${flyCount === 1 ? 'is' : 'are'} about to finish off Mage, <strong class="text-tapo">Tapo</strong> leaps into action!
 <br><br>
 His sticky tongue lashes out and <strong>swallows the ${flyText} whole!</strong>
 <br><br>
 <span style="font-size:0.9rem;opacity:0.8">(In normal combat, your hero would enter "Last Stand" mode - but Tapo's got your back for now!)</span>
 </p>
-<button onclick="continueTapoRescue()" style="padding:1rem 2.5rem;font-size:1.3rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">
+<button onclick="continueTapoRescue()" class="tutorial-btn" style="padding:1rem 2.5rem;font-size:1.3rem">
 *ribbit*
 </button>
 </div>
 </div>
-<style>
-@keyframes tapoSignatureRescue {
-  /* Quick hop 1 */
-  0% { transform: translateY(0) scaleX(1); }
-  8% { transform: translateY(-20px) scaleX(1); }
-  16% { transform: translateY(0) scaleX(1); }
-  /* Quick hop 2 */
-  24% { transform: translateY(-28px) scaleX(1); }
-  32% { transform: translateY(0) scaleX(1); }
-  /* Flip to face LEFT */
-  36% { transform: translateY(-8px) scaleX(0); }
-  40% { transform: translateY(0) scaleX(-1); }
-  /* Quick hop 1 LEFT */
-  48% { transform: translateY(-20px) scaleX(-1); }
-  56% { transform: translateY(0) scaleX(-1); }
-  /* Quick hop 2 LEFT */
-  64% { transform: translateY(-28px) scaleX(-1); }
-  72% { transform: translateY(0) scaleX(-1); }
-  /* Flip back to RIGHT */
-  76% { transform: translateY(-8px) scaleX(0); }
-  80% { transform: translateY(0) scaleX(1); }
-  /* Pause facing right */
-  100% { transform: translateY(0) scaleX(1); }
-}
-</style>`;
+<!-- tapoSignatureRescue keyframes defined in template_head.html -->`;
 document.body.appendChild(overlay);
 
 // Store flies for death animation
@@ -1374,14 +1156,6 @@ debugLog('[TUTORIAL] Checkpoint 1 saved: Fly battle complete');
 const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
-<style>
-@keyframes danceTapo {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-10px) rotate(-5deg); }
-  50% { transform: translateY(0) rotate(0deg); }
-  75% { transform: translateY(-10px) rotate(5deg); }
-}
-</style>
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
 <div style="max-width:600px;text-align:center">
 <h2 style="font-size:2.5rem;margin-bottom:0.5rem;color:#22c55e">Success!!</h2>
@@ -1392,7 +1166,7 @@ v.innerHTML = `
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
 Bellies overflowing, the pair gleefully makes their way back to Ribbleton.
 </p>
-<button onclick="showFlydraAppearance()" style="padding:1rem 2rem;font-size:1.2rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer;margin-top:1.5rem">Continue</button>
+<button onclick="showFlydraAppearance()" class="tutorial-btn" style="padding:1rem 2rem;font-size:1.2rem;margin-top:1.5rem">Continue</button>
 </div>
 </div>`;
 }
@@ -1407,19 +1181,9 @@ html: `
 <img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3);animation:flydraDescend 1.5s ease-out">
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
-A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong style="color:#e94560">Flydra</strong>, mother of all flies. She must have caught you chowing on her children!!
+A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong class="text-flydra">Flydra</strong>, mother of all flies. She must have caught you chowing on her children!!
 </p>
-<style>
-@keyframes flydraShake {
-0%, 100% { transform: translateX(0); }
-25% { transform: translateX(-4px); }
-75% { transform: translateX(4px); }
-}
-@keyframes flydraDescend {
-from { opacity: 0; transform: translateY(-60px) scale(0.7); }
-to { opacity: 1; transform: translateY(0) scale(1); }
-}
-</style>
+<!-- flydraShake, flydraDescend keyframes defined in template_head.html -->
 `
 },
 {
@@ -1448,22 +1212,9 @@ html: `
 </div>
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
-In her rage, the Flydra <strong style="color:#dc2626">tears open a dark portal</strong>! Creatures start pouring out into Ribbleton!
+In her rage, the Flydra <strong class="text-danger">tears open a dark portal</strong>! Creatures start pouring out into Ribbleton!
 </p>
-<style>
-@keyframes narrativePortalPulse {
-0%, 100% { transform: scale(1); opacity: 0.85; }
-50% { transform: scale(1.08); opacity: 1; }
-}
-@keyframes flydraPortalHover {
-0%, 100% { transform: translate(-50%,-55%) scale(1); }
-50% { transform: translate(-50%,-58%) scale(1.05); }
-}
-@keyframes enemyAppear {
-from { transform: scale(0) rotate(-180deg); opacity: 0; }
-to { transform: scale(1) rotate(0deg); opacity: 1; }
-}
-</style>
+<!-- narrativePortalPulse, flydraPortalHover, enemyAppear keyframes defined in template_head.html -->
 `
 }
 ];
@@ -1492,8 +1243,8 @@ overlay.innerHTML = `
 <h2>Reinforcements!</h2>
 <p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
-<button onclick="skipTutorialFromOverlay()" style="padding:0.5rem 1rem;font-size:0.8rem;font-weight:bold;background:rgba(100,100,100,0.8);color:#fff;border:2px solid #666;border-radius:8px;cursor:pointer">Skip Tutorial</button>
-<button onclick="dismissStoryOverlay()" style="padding:0.8rem 2rem;font-size:1.1rem;font-weight:bold;background:#22c55e;color:#fff;border:2px solid #15803d;border-radius:8px;cursor:pointer">Let's fight!</button>
+<button onclick="skipTutorialFromOverlay()" class="tutorial-btn-secondary" style="padding:0.5rem 1rem;font-size:0.8rem">Skip Tutorial</button>
+<button onclick="dismissStoryOverlay()" class="tutorial-btn" style="padding:0.8rem 2rem;font-size:1.1rem">Let's fight!</button>
 </div>
 </div>`;
 document.body.appendChild(overlay);
@@ -1605,30 +1356,11 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "The battle is won! But as the last enemy falls, the <strong style='color:#e94560'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
+{bg: 'assets/ribbleton.png', text: "The battle is won! But as the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
-const style = document.createElement('style');
-style.textContent = `
-@keyframes portalPulseEnd {
-  0%, 100% { transform: scale(1); opacity: 0.85; }
-  50% { transform: scale(1.06); opacity: 1; }
-}
-@keyframes flydraFlip {
-  0% { transform: translate(-50%,-50%) scaleX(1); }
-  45% { transform: translate(-50%,-50%) scaleX(1); }
-  50% { transform: translate(-50%,-50%) scaleX(-1); }
-  95% { transform: translate(-50%,-50%) scaleX(-1); }
-  100% { transform: translate(-50%,-50%) scaleX(1); }
-}
-@keyframes flyBuzz {
-  0%, 100% { transform: translate(0, 0); }
-  25% { transform: translate(5px, -8px); }
-  50% { transform: translate(-3px, 4px); }
-  75% { transform: translate(6px, 3px); }
-}`;
-container.appendChild(style);
+// Keyframes (portalPulseEnd, flydraFlip, flyBuzz) defined in template_head.html
 // Portal on right side of Ribbleton
 const portal = document.createElement('div');
 portal.style.cssText = 'position:absolute;right:8%;bottom:15%;width:280px;height:280px;z-index:5';
@@ -1657,13 +1389,13 @@ flyPositions.forEach((pos, i) => {
 });
 container.appendChild(portal);
 }},
-{bg: 'assets/ribbleton.png', text: "The heroes catch their breath. <strong style='color:#22c55e'>Close call!</strong> At least Tapo is safe.."},
+{bg: 'assets/ribbleton.png', text: "The heroes catch their breath. <strong class='text-tapo'>Close call!</strong> At least Tapo is safe.."},
 {text: "WAIT... WHERE IS TAPO??!",
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
 {bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; max-width:75%; max-height:75%; margin:auto; animation: spinTapo 4s linear infinite; z-index:2;', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
-html: `<style>@keyframes spinTapo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } @keyframes spinPortalReverse { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(-360deg); } }</style><div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong style='color:#dc2626'>He can't help himself!</strong></div>`,
+html: `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong class="text-danger">He can't help himself!</strong></div>`,
 onShow: () => {
 GameMusic.play(null, 'combat_19');
 const container = document.querySelector('.full-screen-content');
@@ -1673,7 +1405,7 @@ portal.style.cssText = 'position:absolute;top:50%;left:50%;width:320px;height:32
 container.appendChild(portal);
 }},
 {text: "TAPO, NO!! But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
-html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px"><strong style='color:#dc2626'>TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
+html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
