@@ -641,7 +641,7 @@ const slotsLeft = tpi - targetCount;
 const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
 
 let btns = '';
-if(canTargetAll && targetCount === 0) {
+if(canTargetAll && targetCount === 0 && tpi > 1) {
   btns += `<button class="btn" onclick="targetAll()" style="padding:0.4rem 1rem;font-size:0.9rem;background:#3b82f6">⚡ Target All</button>`;
 }
 if(targetCount > 0) {
