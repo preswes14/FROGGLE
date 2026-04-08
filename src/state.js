@@ -64,7 +64,6 @@ lastNeutral: null,  // Last neutral encountered (for non-repeat)
 ambushed: false,    // Whether current combat is an ambush
 
 // ===== TEMPORARY NEUTRAL STATE (resets on death) =====
-silverKeyHeld: false,     // Silver key from Ghost Boys
 oracleHero: null,         // Hero chosen at Oracle
 oracleRoll: null,         // Roll result at Oracle
 oracleStat: null,         // Stat chosen at Oracle
@@ -1309,7 +1308,6 @@ S.lastNeutral = r.lastNeutral || null;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
-S.silverKeyHeld = r.silverKeyHeld || false;
 S.oracleHero = r.oracleHero || null;
 S.oracleRoll = r.oracleRoll || null;
 S.oracleStat = r.oracleStat || null;
@@ -1462,7 +1460,6 @@ neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
-silverKeyHeld: S.silverKeyHeld || false,
 oracleHero: S.oracleHero,
 oracleRoll: S.oracleRoll,
 oracleStat: S.oracleStat,
