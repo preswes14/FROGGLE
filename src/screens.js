@@ -1528,7 +1528,7 @@ html: `
 </div>
 </div>
 </div>
-<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem">But as they rush forward, one tiny eye cracks open. The little tadpole lets out a mighty <strong style="color:#fbbf24">belch</strong>, filling the room with the unmistakable scent of Flydra flesh.</div>
+<div class="narrative-text" style="font-size:1.25rem;line-height:1.4;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem">But as they rush forward, one tiny eye cracks open. The little tadpole lets out a mighty <strong style="color:#fbbf24">belch</strong>, filling the room with the unmistakable scent of Flydra flesh.</div>
 `},
 {bg: 'assets/victory-room.png', text: "Scattered around Tapo are small carvings — figurines of the heroes who came to save him! Clutched in his budding appendages, he offers them proudly."},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
