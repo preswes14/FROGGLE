@@ -1035,10 +1035,10 @@ If you need help, look for the:
 </p>
 <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap">
 <div style="text-align:center">
-<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Help/FAQ</div>
+<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">? Help/FAQ</div>
 </div>
 <div style="text-align:center">
-<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Sigilarium</div>
+<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">✦ Sigilarium</div>
 </div>
 </div>
 </div>

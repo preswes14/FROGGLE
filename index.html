@@ -32,6 +32,7 @@ body.electron-app * { cursor: none; }
 body.electron-app .btn, body.electron-app button, body.electron-app [onclick] { cursor: none; }
 body.fu-mode { background: linear-gradient(135deg, #2a231c 0%, #1a1612 100%); color: #e8d5c0; }
 h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; }
+.modal-container, .btn, .neutral-btn, .choice, .card, .tutorial-modal { font-family: 'Fredoka One', cursive; }
 
 /* Landscape orientation enforcement for mobile */
 @media (max-width: 768px) and (orientation: portrait) {
@@ -88,14 +89,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   }
 }
 
-@keyframes portalGlow {
-  0%, 100% {
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(220, 38, 38, 0.8));
-  }
-  50% {
-    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9)) drop-shadow(0 0 30px rgba(220, 38, 38, 1));
-  }
-}
+
 
 .rotate-message {
   font-size: 1.5rem;
@@ -288,7 +282,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .choice:hover { transform: translateY(-2px); background: #374151; box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.25); }
 .choice:focus-visible { outline: 3px solid #22c55e; outline-offset: 2px; }
 .choice:active { transform: translateY(4px) scale(0.98); background: #111827; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.2); }
-.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #22c55e; border-radius: 14px; background: #1f2937; color: #f0f0f0; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 3px 0 rgba(0,0,0,0.4), 0 4px 8px rgba(0,0,0,0.25); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
+.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #22c55e; border-radius: 16px; background: #1f2937; color: #f0f0f0; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
 .neutral-btn:hover { transform: translateY(-1px); opacity: 0.95; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 10px rgba(0,0,0,0.2); }
 .neutral-btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15); }
@@ -506,9 +500,9 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .card.hero .sigil-row { flex-wrap: nowrap; gap: 2px; }
 .card.hero .sigil-row .sigil { flex-shrink: 1; min-width: 28px; min-height: 28px; padding: 4px; font-size: 0.9rem; }
 .card.hero .sigil-row .sigil img { height: 1.3em; }
-.card.enemy { background: radial-gradient(ellipse at 50% 35%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%); color: white; width: 170px; border: 2px solid #dc2626; }
+.card.enemy { background: radial-gradient(ellipse at 50% 35%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%); color: white; width: 170px; border: 2px solid #dc2626; border-radius: 16px; }
 .card.enemy.flydra { width: 200px; max-width: 200px; }
-.card.enemy::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #dc2626, #f87171, #dc2626, transparent); border-radius: 8px 8px 0 0; pointer-events: none; }
+.card.enemy::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, #dc2626, #f87171, #dc2626, transparent); border-radius: 16px 16px 0 0; pointer-events: none; }
 .enemy-art { border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 .hero-portrait { width: 140px; height: 140px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: none; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
@@ -3318,10 +3312,6 @@ body.controller-active .controller-prompts {
   50% { transform: translate(-3px, 4px); }
   75% { transform: translate(6px, 3px); }
 }
-@keyframes spinTapo {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 @keyframes spinPortalReverse {
   from { transform: translate(-50%,-50%) rotate(0deg); }
   to { transform: translate(-50%,-50%) rotate(-360deg); }
@@ -3537,7 +3527,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.60';
+const GAME_VERSION = 'S_2.65';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9664,11 +9654,11 @@ const hpBefore = h.h;
 const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
 let msg = `${h.n} took Grapple recoil:`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
-msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+msg += ` -${damage.shieldLost}🛡 -${damage.hpLost}❤`;
 } else if(damage.shieldLost > 0) {
-msg += ` -${damage.shieldLost}🛡️`;
+msg += ` -${damage.shieldLost}🛡`;
 } else if(damage.hpLost > 0) {
-msg += ` -${damage.hpLost}❤️`;
+msg += ` -${damage.hpLost}❤`;
 }
 toast(msg);
 // Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
@@ -10445,11 +10435,11 @@ setHeroReaction(hero.id, 'pained', hero.ls ? 0 : 600);
 // Build detailed damage message with HP change
 let msg = `${source} hit ${hero.n} (❤${hpBefore}→❤${hpAfter}):`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
-msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+msg += ` -${damage.shieldLost}🛡 -${damage.hpLost}❤`;
 } else if(damage.shieldLost > 0) {
-msg += ` -${damage.shieldLost}🛡️`;
+msg += ` -${damage.shieldLost}🛡`;
 } else if(damage.hpLost > 0) {
-msg += ` -${damage.hpLost}❤️`;
+msg += ` -${damage.hpLost}❤`;
 }
 toast(msg);
 }
@@ -10615,7 +10605,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh.", () => {
+showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the <strong style=\"color:#f97316\">? FAQ</strong> and <strong style=\"color:#9333ea\">✦ Sigilarium</strong> for tips. You're on your own after this - don't croak... Heh.", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -11379,7 +11369,7 @@ saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
 S.tutorialFlags.faq_intro = true;
-showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong>Sigilarium</strong> - View all sigils and their effects<br><strong>Log</strong> - See combat message history<br><strong>FAQ</strong> - Frequently asked questions about game mechanics<br><strong>Settings</strong> - Adjust game options and preferences", () => {
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong style=\"color:#9333ea\">✦ Sigilarium</strong> - View all sigils and their effects<br><strong style=\"color:#22c55e\">... Log</strong> - See combat message history<br><strong style=\"color:#f97316\">? FAQ</strong> - Frequently asked questions about game mechanics<br><strong style=\"color:#3b82f6\">⚙ Settings</strong> - Adjust game options and preferences", () => {
 startFloor(S.floor + 1);
 });
 return;
@@ -13025,10 +13015,10 @@ If you need help, look for the:
 </p>
 <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap">
 <div style="text-align:center">
-<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Help/FAQ</div>
+<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">? Help/FAQ</div>
 </div>
 <div style="text-align:center">
-<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Sigilarium</div>
+<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">✦ Sigilarium</div>
 </div>
 </div>
 </div>
@@ -17241,10 +17231,6 @@ let html = `
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.08); opacity: 1; }
 }
-@keyframes champions-portal-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
 </style>
 <div style="position:relative;max-width:800px;margin:0 auto">
 <h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
@@ -17672,10 +17658,6 @@ html: `
   40% { transform: translateX(3px); }
   60% { transform: translateX(-2px); }
   80% { transform: translateX(2px); }
-}
-@keyframes tapoSneak {
-  0% { transform: translateX(0) scaleX(-1); opacity: 1; }
-  100% { transform: translateX(120px) scaleX(-1); opacity: 0; }
 }
 </style>
 <div style="position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden">
@@ -18641,6 +18623,10 @@ function showQuestBoard() {
   border-radius: 6px;
   border: 2px solid transparent;
   transition: all 0.2s;
+  cursor: default;
+}
+.quest-item:hover {
+  background: rgba(255,255,255,0.15);
 }
 .quest-item.complete {
   border-color: #22c55e;
@@ -18790,10 +18776,6 @@ let html = `
 @keyframes ribbleton-portal-pulse {
   0%, 100% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 30px #dc2626; }
   50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 50px #dc2626; }
-}
-@keyframes ribbleton-portal-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 @keyframes quest-board-glow {
   0%, 100% { box-shadow: 0 0 10px rgba(251,191,36,0.2); }
@@ -19798,6 +19780,17 @@ a: `There are two ways to upgrade sigils:<br><br>
 Your total sigil level = Permanent (Gold) + Temporary (XP) upgrades.`
 },
 {
+q: "How do I spend XP after combat?",
+a: `After combat, you can spend XP in 3 ways:<br><br>
+<strong>1. UPGRADE A SIGIL</strong> (makes it stronger everywhere!)<br>
+<strong style="color:#9333ea">Passive Sigils</strong> (Expand, Asterisk, Star) start at Level 0 (inactive). Spend XP to activate them for ALL heroes automatically.<br>
+<strong style="color:#2c63c7">Active Sigils</strong> (Attack, Shield, Heal, D20, etc.) start at Level 1. Upgrading makes them stronger on every hero who has them. Example: Attack L1→L2 means attack twice instead of once!<br><br>
+<strong>2. ADD A SIGIL TO A HERO</strong><br>
+All heroes can learn any sigil by spending XP! Active sigils use your hero's 1 action per turn. Choose abilities that complement your strategy.<br><br>
+<strong>3. UPGRADE HERO STATS</strong><br>
+Spend XP for +1 POW (increases damage/healing/shields) or +5 Max HP (and heal if in Last Stand).`
+},
+{
 q: "Why does Attack show as L1 when I haven't upgraded it?",
 a: `Active sigils (${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}, ${sigilText('Grapple')}, ${sigilText('Ghost')}, ${sigilText('D20')}, ${sigilText('Alpha')}) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
 <strong>Example:</strong> ${sigilText('Attack')} storage level 0 = displays as L1 (1 attack per action)<br>
@@ -19888,46 +19881,10 @@ let html = `
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
 <h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">FROGGLE</h3>
-<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Chase Tapo through a portal torn open by the Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
-
-<div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem;color:#1a1a1a">
-<h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">HOW LEVEL-UPS WORK</h4>
-<p style="font-size:0.9rem;margin:0 0 0.5rem 0">After combat, you can spend XP in 3 ways:</p>
-
-<div style="margin-left:1rem;font-size:0.9rem;line-height:1.6">
-<p style="margin:0.5rem 0"><strong>1. UPGRADE A SIGIL</strong> (makes it stronger everywhere!)</p>
-<div style="margin-left:1rem;margin-bottom:0.75rem">
-<p style="margin:0.25rem 0"><strong style="color:#9333ea">Passive Sigils</strong> (Expand, Asterisk, Star):</p>
-<ul style="margin:0.25rem 0;padding-left:1.5rem">
-<li>Start at Level 0 (inactive)</li>
-<li>Spend XP to upgrade to Level 1 to activate for ALL heroes automatically</li>
-<li>Work automatically in battle - no action needed</li>
-</ul>
-<p style="margin:0.5rem 0 0.25rem 0"><strong style="color:#2c63c7">Active Sigils</strong> (Attack, Shield, Heal, D20, etc.):</p>
-<ul style="margin:0.25rem 0;padding-left:1.5rem">
-<li>Start at Level 1 effectiveness</li>
-<li>Upgrading makes them stronger on every hero who has them</li>
-<li>Example: Attack L1→L2 means attack twice instead of once!</li>
-</ul>
-</div>
-
-<p style="margin:0.5rem 0"><strong>2. ADD A SIGIL TO A HERO</strong></p>
-<ul style="margin:0.25rem 0 0.75rem 1.5rem;padding-left:1.5rem">
-<li>All heroes can learn any sigil by spending XP!</li>
-<li>Active sigils use your hero's 1 action per turn</li>
-<li>Choose abilities that complement your strategy</li>
-</ul>
-
-<p style="margin:0.5rem 0"><strong>3. UPGRADE HERO STATS</strong></p>
-<ul style="margin:0.25rem 0;padding-left:1.5rem">
-<li>Spend XP for +1 POW (increases damage/healing/shields)</li>
-<li>Spend XP for +5 Max HP (and heal if in Last Stand)</li>
-</ul>
-</div>
-</div>
+<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:0.5rem">Use XP to gain and upgrade powerful sigils. Chase Tapo through a portal torn open by the Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
 <div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-top:1rem">
-<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">▸ PRO TIPS</h4>
+<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">PRO TIPS</h4>
 <ul style="margin:0;padding-left:1.5rem;font-size:0.85rem;line-height:1.5">
 <li><strong>Mage & Healer Start Stronger:</strong> They get +1 Expand built-in, so their actions hit 1 extra target from the start!</li>
 <li><strong>Shields Persist:</strong> Before winning a battle, use remaining actions to shield your team - they carry over to the next fight!</li>
