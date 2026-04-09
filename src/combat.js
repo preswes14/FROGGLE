@@ -504,11 +504,6 @@ if(validTargets.length > 0) {
     S.currentInstanceTargets.push(id);
   });
   S.rememberedTargetsApplied = true;
-  // Auto-confirm if remembered targets fill the instance completely
-  if(S.currentInstanceTargets.length >= getTargetsPerInstance(sig, heroIdx)) {
-    confirmTargets();
-    return;
-  }
 }
 }
 render();
@@ -3619,7 +3614,7 @@ function showLevelUpIntroTutorial() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
-<div class="tutorial-modal" style="max-width:550px;text-align:left">
+<div class="tutorial-modal" style="max-width:715px;text-align:left">
 <h2 style="text-align:center;color:#22c55e;margin-bottom:1rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! FROGGLE is all about finding cool upgrade combos. Here are your options:</p>
 

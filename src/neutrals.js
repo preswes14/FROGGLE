@@ -948,13 +948,13 @@ v.innerHTML = `
 
 <!-- Text bar at top -->
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(34,197,94,0.5)">
-<div style="max-width:700px;margin:0 auto">
+<div style="max-width:910px;margin:0 auto">
 ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-height:1.5;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">${slideText}</div>`}
 </div>
 </div>
 
 <!-- Continue button - bottom right -->
-<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.1rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 1.25rem;font-size:1.2rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
 <!-- Skip button - bottom left -->
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
@@ -964,10 +964,10 @@ ${skipButtonFullArt}
 const bgColorStyle = slide.bgColor ? `background:${slide.bgColor}` : 'background:rgba(0,0,0,0.3)';
 v.innerHTML = `
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;${bgColorStyle}">
-<div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+<div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 ${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
-<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 1.5rem;font-size:1.15rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
 <div style="margin-top:1rem;font-size:0.9rem;opacity:0.6;color:#ccc">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
@@ -1011,7 +1011,7 @@ function showSkipTutorialConfirmation(proceedCallback) {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:500px">
+<div class="tutorial-modal" style="max-width:650px">
 <h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ!</h2>
 <p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
 No time to waste, eh? Well then get going! Save Tapo!
@@ -1082,7 +1082,7 @@ if (!container) return;
 // Keyframes (tapoSignature, tankIdle, warriorIdle, mageIdle, healerIdle) defined in template_head.html
 // Place heroes scattered around the town
 const heroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: 'calc(20% + 20px)', bottom: '30%', width: '178px', anim: 'tankIdle 5s ease-in-out infinite' },
   { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
   { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '120px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
   { src: 'assets/mage_normal.png', alt: 'Mage', left: '68%', bottom: '20%', width: '145px', anim: 'mageIdle 3.8s ease-in-out infinite' },
@@ -1110,7 +1110,7 @@ if (!container) return;
 // Keyframes defined in template_head.html
 // Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
 const bgHeroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: 'calc(20% + 20px)', bottom: '30%', width: '178px', anim: 'tankIdle 5s ease-in-out infinite' },
   { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
   { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '23%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
@@ -1183,7 +1183,7 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding-bottom:2rem;';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:400px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
+<div class="tutorial-modal" style="max-width:520px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
 <p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
 Here come three <strong>flies</strong> now - you're up!
 </p>
@@ -1251,7 +1251,7 @@ const flyText = flyCount === 1 ? 'fly' : 'flies';
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:600px">
+<div class="tutorial-modal" style="max-width:780px">
 <div style="text-align:center">
 <div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:1rem">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:120px;height:auto;transform:scaleX(-1)">
@@ -1417,7 +1417,7 @@ function showTutorialStoryOverlay() {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:500px">
+<div class="tutorial-modal" style="max-width:650px">
 <h2>Reinforcements!</h2>
 <p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
