@@ -16293,7 +16293,7 @@ headerColor = '#fff';
 
 const v = document.getElementById('gameView');
 const html = `
-<div class="modal-container" style="max-width:455px">
+<div class="modal-container">
 <div style="background:${headerBg};padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? 'Victory!' : 'Journey'} #${run.runNumber}</h2>
 </div>
@@ -16417,7 +16417,7 @@ function getHeroRunStats(heroName) {
 
 const v = document.getElementById('gameView');
 let html = `
-<div class="modal-container" style="max-width:650px;max-height:85vh;overflow-y:auto">
+<div class="modal-container">
 <div style="background:linear-gradient(135deg,#1e3a5f,#1e293b);padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:#60a5fa;font-size:1.3rem">Hero Stats</h2>
 </div>
@@ -17037,7 +17037,7 @@ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background
 overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
 
 overlay.innerHTML = `
-<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;max-width:650px;width:100%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;min-width:650px;max-width:900px;width:90%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
 <h3 style="color:${accentColor};margin-bottom:0.5rem;text-align:center;font-size:1.3rem">${title}</h3>
 <p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9;text-align:center">${desc}</p>
 ${infoLines}
