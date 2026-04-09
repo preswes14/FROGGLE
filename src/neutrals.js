@@ -1341,7 +1341,7 @@ v.innerHTML = `
 </div>
 <p style="font-size:1.2rem;color:#fff;background:rgba(0,0,0,0.7);padding:0.75rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
-Bellies overflowing, the pair gleefully makes their way back to Ribbleton.
+Bellies overflowing, Mage and Tapo gleefully make their way back to Ribbleton.
 </p>
 <button onclick="showFlydraAppearance()" class="tutorial-btn" style="padding:1rem 2rem;font-size:1.2rem;margin-top:1.5rem">Continue</button>
 </div>

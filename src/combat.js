@@ -166,7 +166,7 @@ S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
-S.lastTargetPattern={}; // Remember targets: {heroIdx_sigil: [targetIds]} S.rememberedTargetsApplied=false;
+S.lastTargetPattern={}; // Remember targets for actAndAutoTarget: {heroIdx_sigil: [targetIds]}
 // Clear Alpha state from any previous combat
 S.alphaGrantedActions = []; S.alphaCurrentAction = 0; S.alphaLevel = 0;
 // Don't clear recruits here - they may have been added before combat (e.g., Encampment straggler)
@@ -483,28 +483,9 @@ S.instancesRemaining = level * repeats;
 S.totalInstances = level * repeats; // Track for color roll-down
 S.targets = [];
 S.currentInstanceTargets = [];
-S.rememberedTargetsApplied = false;
 // Shield persistence tutorial: show first time player clicks Shield
 if(sig === 'Shield') {
 showTutorialPop('shield_persistence', `${sigilText('Shield')} caps at max HP, but persists between battles! Hint - shield up before finishing a fight, and you'll enter the next fight with protection!`);
-}
-// Apply remembered targets from last time (pre-fill as suggestion, don't auto-confirm)
-const patternKey = heroIdx + '_' + sig;
-const remembered = S.lastTargetPattern[patternKey];
-if(remembered && remembered.length > 0) {
-const tpi = getTargetsPerInstance(sig, heroIdx);
-const isEnemy = needsEnemyTarget(sig);
-const validTargets = remembered.filter(id => {
-  if(isEnemy) return S.enemies.some(e => e.id === id && e.h > 0);
-  return S.heroes.some(h => h.id === id && (h.h > 0 || h.ls));
-}).slice(0, tpi);
-if(validTargets.length > 0) {
-  validTargets.forEach(id => {
-    S.targets.push(id);
-    S.currentInstanceTargets.push(id);
-  });
-  S.rememberedTargetsApplied = true;
-}
 }
 render();
 // Auto-focus target for controller users
@@ -1095,7 +1076,6 @@ const heroIdx = S.activeIdx;
 // Remember this targeting pattern for next time
 const patternKey = heroIdx + '_' + S.pending;
 S.lastTargetPattern[patternKey] = [...S.currentInstanceTargets];
-S.rememberedTargetsApplied = false;
 
 if(S.pending === 'Attack') {
 // SAFEGUARD: Make a copy of targets before clearing
@@ -1201,17 +1181,8 @@ if(S.currentInstanceTargets.includes(id)) {
 }
 // Check if we can add more
 if(S.currentInstanceTargets.length >= targetsPerInstance) {
-  if(S.rememberedTargetsApplied) {
-    // Replace remembered targets with new selection
-    S.currentInstanceTargets.forEach(oldId => {
-      S.targets = S.targets.filter(t => t !== oldId);
-    });
-    S.currentInstanceTargets = [];
-    S.rememberedTargetsApplied = false;
-  } else {
-    toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
-    return;
-  }
+  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+  return;
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
@@ -1237,16 +1208,8 @@ if(S.currentInstanceTargets.includes(id)) {
 }
 // Check if we can add more
 if(S.currentInstanceTargets.length >= targetsPerInstance) {
-  if(S.rememberedTargetsApplied) {
-    S.currentInstanceTargets.forEach(oldId => {
-      S.targets = S.targets.filter(t => t !== oldId);
-    });
-    S.currentInstanceTargets = [];
-    S.rememberedTargetsApplied = false;
-  } else {
-    toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
-    return;
-  }
+  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+  return;
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
@@ -1293,16 +1256,8 @@ if(S.currentInstanceTargets.includes(id)) {
 }
 // Check if we can add more
 if(S.currentInstanceTargets.length >= targetsPerInstance) {
-  if(S.rememberedTargetsApplied) {
-    S.currentInstanceTargets.forEach(oldId => {
-      S.targets = S.targets.filter(t => t !== oldId);
-    });
-    S.currentInstanceTargets = [];
-    S.rememberedTargetsApplied = false;
-  } else {
-    toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
-    return;
-  }
+  toast(`Max ${targetsPerInstance} targets! Click a target to remove it.`);
+  return;
 }
 S.targets.push(id);
 S.currentInstanceTargets.push(id);
