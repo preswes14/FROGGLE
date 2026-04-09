@@ -752,10 +752,10 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 50000; display: flex; align-items: center; justify-content: center; }
-.tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; min-width: 600px; max-width: 910px; max-height: 90vh; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
-.tutorial-modal h2 { margin-top: 0; color: #22c55e; }
-.tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.4; background: rgba(34,197,94,0.15); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.4); color: #f0f0f0; }
-.tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
+.tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 1.25rem 2rem; min-width: 750px; max-width: 910px; max-height: 90vh; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
+.tutorial-modal h2 { margin-top: 0; margin-bottom: 0.5rem; color: #22c55e; }
+.tutorial-modal p { margin: 0.5rem 0; font-size: 1.1rem; line-height: 1.3; background: rgba(34,197,94,0.15); padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.4); color: #f0f0f0; }
+.tutorial-modal button { margin-top: 0.75rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #fbbf24; border-radius: 8px; cursor: pointer; max-width: 50%; margin-left: auto; margin-right: auto; display: block; }
 .tutorial-modal button:hover { background: #15803d; }
 .tutorial-modal button:active { transform: scale(0.98); }
 .choice.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
@@ -12920,7 +12920,7 @@ const bgColorStyle = slide.bgColor ? `background:${slide.bgColor}` : 'background
 v.innerHTML = `
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;${bgColorStyle}">
 <div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
-${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
+${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.4;margin-bottom:0.75rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
 <button class="btn" onclick="continueNarrative()" style="padding:0.85rem 1.5rem;font-size:1.15rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
@@ -12966,13 +12966,13 @@ function showSkipTutorialConfirmation(proceedCallback) {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:650px">
-<h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ!</h2>
-<p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
+<div class="tutorial-modal">
+<h2 style="font-size:1.5rem;text-align:center">Alright champ!</h2>
+<p style="text-align:center">
 No time to waste, eh? Well then get going! Save Tapo!
 </p>
-<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:12px;padding:1rem;margin-bottom:1.5rem">
-<p style="font-size:0.95rem;line-height:1.5;text-align:center;margin-bottom:0.75rem">
+<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:12px;padding:0.75rem;margin-bottom:0.5rem">
+<p style="font-size:0.95rem;text-align:center;margin-bottom:0.5rem">
 If you need help, look for the:
 </p>
 <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap">
@@ -12984,7 +12984,7 @@ If you need help, look for the:
 </div>
 </div>
 </div>
-<p style="font-size:0.8rem;line-height:1.4;text-align:center;margin-bottom:1.5rem;opacity:0.7">
+<p style="font-size:0.8rem;text-align:center;opacity:0.7">
 (Help/tips can be disabled in Settings)
 </p>
 <button onclick="confirmSkipTutorial()" class="tutorial-btn" style="padding:0.75rem 2rem;font-size:1.1rem;display:block;margin:0 auto">Let's go!</button>
@@ -13138,11 +13138,9 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding-bottom:2rem;';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:650px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
-<p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
-Here come three <strong>flies</strong> now - you're up!
-</p>
-<button onclick="dismissTaposBirthdayOverlay()" style="margin-top:0.75rem;padding:0.6rem 1.5rem;font-size:1rem;">Let's catch flies!</button>
+<div class="tutorial-modal" style="padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
+<p>Here come three <strong>flies</strong> now - you're up!</p>
+<button onclick="dismissTaposBirthdayOverlay()" class="tutorial-btn">Let's catch flies!</button>
 </div>`;
 document.body.appendChild(overlay);
 }
@@ -13206,20 +13204,20 @@ const flyText = flyCount === 1 ? 'fly' : 'flies';
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:780px">
+<div class="tutorial-modal">
 <div style="text-align:center">
-<div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:1rem">
-<img src="assets/tapo_normal.png" alt="Tapo" style="width:120px;height:auto;transform:scaleX(-1)">
+<div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:0.5rem">
+<img src="assets/tapo_normal.png" alt="Tapo" style="width:100px;height:auto;transform:scaleX(-1)">
 </div>
-<h2 style="color:#22c55e;margin-bottom:1rem">Tapo to the Rescue!</h2>
-<p style="font-size:1.1rem;line-height:1.7;margin-bottom:1.5rem">
+<h2 style="color:#22c55e">Tapo to the Rescue!</h2>
+<p>
 Just as the ${flyText} ${flyCount === 1 ? 'is' : 'are'} about to finish off Mage, <strong class="text-tapo">Tapo</strong> leaps into action!
-<br><br>
+<br>
 His sticky tongue lashes out and <strong>swallows the ${flyText} whole!</strong>
-<br><br>
+<br>
 <span style="font-size:0.9rem;opacity:0.8">(In normal combat, your hero would enter "Last Stand" mode - but Tapo's got your back for now!)</span>
 </p>
-<button onclick="continueTapoRescue()" class="tutorial-btn" style="padding:1rem 2.5rem;font-size:1.3rem">
+<button onclick="continueTapoRescue()" class="tutorial-btn" style="padding:0.75rem 2.5rem;font-size:1.2rem">
 *ribbit*
 </button>
 </div>
@@ -13295,7 +13293,7 @@ v.innerHTML = `
 <div style="animation:danceTapo 0.5s ease-in-out infinite;margin:1rem 0">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:100px;height:auto;transform:scaleX(-1)">
 </div>
-<p style="font-size:1.2rem;line-height:1.7;margin:1rem 0;color:#fff;background:rgba(0,0,0,0.7);padding:1rem;border-radius:8px">
+<p style="font-size:1.2rem;color:#fff;background:rgba(0,0,0,0.7);padding:0.75rem;border-radius:8px">
 Tapo squeals with delight, and munches down another delicious fresh fly!<br>
 Bellies overflowing, the pair gleefully makes their way back to Ribbleton.
 </p>
@@ -13313,7 +13311,7 @@ html: `
 <div style="margin:1.5rem 0;position:relative">
 <img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3) drop-shadow(0 0 25px rgba(220,38,38,0.8)) drop-shadow(0 0 50px rgba(220,38,38,0.4));animation:flydraDescend 1.5s ease-out, flydraPulseGlow 2s ease-in-out 1.5s infinite">
 </div>
-<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
+<p style="color:#f5f5f5">
 A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong class="text-flydra">Flydra</strong>, mother of all flies. She must have caught you chowing on her children!!
 </p>
 <!-- flydraShake, flydraDescend, flydraPulseGlow keyframes defined in template_head.html -->
@@ -13345,7 +13343,7 @@ html: `
 <img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto" onerror="this.outerHTML='👹'">
 </div>
 </div>
-<p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
+<p style="color:#f5f5f5">
 In her rage, the Flydra <strong class="text-danger">tears open a dark portal</strong>! Creatures start pouring out into Ribbleton!
 </p>
 <!-- narrativePortalPulse, flydraPortalHover, enemyAppear keyframes defined in template_head.html -->
@@ -13373,7 +13371,7 @@ function showTutorialStoryOverlay() {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:650px">
+<div class="tutorial-modal">
 <h2>Reinforcements!</h2>
 <p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
@@ -13529,7 +13527,7 @@ html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff"
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
 {bgColor: '#1a1a1a', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
-html: `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong class="text-danger">He can't help himself!</strong></div>`,
+html: `<div class="narrative-text" style="font-size:1.25rem;line-height:1.4;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong class="text-danger">He can't help himself!</strong></div>`,
 onShow: () => {
 GameMusic.play(null, 'combat_19');
 const container = document.querySelector('.full-screen-content');
@@ -17597,7 +17595,7 @@ html: `
 </div>
 </div>
 </div>
-<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem">But as they rush forward, one tiny eye cracks open. The little tadpole lets out a mighty <strong style="color:#fbbf24">belch</strong>, filling the room with the unmistakable scent of Flydra flesh.</div>
+<div class="narrative-text" style="font-size:1.25rem;line-height:1.4;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9);margin-top:1rem">But as they rush forward, one tiny eye cracks open. The little tadpole lets out a mighty <strong style="color:#fbbf24">belch</strong>, filling the room with the unmistakable scent of Flydra flesh.</div>
 `},
 {bg: 'assets/victory-room.png', text: "Scattered around Tapo are small carvings — figurines of the heroes who came to save him! Clutched in his budding appendages, he offers them proudly."},
 {bg: 'assets/victory-room.png', text: "The heroes notice that the statues are juuust the right size to slot into the nearby pedestal!", action: 'statue_slotting'},
