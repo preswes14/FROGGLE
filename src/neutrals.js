@@ -1657,6 +1657,24 @@ upd();
 // Reset selection first
 sel = [];
 
+// Determine Tapo's Chosen hero type (least-used from pond history, run 2+)
+chosenHeroType = null;
+if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
+const usageCounts = {};
+S.pondHistory.forEach(run => {
+  (run.heroes || []).forEach(heroName => {
+    usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
+  });
+});
+const allHeroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
+if(S.tapoUnlocked) allHeroes.push('Tapo');
+const heroUsages = allHeroes.map(n => ({ name: n, usage: usageCounts[n] || 0 }));
+const minUsage = Math.min(...heroUsages.map(h => h.usage));
+const leastUsed = heroUsages.filter(h => h.usage === minUsage);
+const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
+chosenHeroType = chosen.name;
+}
+
 const v = document.getElementById('gameView');
 // Hero selection is a normal scrollable screen
 v.classList.remove('no-scroll');
@@ -1777,8 +1795,10 @@ const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
 return `<span class="sigil l1 ${passiveClass}" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
+const isChosen = chosenHeroType === hData.name;
 cardsHtml += `
-<div class="card hero" style="cursor:pointer;width:200px;max-width:200px" onclick="event.stopPropagation();toggleHeroSelection('${h}')">
+<div class="card hero${isChosen ? ' chosen-one' : ''}" style="cursor:pointer;width:200px;max-width:200px" onclick="event.stopPropagation();toggleHeroSelection('${h}')">
+${isChosen ? '<img src="assets/tapo_happy.png" alt="Tapo\'s Chosen" title="Tapo\'s Chosen: +1 Gold per floor cleared" class="chosen-tapo-badge">' : ''}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">
 <div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${hData.pow}💥</div>
 ${heroImage ? `<img src="${heroImage}" alt="${hData.name}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};${heroFlipStyle(heroImage)}">` : ''}
@@ -1982,29 +2002,11 @@ hero.h += 5;
 }
 });
 
-// Chosen Hero: On run 2+, pick randomly from least-used heroes among selected
-S.chosenHeroIdx = -1; // Reset (no chosen hero by default)
-if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
-// Count usage of each hero from pond history
-const usageCounts = {};
-S.pondHistory.forEach(run => {
-(run.heroes || []).forEach(heroName => {
-usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
-});
-});
-// Find usage counts for heroes in current party
-const heroUsages = S.heroes.map((h, idx) => ({
-idx,
-name: h.n,
-usage: usageCounts[h.n] || 0
-}));
-// Find the minimum usage count
-const minUsage = Math.min(...heroUsages.map(h => h.usage));
-// Get all heroes with minimum usage
-const leastUsed = heroUsages.filter(h => h.usage === minUsage);
-// Randomly pick one from least-used
-const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
-S.chosenHeroIdx = chosen.idx;
+// Chosen Hero: use type determined at hero select screen
+S.chosenHeroIdx = -1;
+if(chosenHeroType) {
+const chosenIdx = S.heroes.findIndex(h => (h.base || h.n) === chosenHeroType);
+if(chosenIdx >= 0) S.chosenHeroIdx = chosenIdx;
 }
 
 initNeutralDeck();
