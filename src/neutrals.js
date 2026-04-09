@@ -603,7 +603,7 @@ function showCredits() {
 GameMusic.playScene('char_select');
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem">
 <div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:650px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 <h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">FROGGLE</h2>
 
@@ -700,7 +700,7 @@ const slot3 = getSlotMetadata(3);
 
 v.innerHTML = `
 <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:1rem;overflow:hidden;box-sizing:border-box">
-<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1rem;max-width:900px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5);max-height:95vh;overflow-y:auto">
+<div style="background:#22c55e;border:4px solid #000;border-radius:12px;padding:1rem;max-width:900px;width:100%;box-shadow:0 8px 16px rgba(0,0,0,0.5)">
 <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem;color:#000">Select Save Slot</h2>
 
 <div style="display:flex;gap:0.75rem;align-items:stretch">

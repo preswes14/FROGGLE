@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.55';
+const GAME_VERSION = 'S_2.56';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -28,11 +28,11 @@ const HERO_IMAGES = {
 // Hero portrait crop settings for card display
 // fit: 'contain' shows whole character with transparent background
 const HERO_CROP = {
-    'Warrior': { fit: 'cover', pos: 'top center' },
-    'Tank':    { fit: 'cover', pos: 'top center' },
-    'Mage':    { fit: 'cover', pos: 'top center' },
-    'Healer':  { fit: 'cover', pos: 'top center' },
-    'Tapo':    { fit: 'cover', pos: 'top center' }
+    'Warrior': { fit: 'cover', pos: 'center 20%' },
+    'Tank':    { fit: 'cover', pos: 'center 15%' },
+    'Mage':    { fit: 'cover', pos: 'center 18%' },
+    'Healer':  { fit: 'cover', pos: 'center 15%' },
+    'Tapo':    { fit: 'cover', pos: 'center 25%' }
 };
 
 // Hero reaction images (happy/pained expressions)

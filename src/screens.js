@@ -1019,7 +1019,7 @@ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background
 overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
 
 overlay.innerHTML = `
-<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;min-width:650px;max-width:900px;width:90%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;min-width:650px;max-width:900px;width:90%;max-height:80vh;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
 <h3 style="color:${accentColor};margin-bottom:0.5rem;text-align:center;font-size:1.3rem">${title}</h3>
 <p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9;text-align:center">${desc}</p>
 ${infoLines}
@@ -1246,7 +1246,13 @@ slotsHTML += `</div>`;
 // Labels for heroes across the top
 let heroLabelsHTML = '<div style="position:absolute;top:18%;left:10%;right:10%;display:flex;justify-content:space-around">';
 heroes.forEach(hero => {
-heroLabelsHTML += `<div style="text-align:center;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.9);font-size:0.8rem;font-weight:bold">${hero}</div>`;
+const hKey = hero.toLowerCase();
+const hImg = HERO_IMAGES[hKey] || '';
+const hCrop = HERO_CROP[hero] || { fit: 'cover', pos: 'center 20%' };
+const hFlip = hImg ? heroFlipStyle(hImg) : '';
+heroLabelsHTML += `<div style="text-align:center;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.9);font-size:0.8rem;font-weight:bold">
+${hImg ? `<img src="${hImg}" alt="${hero}" style="width:36px;height:36px;object-fit:${hCrop.fit};object-position:${hCrop.pos};border-radius:4px;${hFlip}display:block;margin:0 auto 2px">` : ''}
+${hero}</div>`;
 });
 heroLabelsHTML += '</div>';
 
@@ -1653,6 +1659,9 @@ return bonuses.map(b => b.stat === 'POW' ? '+1💥' : '+5❤').join(' ');
 let heroCardsHTML = '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin:1.5rem 0">';
 S.heroes.forEach(hero => {
 const pedestalBonus = getPedestalBonus(hero.n);
+const heroImage = HERO_IMAGES[hero.c || hero.n.toLowerCase()] || '';
+const crop = HERO_CROP[hero.n] || { fit: 'cover', pos: 'center 20%' };
+const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
 const sigilsHTML = hero.s.map(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const displayLevel = ['Expand', 'Asterisk', 'Star'].includes(sig) ? level : level + 1;
@@ -1660,6 +1669,7 @@ return `<span style="background:#1e293b;padding:2px 6px;border-radius:4px;font-s
 }).join(' ');
 heroCardsHTML += `
 <div style="background:linear-gradient(135deg,#1e3a5f,#0f172a);border:3px solid #22c55e;border-radius:12px;padding:1rem;min-width:140px;text-align:center">
+${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:60px;height:60px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}margin-bottom:0.4rem">` : ''}
 <div style="font-size:1.2rem;font-weight:bold;color:#22c55e;margin-bottom:0.5rem">${hero.n}</div>
 <div style="font-size:0.9rem;margin-bottom:0.5rem">${hero.p}💥 | ${hero.m}❤</div>
 ${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5rem">${pedestalBonus}</div>` : ''}
@@ -1710,10 +1720,14 @@ const isSlotted = !!slotted;
 // Can only slot if: hero earned a figurine AND this slot not filled AND hero hasn't slotted THIS victory session
 const heroAlreadySlottedThisVictory = window.heroesSlottedThisVictory.includes(hero);
 const canSlot = earnedFigurines.includes(hero) && !isSlotted && !heroAlreadySlottedThisVictory;
+const heroKey = hero.toLowerCase();
+const heroImg = HERO_IMAGES[heroKey] || '';
+const heroCrop = HERO_CROP[hero] || { fit: 'cover', pos: 'center 20%' };
+const heroFlip = heroImg ? heroFlipStyle(heroImg) : '';
 
 slotsHTML += `
 <div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;${canSlot ? 'cursor:pointer' : 'opacity:0.5'}" onclick="${canSlot ? `slotFirstVicFigurine('${hero}','${stat}')` : ''}">
-<div style="font-size:1.5rem">${heroIcons[hero] || '?'}</div>
+${heroImg ? `<img src="${heroImg}" alt="${hero}" style="width:50px;height:50px;object-fit:${heroCrop.fit};object-position:${heroCrop.pos};border-radius:6px;${heroFlip}">` : `<div style="font-size:1.5rem">${heroIcons[hero] || '?'}</div>`}
 <div style="font-size:0.8rem;font-weight:bold">${hero}</div>
 <div style="font-size:0.7rem;color:#94a3b8">${stat === 'POW' ? '+1 POW' : '+5 HP'}</div>
 ${isSlotted ? '<div style="color:#fbbf24;font-size:0.8rem;margin-top:0.5rem">✓ Slotted</div>' : (canSlot ? '<div style="color:#64748b;font-size:0.8rem;margin-top:0.5rem">Click to slot</div>' : '')}
