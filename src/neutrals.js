@@ -977,7 +977,7 @@ ${skipButtonFullArt}
 const bgColorStyle = slide.bgColor ? `background:${slide.bgColor}` : 'background:rgba(0,0,0,0.3)';
 v.innerHTML = `
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;${bgColorStyle}">
-<div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+<div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5);position:relative;z-index:10">
 ${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.4;margin-bottom:0.75rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
 <button class="btn" onclick="continueNarrative()" style="width:33%;padding:0.6rem 0;font-size:1.1rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff;text-align:center">${slide.buttonText || 'Continue'}</button>
@@ -1394,7 +1394,7 @@ html: `
 <div style="position:absolute;bottom:-15px;left:-20px;animation:enemyAppear 1s ease-out 0.7s both,enemyPulse 2.4s ease-in-out 2s infinite">
 <img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto;animation:enemyFlip 8s ease-in-out 2.5s infinite" onerror="this.outerHTML='👹'">
 </div>
-<div style="position:absolute;bottom:0px;left:35px;animation:enemyAppear 1.05s ease-out 0.8s both,enemyPulse 2.1s ease-in-out 1.7s infinite">
+<div style="position:absolute;bottom:10px;left:75px;animation:enemyAppear 1.05s ease-out 0.8s both,enemyPulse 2.1s ease-in-out 1.7s infinite">
 <img src="assets/wolf.png" alt="Wolf" style="width:60px;height:auto;animation:enemyFlip 9s ease-in-out 4s infinite" onerror="this.outerHTML='🐺'">
 </div>
 <div style="position:absolute;bottom:-15px;right:-20px;animation:enemyAppear 1.1s ease-out 0.9s both,enemyPulse 2.3s ease-in-out 2.2s infinite">
