@@ -3519,7 +3519,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.49';
+const GAME_VERSION = 'S_2.50';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -11309,14 +11309,15 @@ if(S.runStats) {
 const elapsed = Math.floor((Date.now() - S.runStats.startTime) / 1000);
 const mins = Math.floor(elapsed / 60);
 const secs = elapsed % 60;
-statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem;font-size:0.85rem;line-height:1.6">
-<div style="font-weight:bold;margin-bottom:0.25rem;color:#60a5fa">Run Stats</div>
-<div>Duration: ${mins}m ${secs < 10 ? '0' : ''}${secs}s</div>
-<div>XP: <span style="color:#22c55e">+${S.runStats.xpGained}</span> / <span style="color:#f87171">-${S.runStats.xpSpent}</span></div>
-<div>Gold: <span style="color:#fbbf24">${S.gold}</span> (started ${S.runStats.startGold})</div>
-<div>Damage Taken: <span style="color:#f87171">${S.runStats.damageTaken}</span></div>
-<div>Shielded: <span style="color:#60a5fa">${S.runStats.damageShielded}</span></div>
-<div>Healed: <span style="color:#22c55e">${S.runStats.damageHealed}</span></div>
+statsHtml = `<div style="background:rgba(0,0,0,0.35);border:2px solid rgba(255,255,255,0.15);border-radius:10px;padding:1rem 1.25rem;font-size:0.9rem;min-width:200px">
+<div style="font-weight:bold;font-size:1.1rem;color:#60a5fa;margin-bottom:0.4rem">Run Stats</div>
+<hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:0 0 0.6rem 0">
+<div style="margin-bottom:0.5rem"><span style="opacity:0.7">Duration</span><br><span style="font-weight:bold">${mins}m ${secs < 10 ? '0' : ''}${secs}s</span></div>
+<div style="margin-bottom:0.5rem"><span style="opacity:0.7">XP</span><br><span style="color:#22c55e;font-weight:bold">+${S.runStats.xpGained}</span> / <span style="color:#f87171;font-weight:bold">-${S.runStats.xpSpent}</span></div>
+<div style="margin-bottom:0.5rem"><span style="opacity:0.7">Gold</span><br><span style="color:#fbbf24;font-weight:bold">${S.gold}</span> <span style="opacity:0.6">(started ${S.runStats.startGold})</span></div>
+<div style="margin-bottom:0.5rem"><span style="opacity:0.7">Damage Taken</span><br><span style="color:#f87171;font-weight:bold">${S.runStats.damageTaken}</span></div>
+<div style="margin-bottom:0.5rem"><span style="opacity:0.7">Shielded</span><br><span style="color:#60a5fa;font-weight:bold">${S.runStats.damageShielded}</span></div>
+<div><span style="opacity:0.7">Healed</span><br><span style="color:#22c55e;font-weight:bold">${S.runStats.damageHealed}</span></div>
 </div>`;
 }
 
