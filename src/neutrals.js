@@ -955,7 +955,7 @@ ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-heigh
 </div>
 
 <!-- Continue button - bottom right -->
-<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 1.25rem;font-size:1.2rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 1.25rem;font-size:1.2rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff">${slide.buttonText || 'Continue'}</button>
 <!-- Skip button - bottom left -->
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
@@ -968,7 +968,7 @@ v.innerHTML = `
 <div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 ${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.4;margin-bottom:0.75rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
-<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 1.5rem;font-size:1.15rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 1.5rem;font-size:1.15rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
 <div style="margin-top:1rem;font-size:0.9rem;opacity:0.6;color:#ccc">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
@@ -1085,7 +1085,7 @@ if (!container) return;
 const heroes = [
   { src: 'assets/tank_normal.png', alt: 'Tank', left: 'calc(20% + 20px)', bottom: '30%', width: '178px', anim: 'tankIdle 5s ease-in-out infinite' },
   { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
-  { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '120px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
+  { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '80px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
   { src: 'assets/mage_normal.png', alt: 'Mage', left: '68%', bottom: '20%', width: '145px', anim: 'mageIdle 3.8s ease-in-out infinite' },
   { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '23%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
@@ -1129,7 +1129,7 @@ tapo.src = 'assets/tapo_normal.png';
 tapo.alt = 'Tapo';
 tapo.id = 'mage-teach-tapo';
 tapo.className = 'tutorial-sprite';
-tapo.style.cssText = 'left:48%;bottom:15%;width:120px;z-index:5;animation:tapoVaultToMage 1.6s linear forwards';
+tapo.style.cssText = 'left:48%;bottom:15%;width:80px;z-index:5;animation:tapoVaultToMage 1.6s linear forwards';
 container.appendChild(tapo);
 // Place Mage (stays in position with idle animation)
 const mage = document.createElement('img');
