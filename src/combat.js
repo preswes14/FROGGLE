@@ -2571,7 +2571,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh", () => {
+showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh.", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -2977,7 +2977,13 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Alpha'].includes(s);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
-return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
+// Tutorial pulse: highlight the sigil the player must use
+const isTutorialPulse = tutorialState && S.floor === 0 && (
+(tutorialState.stage === 'warrior_attack' && i === 0 && s === 'Attack') ||
+(tutorialState.stage === 'healer_d20' && i === 1 && s === 'D20') ||
+(tutorialState.stage === 'healer_heal' && i === 1 && s === 'Heal')
+);
+return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''} ${isTutorialPulse?'tutorial-pulse':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl, lvl)}</span>`;
 };
@@ -3190,40 +3196,22 @@ return;
 }
 
 const v = document.getElementById('gameView');
+v.classList.add('no-scroll');
 const nextCost = getXPCost(S.levelUpCount);
 const canAfford = S.xp >= nextCost;
 const spendStyle = canAfford
   ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
   : 'opacity:0.5;text-align:center';
-// Run stats panel
-let statsHtml = '';
-if(S.runStats) {
-const elapsed = Math.floor((Date.now() - S.runStats.startTime) / 1000);
-const mins = Math.floor(elapsed / 60);
-const secs = elapsed % 60;
-statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem;font-size:0.85rem;line-height:1.6">
-<div style="font-weight:bold;margin-bottom:0.25rem;color:#60a5fa">Run Stats</div>
-<div>Duration: ${mins}m ${secs < 10 ? '0' : ''}${secs}s</div>
-<div>XP: <span style="color:#22c55e">+${S.runStats.xpGained}</span> / <span style="color:#f87171">-${S.runStats.xpSpent}</span></div>
-<div>Gold: <span style="color:#fbbf24">${S.gold}</span> (started ${S.runStats.startGold})</div>
-<div>Damage Taken: <span style="color:#f87171">${S.runStats.damageTaken}</span></div>
-<div>Shielded: <span style="color:#60a5fa">${S.runStats.damageShielded}</span></div>
-<div>Healed: <span style="color:#22c55e">${S.runStats.damageHealed}</span></div>
-</div>`;
-}
 v.innerHTML = `
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;max-width:500px;margin:0 auto;padding:0 1rem">
 <h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem"><span style="font-size:1.1rem;font-weight:bold;color:#22c55e">${S.xp} XP</span> <span style="color:#888">/ ${nextCost} XP to level up</span></p>
-<div style="display:flex;gap:1rem;align-items:flex-start">
-<div style="flex:1">
-<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
-<div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+<div class="choice" onclick="levelUpMenu()" style="${spendStyle};width:100%">Spend XP</div>
+<div style="display:flex;gap:0.5rem;margin-top:0.5rem;width:100%">
 <button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
 <button class="btn safe" onclick="tryAdvanceFromLevelUp()" style="flex:1">Next Floor</button>
 </div>
-</div>
-${statsHtml}
 </div>`;
 }
 
@@ -3250,10 +3238,10 @@ nextFloor();
 // View hero cards from level up screen
 function viewHeroCards() {
 const v = document.getElementById('gameView');
-let html = '<div style="display:flex;flex-direction:column;align-items:center;padding:1rem;gap:1rem">';
-html += '<h2 style="text-align:center;margin:0">Your Heroes</h2>';
-html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem">';
+v.classList.add('no-scroll');
 
+// Build hero cards (left side) - using combat-style green cards
+let heroCardsHtml = '';
 S.heroes.forEach((h, idx) => {
 const heroImage = getHeroImage(h);
 const extra = [];
@@ -3261,47 +3249,65 @@ if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${ghostBadges(h.g)}`);
 if(h.st > 0) extra.push(`STUN ${h.st}T`);
 
-let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';
-if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626';
+// Use the real combat card style (green gradient, matching .card.hero CSS)
+let cardExtraStyle = '';
+if(h.ls) cardExtraStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border-color:#dc2626';
 
-html += `<div class="card hero" style="${cardStyle}">`;
-// Power at top
-html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}💥</div>`;
-// Hero image
+heroCardsHtml += `<div class="card hero" style="${cardExtraStyle}">`;
+heroCardsHtml += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}💥</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
-html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};border-color:#60a5fa;${heroFlipStyle(heroImage)}"></div>`;
+heroCardsHtml += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};${heroFlipStyle(heroImage)}"></div>`;
 }
-// Name
-html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
-// HP
 if(h.ls) {
-  html += `<div style="text-align:center;font-size:0.85rem;color:#fca5a5">Last Stand (T${h.lst+1})</div>`;
+  heroCardsHtml += `<div style="text-align:center;font-size:0.85rem;color:#fca5a5">Last Stand (T${h.lst+1})</div>`;
 } else {
-  html += `<div style="text-align:center;font-size:0.85rem">${h.h}/${h.m}❤</div>`;
+  heroCardsHtml += `<div style="text-align:center;font-size:0.85rem">${h.h}/${h.m}❤</div>`;
 }
-// Extra info (shield, ghost, stun)
-if(extra.length > 0) html += `<div style="text-align:center;font-size:0.75rem;margin-top:0.25rem">${extra.join(' ')}</div>`;
-html += '<div class="sigil-divider"></div>';
-// Sigils - combine base sigils + temp sigils
+if(extra.length > 0) heroCardsHtml += `<div style="text-align:center;font-size:0.75rem;margin-top:0.25rem">${extra.join(' ')}</div>`;
+heroCardsHtml += '<div class="sigil-divider"></div>';
 const allSigils = [...(h.s || []), ...(h.ts || [])];
 const uniqueSigils = [...new Set(allSigils)];
-const totalSigils = uniqueSigils.length;
-const compactClass = totalSigils >= 5 ? 'compact' : '';
-html += `<div class="sigil-row ${compactClass}">`;
+const compactClass = uniqueSigils.length >= 5 ? 'compact' : '';
+heroCardsHtml += `<div class="sigil-row ${compactClass}">`;
 uniqueSigils.forEach(sig => {
   const level = getLevel(sig, idx);
   const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
-  html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()">${sigilIconOnly(sig, level)}</span>`;
+  heroCardsHtml += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()">${sigilIconOnly(sig, level)}</span>`;
 });
-html += '</div>';
-html += '</div>';
+heroCardsHtml += '</div></div>';
 });
 
-html += '</div>'; // end flex container
-html += '<button class="btn secondary" onclick="levelUp()" style="margin-top:1rem">Return</button>';
-html += '</div>';
-v.innerHTML = html;
+// Build stats panel (right side)
+let statsHtml = '';
+if(S.runStats) {
+const elapsed = Math.floor((Date.now() - S.runStats.startTime) / 1000);
+const mins = Math.floor(elapsed / 60);
+const secs = elapsed % 60;
+statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem;font-size:0.85rem;line-height:1.6">
+<div style="font-weight:bold;margin-bottom:0.25rem;color:#60a5fa">Run Stats</div>
+<div>Duration: ${mins}m ${secs < 10 ? '0' : ''}${secs}s</div>
+<div>XP: <span style="color:#22c55e">+${S.runStats.xpGained}</span> / <span style="color:#f87171">-${S.runStats.xpSpent}</span></div>
+<div>Gold: <span style="color:#fbbf24">${S.gold}</span> (started ${S.runStats.startGold})</div>
+<div>Damage Taken: <span style="color:#f87171">${S.runStats.damageTaken}</span></div>
+<div>Shielded: <span style="color:#60a5fa">${S.runStats.damageShielded}</span></div>
+<div>Healed: <span style="color:#22c55e">${S.runStats.damageHealed}</span></div>
+</div>`;
+}
+
+v.innerHTML = `
+<div style="display:flex;gap:1rem;align-items:flex-start;padding:0.5rem;height:100%">
+<!-- Left: Hero cards (combat style) -->
+<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.5rem;align-items:center">
+<h2 style="text-align:center;margin:0 0 0.25rem 0;font-size:1.1rem">Your Heroes</h2>
+${heroCardsHtml}
+</div>
+<!-- Right: Stats panel -->
+<div style="flex:1;display:flex;flex-direction:column;gap:0.75rem;align-items:center;justify-content:center;height:100%">
+${statsHtml}
+<button class="btn secondary" onclick="levelUp()" style="max-width:300px">Return</button>
+</div>
+</div>`;
 }
 
 function nextFloor() {

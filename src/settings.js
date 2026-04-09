@@ -916,7 +916,7 @@ a: `Sigils are your heroes' special abilities! Each hero has sigils they can use
 • <strong>Shield</strong> - Protect heroes from damage<br>
 • <strong>Heal</strong> - Restore HP to heroes<br>
 • <strong>D20</strong> - Roll the dice for powerful gambit actions (not guaranteed to succeed)<br><br>
-You can see your sigils at the bottom of your hero card during combat. Hover / long-press any sigil icon to see what it does!`
+You can see your sigils at the bottom of your hero card during combat. Hover over any sigil icon to see what it does!`
 },
 {
 q: "How do I level up sigils?",
@@ -1070,7 +1070,7 @@ let html = `
 </div>
 </div>
 
-<p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Tap a question below to expand/collapse the answer</p>
+<p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Click a question below to expand/collapse the answer</p>
 <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem">
 `;
 

@@ -302,16 +302,16 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   height: 100%;
   display: flex;
   flex-direction: row;
-  background: #1a1a1a;
+  background: transparent;
 }
 .neutral-left {
   flex: 1 1 55%;
   min-width: 45%;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
-  overflow-y: auto;
-  background: #1a1a1a;
+  padding: 0.75rem;
+  overflow: hidden;
+  background: rgba(0,0,0,0.4);
 }
 .neutral-right {
   flex: 1 1 45%;
@@ -324,39 +324,39 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 }
 @media (min-width: 768px) {
   .neutral-left {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 }
 @media (min-width: 1400px) {
   .neutral-left {
-    padding: 2rem;
+    padding: 1.25rem;
   }
 }
 .neutral-header {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 .neutral-stats {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08);
   color: white;
   border-radius: 6px;
-  padding: 0.4rem 0.75rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
   font-weight: bold;
   width: fit-content;
 }
 .neutral-narrative {
-  background: rgba(255,255,255,0.05);
+  background: rgba(0,0,0,0.3);
   color: white;
   border-radius: 8px;
-  padding: 0.75rem;
-  border: 1px solid rgba(255,255,255,0.1);
+  padding: 0.6rem;
+  border: 1px solid rgba(255,255,255,0.08);
 }
-.neutral-title { font-size: 1.6rem; font-weight: bold; margin-bottom: 0.5rem; color: #60a5fa; }
-.neutral-desc { font-size: 1.1rem; line-height: 1.5; margin-bottom: 0.5rem; max-width: 780px; color: #f5f5f5; }
-.neutral-outcome { font-size: 1rem; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px; margin-bottom: 0.5rem; color: #f5f5f5; }
+.neutral-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 0.4rem; color: #60a5fa; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+.neutral-desc { font-size: 0.95rem; line-height: 1.4; margin-bottom: 0.4rem; max-width: 780px; color: #f5f5f5; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); }
+.neutral-outcome { font-size: 0.9rem; padding: 0.4rem; background: rgba(0,0,0,0.3); border-radius: 4px; margin-bottom: 0.4rem; color: #f5f5f5; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); }
 .neutral-content {
   flex: 1;
   display: flex;
@@ -365,7 +365,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 }
 .neutral-footer {
   margin-top: auto;
-  padding-top: 1rem;
+  padding-top: 0.5rem;
 }
 .dice-roll { font-size: 1.2rem; font-weight: bold; text-align: center; padding: 1rem; background: #2c63c7; color: white; border-radius: 6px; margin: 1rem 0; }
 
@@ -694,6 +694,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 @keyframes pulse-action { 0%, 100% { box-shadow: 0 0 12px #3b82f6; } 50% { box-shadow: 0 0 20px #3b82f6; } }
 .sigil.in-effect { animation: pulse-in-effect 0.8s infinite; }
 @keyframes pulse-in-effect { 0%, 100% { transform: scale(1); filter: brightness(1.1); } 50% { transform: scale(1.08); filter: brightness(1.25); } }
+.sigil.tutorial-pulse { animation: tutorial-pulse 1s ease-in-out infinite; }
+@keyframes tutorial-pulse { 0%, 100% { box-shadow: 0 0 8px rgba(251,191,36,0.4); } 50% { box-shadow: 0 0 20px rgba(251,191,36,0.9), 0 0 40px rgba(251,191,36,0.4); } }
 
 /* FU Mode: Compact 3-hero layout */
 .fu-mode .combat-lane {
@@ -3313,8 +3315,8 @@ body.controller-active .controller-prompts {
   100% { transform: translate(-50%,-50%) translate(0, 0) rotate(1440deg) scale(0); opacity: 0; }
 }
 @keyframes tapoChasePortal {
-  0% { transform: translate(-50%,-50%) translate(120px, 80px) rotate(0deg) scale(1); opacity: 1; }
-  20% { transform: translate(-50%,-50%) translate(60px, 40px) rotate(-30deg) scale(0.85); opacity: 1; }
+  0% { transform: translate(-50%,-50%) translate(120px, 30px) rotate(0deg) scale(1); opacity: 1; }
+  20% { transform: translate(-50%,-50%) translate(60px, 20px) rotate(-30deg) scale(0.85); opacity: 1; }
   50% { transform: translate(-50%,-50%) translate(10px, 10px) rotate(-180deg) scale(0.5); opacity: 1; }
   80% { transform: translate(-50%,-50%) translate(-5px, 0px) rotate(-540deg) scale(0.2); opacity: 0.8; }
   100% { transform: translate(-50%,-50%) translate(0, 0) rotate(-720deg) scale(0); opacity: 0; }
@@ -3517,7 +3519,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.43';
+const GAME_VERSION = 'S_2.44';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4097,12 +4099,10 @@ return html;
 // Render combat status header — turn info goes in top bar, minimal subtitle only below
 function renderCombatStatusHeader() {
 let turnText = '';
-let subtitleHtml = '';
 
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
-turnText = 'Enemy Turn';
-subtitleHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
+turnText = `Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…`;
 } else {
 turnText = 'Enemy Turn…';
 }
@@ -4114,8 +4114,7 @@ turnText = S.pending;
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
-turnText = 'AMBUSH!';
-subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
+turnText = 'AMBUSH! All heroes stunned!';
 } else {
 turnText = 'Choose a sigil';
 }
@@ -4127,12 +4126,10 @@ else turnText = `${h.n}'s Turn`;
 }
 }
 
-// Update top bar turn indicator
+// Update top bar turn indicator - all info goes here, no separate div
 const turnEl = document.getElementById('turnInfo');
 if(turnEl) turnEl.textContent = turnText ? ` | ${turnText}` : '';
 
-// Only return subtitle if present
-if(subtitleHtml) return `<div class="combat-header">${subtitleHtml}</div>`;
 return '';
 }
 
@@ -4443,7 +4440,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Click her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -4456,7 +4453,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Click her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -10591,7 +10588,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover / long-press any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh", () => {
+showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh.", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -10997,7 +10994,13 @@ const canSwitchAction = !S.pending || (S.instancesRemaining === S.totalInstances
 const canClick = !S.acted.includes(i) && h.st === 0 && canSwitchAction && ['Attack','Shield','Grapple','Heal','Ghost','D20','Alpha'].includes(s);
 const isActiveAction = (S.pending === s && S.activeIdx === i);
 const isPassive = ['Expand', 'Star', 'Asterisk'].includes(s);
-return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
+// Tutorial pulse: highlight the sigil the player must use
+const isTutorialPulse = tutorialState && S.floor === 0 && (
+(tutorialState.stage === 'warrior_attack' && i === 0 && s === 'Attack') ||
+(tutorialState.stage === 'healer_d20' && i === 1 && s === 'D20') ||
+(tutorialState.stage === 'healer_heal' && i === 1 && s === 'Heal')
+);
+return `<span class="sigil ${cl} ${isPassive?'passive':''} ${isActiveAction?'active-action':''} ${isInEffect?'in-effect':''} ${canClick?'clickable':''} ${isTutorialPulse?'tutorial-pulse':''}" ${canClick?`onclick="act('${s}', ${i})" oncontextmenu="actAndAutoTarget('${s}', ${i}); return false;"`:''}
 onmouseenter="showTooltip('${s}', this, ${visualLvl})" onmouseleave="hideTooltip()"
 ontouchstart="tooltipTimeout = setTimeout(() => showTooltip('${s}', this, ${visualLvl}), ANIMATION_TIMINGS.TOOLTIP_DELAY)" ontouchend="hideTooltip()">${sigilIconOnly(s, visualLvl, lvl)}</span>`;
 };
@@ -11210,40 +11213,22 @@ return;
 }
 
 const v = document.getElementById('gameView');
+v.classList.add('no-scroll');
 const nextCost = getXPCost(S.levelUpCount);
 const canAfford = S.xp >= nextCost;
 const spendStyle = canAfford
   ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
   : 'opacity:0.5;text-align:center';
-// Run stats panel
-let statsHtml = '';
-if(S.runStats) {
-const elapsed = Math.floor((Date.now() - S.runStats.startTime) / 1000);
-const mins = Math.floor(elapsed / 60);
-const secs = elapsed % 60;
-statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem;font-size:0.85rem;line-height:1.6">
-<div style="font-weight:bold;margin-bottom:0.25rem;color:#60a5fa">Run Stats</div>
-<div>Duration: ${mins}m ${secs < 10 ? '0' : ''}${secs}s</div>
-<div>XP: <span style="color:#22c55e">+${S.runStats.xpGained}</span> / <span style="color:#f87171">-${S.runStats.xpSpent}</span></div>
-<div>Gold: <span style="color:#fbbf24">${S.gold}</span> (started ${S.runStats.startGold})</div>
-<div>Damage Taken: <span style="color:#f87171">${S.runStats.damageTaken}</span></div>
-<div>Shielded: <span style="color:#60a5fa">${S.runStats.damageShielded}</span></div>
-<div>Healed: <span style="color:#22c55e">${S.runStats.damageHealed}</span></div>
-</div>`;
-}
 v.innerHTML = `
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;max-width:500px;margin:0 auto;padding:0 1rem">
 <h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem"><span style="font-size:1.1rem;font-weight:bold;color:#22c55e">${S.xp} XP</span> <span style="color:#888">/ ${nextCost} XP to level up</span></p>
-<div style="display:flex;gap:1rem;align-items:flex-start">
-<div style="flex:1">
-<div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
-<div style="display:flex;gap:0.5rem;margin-top:0.5rem">
+<div class="choice" onclick="levelUpMenu()" style="${spendStyle};width:100%">Spend XP</div>
+<div style="display:flex;gap:0.5rem;margin-top:0.5rem;width:100%">
 <button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
 <button class="btn safe" onclick="tryAdvanceFromLevelUp()" style="flex:1">Next Floor</button>
 </div>
-</div>
-${statsHtml}
 </div>`;
 }
 
@@ -11270,10 +11255,10 @@ nextFloor();
 // View hero cards from level up screen
 function viewHeroCards() {
 const v = document.getElementById('gameView');
-let html = '<div style="display:flex;flex-direction:column;align-items:center;padding:1rem;gap:1rem">';
-html += '<h2 style="text-align:center;margin:0">Your Heroes</h2>';
-html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem">';
+v.classList.add('no-scroll');
 
+// Build hero cards (left side) - using combat-style green cards
+let heroCardsHtml = '';
 S.heroes.forEach((h, idx) => {
 const heroImage = getHeroImage(h);
 const extra = [];
@@ -11281,47 +11266,65 @@ if(h.sh > 0) extra.push(`${h.sh}🛡`);
 if(h.g > 0) extra.push(`${ghostBadges(h.g)}`);
 if(h.st > 0) extra.push(`STUN ${h.st}T`);
 
-let cardStyle = 'background:linear-gradient(135deg,#1e3a5f,#2563eb);border:3px solid #60a5fa';
-if(h.ls) cardStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border:3px solid #dc2626';
+// Use the real combat card style (green gradient, matching .card.hero CSS)
+let cardExtraStyle = '';
+if(h.ls) cardExtraStyle = 'background:linear-gradient(135deg,#450a0a,#7f1d1d);border-color:#dc2626';
 
-html += `<div class="card hero" style="${cardStyle}">`;
-// Power at top
-html += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}💥</div>`;
-// Hero image
+heroCardsHtml += `<div class="card hero" style="${cardExtraStyle}">`;
+heroCardsHtml += `<div style="text-align:center;font-size:1.4rem;font-weight:bold;margin-bottom:0.25rem">${h.p}💥</div>`;
 if(heroImage) {
 const crop = HERO_CROP[h.n] || { fit: 'cover', pos: 'top center' };
-html += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};border-color:#60a5fa;${heroFlipStyle(heroImage)}"></div>`;
+heroCardsHtml += `<div style="text-align:center"><img src="${heroImage}" alt="${h.n}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};${heroFlipStyle(heroImage)}"></div>`;
 }
-// Name
-html += `<div style="text-align:center;font-weight:bold;font-size:0.9rem;margin:0.25rem 0">${h.n}</div>`;
-// HP
 if(h.ls) {
-  html += `<div style="text-align:center;font-size:0.85rem;color:#fca5a5">Last Stand (T${h.lst+1})</div>`;
+  heroCardsHtml += `<div style="text-align:center;font-size:0.85rem;color:#fca5a5">Last Stand (T${h.lst+1})</div>`;
 } else {
-  html += `<div style="text-align:center;font-size:0.85rem">${h.h}/${h.m}❤</div>`;
+  heroCardsHtml += `<div style="text-align:center;font-size:0.85rem">${h.h}/${h.m}❤</div>`;
 }
-// Extra info (shield, ghost, stun)
-if(extra.length > 0) html += `<div style="text-align:center;font-size:0.75rem;margin-top:0.25rem">${extra.join(' ')}</div>`;
-html += '<div class="sigil-divider"></div>';
-// Sigils - combine base sigils + temp sigils
+if(extra.length > 0) heroCardsHtml += `<div style="text-align:center;font-size:0.75rem;margin-top:0.25rem">${extra.join(' ')}</div>`;
+heroCardsHtml += '<div class="sigil-divider"></div>';
 const allSigils = [...(h.s || []), ...(h.ts || [])];
 const uniqueSigils = [...new Set(allSigils)];
-const totalSigils = uniqueSigils.length;
-const compactClass = totalSigils >= 5 ? 'compact' : '';
-html += `<div class="sigil-row ${compactClass}">`;
+const compactClass = uniqueSigils.length >= 5 ? 'compact' : '';
+heroCardsHtml += `<div class="sigil-row ${compactClass}">`;
 uniqueSigils.forEach(sig => {
   const level = getLevel(sig, idx);
   const cl = level===0?'l0':level===1?'l1':level===2?'l2':level===3?'l3':level===4?'l4':'l5';
-  html += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()">${sigilIconOnly(sig, level)}</span>`;
+  heroCardsHtml += `<span class="sigil ${cl}" onmouseenter="showTooltip('${sig}', this, ${level})" onmouseleave="hideTooltip()">${sigilIconOnly(sig, level)}</span>`;
 });
-html += '</div>';
-html += '</div>';
+heroCardsHtml += '</div></div>';
 });
 
-html += '</div>'; // end flex container
-html += '<button class="btn secondary" onclick="levelUp()" style="margin-top:1rem">Return</button>';
-html += '</div>';
-v.innerHTML = html;
+// Build stats panel (right side)
+let statsHtml = '';
+if(S.runStats) {
+const elapsed = Math.floor((Date.now() - S.runStats.startTime) / 1000);
+const mins = Math.floor(elapsed / 60);
+const secs = elapsed % 60;
+statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem;font-size:0.85rem;line-height:1.6">
+<div style="font-weight:bold;margin-bottom:0.25rem;color:#60a5fa">Run Stats</div>
+<div>Duration: ${mins}m ${secs < 10 ? '0' : ''}${secs}s</div>
+<div>XP: <span style="color:#22c55e">+${S.runStats.xpGained}</span> / <span style="color:#f87171">-${S.runStats.xpSpent}</span></div>
+<div>Gold: <span style="color:#fbbf24">${S.gold}</span> (started ${S.runStats.startGold})</div>
+<div>Damage Taken: <span style="color:#f87171">${S.runStats.damageTaken}</span></div>
+<div>Shielded: <span style="color:#60a5fa">${S.runStats.damageShielded}</span></div>
+<div>Healed: <span style="color:#22c55e">${S.runStats.damageHealed}</span></div>
+</div>`;
+}
+
+v.innerHTML = `
+<div style="display:flex;gap:1rem;align-items:flex-start;padding:0.5rem;height:100%">
+<!-- Left: Hero cards (combat style) -->
+<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.5rem;align-items:center">
+<h2 style="text-align:center;margin:0 0 0.25rem 0;font-size:1.1rem">Your Heroes</h2>
+${heroCardsHtml}
+</div>
+<!-- Right: Stats panel -->
+<div style="flex:1;display:flex;flex-direction:column;gap:0.75rem;align-items:center;justify-content:center;height:100%">
+${statsHtml}
+<button class="btn secondary" onclick="levelUp()" style="max-width:300px">Return</button>
+</div>
+</div>`;
 }
 
 function nextFloor() {
@@ -12373,6 +12376,19 @@ const isBest = r === best;
 return `<span style="display:inline-block;width:1.8rem;height:1.8rem;line-height:1.8rem;text-align:center;background:${isBest ? '#166534' : '#1e293b'};border:2px solid ${isBest ? '#15803d' : '#475569'};border-radius:0.4rem;margin:0 0.15rem;font-weight:bold;color:${isBest ? '#bbf7d0' : '#f1f5f9'};font-size:1rem;vertical-align:middle;${isBest ? 'box-shadow:0 0 8px rgba(22,163,74,0.6);' : ''}">${r}</span>`;
 }).join('');
 return diceHTML;
+}
+
+// Reusable hero mini-card for neutral encounters
+// Shows hero portrait + brief stats with custom action buttons below
+function renderHeroMiniCard(hero, idx, buttonsHtml) {
+const heroImage = hero.c ? HERO_IMAGES[hero.c] : (HERO_IMAGES[hero.n.toLowerCase()] || '');
+const crop = HERO_CROP[hero.n] || { fit: 'cover', pos: 'top center' };
+const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
+return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%);border:2px solid #22c55e;border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
+${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}">` : ''}
+<div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${hero.p}💥 | ${hero.h}/${hero.m}❤</div>
+${buttonsHtml}
+</div>`;
 }
 
 function buildNeutralHTML(options) {
@@ -13481,6 +13497,8 @@ combat(0);
 
 
 function finishRibbletonTutorial() {
+// Return to town music after tutorial combat
+GameMusic.playScene('town_base');
 // Post-combat narrative with full-art backgrounds
 const slides = [
 {bg: 'assets/ribbleton.png', text: "The battle is won! As the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
@@ -13539,13 +13557,15 @@ flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:150px;height:au
 container.appendChild(flydra);
 // Tapo chasing Flydra into the portal, also shrinking
 const tapo = document.createElement('img');
-tapo.src = 'assets/tapo_pain.png';
+tapo.src = 'assets/tapo_happy.png';
 tapo.alt = 'Tapo';
 tapo.style.cssText = 'position:absolute;top:50%;left:50%;width:120px;height:auto;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,0.8));animation:tapoChasePortal 6s ease-in forwards';
 container.appendChild(tapo);
+// Face swap: happy for first third (2s), then pained for the rest
+setTimeout(() => { tapo.src = 'assets/tapo_pain.png'; }, 2000);
 }},
 {text: "TAPO, NO!! But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
-html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:780px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
+html: `<div class="narrative-text" style="font-size:1.3rem;line-height:1.4;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:780px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -13637,18 +13657,17 @@ const maxSlots = 8;
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
-<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
+<div style="position:relative;height:calc(100vh - 44px);overflow:hidden">
 
-<div style="max-width:960px;margin:0 auto;padding:0 0.5rem">
-<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
-
-<div style="display:flex;gap:1rem;align-items:flex-start;justify-content:center">
-<!-- Left: Selected hero cards (combat-style) -->
-<div id="hero-cards-area" style="flex:0 0 220px;display:flex;flex-direction:column;gap:0.5rem;min-height:200px">
+<!-- Selected hero cards - far left like recruits in combat -->
+<div id="hero-cards-area" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:0.5rem;z-index:5">
 </div>
 
-<!-- Right: Hero selection grid -->
-<div style="flex:0 1 auto">
+<!-- Center content -->
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 1rem">
+<h1 style="text-align:center;margin:0 0 0.5rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
+<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
+
 <div id="hero-select-container" style="position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
@@ -13659,7 +13678,7 @@ ${['warrior','tank','mage','healer'].map(hero => `
 </div>
 
 ${S.tapoUnlocked ? `
-<div style="margin-top:1rem;text-align:center">
+<div style="margin-top:0.75rem;text-align:center">
 <button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'}
 </button>
@@ -13668,8 +13687,6 @@ ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >
 ALL TAPOS
 </button>` : ''}
 </div>` : ''}
-</div>
-</div>
 
 <!-- Selection display with X/Y counter -->
 <div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
@@ -13677,7 +13694,8 @@ ALL TAPOS
 <span id="selection-counter" style="font-size:1.1rem;font-weight:bold;margin-left:0.5rem"></span>
 </div>
 
-<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Into the Portal!</button>
+<button class="btn" id="start" onclick="start()" style="width:100%;max-width:500px;padding:0.75rem;font-size:1rem">Into the Portal!</button>
+</div>
 </div>`;
 
 debugLog('[FROGGLE] title() innerHTML set successfully');
@@ -14120,15 +14138,16 @@ buttons: buttons
 function buySmallPotion() {
 if(S.gold < 3) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let heroButtons = '';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, idx) => {
-heroButtons += `<button class="neutral-btn" onclick="applySmallPotion(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn safe" onclick="applySmallPotion(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Heal</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
-title: 'Choose Hero',
-description: 'Select a hero to restore 3 HP.',
-buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
+title: 'Small Potion',
+description: 'Restore 3 HP:',
+buttons: heroCards + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
 });
 }
 
@@ -14150,15 +14169,16 @@ renderShopkeeper();
 function buyLargePotion() {
 if(S.gold < 5) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let heroButtons = '';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, idx) => {
-heroButtons += `<button class="neutral-btn" onclick="applyLargePotion(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn safe" onclick="applyLargePotion(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Heal</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
-title: 'Choose Hero',
-description: 'Select a hero to restore 8 HP.',
-buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
+title: 'Large Potion',
+description: 'Restore 8 HP:',
+buttons: heroCards + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
 });
 }
 
@@ -14368,15 +14388,17 @@ if(goldGain > 0) toast(`Gained ${goldGain} Gold!`);
 nextFloor();
 return;
 }
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 eligible.forEach(h => {
 const idx = S.heroes.indexOf(h);
-heroButtons += `<button class="neutral-btn danger" onclick="applyWellDamage(${idx}, ${hpLoss}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn danger" onclick="applyWellDamage(${idx}, ${hpLoss}, ${goldGain})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Take ${hpLoss} dmg</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wishingwell1.png',
 title: 'Choose Who Takes Damage',
-description: `Choose which hero takes ${hpLoss} damage from climbing the well:`,
-buttons: heroButtons
+description: `Someone takes ${hpLoss} damage from climbing the well:`,
+buttons: heroCards
 });
 } else {
 // No damage, just apply gold
@@ -14539,17 +14561,18 @@ footer.innerHTML = `<button class="btn" onclick="openChestGoldRoll()">See what's
 } else {
 // Trap triggered - pick who takes damage, no gold
 if(trapDmg > 0) {
-let heroButtons = '<div style="margin-bottom:0.5rem;opacity:0.8">Choose who takes the hit:</div>';
 const eligible = S.heroes.filter(h => !h.ls);
 if(eligible.length === 0) {
 if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continue</button>`;
 return;
 }
+let heroCards = '<div style="margin-bottom:0.5rem;opacity:0.8;font-size:0.85rem">Choose who takes the hit:</div><div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 eligible.forEach(h => {
 const idx = S.heroes.indexOf(h);
-heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, 0)">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, 0)" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Take ${trapDmg} dmg</button>`);
 });
-if(footer) footer.innerHTML = heroButtons;
+heroCards += '</div>';
+if(footer) footer.innerHTML = heroCards;
 }
 }
 });
@@ -14671,14 +14694,18 @@ if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continu
 // ===== 4. MUMBLING WIZARD =====
 function showWizard1() {
 const v = document.getElementById('gameView');
-let description = 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters to himself, but stops when you walk in. "Do you see it? CAN you see it? Look closely!" He pulls you toward the wall.<br><br>Choose which hero will approach the wizard:';
-let buttons = '';
+let description = 'An elderly wizard stands before a wall covered in glowing hieroglyphs. "Do you see it? CAN you see it? Look closely!" He pulls you toward the wall.';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin:0.5rem 0">';
 S.heroes.forEach((h, idx) => {
 const heroSigils = [...h.s];
 if(h.ts) heroSigils.push(...h.ts);
 const sigilList = heroSigils.map(s => sigilIconOnly(s)).join(' ');
-buttons += `<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})">${h.n} <span style="font-size:0.8rem;opacity:0.8">${sigilList}</span></button>`;
+heroCards += renderHeroMiniCard(h, idx, `
+<div style="font-size:0.65rem;margin:0.15rem 0;text-align:center">${sigilList}</div>
+<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;width:100%">Approach</button>`);
 });
+heroCards += '</div>';
+let buttons = heroCards;
 buttons += `<button class="btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 
 v.innerHTML = buildNeutralHTML({
@@ -14989,12 +15016,17 @@ function showOracle1() {
 // Mark tutorial as seen so future runs have random neutrals
 S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
-let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?" Choose a hero and their desired fortune:';
-let buttons = '';
+let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?"';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin:0.5rem 0">';
 S.heroes.forEach((h, idx) => {
-buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (${h.p}💥 → ${h.p+1}💥)</button>`;
-buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (${h.m}❤ max → ${h.m+5}❤ max)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `
+<div style="display:flex;gap:0.25rem;margin-top:0.3rem">
+<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">POW+</button>
+<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">HP+</button>
+</div>`);
 });
+heroCards += '</div>';
+let buttons = heroCards;
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/oracle1.png',
@@ -15157,16 +15189,19 @@ buttons: `
 
 function chooseEncampmentAction(action) {
 const v = document.getElementById('gameView');
-let buttons = '';
+const btnClass = action === 'sneak' ? '' : 'risky';
+const fnName = action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment';
+const label = action === 'sneak' ? 'Scout' : 'Lead';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, i) => {
-const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-buttons += `<button class="neutral-btn ${action === 'sneak' ? '' : 'risky'}" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">${h.n} - ${h.p}💥 | ${hp}</button>`;
+heroCards += renderHeroMiniCard(h, i, `<button class="neutral-btn ${btnClass}" onclick="${fnName}(${i})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">${label}</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: action === 'sneak' ? 'Choose Scout' : 'Choose Leader',
 description: `Which hero will ${action === 'sneak' ? 'sneak past the encampment' : 'lead the charge'}?`,
-buttons
+buttons: heroCards
 });
 }
 
@@ -15218,18 +15253,18 @@ window.pendingStragglerData = { base, stragglerType };
 
 outcome = `As you sneak by, you spy an enemy straggler who appears to be hiding from the group... It looks like they want to join your party!`;
 
-let heroButtons = '';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, i) => {
-const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-heroButtons += `<button class="neutral-btn safe" onclick="assignRecruitToHero(${i})">${h.n} - ${h.p}💥 | ${hp}</button>`;
+heroCards += renderHeroMiniCard(h, i, `<button class="neutral-btn safe" onclick="assignRecruitToHero(${i})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Recruit</button>`);
 });
+heroCards += '</div>';
 
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past - NAT 20!',
 diceTray: renderDiceTray({ rolled: true, rolls, best }),
 description: `${outcome}<br><br><strong>Who should recruit the ${base.n}?</strong>`,
-buttons: heroButtons
+buttons: heroCards
 });
 }
 });
@@ -15684,12 +15719,14 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 return;
 }
 
-let heroButtons = '';
-S.heroes.forEach((h, idx) => {
-if(h.ls) return;
-heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
+const eligibleGhostHeroes = S.heroes.filter(h => !h.ls);
+eligibleGhostHeroes.forEach(h => {
+const idx = S.heroes.indexOf(h);
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Take hit</button>`);
 });
-if(!heroButtons) {
+heroCards += '</div>';
+if(eligibleGhostHeroes.length === 0) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'The Ghost Boys Let You Go',
@@ -15704,7 +15741,7 @@ title: 'Trapped with the Ghost Boys',
 diceTray: renderDiceTray({ dc: ghostEscapeDC, rolled: true, rolls, best }),
 description: 'Choose which hero takes 1 damage:',
 outcomes: ['You don\'t notice time passing, but pangs of hunger and fatigue make it clear you\'ve been here longer than it feels like. The boys are having a great time playing.'],
-buttons: heroButtons
+buttons: heroCards
 });
 }, ghostEscapeDC);
 }
@@ -18713,6 +18750,7 @@ GameMusic.playScene('town_base');
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
+v.classList.add('no-scroll');
 
 // Show tutorial for first-time visitors to Ribbleton hub (delayed to ensure screen is rendered first)
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;
@@ -19719,7 +19757,7 @@ a: `Sigils are your heroes' special abilities! Each hero has sigils they can use
 • <strong>Shield</strong> - Protect heroes from damage<br>
 • <strong>Heal</strong> - Restore HP to heroes<br>
 • <strong>D20</strong> - Roll the dice for powerful gambit actions (not guaranteed to succeed)<br><br>
-You can see your sigils at the bottom of your hero card during combat. Hover / long-press any sigil icon to see what it does!`
+You can see your sigils at the bottom of your hero card during combat. Hover over any sigil icon to see what it does!`
 },
 {
 q: "How do I level up sigils?",
@@ -19873,7 +19911,7 @@ let html = `
 </div>
 </div>
 
-<p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Tap a question below to expand/collapse the answer</p>
+<p style="text-align:center;font-size:0.85rem;opacity:0.7;margin-bottom:1.5rem">Click a question below to expand/collapse the answer</p>
 <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem">
 `;
 
