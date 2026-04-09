@@ -1,6 +1,6 @@
 {
   "name": "froggle",
-  "version": "2.61.0",
+  "version": "2.62.0",
   "description": "FROGGLE - A tactical turn-based roguelike PWA",
   "main": "electron-main.js",
   "scripts": {

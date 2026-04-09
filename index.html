@@ -3537,7 +3537,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.61';
+const GAME_VERSION = 'S_2.62';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -19798,6 +19798,17 @@ a: `There are two ways to upgrade sigils:<br><br>
 Your total sigil level = Permanent (Gold) + Temporary (XP) upgrades.`
 },
 {
+q: "How do I spend XP after combat?",
+a: `After combat, you can spend XP in 3 ways:<br><br>
+<strong>1. UPGRADE A SIGIL</strong> (makes it stronger everywhere!)<br>
+<strong style="color:#9333ea">Passive Sigils</strong> (Expand, Asterisk, Star) start at Level 0 (inactive). Spend XP to activate them for ALL heroes automatically.<br>
+<strong style="color:#2c63c7">Active Sigils</strong> (Attack, Shield, Heal, D20, etc.) start at Level 1. Upgrading makes them stronger on every hero who has them. Example: Attack L1→L2 means attack twice instead of once!<br><br>
+<strong>2. ADD A SIGIL TO A HERO</strong><br>
+All heroes can learn any sigil by spending XP! Active sigils use your hero's 1 action per turn. Choose abilities that complement your strategy.<br><br>
+<strong>3. UPGRADE HERO STATS</strong><br>
+Spend XP for +1 POW (increases damage/healing/shields) or +5 Max HP (and heal if in Last Stand).`
+},
+{
 q: "Why does Attack show as L1 when I haven't upgraded it?",
 a: `Active sigils (${sigilText('Attack')}, ${sigilText('Shield')}, ${sigilText('Heal')}, ${sigilText('Grapple')}, ${sigilText('Ghost')}, ${sigilText('D20')}, ${sigilText('Alpha')}) always display with a minimum level of 1 when equipped, even if their permanent storage level is 0. This is because they work at "Level 1" effectiveness when you first get them.<br><br>
 <strong>Example:</strong> ${sigilText('Attack')} storage level 0 = displays as L1 (1 attack per action)<br>
@@ -19888,46 +19899,10 @@ let html = `
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
 <h3 style="text-align:center;font-size:1.2rem;margin:0 0 0.5rem 0;color:#9333ea">FROGGLE</h3>
-<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:1rem">Use XP to gain and upgrade powerful sigils. Chase Tapo through a portal torn open by the Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
-
-<div style="background:white;border-radius:8px;padding:1rem;margin-top:1rem;color:#1a1a1a">
-<h4 style="color:#2c63c7;margin:0 0 0.75rem 0;font-size:1rem">HOW LEVEL-UPS WORK</h4>
-<p style="font-size:0.9rem;margin:0 0 0.5rem 0">After combat, you can spend XP in 3 ways:</p>
-
-<div style="margin-left:1rem;font-size:0.9rem;line-height:1.6">
-<p style="margin:0.5rem 0"><strong>1. UPGRADE A SIGIL</strong> (makes it stronger everywhere!)</p>
-<div style="margin-left:1rem;margin-bottom:0.75rem">
-<p style="margin:0.25rem 0"><strong style="color:#9333ea">Passive Sigils</strong> (Expand, Asterisk, Star):</p>
-<ul style="margin:0.25rem 0;padding-left:1.5rem">
-<li>Start at Level 0 (inactive)</li>
-<li>Spend XP to upgrade to Level 1 to activate for ALL heroes automatically</li>
-<li>Work automatically in battle - no action needed</li>
-</ul>
-<p style="margin:0.5rem 0 0.25rem 0"><strong style="color:#2c63c7">Active Sigils</strong> (Attack, Shield, Heal, D20, etc.):</p>
-<ul style="margin:0.25rem 0;padding-left:1.5rem">
-<li>Start at Level 1 effectiveness</li>
-<li>Upgrading makes them stronger on every hero who has them</li>
-<li>Example: Attack L1→L2 means attack twice instead of once!</li>
-</ul>
-</div>
-
-<p style="margin:0.5rem 0"><strong>2. ADD A SIGIL TO A HERO</strong></p>
-<ul style="margin:0.25rem 0 0.75rem 1.5rem;padding-left:1.5rem">
-<li>All heroes can learn any sigil by spending XP!</li>
-<li>Active sigils use your hero's 1 action per turn</li>
-<li>Choose abilities that complement your strategy</li>
-</ul>
-
-<p style="margin:0.5rem 0"><strong>3. UPGRADE HERO STATS</strong></p>
-<ul style="margin:0.25rem 0;padding-left:1.5rem">
-<li>Spend XP for +1 POW (increases damage/healing/shields)</li>
-<li>Spend XP for +5 Max HP (and heal if in Last Stand)</li>
-</ul>
-</div>
-</div>
+<p style="text-align:center;font-size:0.95rem;line-height:1.5;margin-bottom:0.5rem">Use XP to gain and upgrade powerful sigils. Chase Tapo through a portal torn open by the Flydra! On death, you'll have a chance to spend the gold you've earned to make your heroes permanently stronger!</p>
 
 <div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:1rem;margin-top:1rem">
-<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">▸ PRO TIPS</h4>
+<h4 style="color:#15803d;margin:0 0 0.5rem 0;font-size:0.95rem">PRO TIPS</h4>
 <ul style="margin:0;padding-left:1.5rem;font-size:0.85rem;line-height:1.5">
 <li><strong>Mage & Healer Start Stronger:</strong> They get +1 Expand built-in, so their actions hit 1 extra target from the start!</li>
 <li><strong>Shields Persist:</strong> Before winning a battle, use remaining actions to shield your team - they carry over to the next fight!</li>
