@@ -3162,28 +3162,8 @@ html += '</div>'; // Close flex container
 html += '</div>'; // Close combat-lane
 });
 
-// D20_TARGET: Add targeting overlay with Roll/Cancel buttons
-if(S.pending === 'D20_TARGET') {
-const heroIdx = S.d20HeroIdx;
-const h = S.heroes[heroIdx];
-const expandLevel = getLevel('Expand', heroIdx);
-const maxTargets = 1 + expandLevel;
-const currentTargets = S.targets ? S.targets.length : 0;
-const canRoll = currentTargets >= 1;
-const actionName = S.d20Action || 'D20';
-const adjustedDC = S.d20DC || 10;
-
-html += `<div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(30,30,30,0.98),rgba(30,30,30,0.9));border-top:3px solid #3b82f6;padding:1rem;z-index:1000;text-align:center">`;
-html += `<div style="margin-bottom:0.5rem;color:#fff;font-weight:bold;font-size:1.1rem">${h.n}: ${actionName} (DC ${adjustedDC})</div>`;
-if(expandLevel > 0) {
-html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">Expand: Select up to ${maxTargets} targets</div>`;
-}
-html += `<div style="margin-bottom:0.75rem;color:#fbbf24;font-size:1rem">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
-html += `<div style="display:flex;gap:1rem;justify-content:center">`;
-html += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">Cancel</button>`;
-html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
-html += `</div></div>`;
-}
+// Unified bottom action bar for all pending actions (Attack, Shield, Heal, D20, etc.)
+html += renderActionBar();
 
 v.innerHTML = html;
 
