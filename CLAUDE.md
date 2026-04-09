@@ -19,6 +19,7 @@ FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all g
 - **Transparency and context** — modals/overlays should let the player see the game behind them (~80% opacity backgrounds). Don't wall off context.
 - **Minimal chrome** — reduce borders, remove hero names from cards (portraits identify), lean on art over labels.
 - **Fixed layout geometry** — elements that appear/disappear (action buttons, status text) should reserve their space so content below never jumps.
+- **No scrolling modals** — modals must never need scrolling. If content doesn't fit, use horizontal layouts (grids, flex rows) to spread content wider instead of taller. Never add `overflow-y: auto` or `max-height` with overflow to modals. Scrolling is bad on Steam Deck and desktop.
 - **Let things breathe** — generous padding and sizing for buttons, cards, and text. This is a desktop game, not a phone app fighting for pixels.
 
 ## Development

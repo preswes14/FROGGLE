@@ -162,10 +162,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   border-radius: 12px;
   padding: 2rem;
   z-index: 30000;
-  max-width: 500px;
+  max-width: 650px;
   width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
 }
 .modal-container.dark {
   background: rgba(17,24,39,0.98);
@@ -181,8 +179,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   background: linear-gradient(#1f2937, #111827);
   border: 3px solid #22c55e;
   color: #f0f0f0;
-  max-height: 90vh;
-  max-width: 600px;
+  max-width: 780px;
 }
 .modal-title {
   text-align: center;
@@ -350,7 +347,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   border: 1px solid rgba(255,255,255,0.1);
 }
 .neutral-title { font-size: 1.6rem; font-weight: bold; margin-bottom: 0.5rem; color: #60a5fa; }
-.neutral-desc { font-size: 1.1rem; line-height: 1.5; margin-bottom: 0.5rem; max-width: 600px; color: #f5f5f5; }
+.neutral-desc { font-size: 1.1rem; line-height: 1.5; margin-bottom: 0.5rem; max-width: 780px; color: #f5f5f5; }
 .neutral-outcome { font-size: 1rem; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px; margin-bottom: 0.5rem; color: #f5f5f5; }
 .neutral-content {
   flex: 1;
@@ -2595,6 +2592,15 @@ body.high-contrast *:focus-visible {
   outline-offset: 3px;
 }
 
+/* Hero select double-jump animation */
+@keyframes heroSelectJump {
+  0% { transform: translateY(0); }
+  20% { transform: translateY(-18px); }
+  40% { transform: translateY(0); }
+  60% { transform: translateY(-10px); }
+  80% { transform: translateY(0); }
+}
+
 /* Hero selection overlay buttons for controller navigation */
 .hero-select-btn {
   position: absolute;
@@ -2646,7 +2652,7 @@ body.high-contrast *:focus-visible {
   border-radius: 12px;
   padding: 2rem;
   z-index: 100000;
-  max-width: 500px;
+  max-width: 650px;
   width: 90%;
   text-align: center;
   color: white;
@@ -2897,7 +2903,7 @@ body.high-contrast *:focus-visible {
 
   /* Modal adjustments */
   .modal-container {
-    max-width: 600px;
+    max-width: 780px;
     padding: 2.5rem;
   }
 
@@ -3247,6 +3253,10 @@ body.controller-active .controller-prompts {
   from { opacity: 0; transform: translateY(-60px) scale(0.7); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+@keyframes flydraPulseGlow {
+  0%, 100% { transform: scale(1); filter: brightness(1.2) saturate(1.3) drop-shadow(0 0 25px rgba(220,38,38,0.8)) drop-shadow(0 0 50px rgba(220,38,38,0.4)); }
+  50% { transform: scale(1.08); filter: brightness(1.4) saturate(1.5) drop-shadow(0 0 40px rgba(220,38,38,1)) drop-shadow(0 0 80px rgba(220,38,38,0.6)); }
+}
 @keyframes narrativePortalPulse {
   0%, 100% { transform: scale(1); opacity: 0.85; }
   50% { transform: scale(1.08); opacity: 1; }
@@ -3285,6 +3295,19 @@ body.controller-active .controller-prompts {
 @keyframes spinPortalReverse {
   from { transform: translate(-50%,-50%) rotate(0deg); }
   to { transform: translate(-50%,-50%) rotate(-360deg); }
+}
+@keyframes portalShrinkSpin {
+  0% { transform: translate(-50%,-50%) translate(-80px, -60px) rotate(0deg) scale(1); opacity: 1; }
+  30% { transform: translate(-50%,-50%) translate(-40px, -30px) rotate(360deg) scale(0.7); opacity: 1; }
+  70% { transform: translate(-50%,-50%) translate(-10px, -8px) rotate(900deg) scale(0.3); opacity: 0.8; }
+  100% { transform: translate(-50%,-50%) translate(0, 0) rotate(1440deg) scale(0); opacity: 0; }
+}
+@keyframes tapoChasePortal {
+  0% { transform: translate(-50%,-50%) translate(120px, 80px) rotate(0deg) scale(1); opacity: 1; }
+  20% { transform: translate(-50%,-50%) translate(60px, 40px) rotate(-30deg) scale(0.85); opacity: 1; }
+  50% { transform: translate(-50%,-50%) translate(10px, 10px) rotate(-180deg) scale(0.5); opacity: 1; }
+  80% { transform: translate(-50%,-50%) translate(-5px, 0px) rotate(-540deg) scale(0.2); opacity: 0.8; }
+  100% { transform: translate(-50%,-50%) translate(0, 0) rotate(-720deg) scale(0); opacity: 0; }
 }
 
 /* ===== NEUTRAL CHOICE SCREEN (Door Selection) ===== */
