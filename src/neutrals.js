@@ -3559,10 +3559,7 @@ const winners = targetRolls.filter(r => r >= state.minBound && r <= state.maxBou
 const won = winners.length > 0;
 
 if(won) {
-let payout = state.wager * (state.stage === 1 ? 2 : 4);
-if(state.stage === 2) {
-payout = Math.min(payout, 40);
-}
+let payout = state.wager * 2;
 const netGain = payout - state.wager;
 S.gold -= state.wager;
 S.gold += payout;
@@ -3608,25 +3605,21 @@ if(S.gold < 2) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/gambling2.png',
 title: 'Between the 20s Extreme',
-description: 'The high-stakes gambling den glows with intense energy. A sign reads: "Minimum 2 Gold to play - 4x payout, capped at 40G."',
+description: 'The high-stakes gambling den glows with intense energy. A sign reads: "Minimum 2 Gold to play - ALL IN, 2x payout."',
 outcomes: ['<span style="color:#ef4444">You don\'t have enough gold to play.</span>'],
 buttons: `<button class="btn safe" onclick="nextFloor()">Leave</button>`
 });
 return;
 }
 
-// Calculate wager: max 10, or highest even number player has
-const maxWager = 10;
-let wager = Math.min(maxWager, Math.floor(S.gold / 2) * 2);
-if(wager < 2) wager = 2;
-
-// Calculate potential payout (capped at 40)
-const potentialPayout = Math.min(wager * 4, 40);
+// Wager ALL gold
+const wager = S.gold;
+const potentialPayout = wager * 2;
 
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/gambling2.png',
 title: 'Between the 20s Extreme',
-description: `The EXTREME version! Only 2 dice for bounds, NO backing out, but ${potentialPayout}G payout! High risk, high reward.`,
+description: `The EXTREME version! Only 2 dice for bounds, NO backing out, and it costs <span style="color:#ef4444">ALL YOUR GOLD</span>. Win and double it. Lose and walk away with nothing.`,
 outcomes: ['<span style="color:#3b82f6">WARNING: No safety net here. You\'re all in once you start.</span>'],
 buttons: `
 <button class="btn safe" onclick="nextFloor()">Walk away</button>
