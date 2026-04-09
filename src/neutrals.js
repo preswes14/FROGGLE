@@ -1573,15 +1573,28 @@ container.appendChild(portal);
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; max-width:75%; max-height:75%; margin:auto; animation: spinTapo 4s linear infinite; z-index:2;', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
+{bgColor: '#1a1a1a', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
 html: `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong class="text-danger">He can't help himself!</strong></div>`,
 onShow: () => {
 GameMusic.play(null, 'combat_19');
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
+// Portal glow background
 const portal = document.createElement('div');
-portal.style.cssText = 'position:absolute;top:50%;left:50%;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);box-shadow:0 0 80px #dc2626,0 0 160px rgba(220,38,38,0.3);animation:spinPortalReverse 3s linear infinite;z-index:1;transform:translate(-50%,-50%)';
+portal.style.cssText = 'position:absolute;top:50%;left:50%;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);box-shadow:0 0 80px #dc2626,0 0 160px rgba(220,38,38,0.3);animation:spinPortalReverse 3s linear infinite;z-index:1;transform:translate(-50%,-50%)';
 container.appendChild(portal);
+// Flydra spinning inside the portal, shrinking into center
+const flydra = document.createElement('img');
+flydra.src = 'assets/Hydra.png';
+flydra.alt = 'Flydra';
+flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:150px;height:auto;z-index:2;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:portalShrinkSpin 5s ease-in forwards';
+container.appendChild(flydra);
+// Tapo chasing Flydra into the portal, also shrinking
+const tapo = document.createElement('img');
+tapo.src = 'assets/tapo_pain.png';
+tapo.alt = 'Tapo';
+tapo.style.cssText = 'position:absolute;top:50%;left:50%;width:120px;height:auto;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,0.8));animation:tapoChasePortal 5s ease-in forwards';
+container.appendChild(tapo);
 }},
 {text: "TAPO, NO!! But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
 html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:780px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
