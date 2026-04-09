@@ -319,9 +319,9 @@ else if(isBest && fail) dieClass += ' best-fail';
 // No DC: best die gets a neutral highlight (tier-colored glow)
 else if(isBest && !hasDC) dieClass += ' best-success';
 }
-const borderStyle = rolled ? '' : `border-color: ${tierColor}; box-shadow: 0 0 8px ${tierColor}40;`;
 const colorStyle = rolled ? '' : `color: ${tierColor};`;
-html += `<div class="${dieClass}" data-die-index="${i}" style="${borderStyle}${colorStyle}">${value}</div>`;
+const glowStyle = rolled ? '' : `filter: drop-shadow(0 0 6px ${tierColor}60);`;
+html += `<div class="${dieClass}" data-die-index="${i}" style="${colorStyle}${glowStyle}">${value}</div>`;
 }
 
 html += '</div>'; // close dice-tray-inner
@@ -374,9 +374,8 @@ die.classList.remove('rolling');
 die.textContent = rolls[i];
 const isBest = rolls[i] === best;
 // Reset inline styles
-die.style.borderColor = '';
-die.style.boxShadow = '';
 die.style.color = '';
+die.style.filter = '';
 if(isBest && best === 20 && !fail) die.classList.add('best-nat20');
 else if(isBest && success) die.classList.add('best-success');
 else if(isBest && fail) die.classList.add('best-fail');
@@ -432,9 +431,12 @@ function renderHeroMiniCard(hero, idx, buttonsHtml) {
 const heroImage = hero.c ? HERO_IMAGES[hero.c] : (HERO_IMAGES[hero.n.toLowerCase()] || '');
 const crop = HERO_CROP[hero.n] || { fit: 'cover', pos: 'top center' };
 const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
-return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%);border:2px solid #22c55e;border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
-${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}">` : ''}
-<div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${hero.p}💥 | ${hero.h}/${hero.m}❤</div>
+const borderColor = hero.ls ? '#dc2626' : '#22c55e';
+const bg = hero.ls ? 'radial-gradient(ellipse at 50% 40%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%)' : 'radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%)';
+const statsLine = hero.ls ? `<span style="color:#fca5a5">DOWN T${hero.lst+1}</span>` : `${hero.p}💥 | ${hero.h}/${hero.m}❤`;
+return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
+${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}${hero.ls ? 'filter:sepia(30%) brightness(0.8);' : ''}">` : ''}
+<div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${statsLine}</div>
 ${buttonsHtml}
 </div>`;
 }
@@ -457,11 +459,8 @@ let html = `<div class="neutral-container">`;
 // Left side - Content
 html += '<div class="neutral-left">';
 
-// Header with stats and narrative
+// Header with narrative (stats removed - already in top header bar)
 html += '<div class="neutral-header">';
-if(showStats) {
-html += `<div class="neutral-stats">${S.gold}G | Floor ${S.floor}</div>`;
-}
 html += '<div class="neutral-narrative">';
 if(title) html += `<div class="neutral-title">${title}</div>`;
 if(description) html += `<div class="neutral-desc">${description}</div>`;
@@ -471,14 +470,14 @@ if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
 });
 html += '</div></div>'; // close narrative and header
 
-// Dice tray - always shown on neutral encounters
-// Pass custom diceTray HTML (e.g. with rolled results) or auto-render idle tray
-html += diceTray != null ? diceTray : renderDiceTray({});
-
 // Footer with buttons
 if(buttons) {
 html += `<div class="neutral-footer">${buttons}</div>`;
 }
+
+// Dice tray at bottom, inline with action buttons if present
+const trayHtml = diceTray != null ? diceTray : renderDiceTray({});
+html += `<div style="margin-top:auto">${trayHtml}</div>`;
 
 html += '</div>'; // close neutral-left
 
@@ -1385,21 +1384,24 @@ html: `
 <div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 60px #dc2626,0 0 120px rgba(220,38,38,0.3)"></div>
 <img src="assets/Hydra.png" alt="Flydra" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:180px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraPortalHover 2s ease-in-out infinite">
 </div>
-<!-- Enemies surrounding the portal -->
-<div style="position:absolute;top:-15px;left:-25px;animation:enemyAppear 0.8s ease-out 0.3s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto" onerror="this.outerHTML='👹'">
+<!-- Enemies pouring out of the portal -->
+<div style="position:absolute;top:-15px;left:-25px;animation:enemyAppear 0.8s ease-out 0.3s both,enemyPulse 2s ease-in-out 1.5s infinite">
+<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto;animation:enemyFlip 6s ease-in-out 2s infinite" onerror="this.outerHTML='👹'">
 </div>
-<div style="position:absolute;top:-15px;right:-25px;animation:enemyAppear 0.9s ease-out 0.5s both">
-<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto" onerror="this.outerHTML='🐺'">
+<div style="position:absolute;top:-15px;right:-25px;animation:enemyAppear 0.9s ease-out 0.5s both,enemyPulse 2.2s ease-in-out 1.8s infinite">
+<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto;animation:enemyFlip 7s ease-in-out 3s infinite" onerror="this.outerHTML='🐺'">
 </div>
-<div style="position:absolute;bottom:-15px;left:-20px;animation:enemyAppear 1s ease-out 0.7s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto" onerror="this.outerHTML='👹'">
+<div style="position:absolute;bottom:-15px;left:-20px;animation:enemyAppear 1s ease-out 0.7s both,enemyPulse 2.4s ease-in-out 2s infinite">
+<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto;animation:enemyFlip 8s ease-in-out 2.5s infinite" onerror="this.outerHTML='👹'">
 </div>
-<div style="position:absolute;bottom:-15px;right:-20px;animation:enemyAppear 1.1s ease-out 0.9s both">
-<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto" onerror="this.outerHTML='🐺'">
+<div style="position:absolute;bottom:0px;left:35px;animation:enemyAppear 1.05s ease-out 0.8s both,enemyPulse 2.1s ease-in-out 1.7s infinite">
+<img src="assets/wolf.png" alt="Wolf" style="width:60px;height:auto;animation:enemyFlip 9s ease-in-out 4s infinite" onerror="this.outerHTML='🐺'">
 </div>
-<div style="position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);animation:enemyAppear 1.2s ease-out 1.1s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto" onerror="this.outerHTML='👹'">
+<div style="position:absolute;bottom:-15px;right:-20px;animation:enemyAppear 1.1s ease-out 0.9s both,enemyPulse 2.3s ease-in-out 2.2s infinite">
+<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto;animation:enemyFlip 7.5s ease-in-out 3.5s infinite" onerror="this.outerHTML='🐺'">
+</div>
+<div style="position:absolute;top:50%;right:-45px;transform:translateY(-50%);animation:enemyAppear 1.2s ease-out 1.1s both,enemyPulse 2.5s ease-in-out 2.4s infinite">
+<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto;animation:enemyFlip 6.5s ease-in-out 3s infinite" onerror="this.outerHTML='👹'">
 </div>
 </div>
 <p style="color:#f5f5f5">
@@ -1711,8 +1713,8 @@ v.innerHTML = `
 <div id="hero-cards-area" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:0.5rem;z-index:5">
 </div>
 
-<!-- Center content -->
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 1rem">
+<!-- Center content - left padding accounts for absolutely positioned hero cards -->
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 1rem 0 240px">
 <h1 style="text-align:center;margin:0 0 0.5rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
 
@@ -2425,7 +2427,6 @@ function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
 // Show hero selection screen (exclude Last Stand heroes - they can't take damage)
 const v = document.getElementById('gameView');
-let heroButtons = '';
 const eligible = S.heroes.filter(h => !h.ls);
 if(eligible.length === 0) {
 // All heroes in Last Stand - skip damage

@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.44';
+const GAME_VERSION = 'S_2.53';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8,7 +8,7 @@ if(typeof S !== 'undefined' && S.debugMode) console.log(...args);
 }
 
 // ===== DEMO MODE =====
-const DEMO_MODE = true;
+const DEMO_MODE = false; // Toggle to true for Next Fest demo build
 const DEMO_NEUTRAL_ORDER = [
 'oracle', 'shopkeeper', 'treasurechest',
 'wizard', 'wishingwell', 'encampment',
@@ -441,8 +441,7 @@ return `${prefix}${enemy.n} ${suffix}`;
 
 // Helper for enemy attacks - handles targeting, damage, animations, and toast
 function executeEnemyAttackOnHeroes(enemy, targetCount, attackName = 'Base Attack') {
-// JUICE: Enemy charge sound + attack slide animation
-SoundFX.play('enemyCharge');
+// JUICE: Attack slide animation (charge sound removed - overlapped with hit sound)
 triggerEnemyAttackAnimation(enemy.id);
 
 const targets = selectEnemyTargets(enemy, targetCount);
