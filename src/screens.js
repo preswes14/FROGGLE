@@ -2528,6 +2528,10 @@ function showQuestBoard() {
   border-radius: 6px;
   border: 2px solid transparent;
   transition: all 0.2s;
+  cursor: default;
+}
+.quest-item:hover {
+  background: rgba(255,255,255,0.15);
 }
 .quest-item.complete {
   border-color: #22c55e;
