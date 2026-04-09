@@ -2684,8 +2684,8 @@ GamepadController.saveFocusState();
 }
 
 const v = document.getElementById('gameView');
-// Combat screens are scrollable (no-scroll is for narrative/cutscene screens)
-v.classList.remove('no-scroll');
+// Combat screens fit on one page - no scrolling
+v.classList.add('no-scroll');
 // Toggle FU mode class for compact 3-hero layout and sinister background
 v.classList.toggle('fu-mode', S.gameMode === 'fu');
 document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
@@ -3295,11 +3295,13 @@ statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,25
 </div>`;
 }
 
+const heroCount = S.heroes.length;
+const heroDirection = heroCount >= 3 ? 'row' : 'column';
 v.innerHTML = `
 <div style="display:flex;gap:1rem;align-items:flex-start;padding:0.5rem;height:100%">
 <!-- Left: Hero cards (combat style) -->
-<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.5rem;align-items:center">
-<h2 style="text-align:center;margin:0 0 0.25rem 0;font-size:1.1rem">Your Heroes</h2>
+<div style="flex:0 0 auto;display:flex;flex-direction:${heroDirection};gap:0.5rem;align-items:center;flex-wrap:wrap">
+<h2 style="text-align:center;margin:0 0 0.25rem 0;font-size:1.1rem;width:100%">Your Heroes</h2>
 ${heroCardsHtml}
 </div>
 <!-- Right: Stats panel -->

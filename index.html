@@ -3519,7 +3519,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.44';
+const GAME_VERSION = 'S_2.45';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -10701,8 +10701,8 @@ GamepadController.saveFocusState();
 }
 
 const v = document.getElementById('gameView');
-// Combat screens are scrollable (no-scroll is for narrative/cutscene screens)
-v.classList.remove('no-scroll');
+// Combat screens fit on one page - no scrolling
+v.classList.add('no-scroll');
 // Toggle FU mode class for compact 3-hero layout and sinister background
 v.classList.toggle('fu-mode', S.gameMode === 'fu');
 document.body.classList.toggle('fu-mode', S.gameMode === 'fu');
@@ -11312,11 +11312,13 @@ statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,25
 </div>`;
 }
 
+const heroCount = S.heroes.length;
+const heroDirection = heroCount >= 3 ? 'row' : 'column';
 v.innerHTML = `
 <div style="display:flex;gap:1rem;align-items:flex-start;padding:0.5rem;height:100%">
 <!-- Left: Hero cards (combat style) -->
-<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:0.5rem;align-items:center">
-<h2 style="text-align:center;margin:0 0 0.25rem 0;font-size:1.1rem">Your Heroes</h2>
+<div style="flex:0 0 auto;display:flex;flex-direction:${heroDirection};gap:0.5rem;align-items:center;flex-wrap:wrap">
+<h2 style="text-align:center;margin:0 0 0.25rem 0;font-size:1.1rem;width:100%">Your Heroes</h2>
 ${heroCardsHtml}
 </div>
 <!-- Right: Stats panel -->
@@ -12384,9 +12386,12 @@ function renderHeroMiniCard(hero, idx, buttonsHtml) {
 const heroImage = hero.c ? HERO_IMAGES[hero.c] : (HERO_IMAGES[hero.n.toLowerCase()] || '');
 const crop = HERO_CROP[hero.n] || { fit: 'cover', pos: 'top center' };
 const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
-return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%);border:2px solid #22c55e;border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
-${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}">` : ''}
-<div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${hero.p}💥 | ${hero.h}/${hero.m}❤</div>
+const borderColor = hero.ls ? '#dc2626' : '#22c55e';
+const bg = hero.ls ? 'radial-gradient(ellipse at 50% 40%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%)' : 'radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%)';
+const statsLine = hero.ls ? `<span style="color:#fca5a5">DOWN T${hero.lst+1}</span>` : `${hero.p}💥 | ${hero.h}/${hero.m}❤`;
+return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
+${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}${hero.ls ? 'filter:sepia(30%) brightness(0.8);' : ''}">` : ''}
+<div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${statsLine}</div>
 ${buttonsHtml}
 </div>`;
 }
@@ -13663,8 +13668,8 @@ v.innerHTML = `
 <div id="hero-cards-area" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:0.5rem;z-index:5">
 </div>
 
-<!-- Center content -->
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 1rem">
+<!-- Center content - left padding accounts for absolutely positioned hero cards -->
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 1rem 0 240px">
 <h1 style="text-align:center;margin:0 0 0.5rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
 
@@ -14377,7 +14382,6 @@ function applyWellClimb(hpLoss, goldGain) {
 if(hpLoss > 0) {
 // Show hero selection screen (exclude Last Stand heroes - they can't take damage)
 const v = document.getElementById('gameView');
-let heroButtons = '';
 const eligible = S.heroes.filter(h => !h.ls);
 if(eligible.length === 0) {
 // All heroes in Last Stand - skip damage
