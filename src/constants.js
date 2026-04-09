@@ -653,8 +653,8 @@ infoHtml += `<div class="action-bar-detail" style="color:#22c55e">Expand: Select
 }
 infoHtml += `<div class="action-bar-detail" style="color:#fbbf24">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
 
-buttonsHtml = `<button class="btn secondary" onclick="cancelAction()" style="padding:0.5rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
-buttonsHtml += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="padding:0.75rem 2rem;font-size:1.1rem;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
+buttonsHtml = `<button class="btn secondary" onclick="cancelAction()" style="width:15%;padding:0.5rem 0;font-size:0.85rem;text-align:center">✗ Cancel</button>`;
+buttonsHtml += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="width:33%;padding:0.6rem 0;font-size:1.1rem;text-align:center;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
 } else {
 // All other actions: Attack, Shield, Heal, Grapple, Alpha
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
@@ -686,15 +686,15 @@ const tpi = getTargetsPerInstance(S.pending, heroIdx);
 const slotsLeft = tpi - targetCount;
 const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
 
-buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.5rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="width:15%;padding:0.5rem 0;font-size:0.85rem;text-align:center">✗ Cancel</button>`;
 if(canTargetAll && targetCount === 0 && tpi > 1) {
-  buttonsHtml += `<button class="btn" onclick="targetAll()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#3b82f6">⚡ Target All</button>`;
+  buttonsHtml += `<button class="btn" onclick="targetAll()" style="width:33%;padding:0.6rem 0;font-size:1.1rem;background:#3b82f6;text-align:center">⚡ Target All</button>`;
 }
 if(targetCount > 0) {
-  buttonsHtml += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.75rem 2rem;font-size:1.1rem">✓ Confirm</button>`;
+  buttonsHtml += `<button class="btn safe" onclick="confirmTargets()" style="width:33%;padding:0.6rem 0;font-size:1.1rem;text-align:center">✓ Confirm</button>`;
 }
 } else {
-buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.5rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="width:15%;padding:0.5rem 0;font-size:0.85rem;text-align:center">✗ Cancel</button>`;
 }
 }
 
