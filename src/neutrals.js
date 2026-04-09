@@ -1535,7 +1535,7 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "The battle is won! But as the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
+{bg: 'assets/ribbleton.png', text: "The battle is won! As the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -1551,7 +1551,7 @@ portal.appendChild(portalBg);
 const flydra = document.createElement('img');
 flydra.src = 'assets/Hydra.png';
 flydra.alt = 'Flydra';
-flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:200px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraFlip 1.2s linear infinite;z-index:6';
+flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:200px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraFlip 3.6s ease-in-out infinite;z-index:6';
 portal.appendChild(flydra);
 // 4 flies hovering near the Flydra
 const flyPositions = [
