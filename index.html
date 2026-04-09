@@ -3065,9 +3065,10 @@ body.controller-active .controller-prompts {
   font-weight: bold;
   background: #22c55e;
   color: #fff;
-  border: 2px solid #15803d;
+  border: 2px solid #fbbf24;
   border-radius: 8px;
   cursor: pointer;
+  max-width: 50%;
 }
 /* Gray secondary button (skip tutorial, etc.) */
 .tutorial-btn-secondary {
@@ -3180,17 +3181,19 @@ body.controller-active .controller-prompts {
 
 /* Mage-teaches-Tapo slide transitions */
 @keyframes tapoVaultToMage {
-  0%   { transform: translate(0, 0) scaleX(1); }
-  10%  { transform: translate(3vw, -14vh) scaleX(1); }
-  20%  { transform: translate(6vw, -25vh) scaleX(1); }
-  30%  { transform: translate(9vw, -33vh) scaleX(1); }
-  40%  { transform: translate(12vw, -37vh) scaleX(1); }
-  50%  { transform: translate(15vw, -38vh) scaleX(1); }
-  60%  { transform: translate(18vw, -34vh) scaleX(1); }
-  70%  { transform: translate(21vw, -25vh) scaleX(1); }
-  80%  { transform: translate(24vw, -13vh) scaleX(1); }
-  90%  { transform: translate(26vw, -2vh) scaleX(1); }
-  100% { transform: translate(28vw, 5vh) scaleX(1); }
+  0%   { transform: translate(0, 0) scaleX(-1); }
+  10%  { transform: translate(3vw, -14vh) scaleX(-1); }
+  20%  { transform: translate(6vw, -25vh) scaleX(-1); }
+  25%  { transform: translate(7.5vw, -29vh) rotate(0deg) scaleX(-1); }
+  30%  { transform: translate(9vw, -33vh) rotate(36deg) scaleX(-1); }
+  40%  { transform: translate(12vw, -37vh) rotate(108deg) scaleX(-1); }
+  50%  { transform: translate(15vw, -38vh) rotate(180deg) scaleX(-1); }
+  60%  { transform: translate(18vw, -34vh) rotate(252deg) scaleX(-1); }
+  70%  { transform: translate(21vw, -25vh) rotate(324deg) scaleX(-1); }
+  75%  { transform: translate(22.5vw, -19vh) rotate(360deg) scaleX(-1); }
+  80%  { transform: translate(24vw, -13vh) scaleX(-1); }
+  90%  { transform: translate(26vw, -2vh) scaleX(-1); }
+  100% { transform: translate(28vw, 5vh) scaleX(-1); }
 }
 @keyframes doubleJump {
   0%   { transform: translateY(0); }
