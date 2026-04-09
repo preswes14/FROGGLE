@@ -2582,7 +2582,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh.", () => {
+showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the <strong style=\"color:#f97316\">? FAQ</strong> and <strong style=\"color:#9333ea\">✦ Sigilarium</strong> for tips. You're on your own after this - don't croak... Heh.", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -3346,7 +3346,7 @@ saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
 S.tutorialFlags.faq_intro = true;
-showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong>Sigilarium</strong> - View all sigils and their effects<br><strong>Log</strong> - See combat message history<br><strong>FAQ</strong> - Frequently asked questions about game mechanics<br><strong>Settings</strong> - Adjust game options and preferences", () => {
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong style=\"color:#9333ea\">✦ Sigilarium</strong> - View all sigils and their effects<br><strong style=\"color:#22c55e\">... Log</strong> - See combat message history<br><strong style=\"color:#f97316\">? FAQ</strong> - Frequently asked questions about game mechanics<br><strong style=\"color:#3b82f6\">⚙ Settings</strong> - Adjust game options and preferences", () => {
 startFloor(S.floor + 1);
 });
 return;

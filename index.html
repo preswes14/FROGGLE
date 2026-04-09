@@ -3537,7 +3537,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.60';
+const GAME_VERSION = 'S_2.61';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -10615,7 +10615,7 @@ setTimeout(finishTaposBirthdayPhase, T(ANIMATION_TIMINGS.VICTORY_DELAY));
 } else {
 // Phase 2 complete: Show handoff popup, then finish tutorial
 setTimeout(() => {
-showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the FAQ and Sigilarium for tips. You're on your own after this - don't croak... Heh.", () => {
+showTutorialPop('ribbleton_handoff', "Hover over any sigil to see what it does, and check out the <strong style=\"color:#f97316\">? FAQ</strong> and <strong style=\"color:#9333ea\">✦ Sigilarium</strong> for tips. You're on your own after this - don't croak... Heh.", () => {
 finishRibbletonTutorial();
 });
 }, T(ANIMATION_TIMINGS.VICTORY_DELAY));
@@ -11379,7 +11379,7 @@ saveGame();
 // Show header buttons tutorial after first neutral encounter (Floor 2 complete)
 if(S.floor === 2 && !S.tutorialFlags.faq_intro) {
 S.tutorialFlags.faq_intro = true;
-showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong>Sigilarium</strong> - View all sigils and their effects<br><strong>Log</strong> - See combat message history<br><strong>FAQ</strong> - Frequently asked questions about game mechanics<br><strong>Settings</strong> - Adjust game options and preferences", () => {
+showTutorialPop('faq_intro', "You're (mostly) on your own from here - good luck! Need help? Check the header buttons at the top:<br><br><strong style=\"color:#9333ea\">✦ Sigilarium</strong> - View all sigils and their effects<br><strong style=\"color:#22c55e\">... Log</strong> - See combat message history<br><strong style=\"color:#f97316\">? FAQ</strong> - Frequently asked questions about game mechanics<br><strong style=\"color:#3b82f6\">⚙ Settings</strong> - Adjust game options and preferences", () => {
 startFloor(S.floor + 1);
 });
 return;
@@ -13025,10 +13025,10 @@ If you need help, look for the:
 </p>
 <div style="display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap">
 <div style="text-align:center">
-<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Help/FAQ</div>
+<div style="background:#f97316;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">? Help/FAQ</div>
 </div>
 <div style="text-align:center">
-<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">Sigilarium</div>
+<div style="background:#9333ea;color:white;padding:0.5rem 1rem;border-radius:8px;font-weight:bold;border:2px solid #000">✦ Sigilarium</div>
 </div>
 </div>
 </div>
