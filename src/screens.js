@@ -2649,6 +2649,7 @@ GameMusic.playScene('town_base');
 upd(); // Update header to show "Ribbleton"
 
 const v = document.getElementById('gameView');
+v.classList.add('no-scroll');
 
 // Show tutorial for first-time visitors to Ribbleton hub (delayed to ensure screen is rendered first)
 const isFirstVisit = !S.tutorialFlags.ribbleton_hub_intro;

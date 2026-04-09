@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.43';
+const GAME_VERSION = 'S_2.44';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -579,12 +579,10 @@ return html;
 // Render combat status header — turn info goes in top bar, minimal subtitle only below
 function renderCombatStatusHeader() {
 let turnText = '';
-let subtitleHtml = '';
 
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
-turnText = 'Enemy Turn';
-subtitleHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
+turnText = `Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…`;
 } else {
 turnText = 'Enemy Turn…';
 }
@@ -596,8 +594,7 @@ turnText = S.pending;
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
-turnText = 'AMBUSH!';
-subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
+turnText = 'AMBUSH! All heroes stunned!';
 } else {
 turnText = 'Choose a sigil';
 }
@@ -609,12 +606,10 @@ else turnText = `${h.n}'s Turn`;
 }
 }
 
-// Update top bar turn indicator
+// Update top bar turn indicator - all info goes here, no separate div
 const turnEl = document.getElementById('turnInfo');
 if(turnEl) turnEl.textContent = turnText ? ` | ${turnText}` : '';
 
-// Only return subtitle if present
-if(subtitleHtml) return `<div class="combat-header">${subtitleHtml}</div>`;
 return '';
 }
 
@@ -925,7 +920,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Click her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });
@@ -938,7 +933,7 @@ S.locked = false;
 tutorialState.stage = 'healer_heal';
 upd();
 // Show healing prompt popup
-showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Tap her ${sigilText('Heal')} sigil!`, () => {
+showTutorialPop('ribbleton_healer_heal', `Yikes! Both of you took some damage - but Healer knows what she's doing! Click her ${sigilText('Heal')} sigil!`, () => {
 S.activeIdx = 1;
 render();
 });

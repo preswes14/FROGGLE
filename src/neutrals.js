@@ -426,6 +426,19 @@ return `<span style="display:inline-block;width:1.8rem;height:1.8rem;line-height
 return diceHTML;
 }
 
+// Reusable hero mini-card for neutral encounters
+// Shows hero portrait + brief stats with custom action buttons below
+function renderHeroMiniCard(hero, idx, buttonsHtml) {
+const heroImage = hero.c ? HERO_IMAGES[hero.c] : (HERO_IMAGES[hero.n.toLowerCase()] || '');
+const crop = HERO_CROP[hero.n] || { fit: 'cover', pos: 'top center' };
+const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
+return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%);border:2px solid #22c55e;border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
+${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}">` : ''}
+<div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${hero.p}💥 | ${hero.h}/${hero.m}❤</div>
+${buttonsHtml}
+</div>`;
+}
+
 function buildNeutralHTML(options) {
 const {
 bgImage,
@@ -1532,6 +1545,8 @@ combat(0);
 
 
 function finishRibbletonTutorial() {
+// Return to town music after tutorial combat
+GameMusic.playScene('town_base');
 // Post-combat narrative with full-art backgrounds
 const slides = [
 {bg: 'assets/ribbleton.png', text: "The battle is won! As the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
@@ -1590,13 +1605,15 @@ flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:150px;height:au
 container.appendChild(flydra);
 // Tapo chasing Flydra into the portal, also shrinking
 const tapo = document.createElement('img');
-tapo.src = 'assets/tapo_pain.png';
+tapo.src = 'assets/tapo_happy.png';
 tapo.alt = 'Tapo';
 tapo.style.cssText = 'position:absolute;top:50%;left:50%;width:120px;height:auto;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,0.8));animation:tapoChasePortal 6s ease-in forwards';
 container.appendChild(tapo);
+// Face swap: happy for first third (2s), then pained for the rest
+setTimeout(() => { tapo.src = 'assets/tapo_pain.png'; }, 2000);
 }},
 {text: "TAPO, NO!! But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
-html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:780px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
+html: `<div class="narrative-text" style="font-size:1.3rem;line-height:1.4;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:780px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -1688,18 +1705,17 @@ const maxSlots = 8;
 const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 
 v.innerHTML = `
-<h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
+<div style="position:relative;height:calc(100vh - 44px);overflow:hidden">
 
-<div style="max-width:960px;margin:0 auto;padding:0 0.5rem">
-<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
-
-<div style="display:flex;gap:1rem;align-items:flex-start;justify-content:center">
-<!-- Left: Selected hero cards (combat-style) -->
-<div id="hero-cards-area" style="flex:0 0 220px;display:flex;flex-direction:column;gap:0.5rem;min-height:200px">
+<!-- Selected hero cards - far left like recruits in combat -->
+<div id="hero-cards-area" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:0.5rem;z-index:5">
 </div>
 
-<!-- Right: Hero selection grid -->
-<div style="flex:0 1 auto">
+<!-- Center content -->
+<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:0 1rem">
+<h1 style="text-align:center;margin:0 0 0.5rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
+<h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
+
 <div id="hero-select-container" style="position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
@@ -1710,7 +1726,7 @@ ${['warrior','tank','mage','healer'].map(hero => `
 </div>
 
 ${S.tapoUnlocked ? `
-<div style="margin-top:1rem;text-align:center">
+<div style="margin-top:0.75rem;text-align:center">
 <button class="btn" onclick="toggleHeroSelection('tapo')" style="background:linear-gradient(135deg,#3b82f6 0%,#22c55e 100%);padding:0.75rem 1.5rem;font-size:1rem;font-weight:bold;border:3px solid #000">
 ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >= 1 ? 'Add Tapo (click multiple times!)' : 'View Tapo (UNLOCKED!)'}
 </button>
@@ -1719,8 +1735,6 @@ ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >
 ALL TAPOS
 </button>` : ''}
 </div>` : ''}
-</div>
-</div>
 
 <!-- Selection display with X/Y counter -->
 <div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
@@ -1728,7 +1742,8 @@ ALL TAPOS
 <span id="selection-counter" style="font-size:1.1rem;font-weight:bold;margin-left:0.5rem"></span>
 </div>
 
-<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Into the Portal!</button>
+<button class="btn" id="start" onclick="start()" style="width:100%;max-width:500px;padding:0.75rem;font-size:1rem">Into the Portal!</button>
+</div>
 </div>`;
 
 debugLog('[FROGGLE] title() innerHTML set successfully');
@@ -2171,15 +2186,16 @@ buttons: buttons
 function buySmallPotion() {
 if(S.gold < 3) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let heroButtons = '';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, idx) => {
-heroButtons += `<button class="neutral-btn" onclick="applySmallPotion(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn safe" onclick="applySmallPotion(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Heal</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
-title: 'Choose Hero',
-description: 'Select a hero to restore 3 HP.',
-buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
+title: 'Small Potion',
+description: 'Restore 3 HP:',
+buttons: heroCards + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
 });
 }
 
@@ -2201,15 +2217,16 @@ renderShopkeeper();
 function buyLargePotion() {
 if(S.gold < 5) { toast('Not enough Gold!'); return; }
 const v = document.getElementById('gameView');
-let heroButtons = '';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, idx) => {
-heroButtons += `<button class="neutral-btn" onclick="applyLargePotion(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn safe" onclick="applyLargePotion(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Heal</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper1.png',
-title: 'Choose Hero',
-description: 'Select a hero to restore 8 HP.',
-buttons: heroButtons + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
+title: 'Large Potion',
+description: 'Restore 8 HP:',
+buttons: heroCards + `<button class="neutral-btn secondary" onclick="renderShopkeeper()">Back</button>`
 });
 }
 
@@ -2419,15 +2436,17 @@ if(goldGain > 0) toast(`Gained ${goldGain} Gold!`);
 nextFloor();
 return;
 }
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 eligible.forEach(h => {
 const idx = S.heroes.indexOf(h);
-heroButtons += `<button class="neutral-btn danger" onclick="applyWellDamage(${idx}, ${hpLoss}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn danger" onclick="applyWellDamage(${idx}, ${hpLoss}, ${goldGain})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Take ${hpLoss} dmg</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/wishingwell1.png',
 title: 'Choose Who Takes Damage',
-description: `Choose which hero takes ${hpLoss} damage from climbing the well:`,
-buttons: heroButtons
+description: `Someone takes ${hpLoss} damage from climbing the well:`,
+buttons: heroCards
 });
 } else {
 // No damage, just apply gold
@@ -2590,17 +2609,18 @@ footer.innerHTML = `<button class="btn" onclick="openChestGoldRoll()">See what's
 } else {
 // Trap triggered - pick who takes damage, no gold
 if(trapDmg > 0) {
-let heroButtons = '<div style="margin-bottom:0.5rem;opacity:0.8">Choose who takes the hit:</div>';
 const eligible = S.heroes.filter(h => !h.ls);
 if(eligible.length === 0) {
 if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continue</button>`;
 return;
 }
+let heroCards = '<div style="margin-bottom:0.5rem;opacity:0.8;font-size:0.85rem">Choose who takes the hit:</div><div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 eligible.forEach(h => {
 const idx = S.heroes.indexOf(h);
-heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, 0)">${h.n} (${h.h}/${h.m}❤)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, 0)" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Take ${trapDmg} dmg</button>`);
 });
-if(footer) footer.innerHTML = heroButtons;
+heroCards += '</div>';
+if(footer) footer.innerHTML = heroCards;
 }
 }
 });
@@ -2722,14 +2742,18 @@ if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continu
 // ===== 4. MUMBLING WIZARD =====
 function showWizard1() {
 const v = document.getElementById('gameView');
-let description = 'An elderly wizard stands with arms outstretched toward a wall covered in glowing hieroglyphs. He mutters to himself, but stops when you walk in. "Do you see it? CAN you see it? Look closely!" He pulls you toward the wall.<br><br>Choose which hero will approach the wizard:';
-let buttons = '';
+let description = 'An elderly wizard stands before a wall covered in glowing hieroglyphs. "Do you see it? CAN you see it? Look closely!" He pulls you toward the wall.';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin:0.5rem 0">';
 S.heroes.forEach((h, idx) => {
 const heroSigils = [...h.s];
 if(h.ts) heroSigils.push(...h.ts);
 const sigilList = heroSigils.map(s => sigilIconOnly(s)).join(' ');
-buttons += `<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})">${h.n} <span style="font-size:0.8rem;opacity:0.8">${sigilList}</span></button>`;
+heroCards += renderHeroMiniCard(h, idx, `
+<div style="font-size:0.65rem;margin:0.15rem 0;text-align:center">${sigilList}</div>
+<button class="neutral-btn safe" onclick="heroApproachesWizard(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;width:100%">Approach</button>`);
 });
+heroCards += '</div>';
+let buttons = heroCards;
 buttons += `<button class="btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 
 v.innerHTML = buildNeutralHTML({
@@ -3040,12 +3064,17 @@ function showOracle1() {
 // Mark tutorial as seen so future runs have random neutrals
 S.tutorialFlags.neutral_intro = true;
 const v = document.getElementById('gameView');
-let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?" Choose a hero and their desired fortune:';
-let buttons = '';
+let description = 'A figure shrouded in mist sits cross-legged before a glowing crystal sphere. Their voice echoes: "Step forward, adventurer, and I shall ponder your future within this here orb. Crave you Power or Life?"';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin:0.5rem 0">';
 S.heroes.forEach((h, idx) => {
-buttons += `<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')">${h.n} - Power (${h.p}💥 → ${h.p+1}💥)</button>`;
-buttons += `<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')">${h.n} - Life (${h.m}❤ max → ${h.m+5}❤ max)</button>`;
+heroCards += renderHeroMiniCard(h, idx, `
+<div style="display:flex;gap:0.25rem;margin-top:0.3rem">
+<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">POW+</button>
+<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">HP+</button>
+</div>`);
 });
+heroCards += '</div>';
+let buttons = heroCards;
 buttons += `<button class="neutral-btn secondary" onclick="nextFloor()">Do Not Engage</button>`;
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/oracle1.png',
@@ -3208,16 +3237,19 @@ buttons: `
 
 function chooseEncampmentAction(action) {
 const v = document.getElementById('gameView');
-let buttons = '';
+const btnClass = action === 'sneak' ? '' : 'risky';
+const fnName = action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment';
+const label = action === 'sneak' ? 'Scout' : 'Lead';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, i) => {
-const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-buttons += `<button class="neutral-btn ${action === 'sneak' ? '' : 'risky'}" onclick="${action === 'sneak' ? 'sneakByEncampment' : 'engageEarlyEncampment'}(${i})">${h.n} - ${h.p}💥 | ${hp}</button>`;
+heroCards += renderHeroMiniCard(h, i, `<button class="neutral-btn ${btnClass}" onclick="${fnName}(${i})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">${label}</button>`);
 });
+heroCards += '</div>';
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: action === 'sneak' ? 'Choose Scout' : 'Choose Leader',
 description: `Which hero will ${action === 'sneak' ? 'sneak past the encampment' : 'lead the charge'}?`,
-buttons
+buttons: heroCards
 });
 }
 
@@ -3269,18 +3301,18 @@ window.pendingStragglerData = { base, stragglerType };
 
 outcome = `As you sneak by, you spy an enemy straggler who appears to be hiding from the group... It looks like they want to join your party!`;
 
-let heroButtons = '';
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
 S.heroes.forEach((h, i) => {
-const hp = h.ls ? `Last Stand (T${h.lst+1})` : `${h.h}/${h.m}❤`;
-heroButtons += `<button class="neutral-btn safe" onclick="assignRecruitToHero(${i})">${h.n} - ${h.p}💥 | ${hp}</button>`;
+heroCards += renderHeroMiniCard(h, i, `<button class="neutral-btn safe" onclick="assignRecruitToHero(${i})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Recruit</button>`);
 });
+heroCards += '</div>';
 
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/encampment1.png',
 title: 'Sneaking Past - NAT 20!',
 diceTray: renderDiceTray({ rolled: true, rolls, best }),
 description: `${outcome}<br><br><strong>Who should recruit the ${base.n}?</strong>`,
-buttons: heroButtons
+buttons: heroCards
 });
 }
 });
@@ -3735,12 +3767,14 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 return;
 }
 
-let heroButtons = '';
-S.heroes.forEach((h, idx) => {
-if(h.ls) return;
-heroButtons += `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
+let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">';
+const eligibleGhostHeroes = S.heroes.filter(h => !h.ls);
+eligibleGhostHeroes.forEach(h => {
+const idx = S.heroes.indexOf(h);
+heroCards += renderHeroMiniCard(h, idx, `<button class="neutral-btn danger" onclick="applyGhostDamage(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem;margin-top:0.3rem;width:100%">Take hit</button>`);
 });
-if(!heroButtons) {
+heroCards += '</div>';
+if(eligibleGhostHeroes.length === 0) {
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/ghost1.png',
 title: 'The Ghost Boys Let You Go',
@@ -3755,7 +3789,7 @@ title: 'Trapped with the Ghost Boys',
 diceTray: renderDiceTray({ dc: ghostEscapeDC, rolled: true, rolls, best }),
 description: 'Choose which hero takes 1 damage:',
 outcomes: ['You don\'t notice time passing, but pangs of hunger and fatigue make it clear you\'ve been here longer than it feels like. The boys are having a great time playing.'],
-buttons: heroButtons
+buttons: heroCards
 });
 }, ghostEscapeDC);
 }
