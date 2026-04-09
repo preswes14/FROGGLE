@@ -3519,7 +3519,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.46';
+const GAME_VERSION = 'S_2.47';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -3961,8 +3961,7 @@ return `${prefix}${enemy.n} ${suffix}`;
 
 // Helper for enemy attacks - handles targeting, damage, animations, and toast
 function executeEnemyAttackOnHeroes(enemy, targetCount, attackName = 'Base Attack') {
-// JUICE: Enemy charge sound + attack slide animation
-SoundFX.play('enemyCharge');
+// JUICE: Attack slide animation (charge sound removed - overlapped with hit sound)
 triggerEnemyAttackAnimation(enemy.id);
 
 const targets = selectEnemyTargets(enemy, targetCount);
@@ -11620,7 +11619,7 @@ function showLevelUpIntroTutorial() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
-<div class="tutorial-modal" style="max-width:900px;text-align:left">
+<div class="tutorial-modal" style="max-width:1100px;min-width:900px;text-align:left;overflow-y:auto">
 <h2 style="text-align:center;color:#22c55e;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:1rem;font-size:1rem">Your first upgrade! FROGGLE is all about finding cool combos. Here are your options:</p>
 
