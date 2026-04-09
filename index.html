@@ -32,6 +32,7 @@ body.electron-app * { cursor: none; }
 body.electron-app .btn, body.electron-app button, body.electron-app [onclick] { cursor: none; }
 body.fu-mode { background: linear-gradient(135deg, #2a231c 0%, #1a1612 100%); color: #e8d5c0; }
 h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; }
+.modal-container, .btn, .neutral-btn, .choice, .card, .tutorial-modal { font-family: 'Fredoka One', cursive; }
 
 /* Landscape orientation enforcement for mobile */
 @media (max-width: 768px) and (orientation: portrait) {
@@ -3537,7 +3538,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.62';
+const GAME_VERSION = 'S_2.63';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
