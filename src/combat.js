@@ -2687,6 +2687,8 @@ setTimeout(() => v.classList.remove('fade-in'), ANIMATION_TIMINGS.FADE_TRANSITIO
 }
 
 function render() {
+// Clean up any lingering tooltips before DOM rebuild
+if(typeof hideTooltip === 'function') hideTooltip();
 // Save controller focus state before DOM update
 if (typeof GamepadController !== 'undefined' && GamepadController.active) {
 GamepadController.saveFocusState();

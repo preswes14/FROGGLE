@@ -3519,7 +3519,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.54';
+const GAME_VERSION = 'S_2.55';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -10712,6 +10712,8 @@ setTimeout(() => v.classList.remove('fade-in'), ANIMATION_TIMINGS.FADE_TRANSITIO
 }
 
 function render() {
+// Clean up any lingering tooltips before DOM rebuild
+if(typeof hideTooltip === 'function') hideTooltip();
 // Save controller focus state before DOM update
 if (typeof GamepadController !== 'undefined' && GamepadController.active) {
 GamepadController.saveFocusState();
