@@ -1035,6 +1035,22 @@ if(typeof hero.h !== 'number' || typeof hero.m !== 'number') throw new Error('In
 return true;
 }
 
+// Detect and repair old saves where starter actives were stored as L1 instead of L0
+function repairOldSigilFormat() {
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
+starterActives.forEach(sig => {
+if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
+S.sig[sig] = 0;
+needsFix = true;
+}
+});
+if(needsFix) {
+debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
+savePermanent();
+}
+}
+
 function loadPermanent() {
 try {
 const d = localStorage.getItem('froggle8_permanent');
@@ -1067,20 +1083,7 @@ S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
-// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
-const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
-let needsFix = false;
-starterActives.forEach(sig => {
-if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
-// Starter active at L1 with no upgrades = old save format, fix it
-S.sig[sig] = 0;
-needsFix = true;
-}
-});
-if(needsFix) {
-debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
-savePermanent(); // Save the fix
-}
+repairOldSigilFormat();
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
@@ -1091,7 +1094,7 @@ S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
 S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.demoNeutralIndex = j.demoNeutralIndex || 0;
 S.runNumber = j.runNumber || 1;
-S.runsAttempted = j.runsAttempted || 0;
+S.runsAttempted = j.runsAttempted || j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tutorialDisabled = j.tutorialDisabled || false;
 S.cutsceneDisabled = j.cutsceneDisabled || false;
@@ -1255,20 +1258,7 @@ S.runsAttempted = j.runsAttempted || j.runNumber || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
-// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
-const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
-let needsFix = false;
-starterActives.forEach(sig => {
-if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
-// Starter active at L1 with no upgrades = old save format, fix it
-S.sig[sig] = 0;
-needsFix = true;
-}
-});
-if(needsFix) {
-debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
-savePermanent(); // Save the fix
-}
+repairOldSigilFormat();
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;

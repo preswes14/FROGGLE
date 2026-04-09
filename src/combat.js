@@ -1813,12 +1813,14 @@ S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
 // If tutorial is showing a popup, delay enemy turn until popup is dismissed
-const tutorialBlocking = TutorialManager.onEnemyTurnStart(() => {
+let enemyTurnStarted = false;
+const startEnemyTurn = () => {
+if(enemyTurnStarted) return;
+enemyTurnStarted = true;
 setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
-});
-if(!tutorialBlocking) {
-setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
-}
+};
+const tutorialBlocking = TutorialManager.onEnemyTurnStart(startEnemyTurn);
+if(!tutorialBlocking) startEnemyTurn();
 }
 }
 

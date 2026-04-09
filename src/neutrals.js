@@ -2477,31 +2477,10 @@ nextFloor();
 
 function applyWellDamage(heroIdx, hpLoss, goldGain) {
 const hero = S.heroes[heroIdx];
-// Apply damage through shields first (consistent with combat)
-let remaining = hpLoss;
-let ghostBlocked = false;
-if(hero.sh > 0) {
-const absorbed = Math.min(hero.sh, remaining);
-hero.sh -= absorbed;
-remaining -= absorbed;
-}
-hero.h -= remaining;
-if(hero.h <= 0 && !hero.ls) {
-if(hero.g > 0) {
-hero.g--;
-hero.h += remaining;
-hero.sh += (hpLoss - remaining); // Restore shield too
-if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
-ghostBlocked = true;
-} else {
-hero.h = 0;
-hero.ls = true;
-hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
-}
-}
-if(!ghostBlocked) toast(`${hero.n} took ${hpLoss} damage!`);
+const ghostBefore = hero.g;
+applyDamageToTarget(hero, hpLoss, {isHero: true, silent: true});
+if(hero.g < ghostBefore) toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+else toast(`${hero.n} took ${hpLoss} damage!`);
 
 S.gold += goldGain;
 if(S.gold < 0) S.gold = 0;
@@ -2679,31 +2658,10 @@ if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continu
 
 function finishChestOpen(heroIdx, trapDmg, goldGain) {
 const hero = S.heroes[heroIdx];
-// Apply damage through shields first (consistent with combat)
-let remaining = trapDmg;
-let ghostBlocked = false;
-if(hero.sh > 0) {
-const absorbed = Math.min(hero.sh, remaining);
-hero.sh -= absorbed;
-remaining -= absorbed;
-}
-hero.h -= remaining;
-if(hero.h <= 0 && !hero.ls) {
-if(hero.g > 0) {
-hero.g--;
-hero.h += remaining;
-hero.sh += (trapDmg - remaining); // Restore shield too
-if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
-ghostBlocked = true;
-} else {
-hero.h = 0;
-hero.ls = true;
-hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
-}
-}
-if(!ghostBlocked) toast(`${hero.n} took ${trapDmg} damage!`);
+const ghostBefore = hero.g;
+applyDamageToTarget(hero, trapDmg, {isHero: true, silent: true});
+if(hero.g < ghostBefore) toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+else toast(`${hero.n} took ${trapDmg} damage!`);
 
 S.gold += goldGain;
 upd();

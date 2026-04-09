@@ -3537,7 +3537,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.59';
+const GAME_VERSION = 'S_2.60';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -7402,6 +7402,22 @@ if(typeof hero.h !== 'number' || typeof hero.m !== 'number') throw new Error('In
 return true;
 }
 
+// Detect and repair old saves where starter actives were stored as L1 instead of L0
+function repairOldSigilFormat() {
+const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
+let needsFix = false;
+starterActives.forEach(sig => {
+if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
+S.sig[sig] = 0;
+needsFix = true;
+}
+});
+if(needsFix) {
+debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
+savePermanent();
+}
+}
+
 function loadPermanent() {
 try {
 const d = localStorage.getItem('froggle8_permanent');
@@ -7434,20 +7450,7 @@ S.goingRate = j.goingRate || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
-// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
-const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
-let needsFix = false;
-starterActives.forEach(sig => {
-if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
-// Starter active at L1 with no upgrades = old save format, fix it
-S.sig[sig] = 0;
-needsFix = true;
-}
-});
-if(needsFix) {
-debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
-savePermanent(); // Save the fix
-}
+repairOldSigilFormat();
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
@@ -7458,7 +7461,7 @@ S.advancedSigilsUnlocked = j.advancedSigilsUnlocked || false;
 S.passiveSigilsUnlocked = j.passiveSigilsUnlocked || false;
 S.demoNeutralIndex = j.demoNeutralIndex || 0;
 S.runNumber = j.runNumber || 1;
-S.runsAttempted = j.runsAttempted || 0;
+S.runsAttempted = j.runsAttempted || j.runNumber || 1;
 S.helpTipsDisabled = j.helpTipsDisabled || false;
 S.tutorialDisabled = j.tutorialDisabled || false;
 S.cutsceneDisabled = j.cutsceneDisabled || false;
@@ -7622,20 +7625,7 @@ S.runsAttempted = j.runsAttempted || j.runNumber || 1;
 S.startingXP = j.startingXP || 0;
 S.sig = j.sig || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.sigUpgradeCounts = j.sigUpgradeCounts || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
-// One-time fix: Detect and repair old saves with starter actives at L1 (should be L0)
-const starterActives = ['Attack', 'Shield', 'Heal', 'D20'];
-let needsFix = false;
-starterActives.forEach(sig => {
-if(S.sig[sig] === 1 && S.sigUpgradeCounts[sig] === 0) {
-// Starter active at L1 with no upgrades = old save format, fix it
-S.sig[sig] = 0;
-needsFix = true;
-}
-});
-if(needsFix) {
-debugLog('[SAVE] Fixed old save format: starter actives L1→L0');
-savePermanent(); // Save the fix
-}
+repairOldSigilFormat();
 S.ghostBoysConverted = j.ghostBoysConverted || false;
 S.pedestal = j.pedestal || [];
 S.hasReachedFloor20 = j.hasReachedFloor20 || false;
@@ -9856,12 +9846,14 @@ S.heroes.forEach(h => { if(h.ls) h.lst++; });
 
 // RIBBLETON TUTORIAL: Handle enemy turn start using TutorialManager
 // If tutorial is showing a popup, delay enemy turn until popup is dismissed
-const tutorialBlocking = TutorialManager.onEnemyTurnStart(() => {
+let enemyTurnStarted = false;
+const startEnemyTurn = () => {
+if(enemyTurnStarted) return;
+enemyTurnStarted = true;
 setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
-});
-if(!tutorialBlocking) {
-setTimeout(() => { S.locked = true; startRecruitPhase(); }, T(ANIMATION_TIMINGS.TURN_TRANSITION));
-}
+};
+const tutorialBlocking = TutorialManager.onEnemyTurnStart(startEnemyTurn);
+if(!tutorialBlocking) startEnemyTurn();
 }
 }
 
@@ -14475,31 +14467,10 @@ nextFloor();
 
 function applyWellDamage(heroIdx, hpLoss, goldGain) {
 const hero = S.heroes[heroIdx];
-// Apply damage through shields first (consistent with combat)
-let remaining = hpLoss;
-let ghostBlocked = false;
-if(hero.sh > 0) {
-const absorbed = Math.min(hero.sh, remaining);
-hero.sh -= absorbed;
-remaining -= absorbed;
-}
-hero.h -= remaining;
-if(hero.h <= 0 && !hero.ls) {
-if(hero.g > 0) {
-hero.g--;
-hero.h += remaining;
-hero.sh += (hpLoss - remaining); // Restore shield too
-if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
-ghostBlocked = true;
-} else {
-hero.h = 0;
-hero.ls = true;
-hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
-}
-}
-if(!ghostBlocked) toast(`${hero.n} took ${hpLoss} damage!`);
+const ghostBefore = hero.g;
+applyDamageToTarget(hero, hpLoss, {isHero: true, silent: true});
+if(hero.g < ghostBefore) toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+else toast(`${hero.n} took ${hpLoss} damage!`);
 
 S.gold += goldGain;
 if(S.gold < 0) S.gold = 0;
@@ -14677,31 +14648,10 @@ if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continu
 
 function finishChestOpen(heroIdx, trapDmg, goldGain) {
 const hero = S.heroes[heroIdx];
-// Apply damage through shields first (consistent with combat)
-let remaining = trapDmg;
-let ghostBlocked = false;
-if(hero.sh > 0) {
-const absorbed = Math.min(hero.sh, remaining);
-hero.sh -= absorbed;
-remaining -= absorbed;
-}
-hero.h -= remaining;
-if(hero.h <= 0 && !hero.ls) {
-if(hero.g > 0) {
-hero.g--;
-hero.h += remaining;
-hero.sh += (trapDmg - remaining); // Restore shield too
-if(hero.sh > hero.m) hero.sh = hero.m; // Cap shield at max HP
-toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
-ghostBlocked = true;
-} else {
-hero.h = 0;
-hero.ls = true;
-hero.lst = 0;
-toast(`${hero.n} entered Last Stand!`, 3000, 'critical');
-}
-}
-if(!ghostBlocked) toast(`${hero.n} took ${trapDmg} damage!`);
+const ghostBefore = hero.g;
+applyDamageToTarget(hero, trapDmg, {isHero: true, silent: true});
+if(hero.g < ghostBefore) toast(`${hero.n}'s Ghost charge cancelled the lethal hit!`, 1800, 'warning');
+else toast(`${hero.n} took ${trapDmg} damage!`);
 
 S.gold += goldGain;
 upd();
@@ -17858,7 +17808,6 @@ window.heroCardsInterstitialComplete = onComplete;
 function showFirstVictoryPedestal(onComplete) {
 // Show a simplified pedestal UI during the first victory cutscene
 const v = document.getElementById('gameView');
-const heroIcons = {'Warrior': 'W', 'Tank': 'T', 'Mage': 'M', 'Healer': 'H'};
 const stats = ['POW', 'HP'];
 
 // Get earned figurines - only heroes who earned one this run
@@ -17890,7 +17839,7 @@ const heroFlip = heroImg ? heroFlipStyle(heroImg) : '';
 
 slotsHTML += `
 <div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;${canSlot ? 'cursor:pointer' : 'opacity:0.5'}" onclick="${canSlot ? `slotFirstVicFigurine('${hero}','${stat}')` : ''}">
-${heroImg ? `<img src="${heroImg}" alt="${hero}" style="width:50px;height:50px;object-fit:${heroCrop.fit};object-position:${heroCrop.pos};border-radius:6px;${heroFlip}">` : `<div style="font-size:1.5rem">${heroIcons[hero] || '?'}</div>`}
+${heroImg ? `<img src="${heroImg}" alt="${hero}" style="width:50px;height:50px;object-fit:${heroCrop.fit};object-position:${heroCrop.pos};border-radius:6px;${heroFlip}">` : `<div style="font-size:1.5rem">${hero.charAt(0)}</div>`}
 <div style="font-size:0.8rem;font-weight:bold">${hero}</div>
 <div style="font-size:0.7rem;color:#94a3b8">${stat === 'POW' ? '+1 POW' : '+5 HP'}</div>
 ${isSlotted ? '<div style="color:#fbbf24;font-size:0.8rem;margin-top:0.5rem">✓ Slotted</div>' : (canSlot ? '<div style="color:#64748b;font-size:0.8rem;margin-top:0.5rem">Click to slot</div>' : '')}
