@@ -8663,19 +8663,18 @@ render(); // First render combat view
 v.insertAdjacentHTML('beforeend', html);
 return;
 } else {
-// Normal D20 menu (centered, blocks view)
-html = '<div style="text-align:center;padding:1.5rem 2rem;background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;margin:1rem auto;max-width:700px;color:#f0f0f0;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
-html += '<h3 style="margin-bottom:1rem;color:#3b82f6;font-size:1.4rem">D20: Attempt A Gambit</h3>';
+// Normal D20 menu — overlay on left side, keep combat visible
+html = '<div id="d20MenuOverlay" style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:calc(50vw - 20px);background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.5);color:#f0f0f0">';
+html += '<h3 style="margin-bottom:0.75rem;color:#3b82f6;font-size:1.2rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
-if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
+if(expandLevel > 0) html += `<p style="margin-bottom:0.5rem;color:#22c55e;font-weight:bold;font-size:0.95rem;background:rgba(34,197,94,0.1);padding:0.4rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel}: Up to ${maxTargets} targets!</p>`;
 if(S.asteriskD20Repeats > 1) {
-html += `<p style="margin-bottom:0.5rem;color:#f97316">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
-html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
+html += `<p style="margin-bottom:0.25rem;color:#f97316;font-size:0.9rem">Asterisk: Pick ${S.asteriskD20Repeats} actions! (${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
 }
 if(h.ls && h.lst > 0) {
 const lsBonus = h.lst * 2;
-html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
+html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold;font-size:0.9rem">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Target deals its own POW to itself'},
@@ -8684,20 +8683,20 @@ const options = [
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
-// Vertical list — each gambit is a full-width row
 options.forEach(opt => {
 const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;padding:0.5rem 0.75rem;cursor:pointer">
-<strong style="min-width:4.5rem;font-size:0.95rem">${dcText}</strong>
-<strong style="min-width:5.5rem;font-size:1.05rem;color:#3b82f6">${opt.name}</strong>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.4rem;padding:0.5rem 0.75rem;cursor:pointer">
+<strong style="font-size:0.95rem">${dcText}: ${opt.name}</strong><br>
 <span style="font-size:0.85rem;opacity:0.8">${opt.desc}</span>
 </div>`;
 });
-if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
-else html += `<button class="btn secondary" onclick="cancelAction()" style="max-width:200px;margin:0 auto">Cancel</button>`;
+if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})" style="margin-top:0.5rem">Finish (${S.asteriskD20Count} used)</button>`;
+else html += `<button class="btn secondary" onclick="cancelAction()" style="margin-top:0.5rem;width:15%;padding:0.5rem 0;font-size:0.85rem;text-align:center">Cancel</button>`;
 html += '</div>';
-v.innerHTML = html;
+render(); // Render combat view first
+v.insertAdjacentHTML('beforeend', html);
+return;
 }
 }
 
