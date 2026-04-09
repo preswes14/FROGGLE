@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.52';
+const GAME_VERSION = 'S_2.53';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8,7 +8,7 @@ if(typeof S !== 'undefined' && S.debugMode) console.log(...args);
 }
 
 // ===== DEMO MODE =====
-const DEMO_MODE = true;
+const DEMO_MODE = false; // Toggle to true for Next Fest demo build
 const DEMO_NEUTRAL_ORDER = [
 'oracle', 'shopkeeper', 'treasurechest',
 'wizard', 'wishingwell', 'encampment',
