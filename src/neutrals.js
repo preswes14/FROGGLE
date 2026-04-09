@@ -793,6 +793,7 @@ function newGameInSlot(slot) {
 S.currentSlot = slot;
 localStorage.setItem('froggle8_current_slot', slot.toString());
 S.runNumber = (S.runsAttempted || 1);
+S.chosenHeroType = null; // Reroll Tapo's Chosen for this new run
 if(S.runNumber === 1 && !S.tutorialDisabled) {
 showTutorialStory();
 } else {
@@ -1658,21 +1659,27 @@ upd();
 sel = [];
 
 // Determine Tapo's Chosen hero type (least-used from pond history, run 2+)
-chosenHeroType = null;
+// Persisted in S.chosenHeroType so re-entering hero select doesn't reroll
 if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
-const usageCounts = {};
-S.pondHistory.forEach(run => {
-  (run.heroes || []).forEach(heroName => {
-    usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
+if(!S.chosenHeroType) {
+  const usageCounts = {};
+  S.pondHistory.forEach(run => {
+    (run.heroes || []).forEach(heroName => {
+      usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
+    });
   });
-});
-const allHeroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
-if(S.tapoUnlocked) allHeroes.push('Tapo');
-const heroUsages = allHeroes.map(n => ({ name: n, usage: usageCounts[n] || 0 }));
-const minUsage = Math.min(...heroUsages.map(h => h.usage));
-const leastUsed = heroUsages.filter(h => h.usage === minUsage);
-const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
-chosenHeroType = chosen.name;
+  const allHeroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
+  if(S.tapoUnlocked) allHeroes.push('Tapo');
+  const heroUsages = allHeroes.map(n => ({ name: n, usage: usageCounts[n] || 0 }));
+  const minUsage = Math.min(...heroUsages.map(h => h.usage));
+  const leastUsed = heroUsages.filter(h => h.usage === minUsage);
+  const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
+  S.chosenHeroType = chosen.name;
+  savePermanent();
+}
+chosenHeroType = S.chosenHeroType;
+} else {
+chosenHeroType = null;
 }
 
 const v = document.getElementById('gameView');
