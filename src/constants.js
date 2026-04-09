@@ -578,88 +578,30 @@ return html;
 
 // Render combat status header
 function renderCombatStatusHeader() {
-// Row 1: Action title (always present, fixed height)
+// Simplified header: title row only. Targeting info + buttons moved to bottom action bar.
 let titleHtml = '';
-// Row 2: Target/instance info (always present, fixed height)
-let infoHtml = '';
-// Row 3: Action buttons (always present, fixed height)
-let buttonsHtml = '';
+let subtitleHtml = '';
 
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
 titleHtml = `<div class="combat-header-title">Enemy Turn</div>`;
-infoHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
+subtitleHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
 } else {
 titleHtml = `<div class="combat-header-title">Enemy Turn…</div>`;
 }
 } else if(S.pending === 'D20_TARGET') {
-const heroIdx = S.d20HeroIdx;
-const maxTargets = 1 + getLevel('Expand', heroIdx);
-const selected = S.targets.length;
 titleHtml = `<div class="combat-header-title">${S.d20Action} (DC ${S.d20DC})</div>`;
-const targetText = maxTargets >= 2 ? `targets: ${selected}/${maxTargets}` : 'Select target';
-infoHtml = `<div class="combat-header-subtitle">${targetText}</div>`;
-// D20_TARGET buttons
-const targetArray = S.targets || [];
-const targetCount = targetArray.length;
-if(targetCount > 0) {
-const targetNames = targetArray.map(t => {
-const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
-return unit ? unit.n : 'target';
-}).join(', ');
-infoHtml = `<div class="combat-header-subtitle">${targetText} — ${targetNames}</div>`;
-buttonsHtml = `<div class="combat-header-buttons"><button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button><button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button></div>`;
-}
 } else if(S.pending) {
-const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
-const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
 titleHtml = `<div class="combat-header-title">${S.pending}</div>`;
-
-if(isMultiInstance(S.pending)) {
-const targetsInInstance = S.currentInstanceTargets.length;
-const targetText = targetsPerInstance >= 2 ? `targets: ${targetsInInstance}/${targetsPerInstance}` : `Select ${targetType}`;
-infoHtml = `<div class="combat-header-subtitle">${targetText} · ${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
-} else {
-const selected = S.targets.length;
-const max = targetsPerInstance;
-const targetText = max >= 2 ? `targets: ${selected}/${max}` : `Select ${targetType}`;
-infoHtml = `<div class="combat-header-subtitle">${targetText}</div>`;
-}
-
-// Action buttons for all pending actions (not D20_TARGET, handled above)
-const targetArray = S.currentInstanceTargets || [];
-const targetCount = targetArray.length;
-const isMultiTargetAction = ['Attack', 'Grapple', 'Shield', 'Heal'].includes(S.pending);
-if(isMultiTargetAction) {
-const needsEnemy = ['Attack', 'Grapple'].includes(S.pending);
-const available = needsEnemy
-  ? (S.enemies || []).filter(e => e.h > 0 && !(S.currentInstanceTargets || []).includes(e.id))
-  : (S.heroes || []).filter(h => h.h > 0 || h.ls);
-const heroIdx = S.activeIdx;
-const tpi = typeof getTargetsPerInstance === 'function' ? getTargetsPerInstance(S.pending, heroIdx) : 1;
-const slotsLeft = tpi - targetCount;
-const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
-
-let btns = '';
-if(canTargetAll && targetCount === 0 && tpi > 1) {
-  btns += `<button class="btn" onclick="targetAll()" style="padding:0.4rem 1rem;font-size:0.9rem;background:#3b82f6">⚡ Target All</button>`;
-}
-if(targetCount > 0) {
-  btns += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
-}
-btns += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
-buttonsHtml = `<div class="combat-header-buttons">${btns}</div>`;
-}
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
 titleHtml = `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
-infoHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
-buttonsHtml = `<div class="combat-header-buttons"><button class="btn" onclick="confirmAmbushSkip()" style="padding:0.5rem 1.5rem">Continue to Enemy Turn</button></div>`;
+subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
 } else {
 titleHtml = `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
-infoHtml = `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
 }
 } else {
 const h = S.heroes[S.activeIdx];
@@ -669,16 +611,96 @@ else titleHtml = `<div class="combat-header-title">${h.n}'s Turn</div>`;
 }
 }
 
-// Build final HTML with 3 fixed-height rows
-// Use hidden placeholders when rows are empty to prevent layout shift
-if(!infoHtml) infoHtml = '<div class="combat-header-subtitle" style="visibility:hidden">&nbsp;</div>';
-if(!buttonsHtml) buttonsHtml = '<div class="combat-header-buttons" style="visibility:hidden"><button class="btn" style="padding:0.4rem 1rem;font-size:0.9rem">&nbsp;</button></div>';
+if(!titleHtml) titleHtml = '<div class="combat-header-title" style="visibility:hidden">&nbsp;</div>';
+if(!subtitleHtml) subtitleHtml = '<div class="combat-header-subtitle" style="visibility:hidden">&nbsp;</div>';
 let html = '<div class="combat-header">';
-html += `<div class="combat-header-row combat-header-row-title">${titleHtml}</div>`;
-html += `<div class="combat-header-row combat-header-row-info">${infoHtml}</div>`;
-html += `<div class="combat-header-row combat-header-row-buttons">${buttonsHtml}</div>`;
+html += titleHtml;
+html += subtitleHtml;
 html += '</div>';
 return html;
+}
+
+// Render the bottom action bar for targeting (all action types including D20)
+function renderActionBar() {
+if(!S.pending && !(S.activeIdx === -1 && S.heroes.every(h => h.st > 0))) return '';
+
+// AMBUSH: all heroes stunned, show continue button
+if(!S.pending && S.activeIdx === -1) {
+const allStunned = S.heroes.every(h => h.st > 0);
+if(allStunned) {
+return `<div class="action-bar"><div class="action-bar-buttons"><button class="btn" onclick="confirmAmbushSkip()" style="min-width:200px">Continue to Enemy Turn</button></div></div>`;
+}
+return '';
+}
+
+const heroIdx = S.pending === 'D20_TARGET' ? S.d20HeroIdx : S.activeIdx;
+const h = S.heroes[heroIdx];
+if(!h) return '';
+
+let infoHtml = '';
+let buttonsHtml = '';
+
+if(S.pending === 'D20_TARGET') {
+// D20 targeting
+const expandLevel = getLevel('Expand', heroIdx);
+const maxTargets = 1 + expandLevel;
+const currentTargets = S.targets ? S.targets.length : 0;
+const canRoll = currentTargets >= 1;
+const actionName = S.d20Action || 'D20';
+const adjustedDC = S.d20DC || 10;
+
+infoHtml = `<div class="action-bar-info"><strong>${h.n}: ${actionName} (DC ${adjustedDC})</strong></div>`;
+if(expandLevel > 0) {
+infoHtml += `<div class="action-bar-detail" style="color:#22c55e">Expand: Select up to ${maxTargets} targets</div>`;
+}
+infoHtml += `<div class="action-bar-detail" style="color:#fbbf24">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
+
+buttonsHtml = `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
+buttonsHtml += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20! (Ⓐ/⊡)</button>`;
+} else {
+// All other actions: Attack, Shield, Heal, Grapple, Alpha
+const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
+const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
+const isMulti = isMultiInstance(S.pending);
+const targetArray = S.currentInstanceTargets || [];
+const targetCount = targetArray.length;
+
+let targetText = '';
+if(isMulti) {
+targetText = targetsPerInstance >= 2 ? `targets: ${targetCount}/${targetsPerInstance}` : `Select ${targetType}`;
+infoHtml = `<div class="action-bar-info"><strong>${h.n}: ${S.pending}</strong></div>`;
+infoHtml += `<div class="action-bar-detail">${targetText} · ${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
+} else {
+const selected = S.targets.length;
+targetText = targetsPerInstance >= 2 ? `targets: ${selected}/${targetsPerInstance}` : `Select ${targetType}`;
+infoHtml = `<div class="action-bar-info"><strong>${h.n}: ${S.pending}</strong></div>`;
+infoHtml += `<div class="action-bar-detail">${targetText}</div>`;
+}
+
+// Buttons
+const isMultiTargetAction = ['Attack', 'Grapple', 'Shield', 'Heal'].includes(S.pending);
+if(isMultiTargetAction) {
+const needsEnemy = ['Attack', 'Grapple'].includes(S.pending);
+const available = needsEnemy
+  ? (S.enemies || []).filter(e => e.h > 0 && !(S.currentInstanceTargets || []).includes(e.id))
+  : (S.heroes || []).filter(hh => hh.h > 0 || hh.ls);
+const tpi = getTargetsPerInstance(S.pending, heroIdx);
+const slotsLeft = tpi - targetCount;
+const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
+
+if(canTargetAll && targetCount === 0 && tpi > 1) {
+  buttonsHtml += `<button class="btn" onclick="targetAll()" style="min-width:100px;background:#3b82f6">⚡ Target All</button>`;
+}
+if(targetCount > 0) {
+  buttonsHtml += `<button class="btn safe" onclick="confirmTargets()" style="min-width:100px">✓ Confirm (Ⓐ/⊡)</button>`;
+}
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
+} else {
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
+}
+}
+
+return `<div class="action-bar">${infoHtml}<div class="action-bar-buttons">${buttonsHtml}</div></div>`;
 }
 
 // Unified damage application with shield/ghost/laststand handling

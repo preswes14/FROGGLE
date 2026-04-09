@@ -575,7 +575,7 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
     const v = document.getElementById('gameView');
     v.innerHTML = `
     <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:2rem">
-    <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:400px;text-align:center">
+    <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:650px;text-align:center">
     <h2 style="margin:0 0 1rem 0">Thanks for playing!</h2>
     <p style="margin:0 0 1.5rem 0;opacity:0.9">Close this tab or window to exit completely.</p>
     <button class="btn" onclick="mainTitlePage()" style="background:#6366f1">Return to Title</button>
@@ -592,7 +592,7 @@ GameMusic.playScene('char_select');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
-<div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+<div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:650px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 <h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">FROGGLE</h2>
 
 <div style="text-align:center;margin-bottom:1rem">
@@ -793,6 +793,7 @@ function newGameInSlot(slot) {
 S.currentSlot = slot;
 localStorage.setItem('froggle8_current_slot', slot.toString());
 S.runNumber = (S.runsAttempted || 1);
+S.chosenHeroType = null; // Reroll Tapo's Chosen for this new run
 if(S.runNumber === 1 && !S.tutorialDisabled) {
 showTutorialStory();
 } else {
@@ -948,13 +949,13 @@ v.innerHTML = `
 
 <!-- Text bar at top -->
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(34,197,94,0.5)">
-<div style="max-width:700px;margin:0 auto">
+<div style="max-width:910px;margin:0 auto">
 ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-height:1.5;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">${slideText}</div>`}
 </div>
 </div>
 
 <!-- Continue button - bottom right -->
-<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.1rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 1.25rem;font-size:1.2rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
 <!-- Skip button - bottom left -->
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
@@ -964,10 +965,10 @@ ${skipButtonFullArt}
 const bgColorStyle = slide.bgColor ? `background:${slide.bgColor}` : 'background:rgba(0,0,0,0.3)';
 v.innerHTML = `
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;${bgColorStyle}">
-<div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+<div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 ${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
-<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 1.5rem;font-size:1.15rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
 <div style="margin-top:1rem;font-size:0.9rem;opacity:0.6;color:#ccc">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
@@ -1011,7 +1012,7 @@ function showSkipTutorialConfirmation(proceedCallback) {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:500px">
+<div class="tutorial-modal" style="max-width:650px">
 <h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ!</h2>
 <p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
 No time to waste, eh? Well then get going! Save Tapo!
@@ -1082,7 +1083,7 @@ if (!container) return;
 // Keyframes (tapoSignature, tankIdle, warriorIdle, mageIdle, healerIdle) defined in template_head.html
 // Place heroes scattered around the town
 const heroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: 'calc(20% + 20px)', bottom: '30%', width: '178px', anim: 'tankIdle 5s ease-in-out infinite' },
   { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
   { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '120px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
   { src: 'assets/mage_normal.png', alt: 'Mage', left: '68%', bottom: '20%', width: '145px', anim: 'mageIdle 3.8s ease-in-out infinite' },
@@ -1110,7 +1111,7 @@ if (!container) return;
 // Keyframes defined in template_head.html
 // Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
 const bgHeroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: 'calc(20% + 20px)', bottom: '30%', width: '178px', anim: 'tankIdle 5s ease-in-out infinite' },
   { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
   { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '23%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
@@ -1183,7 +1184,7 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding-bottom:2rem;';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:400px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
+<div class="tutorial-modal" style="max-width:650px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
 <p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
 Here come three <strong>flies</strong> now - you're up!
 </p>
@@ -1251,7 +1252,7 @@ const flyText = flyCount === 1 ? 'fly' : 'flies';
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:600px">
+<div class="tutorial-modal" style="max-width:780px">
 <div style="text-align:center">
 <div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:1rem">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:120px;height:auto;transform:scaleX(-1)">
@@ -1335,7 +1336,7 @@ const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
-<div style="max-width:600px;text-align:center">
+<div style="max-width:780px;text-align:center">
 <h2 style="font-size:2.5rem;margin-bottom:0.5rem;color:#22c55e">Success!!</h2>
 <div style="animation:danceTapo 0.5s ease-in-out infinite;margin:1rem 0">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:100px;height:auto;transform:scaleX(-1)">
@@ -1356,13 +1357,14 @@ const slides = [
 html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:flydraShake 0.3s ease-in-out infinite">SHRIIIEEEEK!!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3);animation:flydraDescend 1.5s ease-out">
+<img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3) drop-shadow(0 0 25px rgba(220,38,38,0.8)) drop-shadow(0 0 50px rgba(220,38,38,0.4));animation:flydraDescend 1.5s ease-out, flydraPulseGlow 2s ease-in-out 1.5s infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong class="text-flydra">Flydra</strong>, mother of all flies. She must have caught you chowing on her children!!
 </p>
-<!-- flydraShake, flydraDescend keyframes defined in template_head.html -->
-`
+<!-- flydraShake, flydraDescend, flydraPulseGlow keyframes defined in template_head.html -->
+`,
+onShow: () => { GameMusic.play(null, 'combat_19'); }
 },
 {
 html: `
@@ -1417,7 +1419,7 @@ function showTutorialStoryOverlay() {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:500px">
+<div class="tutorial-modal" style="max-width:650px">
 <h2>Reinforcements!</h2>
 <p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
@@ -1534,7 +1536,7 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "The battle is won! But as the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
+{bg: 'assets/ribbleton.png', text: "The battle is won! As the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -1550,7 +1552,7 @@ portal.appendChild(portalBg);
 const flydra = document.createElement('img');
 flydra.src = 'assets/Hydra.png';
 flydra.alt = 'Flydra';
-flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:200px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraFlip 1.2s linear infinite;z-index:6';
+flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:200px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraFlip 3.6s ease-in-out infinite;z-index:6';
 portal.appendChild(flydra);
 // 4 flies hovering near the Flydra
 const flyPositions = [
@@ -1572,18 +1574,31 @@ container.appendChild(portal);
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; max-width:75%; max-height:75%; margin:auto; animation: spinTapo 4s linear infinite; z-index:2;', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
+{bgColor: '#1a1a1a', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
 html: `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong class="text-danger">He can't help himself!</strong></div>`,
 onShow: () => {
 GameMusic.play(null, 'combat_19');
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
+// Portal glow background
 const portal = document.createElement('div');
-portal.style.cssText = 'position:absolute;top:50%;left:50%;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);box-shadow:0 0 80px #dc2626,0 0 160px rgba(220,38,38,0.3);animation:spinPortalReverse 3s linear infinite;z-index:1;transform:translate(-50%,-50%)';
+portal.style.cssText = 'position:absolute;top:50%;left:50%;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);box-shadow:0 0 80px #dc2626,0 0 160px rgba(220,38,38,0.3);animation:spinPortalReverse 3s linear infinite;z-index:1;transform:translate(-50%,-50%)';
 container.appendChild(portal);
+// Flydra spinning inside the portal, shrinking into center
+const flydra = document.createElement('img');
+flydra.src = 'assets/Hydra.png';
+flydra.alt = 'Flydra';
+flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:150px;height:auto;z-index:2;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:portalShrinkSpin 4s ease-in forwards';
+container.appendChild(flydra);
+// Tapo chasing Flydra into the portal, also shrinking
+const tapo = document.createElement('img');
+tapo.src = 'assets/tapo_pain.png';
+tapo.alt = 'Tapo';
+tapo.style.cssText = 'position:absolute;top:50%;left:50%;width:120px;height:auto;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,0.8));animation:tapoChasePortal 6s ease-in forwards';
+container.appendChild(tapo);
 }},
 {text: "TAPO, NO!! But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
-html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
+html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:780px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -1643,6 +1658,30 @@ upd();
 // Reset selection first
 sel = [];
 
+// Determine Tapo's Chosen hero type (least-used from pond history, run 2+)
+// Persisted in S.chosenHeroType so re-entering hero select doesn't reroll
+if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
+if(!S.chosenHeroType) {
+  const usageCounts = {};
+  S.pondHistory.forEach(run => {
+    (run.heroes || []).forEach(heroName => {
+      usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
+    });
+  });
+  const allHeroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
+  if(S.tapoUnlocked) allHeroes.push('Tapo');
+  const heroUsages = allHeroes.map(n => ({ name: n, usage: usageCounts[n] || 0 }));
+  const minUsage = Math.min(...heroUsages.map(h => h.usage));
+  const leastUsed = heroUsages.filter(h => h.usage === minUsage);
+  const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
+  S.chosenHeroType = chosen.name;
+  savePermanent();
+}
+chosenHeroType = S.chosenHeroType;
+} else {
+chosenHeroType = null;
+}
+
 const v = document.getElementById('gameView');
 // Hero selection is a normal scrollable screen
 v.classList.remove('no-scroll');
@@ -1653,15 +1692,22 @@ const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 v.innerHTML = `
 <h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
 
-<div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
+<div style="max-width:960px;margin:0 auto;padding:0 0.5rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
-<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
+
+<div style="display:flex;gap:1rem;align-items:flex-start;justify-content:center">
+<!-- Left: Selected hero cards (combat-style) -->
+<div id="hero-cards-area" style="flex:0 0 220px;display:flex;flex-direction:column;gap:0.5rem;min-height:200px">
+</div>
+
+<!-- Right: Hero selection grid -->
+<div style="flex:0 1 auto">
+<div id="hero-select-container" style="position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${heroFlipStyle(HERO_IMAGES[hero])}${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);' : 'filter:brightness(0.7);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" class="hero-select-img" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.3s;${heroFlipStyle(HERO_IMAGES[hero])}filter:brightness(0.7);">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
-<div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
 </div>`).join('')}
 </div>
 
@@ -1675,6 +1721,8 @@ ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >
 ALL TAPOS
 </button>` : ''}
 </div>` : ''}
+</div>
+</div>
 
 <!-- Selection display with X/Y counter -->
 <div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
@@ -1682,7 +1730,7 @@ ALL TAPOS
 <span id="selection-counter" style="font-size:1.1rem;font-weight:bold;margin-left:0.5rem"></span>
 </div>
 
-<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Delve into Floor 1</button>
+<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Into the Portal!</button>
 </div>`;
 
 debugLog('[FROGGLE] title() innerHTML set successfully');
@@ -1725,13 +1773,12 @@ toggleHeroSelection(heroType);
 }
 
 function updateHeroCards() {
-// Hero data matches H constant in constants.js
 const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], bonus: '+1 POW'},
-tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
-mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upgraded passives'}
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], cls: 'warrior'},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], cls: 'tank'},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], cls: 'mage'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], cls: 'healer'},
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], cls: 'tapo'}
 };
 
 // Update hero image brightness based on selection
@@ -1739,38 +1786,37 @@ tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upg
 const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] img`);
 if(cellImg) {
 cellImg.style.filter = sel.includes(h) ? 'brightness(1.2)' : 'brightness(0.7)';
-cellImg.style.transform = sel.includes(h) ? 'scale(1.05)' : 'scale(1)';
 }
 });
-// Update all card displays
-['warrior', 'tank', 'mage', 'healer'].forEach(h => {
-const cardEl = document.getElementById(`${h}-card`);
-if(!cardEl) return;
 
-if(sel.includes(h)) {
+// Render combat-style cards in the left area
+const cardsArea = document.getElementById('hero-cards-area');
+if(!cardsArea) return;
+let cardsHtml = '';
+sel.forEach(h => {
 const hData = heroData[h];
-const hPixelImage = HERO_IMAGES[h] || '';
+if(!hData) return;
+const heroImage = HERO_IMAGES[h] || '';
+const crop = HERO_CROP[hData.name] || { fit: 'cover', pos: 'top center' };
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" style="font-size:0.7rem;padding:3px 5px;margin:1px;display:inline-block" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
+return `<span class="sigil l1 ${passiveClass}" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
-cardEl.innerHTML = `
-<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer;color:#1a1a1a"
-onclick="event.stopPropagation();toggleHeroSelection('${h}')">
-<div style="text-align:center">
-<div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem;color:#1a1a1a">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;${heroFlipStyle(hPixelImage)}">` : ''}
-<div style="font-size:0.7rem;color:#374151">${hData.pow}💥 | ${hData.hp}❤</div>
-<div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
-<div style="font-size:0.65rem;color:#16a34a;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
-<div style="font-size:0.55rem;color:#6b7280;margin-top:0.15rem">✓ SELECTED</div>
+const isChosen = chosenHeroType === hData.name;
+cardsHtml += `
+<div class="card hero${isChosen ? ' chosen-one' : ''}" style="cursor:pointer;width:200px;max-width:200px" onclick="event.stopPropagation();toggleHeroSelection('${h}')">
+${isChosen ? '<img src="assets/tapo_happy.png" alt="Tapo\'s Chosen" title="Tapo\'s Chosen: +1 Gold per floor cleared" class="chosen-tapo-badge">' : ''}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">
+<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${hData.pow}💥</div>
+${heroImage ? `<img src="${heroImage}" alt="${hData.name}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};${heroFlipStyle(heroImage)}">` : ''}
+<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${hData.hp}/${hData.maxhp}</div><div style="font-size:0.9rem">❤</div></div>
 </div>
+<div class="hp-bar-container"><div class="hp-bar hp-high" style="width:100%"></div></div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">${sigilsHTML}</div>
 </div>`;
-cardEl.style.display = 'block';
-} else {
-cardEl.style.display = 'none';
-}
 });
+cardsArea.innerHTML = cardsHtml;
 }
 
 function toggleHeroSelection(heroType) {
@@ -1805,6 +1851,37 @@ SoundFX.play('hop'); // Froggy hop for hero selection
 // Update card displays and selection display
 updateHeroCards();
 updateSelectionDisplay();
+
+// Hero reactions on select; reset facing on deselect
+const heroOrder = ['warrior', 'tank', 'mage', 'healer'];
+if(!isSelected && sel.includes(heroType) && heroOrder.includes(heroType)) {
+const selectedIdx = heroOrder.indexOf(heroType);
+// Other heroes turn to face the selected one
+heroOrder.forEach(h => {
+  const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] .hero-select-img`);
+  if(!cellImg || h === heroType) return;
+  const hIdx = heroOrder.indexOf(h);
+  // Face toward selected hero: if selected is to the right, face right
+  const shouldFaceRight = selectedIdx > hIdx;
+  // Use heroFlipStyle to determine natural facing, then flip if needed
+  const naturalFlip = heroFlipStyle(HERO_IMAGES[h]).includes('scaleX(-1)');
+  const needsFlip = shouldFaceRight ? naturalFlip : !naturalFlip;
+  cellImg.style.transform = needsFlip ? 'scaleX(-1)' : 'scaleX(1)';
+});
+// Selected hero: double jump animation
+const selectedImg = document.querySelector(`.hero-select-cell[data-hero="${heroType}"] .hero-select-img`);
+if(selectedImg) {
+  selectedImg.style.animation = 'heroSelectJump 0.5s ease-out';
+  selectedImg.addEventListener('animationend', () => { selectedImg.style.animation = ''; }, { once: true });
+}
+} else {
+// Reset all heroes to their natural facing on deselect
+heroOrder.forEach(h => {
+  const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] .hero-select-img`);
+  if(!cellImg) return;
+  cellImg.style.transform = heroFlipStyle(HERO_IMAGES[h]).includes('scaleX(-1)') ? 'scaleX(-1)' : 'scaleX(1)';
+});
+}
 }
 
 function selectAllTapos() {
@@ -1932,29 +2009,11 @@ hero.h += 5;
 }
 });
 
-// Chosen Hero: On run 2+, pick randomly from least-used heroes among selected
-S.chosenHeroIdx = -1; // Reset (no chosen hero by default)
-if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
-// Count usage of each hero from pond history
-const usageCounts = {};
-S.pondHistory.forEach(run => {
-(run.heroes || []).forEach(heroName => {
-usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
-});
-});
-// Find usage counts for heroes in current party
-const heroUsages = S.heroes.map((h, idx) => ({
-idx,
-name: h.n,
-usage: usageCounts[h.n] || 0
-}));
-// Find the minimum usage count
-const minUsage = Math.min(...heroUsages.map(h => h.usage));
-// Get all heroes with minimum usage
-const leastUsed = heroUsages.filter(h => h.usage === minUsage);
-// Randomly pick one from least-used
-const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
-S.chosenHeroIdx = chosen.idx;
+// Chosen Hero: use type determined at hero select screen
+S.chosenHeroIdx = -1;
+if(chosenHeroType) {
+const chosenIdx = S.heroes.findIndex(h => (h.base || h.n) === chosenHeroType);
+if(chosenIdx >= 0) S.chosenHeroIdx = chosenIdx;
 }
 
 initNeutralDeck();

@@ -504,11 +504,6 @@ if(validTargets.length > 0) {
     S.currentInstanceTargets.push(id);
   });
   S.rememberedTargetsApplied = true;
-  // Auto-confirm if remembered targets fill the instance completely
-  if(S.currentInstanceTargets.length >= getTargetsPerInstance(sig, heroIdx)) {
-    confirmTargets();
-    return;
-  }
 }
 }
 render();
@@ -681,8 +676,8 @@ v.insertAdjacentHTML('beforeend', html);
 return;
 } else {
 // Normal D20 menu (centered, blocks view)
-html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px;color:#1a1a1a">';
-html += '<h3 style="margin-bottom:1rem;color:#1a1a1a">D20: Attempt A Gambit</h3>';
+html = '<div style="text-align:center;padding:1.5rem 2rem;background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;margin:1rem auto;max-width:700px;color:#f0f0f0;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
+html += '<h3 style="margin-bottom:1rem;color:#3b82f6;font-size:1.4rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
 if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
@@ -701,16 +696,28 @@ const options = [
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
-options.forEach(opt => {
+// Row 1: first 3 gambits, Row 2: last 2 gambits (centered)
+html += '<div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.5rem">';
+options.slice(0,3).forEach(opt => {
 const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.5rem">
-<strong>${dcText}: ${opt.name}</strong><br>
-<span style="font-size:0.85rem">${opt.desc}</span>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
+<strong>${dcText}<br>${opt.name}</strong><br>
+<span style="font-size:0.8rem">${opt.desc}</span>
 </div>`;
 });
+html += '</div><div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.75rem;max-width:66%;margin-left:auto;margin-right:auto">';
+options.slice(3).forEach(opt => {
+const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
+const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
+<strong>${dcText}<br>${opt.name}</strong><br>
+<span style="font-size:0.8rem">${opt.desc}</span>
+</div>`;
+});
+html += '</div>';
 if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
-else html += `<button class="btn secondary" onclick="cancelAction()">Cancel</button>`;
+else html += `<button class="btn secondary" onclick="cancelAction()" style="max-width:200px;margin:0 auto">Cancel</button>`;
 html += '</div>';
 v.innerHTML = html;
 }
@@ -823,10 +830,13 @@ overlay.innerHTML = `
 `;
 document.body.appendChild(overlay);
 
-// Play appropriate sound
+// Play appropriate sound: roll first, then result
 if(isNat20) SoundFX.play('nat20');
 else if(isNat1) SoundFX.play('nat1');
-else SoundFX.play('d20roll');
+else {
+SoundFX.play('d20roll');
+setTimeout(() => SoundFX.play(success ? 'd20success' : 'd20fail'), 400);
+}
 
 setTimeout(() => overlay.remove(), T(1200));
 }
@@ -2841,9 +2851,9 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = getHeroImage(h);
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
 html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
-// Tapo's Chosen tooltip indicator
+// Tapo's Chosen badge - smiling Tapo image above card
 if(S.chosenHeroIdx === i) {
-html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.7rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
+html += `<img src="assets/tapo_happy.png" alt="Tapo's Chosen" title="Tapo's Chosen: +1 Gold per floor cleared" class="chosen-tapo-badge">`;
 }
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
@@ -2864,15 +2874,13 @@ html += `</div>`;
 const hpPct = Math.min(100, (h.h / h.m) * 100);
 const hpClass = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${hpClass}" style="width:${hpPct}%"></div></div>`;
-// Shield bar (if shielded) - placed below HP, above sigils
-if(h.sh > 0) {
-const shieldPct = Math.min(100, (h.sh / h.m) * 100);
+// Shield bar - always reserve space to prevent layout shift
+const shieldPct = h.sh > 0 ? Math.min(100, (h.sh / h.m) * 100) : 0;
 const fullShield = h.sh >= h.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
-}
-// Extra info (ghost, stun, alpha, acted)
-if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${h.sh > 0 ? 'visible' : 'hidden'}">${h.sh || 0}🛡</div>`;
+// Extra info (ghost, stun, alpha, acted) - always reserve space
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${extra.length > 0 ? 'visible' : 'hidden'}">${extra.length > 0 ? extra.join(' ') : '&nbsp;'}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils with proper 2-row formation
 const activeSigils = sortSigils([...h.s, ...(h.ts || [])]);
@@ -3050,15 +3058,13 @@ html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">
 const rHpPct = Math.min(100, (recruit.h / recruit.m) * 100);
 const rHpClass = rHpPct > 50 ? 'hp-high' : rHpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${rHpClass}" style="width:${rHpPct}%"></div></div>`;
-// Shield bar (if shielded)
-if(recruit.sh > 0) {
-const shieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
-const fullShield = recruit.sh >= recruit.m;
-html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${recruit.sh}🛡</div>`;
-}
+// Shield bar - always reserve space
+const rShieldPct = recruit.sh > 0 ? Math.min(100, (recruit.sh / recruit.m) * 100) : 0;
+const rFullShield = recruit.sh >= recruit.m;
+html += `<div class="shield-bar-container"><div class="shield-bar${rFullShield?' full':''}" style="width:${rShieldPct}%"></div></div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${recruit.sh > 0 ? 'visible' : 'hidden'}">${recruit.sh || 0}🛡</div>`;
 // Extra info (ghost, stun)
-if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${recruitExtra.length > 0 ? 'visible' : 'hidden'}">${recruitExtra.length > 0 ? recruitExtra.join(' ') : '&nbsp;'}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils
 const recruitTotalSigils = recruit.s.length + 1;
@@ -3167,28 +3173,8 @@ html += '</div>'; // Close flex container
 html += '</div>'; // Close combat-lane
 });
 
-// D20_TARGET: Add targeting overlay with Roll/Cancel buttons
-if(S.pending === 'D20_TARGET') {
-const heroIdx = S.d20HeroIdx;
-const h = S.heroes[heroIdx];
-const expandLevel = getLevel('Expand', heroIdx);
-const maxTargets = 1 + expandLevel;
-const currentTargets = S.targets ? S.targets.length : 0;
-const canRoll = currentTargets >= 1;
-const actionName = S.d20Action || 'D20';
-const adjustedDC = S.d20DC || 10;
-
-html += `<div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(30,30,30,0.98),rgba(30,30,30,0.9));border-top:3px solid #3b82f6;padding:1rem;z-index:1000;text-align:center">`;
-html += `<div style="margin-bottom:0.5rem;color:#fff;font-weight:bold;font-size:1.1rem">${h.n}: ${actionName} (DC ${adjustedDC})</div>`;
-if(expandLevel > 0) {
-html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">Expand: Select up to ${maxTargets} targets</div>`;
-}
-html += `<div style="margin-bottom:0.75rem;color:#fbbf24;font-size:1rem">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
-html += `<div style="display:flex;gap:1rem;justify-content:center">`;
-html += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">Cancel</button>`;
-html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
-html += `</div></div>`;
-}
+// Unified bottom action bar for all pending actions (Attack, Shield, Heal, D20, etc.)
+html += renderActionBar();
 
 v.innerHTML = html;
 
@@ -3525,7 +3511,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:400px;margin:0 auto">`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:650px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
 const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
 html += renderHeroCard(h, idx, `startingSelectHeroForSigil(${idx})`, sigilInfo);
@@ -3619,31 +3605,33 @@ function showLevelUpIntroTutorial() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
-<div class="tutorial-modal" style="max-width:550px;text-align:left">
-<h2 style="text-align:center;color:#22c55e;margin-bottom:1rem">Level Up!</h2>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! FROGGLE is all about finding cool upgrade combos. Here are your options:</p>
+<div class="tutorial-modal" style="max-width:900px;text-align:left">
+<h2 style="text-align:center;color:#22c55e;margin-bottom:0.5rem">Level Up!</h2>
+<p style="text-align:center;margin-bottom:1rem;font-size:1rem">Your first upgrade! FROGGLE is all about finding cool combos. Here are your options:</p>
 
-<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1rem">
+<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;padding:0.75rem">
 <h4 style="color:#3b82f6;margin:0 0 0.25rem 0;font-size:0.95rem">1. Add Active Sigil to Hero</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Teach a hero a NEW ability they don't have yet.<br><em>Example: Give your Tank the Grapple sigil to stun enemies!</em></p>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Teach a hero a NEW ability they don't have yet.<br><em>Example: Give your Tank Grapple to stun enemies!</em></p>
 </div>
 
-<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:0.75rem">
 <h4 style="color:#22c55e;margin:0 0 0.25rem 0;font-size:0.95rem">2. Upgrade Active Sigil (All Heroes)</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Make an active sigil stronger for EVERYONE who has it.<br><em>Example: Attack L2 = 2 hits, Shield L2 = 4×POW shields!</em></p>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Make an active sigil stronger for EVERYONE.<br><em>Example: Attack L2 = 2 hits, Shield L2 = 4×POW!</em></p>
 </div>
 
-<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
-<h4 style="color:#9333ea;margin:0 0 0.25rem 0;font-size:0.95rem">3. Add/Upgrade Passive Sigil (All Heroes)</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Passives (Expand, Asterisk, Star) work automatically for ALL heroes!<br><em>Example: Expand +1 = all heroes can target one extra enemy/ally!</em></p>
+<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:0.75rem">
+<h4 style="color:#9333ea;margin:0 0 0.25rem 0;font-size:0.95rem">3. Add/Upgrade Passive (All Heroes)</h4>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Passives work automatically for ALL heroes!<br><em>Example: Expand +1 = target one extra enemy/ally!</em></p>
 </div>
 
-<div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:0.75rem;margin-bottom:1rem">
+<div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:0.75rem">
 <h4 style="color:#f97316;margin:0 0 0.25rem 0;font-size:0.95rem">4. Upgrade Hero Stats</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Add +1 POW or +5 HP to a hero of your choice.<br><em>Great for boosting your key damage dealer or keeping tanks alive!</em></p>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Add +1 POW or +5 HP to a hero of your choice.<br><em>Great for boosting damage dealers or tanks!</em></p>
+</div>
 </div>
 
-<button class="btn" onclick="showLevelUpMenuAfterTutorial()" style="width:100%;margin-top:0.5rem">Got it! Show me the options</button>
+<button class="btn" onclick="showLevelUpMenuAfterTutorial()" style="width:100%;margin-top:0.25rem">Got it! Show me the options</button>
 </div>
 </div>`;
 }
@@ -3671,7 +3659,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:400px;margin:0 auto">`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:650px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
 const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
 html += renderHeroCard(h, idx, `selectHeroForActiveSigil(${idx})`, sigilInfo);

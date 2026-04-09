@@ -176,7 +176,7 @@ const pondTrendUp = pondPrev5Avg && pondLast5Avg ? parseFloat(pondLast5Avg) >= p
 
 html += `
 ${history.length === 0 ? `
-<div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
+<div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:650px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
 <p style="font-size:2rem;margin-bottom:1rem"></p>
 <p style="color:#94a3b8;font-size:1.1rem">The water is still...</p>
 <p style="color:#64748b;margin-top:0.5rem">Lily pads will appear here after your first adventure and grow the further you progress.</p>
@@ -275,7 +275,7 @@ headerColor = '#fff';
 
 const v = document.getElementById('gameView');
 const html = `
-<div class="modal-container" style="max-width:350px">
+<div class="modal-container" style="max-width:455px">
 <div style="background:${headerBg};padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? 'Victory!' : 'Journey'} #${run.runNumber}</h2>
 </div>
@@ -399,7 +399,7 @@ function getHeroRunStats(heroName) {
 
 const v = document.getElementById('gameView');
 let html = `
-<div class="modal-container" style="max-width:500px;max-height:85vh;overflow-y:auto">
+<div class="modal-container" style="max-width:650px;max-height:85vh;overflow-y:auto">
 <div style="background:linear-gradient(135deg,#1e3a5f,#1e293b);padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:#60a5fa;font-size:1.3rem">Hero Stats</h2>
 </div>
@@ -537,7 +537,7 @@ v2.innerHTML = `
 }
 </style>
 <div id="deathQuoteIntro" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);display:flex;align-items:center;justify-content:center;z-index:999;padding:2rem">
-<p style="text-align:center;font-size:1.6rem;color:#a89cc8;font-style:italic;max-width:600px;line-height:1.6;opacity:0;transition:opacity 0.5s ease-in" id="deathQuoteText">"${deathQuote}"</p>
+<p style="text-align:center;font-size:1.6rem;color:#a89cc8;font-style:italic;max-width:780px;line-height:1.6;opacity:0;transition:opacity 0.5s ease-in" id="deathQuoteText">"${deathQuote}"</p>
 </div>`;
 // Fade in the quote
 setTimeout(() => {
@@ -1019,7 +1019,7 @@ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background
 overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
 
 overlay.innerHTML = `
-<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;max-width:650px;width:100%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
 <h3 style="color:${accentColor};margin-bottom:0.5rem;text-align:center;font-size:1.3rem">${title}</h3>
 <p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9;text-align:center">${desc}</p>
 ${infoLines}
@@ -1079,7 +1079,7 @@ setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COM
 function showFUIntroPopup() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
+<div style="max-width:780px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
 <h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">Welcome to the Endgame!</h2>
 
 <p style="margin-bottom:1.5rem;font-size:1.1rem;line-height:1.6">
@@ -1573,7 +1573,7 @@ html: `
 <div style="animation:tummyRumble 1.5s ease-in-out 2s 3">
 <img src="assets/tapo_normal.png" alt="Tapo sleeping" style="width:120px;height:auto;filter:brightness(0.7);transform:scaleX(-1)">
 </div>
-<div style="margin-top:1.5rem;max-width:500px">
+<div style="margin-top:1.5rem;max-width:650px">
 <p style="font-size:1.2rem;line-height:1.8;text-align:center;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">
 That night, Tapo's tummy <strong style="color:#f97316">rumbles</strong>. He tosses and turns. He's tasted <strong style="color:#e94560">Flydra flesh</strong>, and now nothing else will satisfy the craving...
 </p>
@@ -1595,7 +1595,7 @@ html: `
 <div style="margin:1rem 0">
 <img src="assets/tapo_normal.png" alt="Tapo sneaking" style="width:80px;height:auto;transform:scaleX(-1);filter:drop-shadow(0 0 8px rgba(34,197,94,0.5))">
 </div>
-<p style="font-size:1.2rem;line-height:1.8;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9);max-width:500px;margin:0 auto">
+<p style="font-size:1.2rem;line-height:1.8;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9);max-width:650px;margin:0 auto">
 Tapo sneaks out and finds a newly appeared portal, crackling with <strong style="color:#22c55e">dark green energy</strong>. He knows just where to find more Flydra. Before anyone can stop him, the little bugger squirms his way in. <span style="font-size:1.2em;font-weight:bold;color:#22c55e">Here we go again!</span>
 </p>
 </div>
@@ -1669,7 +1669,7 @@ ${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5r
 heroCardsHTML += '</div>';
 
 v.innerHTML = `
-<div style="max-width:700px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
+<div style="max-width:910px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
 <h2 style="margin-bottom:0.5rem;color:#22c55e;font-size:1.8rem">Congratulations!</h2>
 <p style="margin-bottom:1.5rem;font-size:1.1rem">You've cleared Standard Mode!</p>
 ${heroCardsHTML}
@@ -1780,7 +1780,7 @@ const v = document.getElementById('gameView');
 const tapoInParty = S.heroes.some(h => (h.base || h.n) === 'Tapo');
 
 v.innerHTML = `
-<div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #22c55e;color:#fff">
+<div style="max-width:780px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #22c55e;color:#fff">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">FROGGED UP MODE CONQUERED!</h1>
 
 <div style="text-align:center;margin-bottom:2rem;font-size:1.2rem;line-height:1.8">
@@ -1844,7 +1844,7 @@ v.innerHTML = `
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>
-<div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+<div style="max-width:910px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">VICTORY!</h1>
 
 <div style="text-align:center;margin:2rem 0">
@@ -1909,7 +1909,7 @@ html += `<p style="text-align:center;margin-bottom:2rem;font-size:1rem;color:#64
 }
 
 if(window.earnedFigurines && window.earnedFigurines.length > 0) {
-html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px">
+html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:650px">
 <h3 style="text-align:center;margin-bottom:0.5rem">Hero Figurines Earned!</h3>
 <p style="text-align:center">The following heroes can place figurines (Max 2 per frog):</p>
 <ul style="list-style:none;padding:0;text-align:center">`;
@@ -1921,7 +1921,7 @@ html += `</ul></div>`;
 
 // Show gold reward for maxed heroes
 if(window.maxedHeroesGold && window.maxedHeroesGold.heroes.length > 0) {
-html += `<div style="background:rgba(234,179,8,0.15);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px;border:2px solid #fbbf24">
+html += `<div style="background:rgba(234,179,8,0.15);padding:1rem;border-radius:8px;margin:1rem auto;max-width:650px;border:2px solid #fbbf24">
 <p style="text-align:center;margin:0;color:#fbbf24;font-weight:bold">Each hero can earn only 2 statues - take <span style="color:#22c55e">${window.maxedHeroesGold.gold} gold</span> instead for ${window.maxedHeroesGold.heroes.length === 1 ? window.maxedHeroesGold.heroes[0] + ' who is' : window.maxedHeroesGold.heroes.join(' & ') + ' who are'} already maxed!</p>
 </div>`;
 }
@@ -2568,7 +2568,7 @@ function showQuestBoard() {
 }
 </style>
 
-<div style="max-width:600px;margin:0 auto;padding:1rem">
+<div style="max-width:780px;margin:0 auto;padding:1rem">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
   <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">Quest Board</h1>
   <div style="font-size:1rem;color:#22c55e">${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>

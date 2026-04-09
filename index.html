@@ -162,10 +162,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   border-radius: 12px;
   padding: 2rem;
   z-index: 30000;
-  max-width: 500px;
+  max-width: 650px;
   width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
 }
 .modal-container.dark {
   background: rgba(17,24,39,0.98);
@@ -181,8 +179,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   background: linear-gradient(#1f2937, #111827);
   border: 3px solid #22c55e;
   color: #f0f0f0;
-  max-height: 90vh;
-  max-width: 600px;
+  max-width: 780px;
 }
 .modal-title {
   text-align: center;
@@ -350,7 +347,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   border: 1px solid rgba(255,255,255,0.1);
 }
 .neutral-title { font-size: 1.6rem; font-weight: bold; margin-bottom: 0.5rem; color: #60a5fa; }
-.neutral-desc { font-size: 1.1rem; line-height: 1.5; margin-bottom: 0.5rem; max-width: 600px; color: #f5f5f5; }
+.neutral-desc { font-size: 1.1rem; line-height: 1.5; margin-bottom: 0.5rem; max-width: 780px; color: #f5f5f5; }
 .neutral-outcome { font-size: 1rem; padding: 0.5rem; background: rgba(255,255,255,0.15); border-radius: 4px; margin-bottom: 0.5rem; color: #f5f5f5; }
 .neutral-content {
   flex: 1;
@@ -508,16 +505,16 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .hero-portrait { width: 140px; height: 140px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: none; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
-.card.hero.chosen-one::before {
-  content: '★';
+.chosen-tapo-badge {
   position: absolute;
-  top: -14px;
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 1.3rem;
-  color: #fbbf24;
-  filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24);
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
   z-index: 1;
+  filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24);
   animation: chosen-glow 2s ease-in-out infinite;
 }
 @keyframes chosen-glow {
@@ -754,7 +751,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 50000; display: flex; align-items: center; justify-content: center; }
-.tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 700px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
+.tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 910px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
 .tutorial-modal h2 { margin-top: 0; color: #22c55e; }
 .tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.4; background: rgba(34,197,94,0.15); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.4); color: #f0f0f0; }
 .tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
@@ -1215,7 +1212,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
     min-height: 1.2rem;
   }
   .combat-header-row-buttons {
-    min-height: 2.3rem;
+    min-height: 48px;
   }
   .combat-header-title {
     font-size: 0.85rem;
@@ -1680,7 +1677,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   /* Tutorial modal */
   .tutorial-modal {
     padding: 2.5rem;
-    max-width: 750px;
+    max-width: 975px;
     border-width: 5px;
   }
 
@@ -1907,7 +1904,7 @@ img[src*="tank_normal"] {
 }
 
 .combat-header-row-buttons {
-  min-height: 2.8rem;
+  min-height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1918,6 +1915,10 @@ img[src*="tank_normal"] {
   gap: 0.5rem;
   flex-wrap: wrap;
   justify-content: center;
+}
+.combat-header-buttons .btn {
+  width: auto;
+  margin-bottom: 0;
 }
 
 .combat-header-title {
@@ -2591,6 +2592,15 @@ body.high-contrast *:focus-visible {
   outline-offset: 3px;
 }
 
+/* Hero select double-jump animation */
+@keyframes heroSelectJump {
+  0% { transform: translateY(0); }
+  20% { transform: translateY(-18px); }
+  40% { transform: translateY(0); }
+  60% { transform: translateY(-10px); }
+  80% { transform: translateY(0); }
+}
+
 /* Hero selection overlay buttons for controller navigation */
 .hero-select-btn {
   position: absolute;
@@ -2642,7 +2652,7 @@ body.high-contrast *:focus-visible {
   border-radius: 12px;
   padding: 2rem;
   z-index: 100000;
-  max-width: 500px;
+  max-width: 650px;
   width: 90%;
   text-align: center;
   color: white;
@@ -2893,7 +2903,7 @@ body.high-contrast *:focus-visible {
 
   /* Modal adjustments */
   .modal-container {
-    max-width: 600px;
+    max-width: 780px;
     padding: 2.5rem;
   }
 
@@ -3243,6 +3253,10 @@ body.controller-active .controller-prompts {
   from { opacity: 0; transform: translateY(-60px) scale(0.7); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+@keyframes flydraPulseGlow {
+  0%, 100% { transform: scale(1); filter: brightness(1.2) saturate(1.3) drop-shadow(0 0 25px rgba(220,38,38,0.8)) drop-shadow(0 0 50px rgba(220,38,38,0.4)); }
+  50% { transform: scale(1.08); filter: brightness(1.4) saturate(1.5) drop-shadow(0 0 40px rgba(220,38,38,1)) drop-shadow(0 0 80px rgba(220,38,38,0.6)); }
+}
 @keyframes narrativePortalPulse {
   0%, 100% { transform: scale(1); opacity: 0.85; }
   50% { transform: scale(1.08); opacity: 1; }
@@ -3262,11 +3276,15 @@ body.controller-active .controller-prompts {
   50% { transform: scale(1.06); opacity: 1; }
 }
 @keyframes flydraFlip {
-  0% { transform: translate(-50%,-50%) scaleX(1); }
-  45% { transform: translate(-50%,-50%) scaleX(1); }
-  50% { transform: translate(-50%,-50%) scaleX(-1); }
-  95% { transform: translate(-50%,-50%) scaleX(-1); }
-  100% { transform: translate(-50%,-50%) scaleX(1); }
+  0% { transform: translate(-50%,-50%) scaleX(1) translateY(0); }
+  15% { transform: translate(-50%,-50%) scaleX(1) translateY(-20px); }
+  30% { transform: translate(-50%,-50%) scaleX(1) translateY(5px); }
+  45% { transform: translate(-50%,-50%) scaleX(1) translateY(-12px); }
+  50% { transform: translate(-50%,-50%) scaleX(-1) translateY(-8px); }
+  65% { transform: translate(-50%,-50%) scaleX(-1) translateY(-22px); }
+  80% { transform: translate(-50%,-50%) scaleX(-1) translateY(3px); }
+  95% { transform: translate(-50%,-50%) scaleX(-1) translateY(-15px); }
+  100% { transform: translate(-50%,-50%) scaleX(1) translateY(0); }
 }
 @keyframes flyBuzz {
   0%, 100% { transform: translate(0, 0); }
@@ -3281,6 +3299,19 @@ body.controller-active .controller-prompts {
 @keyframes spinPortalReverse {
   from { transform: translate(-50%,-50%) rotate(0deg); }
   to { transform: translate(-50%,-50%) rotate(-360deg); }
+}
+@keyframes portalShrinkSpin {
+  0% { transform: translate(-50%,-50%) translate(-80px, -60px) rotate(0deg) scale(1); opacity: 1; }
+  30% { transform: translate(-50%,-50%) translate(-40px, -30px) rotate(360deg) scale(0.7); opacity: 1; }
+  70% { transform: translate(-50%,-50%) translate(-10px, -8px) rotate(900deg) scale(0.3); opacity: 0.8; }
+  100% { transform: translate(-50%,-50%) translate(0, 0) rotate(1440deg) scale(0); opacity: 0; }
+}
+@keyframes tapoChasePortal {
+  0% { transform: translate(-50%,-50%) translate(120px, 80px) rotate(0deg) scale(1); opacity: 1; }
+  20% { transform: translate(-50%,-50%) translate(60px, 40px) rotate(-30deg) scale(0.85); opacity: 1; }
+  50% { transform: translate(-50%,-50%) translate(10px, 10px) rotate(-180deg) scale(0.5); opacity: 1; }
+  80% { transform: translate(-50%,-50%) translate(-5px, 0px) rotate(-540deg) scale(0.2); opacity: 0.8; }
+  100% { transform: translate(-50%,-50%) translate(0, 0) rotate(-720deg) scale(0); opacity: 0; }
 }
 
 /* ===== NEUTRAL CHOICE SCREEN (Door Selection) ===== */
@@ -4059,88 +4090,30 @@ return html;
 
 // Render combat status header
 function renderCombatStatusHeader() {
-// Row 1: Action title (always present, fixed height)
+// Simplified header: title row only. Targeting info + buttons moved to bottom action bar.
 let titleHtml = '';
-// Row 2: Target/instance info (always present, fixed height)
-let infoHtml = '';
-// Row 3: Action buttons (always present, fixed height)
-let buttonsHtml = '';
+let subtitleHtml = '';
 
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
 titleHtml = `<div class="combat-header-title">Enemy Turn</div>`;
-infoHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
+subtitleHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
 } else {
 titleHtml = `<div class="combat-header-title">Enemy Turn…</div>`;
 }
 } else if(S.pending === 'D20_TARGET') {
-const heroIdx = S.d20HeroIdx;
-const maxTargets = 1 + getLevel('Expand', heroIdx);
-const selected = S.targets.length;
 titleHtml = `<div class="combat-header-title">${S.d20Action} (DC ${S.d20DC})</div>`;
-const targetText = maxTargets >= 2 ? `targets: ${selected}/${maxTargets}` : 'Select target';
-infoHtml = `<div class="combat-header-subtitle">${targetText}</div>`;
-// D20_TARGET buttons
-const targetArray = S.targets || [];
-const targetCount = targetArray.length;
-if(targetCount > 0) {
-const targetNames = targetArray.map(t => {
-const unit = [...(S.heroes || []), ...(S.enemies || [])].find(u => u.id === t);
-return unit ? unit.n : 'target';
-}).join(', ');
-infoHtml = `<div class="combat-header-subtitle">${targetText} — ${targetNames}</div>`;
-buttonsHtml = `<div class="combat-header-buttons"><button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button><button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button></div>`;
-}
 } else if(S.pending) {
-const targetsPerInstance = getTargetsPerInstance(S.pending, S.activeIdx);
-const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
 titleHtml = `<div class="combat-header-title">${S.pending}</div>`;
-
-if(isMultiInstance(S.pending)) {
-const targetsInInstance = S.currentInstanceTargets.length;
-const targetText = targetsPerInstance >= 2 ? `targets: ${targetsInInstance}/${targetsPerInstance}` : `Select ${targetType}`;
-infoHtml = `<div class="combat-header-subtitle">${targetText} · ${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
-} else {
-const selected = S.targets.length;
-const max = targetsPerInstance;
-const targetText = max >= 2 ? `targets: ${selected}/${max}` : `Select ${targetType}`;
-infoHtml = `<div class="combat-header-subtitle">${targetText}</div>`;
-}
-
-// Action buttons for all pending actions (not D20_TARGET, handled above)
-const targetArray = S.currentInstanceTargets || [];
-const targetCount = targetArray.length;
-const isMultiTargetAction = ['Attack', 'Grapple', 'Shield', 'Heal'].includes(S.pending);
-if(isMultiTargetAction) {
-const needsEnemy = ['Attack', 'Grapple'].includes(S.pending);
-const available = needsEnemy
-  ? (S.enemies || []).filter(e => e.h > 0 && !(S.currentInstanceTargets || []).includes(e.id))
-  : (S.heroes || []).filter(h => h.h > 0 || h.ls);
-const heroIdx = S.activeIdx;
-const tpi = typeof getTargetsPerInstance === 'function' ? getTargetsPerInstance(S.pending, heroIdx) : 1;
-const slotsLeft = tpi - targetCount;
-const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
-
-let btns = '';
-if(canTargetAll && targetCount === 0 && tpi > 1) {
-  btns += `<button class="btn" onclick="targetAll()" style="padding:0.4rem 1rem;font-size:0.9rem;background:#3b82f6">⚡ Target All</button>`;
-}
-if(targetCount > 0) {
-  btns += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.4rem 1rem;font-size:0.9rem">✓ Confirm (Ⓐ/⊡)</button>`;
-}
-btns += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.4rem 1rem;font-size:0.9rem">✗ Cancel (Ⓑ)</button>`;
-buttonsHtml = `<div class="combat-header-buttons">${btns}</div>`;
-}
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
 titleHtml = `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
-infoHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
-buttonsHtml = `<div class="combat-header-buttons"><button class="btn" onclick="confirmAmbushSkip()" style="padding:0.5rem 1.5rem">Continue to Enemy Turn</button></div>`;
+subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
 } else {
 titleHtml = `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
-infoHtml = `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
 }
 } else {
 const h = S.heroes[S.activeIdx];
@@ -4150,16 +4123,96 @@ else titleHtml = `<div class="combat-header-title">${h.n}'s Turn</div>`;
 }
 }
 
-// Build final HTML with 3 fixed-height rows
-// Use hidden placeholders when rows are empty to prevent layout shift
-if(!infoHtml) infoHtml = '<div class="combat-header-subtitle" style="visibility:hidden">&nbsp;</div>';
-if(!buttonsHtml) buttonsHtml = '<div class="combat-header-buttons" style="visibility:hidden"><button class="btn" style="padding:0.4rem 1rem;font-size:0.9rem">&nbsp;</button></div>';
+if(!titleHtml) titleHtml = '<div class="combat-header-title" style="visibility:hidden">&nbsp;</div>';
+if(!subtitleHtml) subtitleHtml = '<div class="combat-header-subtitle" style="visibility:hidden">&nbsp;</div>';
 let html = '<div class="combat-header">';
-html += `<div class="combat-header-row combat-header-row-title">${titleHtml}</div>`;
-html += `<div class="combat-header-row combat-header-row-info">${infoHtml}</div>`;
-html += `<div class="combat-header-row combat-header-row-buttons">${buttonsHtml}</div>`;
+html += titleHtml;
+html += subtitleHtml;
 html += '</div>';
 return html;
+}
+
+// Render the bottom action bar for targeting (all action types including D20)
+function renderActionBar() {
+if(!S.pending && !(S.activeIdx === -1 && S.heroes.every(h => h.st > 0))) return '';
+
+// AMBUSH: all heroes stunned, show continue button
+if(!S.pending && S.activeIdx === -1) {
+const allStunned = S.heroes.every(h => h.st > 0);
+if(allStunned) {
+return `<div class="action-bar"><div class="action-bar-buttons"><button class="btn" onclick="confirmAmbushSkip()" style="min-width:200px">Continue to Enemy Turn</button></div></div>`;
+}
+return '';
+}
+
+const heroIdx = S.pending === 'D20_TARGET' ? S.d20HeroIdx : S.activeIdx;
+const h = S.heroes[heroIdx];
+if(!h) return '';
+
+let infoHtml = '';
+let buttonsHtml = '';
+
+if(S.pending === 'D20_TARGET') {
+// D20 targeting
+const expandLevel = getLevel('Expand', heroIdx);
+const maxTargets = 1 + expandLevel;
+const currentTargets = S.targets ? S.targets.length : 0;
+const canRoll = currentTargets >= 1;
+const actionName = S.d20Action || 'D20';
+const adjustedDC = S.d20DC || 10;
+
+infoHtml = `<div class="action-bar-info"><strong>${h.n}: ${actionName} (DC ${adjustedDC})</strong></div>`;
+if(expandLevel > 0) {
+infoHtml += `<div class="action-bar-detail" style="color:#22c55e">Expand: Select up to ${maxTargets} targets</div>`;
+}
+infoHtml += `<div class="action-bar-detail" style="color:#fbbf24">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
+
+buttonsHtml = `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
+buttonsHtml += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20! (Ⓐ/⊡)</button>`;
+} else {
+// All other actions: Attack, Shield, Heal, Grapple, Alpha
+const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
+const targetType = needsEnemyTarget(S.pending) ? 'enemy' : 'hero';
+const isMulti = isMultiInstance(S.pending);
+const targetArray = S.currentInstanceTargets || [];
+const targetCount = targetArray.length;
+
+let targetText = '';
+if(isMulti) {
+targetText = targetsPerInstance >= 2 ? `targets: ${targetCount}/${targetsPerInstance}` : `Select ${targetType}`;
+infoHtml = `<div class="action-bar-info"><strong>${h.n}: ${S.pending}</strong></div>`;
+infoHtml += `<div class="action-bar-detail">${targetText} · ${S.instancesRemaining} instance${S.instancesRemaining>1?'s':''} remaining</div>`;
+} else {
+const selected = S.targets.length;
+targetText = targetsPerInstance >= 2 ? `targets: ${selected}/${targetsPerInstance}` : `Select ${targetType}`;
+infoHtml = `<div class="action-bar-info"><strong>${h.n}: ${S.pending}</strong></div>`;
+infoHtml += `<div class="action-bar-detail">${targetText}</div>`;
+}
+
+// Buttons
+const isMultiTargetAction = ['Attack', 'Grapple', 'Shield', 'Heal'].includes(S.pending);
+if(isMultiTargetAction) {
+const needsEnemy = ['Attack', 'Grapple'].includes(S.pending);
+const available = needsEnemy
+  ? (S.enemies || []).filter(e => e.h > 0 && !(S.currentInstanceTargets || []).includes(e.id))
+  : (S.heroes || []).filter(hh => hh.h > 0 || hh.ls);
+const tpi = getTargetsPerInstance(S.pending, heroIdx);
+const slotsLeft = tpi - targetCount;
+const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
+
+if(canTargetAll && targetCount === 0 && tpi > 1) {
+  buttonsHtml += `<button class="btn" onclick="targetAll()" style="min-width:100px;background:#3b82f6">⚡ Target All</button>`;
+}
+if(targetCount > 0) {
+  buttonsHtml += `<button class="btn safe" onclick="confirmTargets()" style="min-width:100px">✓ Confirm (Ⓐ/⊡)</button>`;
+}
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
+} else {
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
+}
+}
+
+return `<div class="action-bar">${infoHtml}<div class="action-bar-buttons">${buttonsHtml}</div></div>`;
 }
 
 // Unified damage application with shield/ghost/laststand handling
@@ -5260,16 +5313,19 @@ const SoundFX = {
   },
 
   // Play music (with loop by default, separate volume control)
+  // options.fadeIn: seconds to fade in from half volume (0 = instant)
   playMusic(name, options = {}) {
     if (!this.enabled || !this.ctx) return null;
 
-    // Stop current music if playing
-    this.stopMusic();
+    // Don't stop current music here — crossfade handles it via stopMusic(fadeOut)
+    // Only stop if no crossfade is happening (no fadeIn means direct play)
+    if (!options.fadeIn) {
+      this.stopMusic();
+    }
 
     // Cancel any pending gain automation from a previous fade-out
     if (this.musicGain && this.ctx) {
       this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
-      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
     }
 
     if (!this.audioBuffers[name]) {
@@ -5287,6 +5343,15 @@ const SoundFX = {
 
     source.connect(this.musicGain);
     source.start(0);
+
+    // Fade in: start at half volume, ramp to full over fadeIn seconds
+    if (options.fadeIn > 0 && this.musicGain) {
+      const now = this.ctx.currentTime;
+      this.musicGain.gain.setValueAtTime(this.musicVolume * 0.5, now);
+      this.musicGain.gain.linearRampToValueAtTime(this.musicVolume, now + options.fadeIn);
+    } else {
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+    }
 
     this.currentMusic = source;
     return source;
@@ -5570,6 +5635,33 @@ const SoundFX = {
         osc.type = 'square';
         osc.start(now);
         osc.stop(now + 0.4);
+        break;
+
+      case 'd20success':
+        // Quick ascending chime for D20 success
+        [500, 650].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.1);
+          g.gain.setValueAtTime(this.volume * 0.5, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+          o.type = 'sine';
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.2);
+        });
+        break;
+
+      case 'd20fail':
+        // Short descending buzz for D20 fail
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.35);
         break;
 
       case 'portal':
@@ -6117,6 +6209,7 @@ const GameMusic = {
   },
 
   // Play a track with optional intro that transitions to loop
+  // Crossfades: old track fades out over 1s, new track starts at 0.5s at half volume and fades in over 1s
   play(introName, loopName) {
     if (!this.loaded) {
       // Queue for playback once preload finishes
@@ -6127,26 +6220,34 @@ const GameMusic = {
     // Skip if the requested track is already playing (prevents jarring restarts)
     if (this.currentTrack && (this.currentTrack === introName || this.currentTrack === loopName)) return;
 
-    // Stop any current music
-    SoundFX.stopMusic();
+    const hasCurrentMusic = SoundFX.currentMusic;
 
-    if (introName && SoundFX.audioBuffers[introName]) {
-      // Play intro first, then auto-transition to loop
-      const introSource = SoundFX.playMusic(introName, { loop: false });
-      this.currentTrack = introName;
-      if (introSource && loopName) {
-        introSource.onended = () => {
-          // Only transition if we haven't been stopped/changed
-          if (this.currentTrack === introName) {
-            SoundFX.playMusic(loopName, { loop: true });
-            this.currentTrack = loopName;
-          }
-        };
+    // Start the new track (with crossfade delay if something is already playing)
+    const startNewTrack = () => {
+      if (introName && SoundFX.audioBuffers[introName]) {
+        // Play intro first, then auto-transition to loop
+        const introSource = SoundFX.playMusic(introName, { loop: false, fadeIn: hasCurrentMusic ? 1.0 : 0 });
+        this.currentTrack = introName;
+        if (introSource && loopName) {
+          introSource.onended = () => {
+            if (this.currentTrack === introName) {
+              SoundFX.playMusic(loopName, { loop: true });
+              this.currentTrack = loopName;
+            }
+          };
+        }
+      } else if (loopName && SoundFX.audioBuffers[loopName]) {
+        SoundFX.playMusic(loopName, { loop: true, fadeIn: hasCurrentMusic ? 1.0 : 0 });
+        this.currentTrack = loopName;
       }
-    } else if (loopName && SoundFX.audioBuffers[loopName]) {
-      // No intro available, just loop
-      SoundFX.playMusic(loopName, { loop: true });
-      this.currentTrack = loopName;
+    };
+
+    if (hasCurrentMusic) {
+      // Crossfade: fade out old track over 1s, start new track at 0.5s
+      SoundFX.stopMusic(1.0);
+      setTimeout(startNewTrack, 500);
+    } else {
+      startNewTrack();
     }
   },
 
@@ -6468,6 +6569,7 @@ lastAutosave: 0           // Timestamp of last autosave
 };
 
 let sel = [];
+let chosenHeroType = null; // Tapo's Chosen hero type, determined at hero select
 
 // ===== QUEST PROGRESS TRACKING =====
 // Helper function to track quest progress
@@ -8406,11 +8508,6 @@ if(validTargets.length > 0) {
     S.currentInstanceTargets.push(id);
   });
   S.rememberedTargetsApplied = true;
-  // Auto-confirm if remembered targets fill the instance completely
-  if(S.currentInstanceTargets.length >= getTargetsPerInstance(sig, heroIdx)) {
-    confirmTargets();
-    return;
-  }
 }
 }
 render();
@@ -8583,8 +8680,8 @@ v.insertAdjacentHTML('beforeend', html);
 return;
 } else {
 // Normal D20 menu (centered, blocks view)
-html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:400px;color:#1a1a1a">';
-html += '<h3 style="margin-bottom:1rem;color:#1a1a1a">D20: Attempt A Gambit</h3>';
+html = '<div style="text-align:center;padding:1.5rem 2rem;background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;margin:1rem auto;max-width:700px;color:#f0f0f0;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
+html += '<h3 style="margin-bottom:1rem;color:#3b82f6;font-size:1.4rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
 if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
@@ -8603,16 +8700,28 @@ const options = [
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
-options.forEach(opt => {
+// Row 1: first 3 gambits, Row 2: last 2 gambits (centered)
+html += '<div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.5rem">';
+options.slice(0,3).forEach(opt => {
 const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.5rem">
-<strong>${dcText}: ${opt.name}</strong><br>
-<span style="font-size:0.85rem">${opt.desc}</span>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
+<strong>${dcText}<br>${opt.name}</strong><br>
+<span style="font-size:0.8rem">${opt.desc}</span>
 </div>`;
 });
+html += '</div><div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.75rem;max-width:66%;margin-left:auto;margin-right:auto">';
+options.slice(3).forEach(opt => {
+const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
+const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
+<strong>${dcText}<br>${opt.name}</strong><br>
+<span style="font-size:0.8rem">${opt.desc}</span>
+</div>`;
+});
+html += '</div>';
 if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
-else html += `<button class="btn secondary" onclick="cancelAction()">Cancel</button>`;
+else html += `<button class="btn secondary" onclick="cancelAction()" style="max-width:200px;margin:0 auto">Cancel</button>`;
 html += '</div>';
 v.innerHTML = html;
 }
@@ -8725,10 +8834,13 @@ overlay.innerHTML = `
 `;
 document.body.appendChild(overlay);
 
-// Play appropriate sound
+// Play appropriate sound: roll first, then result
 if(isNat20) SoundFX.play('nat20');
 else if(isNat1) SoundFX.play('nat1');
-else SoundFX.play('d20roll');
+else {
+SoundFX.play('d20roll');
+setTimeout(() => SoundFX.play(success ? 'd20success' : 'd20fail'), 400);
+}
 
 setTimeout(() => overlay.remove(), T(1200));
 }
@@ -10743,9 +10855,9 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = getHeroImage(h);
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
 html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
-// Tapo's Chosen tooltip indicator
+// Tapo's Chosen badge - smiling Tapo image above card
 if(S.chosenHeroIdx === i) {
-html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.7rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
+html += `<img src="assets/tapo_happy.png" alt="Tapo's Chosen" title="Tapo's Chosen: +1 Gold per floor cleared" class="chosen-tapo-badge">`;
 }
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
@@ -10766,15 +10878,13 @@ html += `</div>`;
 const hpPct = Math.min(100, (h.h / h.m) * 100);
 const hpClass = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${hpClass}" style="width:${hpPct}%"></div></div>`;
-// Shield bar (if shielded) - placed below HP, above sigils
-if(h.sh > 0) {
-const shieldPct = Math.min(100, (h.sh / h.m) * 100);
+// Shield bar - always reserve space to prevent layout shift
+const shieldPct = h.sh > 0 ? Math.min(100, (h.sh / h.m) * 100) : 0;
 const fullShield = h.sh >= h.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
-}
-// Extra info (ghost, stun, alpha, acted)
-if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${h.sh > 0 ? 'visible' : 'hidden'}">${h.sh || 0}🛡</div>`;
+// Extra info (ghost, stun, alpha, acted) - always reserve space
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${extra.length > 0 ? 'visible' : 'hidden'}">${extra.length > 0 ? extra.join(' ') : '&nbsp;'}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils with proper 2-row formation
 const activeSigils = sortSigils([...h.s, ...(h.ts || [])]);
@@ -10952,15 +11062,13 @@ html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">
 const rHpPct = Math.min(100, (recruit.h / recruit.m) * 100);
 const rHpClass = rHpPct > 50 ? 'hp-high' : rHpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${rHpClass}" style="width:${rHpPct}%"></div></div>`;
-// Shield bar (if shielded)
-if(recruit.sh > 0) {
-const shieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
-const fullShield = recruit.sh >= recruit.m;
-html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${recruit.sh}🛡</div>`;
-}
+// Shield bar - always reserve space
+const rShieldPct = recruit.sh > 0 ? Math.min(100, (recruit.sh / recruit.m) * 100) : 0;
+const rFullShield = recruit.sh >= recruit.m;
+html += `<div class="shield-bar-container"><div class="shield-bar${rFullShield?' full':''}" style="width:${rShieldPct}%"></div></div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${recruit.sh > 0 ? 'visible' : 'hidden'}">${recruit.sh || 0}🛡</div>`;
 // Extra info (ghost, stun)
-if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${recruitExtra.length > 0 ? 'visible' : 'hidden'}">${recruitExtra.length > 0 ? recruitExtra.join(' ') : '&nbsp;'}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils
 const recruitTotalSigils = recruit.s.length + 1;
@@ -11069,28 +11177,8 @@ html += '</div>'; // Close flex container
 html += '</div>'; // Close combat-lane
 });
 
-// D20_TARGET: Add targeting overlay with Roll/Cancel buttons
-if(S.pending === 'D20_TARGET') {
-const heroIdx = S.d20HeroIdx;
-const h = S.heroes[heroIdx];
-const expandLevel = getLevel('Expand', heroIdx);
-const maxTargets = 1 + expandLevel;
-const currentTargets = S.targets ? S.targets.length : 0;
-const canRoll = currentTargets >= 1;
-const actionName = S.d20Action || 'D20';
-const adjustedDC = S.d20DC || 10;
-
-html += `<div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(30,30,30,0.98),rgba(30,30,30,0.9));border-top:3px solid #3b82f6;padding:1rem;z-index:1000;text-align:center">`;
-html += `<div style="margin-bottom:0.5rem;color:#fff;font-weight:bold;font-size:1.1rem">${h.n}: ${actionName} (DC ${adjustedDC})</div>`;
-if(expandLevel > 0) {
-html += `<div style="margin-bottom:0.5rem;color:#22c55e;font-size:0.9rem">Expand: Select up to ${maxTargets} targets</div>`;
-}
-html += `<div style="margin-bottom:0.75rem;color:#fbbf24;font-size:1rem">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
-html += `<div style="display:flex;gap:1rem;justify-content:center">`;
-html += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">Cancel</button>`;
-html += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
-html += `</div></div>`;
-}
+// Unified bottom action bar for all pending actions (Attack, Shield, Heal, D20, etc.)
+html += renderActionBar();
 
 v.innerHTML = html;
 
@@ -11427,7 +11515,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:400px;margin:0 auto">`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:650px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
 const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
 html += renderHeroCard(h, idx, `startingSelectHeroForSigil(${idx})`, sigilInfo);
@@ -11521,31 +11609,33 @@ function showLevelUpIntroTutorial() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
-<div class="tutorial-modal" style="max-width:550px;text-align:left">
-<h2 style="text-align:center;color:#22c55e;margin-bottom:1rem">Level Up!</h2>
-<p style="text-align:center;margin-bottom:1.5rem;font-size:1rem">Nice! You earned enough XP for your first upgrade! FROGGLE is all about finding cool upgrade combos. Here are your options:</p>
+<div class="tutorial-modal" style="max-width:900px;text-align:left">
+<h2 style="text-align:center;color:#22c55e;margin-bottom:0.5rem">Level Up!</h2>
+<p style="text-align:center;margin-bottom:1rem;font-size:1rem">Your first upgrade! FROGGLE is all about finding cool combos. Here are your options:</p>
 
-<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1rem">
+<div style="background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;padding:0.75rem">
 <h4 style="color:#3b82f6;margin:0 0 0.25rem 0;font-size:0.95rem">1. Add Active Sigil to Hero</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Teach a hero a NEW ability they don't have yet.<br><em>Example: Give your Tank the Grapple sigil to stun enemies!</em></p>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Teach a hero a NEW ability they don't have yet.<br><em>Example: Give your Tank Grapple to stun enemies!</em></p>
 </div>
 
-<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
+<div style="background:rgba(34,197,94,0.1);border:2px solid #22c55e;border-radius:8px;padding:0.75rem">
 <h4 style="color:#22c55e;margin:0 0 0.25rem 0;font-size:0.95rem">2. Upgrade Active Sigil (All Heroes)</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Make an active sigil stronger for EVERYONE who has it.<br><em>Example: Attack L2 = 2 hits, Shield L2 = 4×POW shields!</em></p>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Make an active sigil stronger for EVERYONE.<br><em>Example: Attack L2 = 2 hits, Shield L2 = 4×POW!</em></p>
 </div>
 
-<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:0.75rem;margin-bottom:0.75rem">
-<h4 style="color:#9333ea;margin:0 0 0.25rem 0;font-size:0.95rem">3. Add/Upgrade Passive Sigil (All Heroes)</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Passives (Expand, Asterisk, Star) work automatically for ALL heroes!<br><em>Example: Expand +1 = all heroes can target one extra enemy/ally!</em></p>
+<div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:8px;padding:0.75rem">
+<h4 style="color:#9333ea;margin:0 0 0.25rem 0;font-size:0.95rem">3. Add/Upgrade Passive (All Heroes)</h4>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Passives work automatically for ALL heroes!<br><em>Example: Expand +1 = target one extra enemy/ally!</em></p>
 </div>
 
-<div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:0.75rem;margin-bottom:1rem">
+<div style="background:rgba(249,115,22,0.1);border:2px solid #f97316;border-radius:8px;padding:0.75rem">
 <h4 style="color:#f97316;margin:0 0 0.25rem 0;font-size:0.95rem">4. Upgrade Hero Stats</h4>
-<p style="font-size:0.85rem;margin:0;line-height:1.3">Add +1 POW or +5 HP to a hero of your choice.<br><em>Great for boosting your key damage dealer or keeping tanks alive!</em></p>
+<p style="font-size:0.85rem;margin:0;line-height:1.3">Add +1 POW or +5 HP to a hero of your choice.<br><em>Great for boosting damage dealers or tanks!</em></p>
+</div>
 </div>
 
-<button class="btn" onclick="showLevelUpMenuAfterTutorial()" style="width:100%;margin-top:0.5rem">Got it! Show me the options</button>
+<button class="btn" onclick="showLevelUpMenuAfterTutorial()" style="width:100%;margin-top:0.25rem">Got it! Show me the options</button>
 </div>
 </div>`;
 }
@@ -11573,7 +11663,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:400px;margin:0 auto">`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:650px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
 const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
 html += renderHeroCard(h, idx, `selectHeroForActiveSigil(${idx})`, sigilInfo);
@@ -12428,7 +12518,7 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
     const v = document.getElementById('gameView');
     v.innerHTML = `
     <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:2rem">
-    <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:400px;text-align:center">
+    <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:650px;text-align:center">
     <h2 style="margin:0 0 1rem 0">Thanks for playing!</h2>
     <p style="margin:0 0 1.5rem 0;opacity:0.9">Close this tab or window to exit completely.</p>
     <button class="btn" onclick="mainTitlePage()" style="background:#6366f1">Return to Title</button>
@@ -12445,7 +12535,7 @@ GameMusic.playScene('char_select');
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);padding:1rem;overflow-y:auto">
-<div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:500px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+<div style="background:rgba(255,255,255,0.95);border:4px solid #000;border-radius:16px;padding:2rem;max-width:650px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 <h2 style="text-align:center;margin:0 0 1rem 0;font-size:1.8rem;color:#4f46e5">FROGGLE</h2>
 
 <div style="text-align:center;margin-bottom:1rem">
@@ -12646,6 +12736,7 @@ function newGameInSlot(slot) {
 S.currentSlot = slot;
 localStorage.setItem('froggle8_current_slot', slot.toString());
 S.runNumber = (S.runsAttempted || 1);
+S.chosenHeroType = null; // Reroll Tapo's Chosen for this new run
 if(S.runNumber === 1 && !S.tutorialDisabled) {
 showTutorialStory();
 } else {
@@ -12801,13 +12892,13 @@ v.innerHTML = `
 
 <!-- Text bar at top -->
 <div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(34,197,94,0.5)">
-<div style="max-width:700px;margin:0 auto">
+<div style="max-width:910px;margin:0 auto">
 ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-height:1.5;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">${slideText}</div>`}
 </div>
 </div>
 
 <!-- Continue button - bottom right -->
-<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 2.1rem;font-size:1.2rem;background:#22c55e;border:2px solid #15803d">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 1.25rem;font-size:1.2rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
 <!-- Skip button - bottom left -->
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
@@ -12817,10 +12908,10 @@ ${skipButtonFullArt}
 const bgColorStyle = slide.bgColor ? `background:${slide.bgColor}` : 'background:rgba(0,0,0,0.3)';
 v.innerHTML = `
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem;${bgColorStyle}">
-<div style="max-width:700px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+<div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 ${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.75;margin-bottom:1.5rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
-<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 2.5rem;font-size:1.15rem">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 1.5rem;font-size:1.15rem;background:#b8860b;border:2px solid #daa520;box-shadow:0 0 15px rgba(218,165,32,0.6),0 0 30px rgba(218,165,32,0.3);color:#fff">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
 <div style="margin-top:1rem;font-size:0.9rem;opacity:0.6;color:#ccc">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
@@ -12864,7 +12955,7 @@ function showSkipTutorialConfirmation(proceedCallback) {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:500px">
+<div class="tutorial-modal" style="max-width:650px">
 <h2 style="font-size:1.5rem;margin-bottom:1rem;text-align:center">Alright champ!</h2>
 <p style="font-size:1.1rem;line-height:1.6;text-align:center;margin-bottom:1.5rem">
 No time to waste, eh? Well then get going! Save Tapo!
@@ -12935,7 +13026,7 @@ if (!container) return;
 // Keyframes (tapoSignature, tankIdle, warriorIdle, mageIdle, healerIdle) defined in template_head.html
 // Place heroes scattered around the town
 const heroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: 'calc(20% + 20px)', bottom: '30%', width: '178px', anim: 'tankIdle 5s ease-in-out infinite' },
   { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
   { src: 'assets/tapo_normal.png', alt: 'Tapo', left: '48%', bottom: '15%', width: '120px', anim: 'tapoSignature 3.6s ease-in-out infinite' },
   { src: 'assets/mage_normal.png', alt: 'Mage', left: '68%', bottom: '20%', width: '145px', anim: 'mageIdle 3.8s ease-in-out infinite' },
@@ -12963,7 +13054,7 @@ if (!container) return;
 // Keyframes defined in template_head.html
 // Place background heroes (Tank, Warrior, Healer) - they stay on screen throughout
 const bgHeroes = [
-  { src: 'assets/tank_normal.png', alt: 'Tank', left: '20%', bottom: '30%', width: '155px', anim: 'tankIdle 5s ease-in-out infinite' },
+  { src: 'assets/tank_normal.png', alt: 'Tank', left: 'calc(20% + 20px)', bottom: '30%', width: '178px', anim: 'tankIdle 5s ease-in-out infinite' },
   { src: 'assets/warrior_normal.png', alt: 'Warrior', left: '33%', bottom: '30%', width: '150px', anim: 'warriorIdle 4s ease-in-out infinite' },
   { src: 'assets/heal_normal.png', alt: 'Healer', left: '88%', bottom: '23%', width: '145px', anim: 'healerIdle 4.2s ease-in-out infinite' },
 ];
@@ -13036,7 +13127,7 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding-bottom:2rem;';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:400px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
+<div class="tutorial-modal" style="max-width:650px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
 <p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
 Here come three <strong>flies</strong> now - you're up!
 </p>
@@ -13104,7 +13195,7 @@ const flyText = flyCount === 1 ? 'fly' : 'flies';
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:600px">
+<div class="tutorial-modal" style="max-width:780px">
 <div style="text-align:center">
 <div style="animation:tapoSignatureRescue 3s ease-in-out infinite;display:inline-block;margin-bottom:1rem">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:120px;height:auto;transform:scaleX(-1)">
@@ -13188,7 +13279,7 @@ const v = document.getElementById('gameView');
 v.classList.add('no-scroll');
 v.innerHTML = `
 <div class="full-screen-content" style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1rem">
-<div style="max-width:600px;text-align:center">
+<div style="max-width:780px;text-align:center">
 <h2 style="font-size:2.5rem;margin-bottom:0.5rem;color:#22c55e">Success!!</h2>
 <div style="animation:danceTapo 0.5s ease-in-out infinite;margin:1rem 0">
 <img src="assets/tapo_normal.png" alt="Tapo" style="width:100px;height:auto;transform:scaleX(-1)">
@@ -13209,13 +13300,14 @@ const slides = [
 html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:flydraShake 0.3s ease-in-out infinite">SHRIIIEEEEK!!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3);animation:flydraDescend 1.5s ease-out">
+<img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3) drop-shadow(0 0 25px rgba(220,38,38,0.8)) drop-shadow(0 0 50px rgba(220,38,38,0.4));animation:flydraDescend 1.5s ease-out, flydraPulseGlow 2s ease-in-out 1.5s infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong class="text-flydra">Flydra</strong>, mother of all flies. She must have caught you chowing on her children!!
 </p>
-<!-- flydraShake, flydraDescend keyframes defined in template_head.html -->
-`
+<!-- flydraShake, flydraDescend, flydraPulseGlow keyframes defined in template_head.html -->
+`,
+onShow: () => { GameMusic.play(null, 'combat_19'); }
 },
 {
 html: `
@@ -13270,7 +13362,7 @@ function showTutorialStoryOverlay() {
 const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:500px">
+<div class="tutorial-modal" style="max-width:650px">
 <h2>Reinforcements!</h2>
 <p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
 <div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
@@ -13387,7 +13479,7 @@ combat(0);
 function finishRibbletonTutorial() {
 // Post-combat narrative with full-art backgrounds
 const slides = [
-{bg: 'assets/ribbleton.png', text: "The battle is won! But as the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
+{bg: 'assets/ribbleton.png', text: "The battle is won! As the last enemy falls, the <strong class='text-flydra'>Flydra</strong> lets out a final screech and flees through the portal, her remaining children buzzing after her.",
 onShow: () => {
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
@@ -13403,7 +13495,7 @@ portal.appendChild(portalBg);
 const flydra = document.createElement('img');
 flydra.src = 'assets/Hydra.png';
 flydra.alt = 'Flydra';
-flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:200px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraFlip 1.2s linear infinite;z-index:6';
+flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:200px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraFlip 3.6s ease-in-out infinite;z-index:6';
 portal.appendChild(flydra);
 // 4 flies hovering near the Flydra
 const flyPositions = [
@@ -13425,18 +13517,31 @@ container.appendChild(portal);
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bg: 'assets/tapo_pain.png', bgStyle: 'object-fit: contain; max-width:75%; max-height:75%; margin:auto; animation: spinTapo 4s linear infinite; z-index:2;', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
+{bgColor: '#1a1a1a', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
 html: `<div class="narrative-text" style="font-size:1.25rem;line-height:1.7;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong class="text-danger">He can't help himself!</strong></div>`,
 onShow: () => {
 GameMusic.play(null, 'combat_19');
 const container = document.querySelector('.full-screen-content');
 if (!container) return;
+// Portal glow background
 const portal = document.createElement('div');
-portal.style.cssText = 'position:absolute;top:50%;left:50%;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);box-shadow:0 0 80px #dc2626,0 0 160px rgba(220,38,38,0.3);animation:spinPortalReverse 3s linear infinite;z-index:1;transform:translate(-50%,-50%)';
+portal.style.cssText = 'position:absolute;top:50%;left:50%;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);box-shadow:0 0 80px #dc2626,0 0 160px rgba(220,38,38,0.3);animation:spinPortalReverse 3s linear infinite;z-index:1;transform:translate(-50%,-50%)';
 container.appendChild(portal);
+// Flydra spinning inside the portal, shrinking into center
+const flydra = document.createElement('img');
+flydra.src = 'assets/Hydra.png';
+flydra.alt = 'Flydra';
+flydra.style.cssText = 'position:absolute;top:50%;left:50%;width:150px;height:auto;z-index:2;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:portalShrinkSpin 4s ease-in forwards';
+container.appendChild(flydra);
+// Tapo chasing Flydra into the portal, also shrinking
+const tapo = document.createElement('img');
+tapo.src = 'assets/tapo_pain.png';
+tapo.alt = 'Tapo';
+tapo.style.cssText = 'position:absolute;top:50%;left:50%;width:120px;height:auto;z-index:3;filter:drop-shadow(0 0 10px rgba(0,0,0,0.8));animation:tapoChasePortal 6s ease-in forwards';
+container.appendChild(tapo);
 }},
 {text: "TAPO, NO!! But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!",
-html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:600px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
+html: `<div class="narrative-text" style="font-size:1.8rem;line-height:1.9;text-align:center;color:#fff;text-shadow:2px 2px 8px rgba(0,0,0,0.9);max-width:780px"><strong class="text-danger">TAPO, NO!!</strong><br><br>But it is too late. The heroes have no choice but to dive in after, to save their adorable little Tapo!</div>`}
 ];
 slides.onComplete = showTitleCard;
 showNarrativeSlide(slides, 0);
@@ -13496,6 +13601,30 @@ upd();
 // Reset selection first
 sel = [];
 
+// Determine Tapo's Chosen hero type (least-used from pond history, run 2+)
+// Persisted in S.chosenHeroType so re-entering hero select doesn't reroll
+if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
+if(!S.chosenHeroType) {
+  const usageCounts = {};
+  S.pondHistory.forEach(run => {
+    (run.heroes || []).forEach(heroName => {
+      usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
+    });
+  });
+  const allHeroes = ['Warrior', 'Tank', 'Mage', 'Healer'];
+  if(S.tapoUnlocked) allHeroes.push('Tapo');
+  const heroUsages = allHeroes.map(n => ({ name: n, usage: usageCounts[n] || 0 }));
+  const minUsage = Math.min(...heroUsages.map(h => h.usage));
+  const leastUsed = heroUsages.filter(h => h.usage === minUsage);
+  const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
+  S.chosenHeroType = chosen.name;
+  savePermanent();
+}
+chosenHeroType = S.chosenHeroType;
+} else {
+chosenHeroType = null;
+}
+
 const v = document.getElementById('gameView');
 // Hero selection is a normal scrollable screen
 v.classList.remove('no-scroll');
@@ -13506,15 +13635,22 @@ const requiredHeroes = S.gameMode === 'fu' ? 3 : 2;
 v.innerHTML = `
 <h1 style="text-align:center;margin:0.75rem 0;font-size:1.8rem;color:${S.gameMode === 'fu' ? '#dc2626' : '#22c55e'}">${S.gameMode === 'fu' ? 'FROGGED UP' : 'FROGGLE'}</h1>
 
-<div style="max-width:600px;margin:0 auto;padding:0 0.5rem">
+<div style="max-width:960px;margin:0 auto;padding:0 0.5rem">
 <h2 style="text-align:center;margin-bottom:0.5rem;font-size:1.1rem">Choose ${requiredHeroes} Heroes</h2>
-<div id="hero-select-container" style="position:relative;max-width:100%;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
+
+<div style="display:flex;gap:1rem;align-items:flex-start;justify-content:center">
+<!-- Left: Selected hero cards (combat-style) -->
+<div id="hero-cards-area" style="flex:0 0 220px;display:flex;flex-direction:column;gap:0.5rem;min-height:200px">
+</div>
+
+<!-- Right: Hero selection grid -->
+<div style="flex:0 1 auto">
+<div id="hero-select-container" style="position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;background:#1a1a2e;border-radius:8px;border:3px solid #000;padding:0.5rem;cursor:pointer">
 ${['warrior','tank','mage','healer'].map(hero => `
 <div class="hero-select-cell" data-hero="${hero}" style="position:relative;text-align:center" onclick="event.stopPropagation();toggleHeroSelection('${hero}')">
-<img src="${HERO_IMAGES[hero]}" alt="${hero}" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.2s;${heroFlipStyle(HERO_IMAGES[hero])}${S.selectedHeroes && S.selectedHeroes.includes(hero) ? 'filter:brightness(1.2);' : 'filter:brightness(0.7);'}">
+<img src="${HERO_IMAGES[hero]}" alt="${hero}" class="hero-select-img" style="width:100%;height:120px;object-fit:contain;display:block;border-radius:6px;pointer-events:none;transition:filter 0.2s,transform 0.3s;${heroFlipStyle(HERO_IMAGES[hero])}filter:brightness(0.7);">
 <div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.8rem;font-weight:bold;color:#fff;text-shadow:0 1px 3px #000;text-transform:capitalize;pointer-events:none">${hero}</div>
 <button type="button" class="hero-select-btn" data-hero="${hero}" onclick="event.stopPropagation();toggleHeroSelection('${hero}')" aria-label="Select ${hero}" style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;border:none;cursor:pointer;z-index:20"></button>
-<div id="${hero}-card" style="position:absolute;bottom:10%;left:5%;width:90%;display:none;z-index:10;pointer-events:none;"></div>
 </div>`).join('')}
 </div>
 
@@ -13528,6 +13664,8 @@ ${S.questProgress && S.questProgress.heroWins && S.questProgress.heroWins.Tapo >
 ALL TAPOS
 </button>` : ''}
 </div>` : ''}
+</div>
+</div>
 
 <!-- Selection display with X/Y counter -->
 <div style="text-align:center;margin:0.5rem 0;padding:0.5rem;background:rgba(0,0,0,0.05);border-radius:6px">
@@ -13535,7 +13673,7 @@ ALL TAPOS
 <span id="selection-counter" style="font-size:1.1rem;font-weight:bold;margin-left:0.5rem"></span>
 </div>
 
-<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Delve into Floor 1</button>
+<button class="btn" id="start" onclick="start()" style="width:100%;padding:0.75rem;font-size:1rem">Into the Portal!</button>
 </div>`;
 
 debugLog('[FROGGLE] title() innerHTML set successfully');
@@ -13578,13 +13716,12 @@ toggleHeroSelection(heroType);
 }
 
 function updateHeroCards() {
-// Hero data matches H constant in constants.js
 const heroData = {
-warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], bonus: '+1 POW'},
-tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], bonus: '+5 HP'},
-mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], bonus: '+1 Expand'},
-healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], bonus: '+1 Expand'},
-tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upgraded passives'}
+warrior: {name: 'Warrior', pow: 2, hp: 5, maxhp: 5, sigils: ['Attack', 'D20'], cls: 'warrior'},
+tank: {name: 'Tank', pow: 1, hp: 10, maxhp: 10, sigils: ['Attack', 'Shield', 'D20'], cls: 'tank'},
+mage: {name: 'Mage', pow: 1, hp: 5, maxhp: 5, sigils: ['Attack', 'D20', 'Expand'], cls: 'mage'},
+healer: {name: 'Healer', pow: 1, hp: 5, maxhp: 5, sigils: ['Heal', 'D20', 'Expand'], cls: 'healer'},
+tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], cls: 'tapo'}
 };
 
 // Update hero image brightness based on selection
@@ -13592,38 +13729,37 @@ tapo: {name: 'Tapo', pow: 1, hp: 1, maxhp: 1, sigils: ['D20'], bonus: 'D20 + upg
 const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] img`);
 if(cellImg) {
 cellImg.style.filter = sel.includes(h) ? 'brightness(1.2)' : 'brightness(0.7)';
-cellImg.style.transform = sel.includes(h) ? 'scale(1.05)' : 'scale(1)';
 }
 });
-// Update all card displays
-['warrior', 'tank', 'mage', 'healer'].forEach(h => {
-const cardEl = document.getElementById(`${h}-card`);
-if(!cardEl) return;
 
-if(sel.includes(h)) {
+// Render combat-style cards in the left area
+const cardsArea = document.getElementById('hero-cards-area');
+if(!cardsArea) return;
+let cardsHtml = '';
+sel.forEach(h => {
 const hData = heroData[h];
-const hPixelImage = HERO_IMAGES[h] || '';
+if(!hData) return;
+const heroImage = HERO_IMAGES[h] || '';
+const crop = HERO_CROP[hData.name] || { fit: 'cover', pos: 'top center' };
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" style="font-size:0.7rem;padding:3px 5px;margin:1px;display:inline-block" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
+return `<span class="sigil l1 ${passiveClass}" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
-cardEl.innerHTML = `
-<div style="background:white;border:3px solid #22c55e;border-radius:8px;padding:0.5rem;box-shadow:0 4px 6px rgba(0,0,0,0.3);pointer-events:auto;cursor:pointer;color:#1a1a1a"
-onclick="event.stopPropagation();toggleHeroSelection('${h}')">
-<div style="text-align:center">
-<div style="font-size:0.8rem;font-weight:bold;margin-bottom:0.25rem;color:#1a1a1a">${hData.name}</div>
-${hPixelImage ? `<img src="${hPixelImage}" alt="${hData.name}" style="width:100%;height:auto;border-radius:4px;margin-bottom:0.25rem;${heroFlipStyle(hPixelImage)}">` : ''}
-<div style="font-size:0.7rem;color:#374151">${hData.pow}💥 | ${hData.hp}❤</div>
-<div style="font-size:0.7rem;margin-top:0.25rem">${sigilsHTML}</div>
-<div style="font-size:0.65rem;color:#16a34a;font-weight:bold;margin-top:0.25rem">${hData.bonus}</div>
-<div style="font-size:0.55rem;color:#6b7280;margin-top:0.15rem">✓ SELECTED</div>
+const isChosen = chosenHeroType === hData.name;
+cardsHtml += `
+<div class="card hero${isChosen ? ' chosen-one' : ''}" style="cursor:pointer;width:200px;max-width:200px" onclick="event.stopPropagation();toggleHeroSelection('${h}')">
+${isChosen ? '<img src="assets/tapo_happy.png" alt="Tapo\'s Chosen" title="Tapo\'s Chosen: +1 Gold per floor cleared" class="chosen-tapo-badge">' : ''}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;gap:0.25rem">
+<div style="font-size:1.3rem;font-weight:bold;min-width:35px;text-align:center">${hData.pow}💥</div>
+${heroImage ? `<img src="${heroImage}" alt="${hData.name}" class="hero-portrait" style="object-fit:${crop.fit};object-position:${crop.pos};${heroFlipStyle(heroImage)}">` : ''}
+<div style="min-width:50px;text-align:center"><div style="font-size:0.85rem">${hData.hp}/${hData.maxhp}</div><div style="font-size:0.9rem">❤</div></div>
 </div>
+<div class="hp-bar-container"><div class="hp-bar hp-high" style="width:100%"></div></div>
+<div class="sigil-divider"></div>
+<div class="sigil-row">${sigilsHTML}</div>
 </div>`;
-cardEl.style.display = 'block';
-} else {
-cardEl.style.display = 'none';
-}
 });
+cardsArea.innerHTML = cardsHtml;
 }
 
 function toggleHeroSelection(heroType) {
@@ -13658,6 +13794,37 @@ SoundFX.play('hop'); // Froggy hop for hero selection
 // Update card displays and selection display
 updateHeroCards();
 updateSelectionDisplay();
+
+// Hero reactions on select; reset facing on deselect
+const heroOrder = ['warrior', 'tank', 'mage', 'healer'];
+if(!isSelected && sel.includes(heroType) && heroOrder.includes(heroType)) {
+const selectedIdx = heroOrder.indexOf(heroType);
+// Other heroes turn to face the selected one
+heroOrder.forEach(h => {
+  const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] .hero-select-img`);
+  if(!cellImg || h === heroType) return;
+  const hIdx = heroOrder.indexOf(h);
+  // Face toward selected hero: if selected is to the right, face right
+  const shouldFaceRight = selectedIdx > hIdx;
+  // Use heroFlipStyle to determine natural facing, then flip if needed
+  const naturalFlip = heroFlipStyle(HERO_IMAGES[h]).includes('scaleX(-1)');
+  const needsFlip = shouldFaceRight ? naturalFlip : !naturalFlip;
+  cellImg.style.transform = needsFlip ? 'scaleX(-1)' : 'scaleX(1)';
+});
+// Selected hero: double jump animation
+const selectedImg = document.querySelector(`.hero-select-cell[data-hero="${heroType}"] .hero-select-img`);
+if(selectedImg) {
+  selectedImg.style.animation = 'heroSelectJump 0.5s ease-out';
+  selectedImg.addEventListener('animationend', () => { selectedImg.style.animation = ''; }, { once: true });
+}
+} else {
+// Reset all heroes to their natural facing on deselect
+heroOrder.forEach(h => {
+  const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] .hero-select-img`);
+  if(!cellImg) return;
+  cellImg.style.transform = heroFlipStyle(HERO_IMAGES[h]).includes('scaleX(-1)') ? 'scaleX(-1)' : 'scaleX(1)';
+});
+}
 }
 
 function selectAllTapos() {
@@ -13785,29 +13952,11 @@ hero.h += 5;
 }
 });
 
-// Chosen Hero: On run 2+, pick randomly from least-used heroes among selected
-S.chosenHeroIdx = -1; // Reset (no chosen hero by default)
-if(S.runNumber >= 2 && S.pondHistory && S.pondHistory.length > 0) {
-// Count usage of each hero from pond history
-const usageCounts = {};
-S.pondHistory.forEach(run => {
-(run.heroes || []).forEach(heroName => {
-usageCounts[heroName] = (usageCounts[heroName] || 0) + 1;
-});
-});
-// Find usage counts for heroes in current party
-const heroUsages = S.heroes.map((h, idx) => ({
-idx,
-name: h.n,
-usage: usageCounts[h.n] || 0
-}));
-// Find the minimum usage count
-const minUsage = Math.min(...heroUsages.map(h => h.usage));
-// Get all heroes with minimum usage
-const leastUsed = heroUsages.filter(h => h.usage === minUsage);
-// Randomly pick one from least-used
-const chosen = leastUsed[Math.floor(Math.random() * leastUsed.length)];
-S.chosenHeroIdx = chosen.idx;
+// Chosen Hero: use type determined at hero select screen
+S.chosenHeroIdx = -1;
+if(chosenHeroType) {
+const chosenIdx = S.heroes.findIndex(h => (h.base || h.n) === chosenHeroType);
+if(chosenIdx >= 0) S.chosenHeroIdx = chosenIdx;
 }
 
 initNeutralDeck();
@@ -16085,7 +16234,7 @@ const pondTrendUp = pondPrev5Avg && pondLast5Avg ? parseFloat(pondLast5Avg) >= p
 
 html += `
 ${history.length === 0 ? `
-<div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:500px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
+<div class="pond-water" style="text-align:center;padding:4rem 2rem;border-radius:24px;max-width:650px;margin:0 auto;border:3px solid rgba(59,130,246,0.3)">
 <p style="font-size:2rem;margin-bottom:1rem"></p>
 <p style="color:#94a3b8;font-size:1.1rem">The water is still...</p>
 <p style="color:#64748b;margin-top:0.5rem">Lily pads will appear here after your first adventure and grow the further you progress.</p>
@@ -16184,7 +16333,7 @@ headerColor = '#fff';
 
 const v = document.getElementById('gameView');
 const html = `
-<div class="modal-container" style="max-width:350px">
+<div class="modal-container" style="max-width:455px">
 <div style="background:${headerBg};padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? 'Victory!' : 'Journey'} #${run.runNumber}</h2>
 </div>
@@ -16308,7 +16457,7 @@ function getHeroRunStats(heroName) {
 
 const v = document.getElementById('gameView');
 let html = `
-<div class="modal-container" style="max-width:500px;max-height:85vh;overflow-y:auto">
+<div class="modal-container" style="max-width:650px;max-height:85vh;overflow-y:auto">
 <div style="background:linear-gradient(135deg,#1e3a5f,#1e293b);padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:#60a5fa;font-size:1.3rem">Hero Stats</h2>
 </div>
@@ -16446,7 +16595,7 @@ v2.innerHTML = `
 }
 </style>
 <div id="deathQuoteIntro" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);display:flex;align-items:center;justify-content:center;z-index:999;padding:2rem">
-<p style="text-align:center;font-size:1.6rem;color:#a89cc8;font-style:italic;max-width:600px;line-height:1.6;opacity:0;transition:opacity 0.5s ease-in" id="deathQuoteText">"${deathQuote}"</p>
+<p style="text-align:center;font-size:1.6rem;color:#a89cc8;font-style:italic;max-width:780px;line-height:1.6;opacity:0;transition:opacity 0.5s ease-in" id="deathQuoteText">"${deathQuote}"</p>
 </div>`;
 // Fade in the quote
 setTimeout(() => {
@@ -16928,7 +17077,7 @@ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background
 overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
 
 overlay.innerHTML = `
-<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;max-width:650px;width:100%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
 <h3 style="color:${accentColor};margin-bottom:0.5rem;text-align:center;font-size:1.3rem">${title}</h3>
 <p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9;text-align:center">${desc}</p>
 ${infoLines}
@@ -16988,7 +17137,7 @@ setTimeout(() => transitionScreen(showRibbleton), T(ANIMATION_TIMINGS.ACTION_COM
 function showFUIntroPopup() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
+<div style="max-width:780px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
 <h2 style="margin-bottom:1.5rem;font-size:1.8rem;color:#22c55e">Welcome to the Endgame!</h2>
 
 <p style="margin-bottom:1.5rem;font-size:1.1rem;line-height:1.6">
@@ -17482,7 +17631,7 @@ html: `
 <div style="animation:tummyRumble 1.5s ease-in-out 2s 3">
 <img src="assets/tapo_normal.png" alt="Tapo sleeping" style="width:120px;height:auto;filter:brightness(0.7);transform:scaleX(-1)">
 </div>
-<div style="margin-top:1.5rem;max-width:500px">
+<div style="margin-top:1.5rem;max-width:650px">
 <p style="font-size:1.2rem;line-height:1.8;text-align:center;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">
 That night, Tapo's tummy <strong style="color:#f97316">rumbles</strong>. He tosses and turns. He's tasted <strong style="color:#e94560">Flydra flesh</strong>, and now nothing else will satisfy the craving...
 </p>
@@ -17504,7 +17653,7 @@ html: `
 <div style="margin:1rem 0">
 <img src="assets/tapo_normal.png" alt="Tapo sneaking" style="width:80px;height:auto;transform:scaleX(-1);filter:drop-shadow(0 0 8px rgba(34,197,94,0.5))">
 </div>
-<p style="font-size:1.2rem;line-height:1.8;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9);max-width:500px;margin:0 auto">
+<p style="font-size:1.2rem;line-height:1.8;color:#c4b5fd;text-shadow:1px 1px 4px rgba(0,0,0,0.9);max-width:650px;margin:0 auto">
 Tapo sneaks out and finds a newly appeared portal, crackling with <strong style="color:#22c55e">dark green energy</strong>. He knows just where to find more Flydra. Before anyone can stop him, the little bugger squirms his way in. <span style="font-size:1.2em;font-weight:bold;color:#22c55e">Here we go again!</span>
 </p>
 </div>
@@ -17578,7 +17727,7 @@ ${pedestalBonus ? `<div style="font-size:0.8rem;color:#fbbf24;margin-bottom:0.5r
 heroCardsHTML += '</div>';
 
 v.innerHTML = `
-<div style="max-width:700px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
+<div style="max-width:910px;margin:0 auto;padding:2rem;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);border-radius:12px;border:3px solid #22c55e;color:#fff;text-align:center">
 <h2 style="margin-bottom:0.5rem;color:#22c55e;font-size:1.8rem">Congratulations!</h2>
 <p style="margin-bottom:1.5rem;font-size:1.1rem">You've cleared Standard Mode!</p>
 ${heroCardsHTML}
@@ -17689,7 +17838,7 @@ const v = document.getElementById('gameView');
 const tapoInParty = S.heroes.some(h => (h.base || h.n) === 'Tapo');
 
 v.innerHTML = `
-<div style="max-width:600px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #22c55e;color:#fff">
+<div style="max-width:780px;margin:2rem auto;padding:2rem;background:linear-gradient(135deg,#1e1b4b 0%,#7c2d12 100%);border-radius:12px;border:3px solid #22c55e;color:#fff">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem">FROGGED UP MODE CONQUERED!</h1>
 
 <div style="text-align:center;margin-bottom:2rem;font-size:1.2rem;line-height:1.8">
@@ -17753,7 +17902,7 @@ v.innerHTML = `
   100% { transform: translateY(0) scaleX(1); }
 }
 </style>
-<div style="max-width:700px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
+<div style="max-width:910px;margin:2rem auto;padding:3rem;background:linear-gradient(135deg,#22c55e 0%,#10b981 50%,#059669 100%);border-radius:16px;border:4px solid #3b82f6;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:3rem;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">VICTORY!</h1>
 
 <div style="text-align:center;margin:2rem 0">
@@ -17818,7 +17967,7 @@ html += `<p style="text-align:center;margin-bottom:2rem;font-size:1rem;color:#64
 }
 
 if(window.earnedFigurines && window.earnedFigurines.length > 0) {
-html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px">
+html += `<div style="background:rgba(251,191,36,0.1);padding:1rem;border-radius:8px;margin:1rem auto;max-width:650px">
 <h3 style="text-align:center;margin-bottom:0.5rem">Hero Figurines Earned!</h3>
 <p style="text-align:center">The following heroes can place figurines (Max 2 per frog):</p>
 <ul style="list-style:none;padding:0;text-align:center">`;
@@ -17830,7 +17979,7 @@ html += `</ul></div>`;
 
 // Show gold reward for maxed heroes
 if(window.maxedHeroesGold && window.maxedHeroesGold.heroes.length > 0) {
-html += `<div style="background:rgba(234,179,8,0.15);padding:1rem;border-radius:8px;margin:1rem auto;max-width:500px;border:2px solid #fbbf24">
+html += `<div style="background:rgba(234,179,8,0.15);padding:1rem;border-radius:8px;margin:1rem auto;max-width:650px;border:2px solid #fbbf24">
 <p style="text-align:center;margin:0;color:#fbbf24;font-weight:bold">Each hero can earn only 2 statues - take <span style="color:#22c55e">${window.maxedHeroesGold.gold} gold</span> instead for ${window.maxedHeroesGold.heroes.length === 1 ? window.maxedHeroesGold.heroes[0] + ' who is' : window.maxedHeroesGold.heroes.join(' & ') + ' who are'} already maxed!</p>
 </div>`;
 }
@@ -18477,7 +18626,7 @@ function showQuestBoard() {
 }
 </style>
 
-<div style="max-width:600px;margin:0 auto;padding:1rem">
+<div style="max-width:780px;margin:0 auto;padding:1rem">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
   <h1 style="margin:0;font-size:1.8rem;color:#fbbf24">Quest Board</h1>
   <div style="font-size:1rem;color:#22c55e">${S.gold}G${pendingGold > 0 ? ` <span style="opacity:0.8">(+${pendingGold}G)</span>` : ''}</div>

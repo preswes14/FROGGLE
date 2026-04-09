@@ -226,6 +226,7 @@ lastAutosave: 0           // Timestamp of last autosave
 };
 
 let sel = [];
+let chosenHeroType = null; // Tapo's Chosen hero type, determined at hero select
 
 // ===== QUEST PROGRESS TRACKING =====
 // Helper function to track quest progress
