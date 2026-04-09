@@ -319,9 +319,9 @@ else if(isBest && fail) dieClass += ' best-fail';
 // No DC: best die gets a neutral highlight (tier-colored glow)
 else if(isBest && !hasDC) dieClass += ' best-success';
 }
-const borderStyle = rolled ? '' : `border-color: ${tierColor}; box-shadow: 0 0 8px ${tierColor}40;`;
 const colorStyle = rolled ? '' : `color: ${tierColor};`;
-html += `<div class="${dieClass}" data-die-index="${i}" style="${borderStyle}${colorStyle}">${value}</div>`;
+const glowStyle = rolled ? '' : `filter: drop-shadow(0 0 6px ${tierColor}60);`;
+html += `<div class="${dieClass}" data-die-index="${i}" style="${colorStyle}${glowStyle}">${value}</div>`;
 }
 
 html += '</div>'; // close dice-tray-inner
@@ -374,9 +374,8 @@ die.classList.remove('rolling');
 die.textContent = rolls[i];
 const isBest = rolls[i] === best;
 // Reset inline styles
-die.style.borderColor = '';
-die.style.boxShadow = '';
 die.style.color = '';
+die.style.filter = '';
 if(isBest && best === 20 && !fail) die.classList.add('best-nat20');
 else if(isBest && success) die.classList.add('best-success');
 else if(isBest && fail) die.classList.add('best-fail');
@@ -460,11 +459,8 @@ let html = `<div class="neutral-container">`;
 // Left side - Content
 html += '<div class="neutral-left">';
 
-// Header with stats and narrative
+// Header with narrative (stats removed - already in top header bar)
 html += '<div class="neutral-header">';
-if(showStats) {
-html += `<div class="neutral-stats">${S.gold}G | Floor ${S.floor}</div>`;
-}
 html += '<div class="neutral-narrative">';
 if(title) html += `<div class="neutral-title">${title}</div>`;
 if(description) html += `<div class="neutral-desc">${description}</div>`;
@@ -474,14 +470,14 @@ if(outcome) html += `<div class="neutral-outcome">${outcome}</div>`;
 });
 html += '</div></div>'; // close narrative and header
 
-// Dice tray - always shown on neutral encounters
-// Pass custom diceTray HTML (e.g. with rolled results) or auto-render idle tray
-html += diceTray != null ? diceTray : renderDiceTray({});
-
 // Footer with buttons
 if(buttons) {
 html += `<div class="neutral-footer">${buttons}</div>`;
 }
+
+// Dice tray at bottom, inline with action buttons if present
+const trayHtml = diceTray != null ? diceTray : renderDiceTray({});
+html += `<div style="margin-top:auto">${trayHtml}</div>`;
 
 html += '</div>'; // close neutral-left
 
