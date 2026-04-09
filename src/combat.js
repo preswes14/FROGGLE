@@ -3288,7 +3288,8 @@ statsHtml = `<div style="background:rgba(0,0,0,0.35);border:2px solid rgba(255,2
 <div style="font-weight:bold;font-size:1.1rem;color:#60a5fa;margin-bottom:0.4rem">Run Stats</div>
 <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:0 0 0.6rem 0">
 <div style="margin-bottom:0.5rem"><span style="opacity:0.7">Duration</span><br><span style="font-weight:bold">${mins}m ${secs < 10 ? '0' : ''}${secs}s</span></div>
-<div style="margin-bottom:0.5rem"><span style="opacity:0.7">XP</span><br><span style="color:#22c55e;font-weight:bold">+${S.runStats.xpGained}</span> / <span style="color:#f87171;font-weight:bold">-${S.runStats.xpSpent}</span></div>
+<div style="margin-bottom:0.5rem"><span style="opacity:0.7">XP Earned</span><br><span style="color:#22c55e;font-weight:bold">${S.runStats.xpGained}</span></div>
+<div style="margin-bottom:0.5rem"><span style="opacity:0.7">XP Spent</span><br><span style="color:#f87171;font-weight:bold">${S.runStats.xpSpent}</span></div>
 <div style="margin-bottom:0.5rem"><span style="opacity:0.7">Gold</span><br><span style="color:#fbbf24;font-weight:bold">${S.gold}</span> <span style="opacity:0.6">(started ${S.runStats.startGold})</span></div>
 <div style="margin-bottom:0.5rem"><span style="opacity:0.7">Damage Taken</span><br><span style="color:#f87171;font-weight:bold">${S.runStats.damageTaken}</span></div>
 <div style="margin-bottom:0.5rem"><span style="opacity:0.7">Shielded</span><br><span style="color:#60a5fa;font-weight:bold">${S.runStats.damageShielded}</span></div>
