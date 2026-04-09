@@ -8684,26 +8684,16 @@ const options = [
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
-// Row 1: first 3 gambits, Row 2: last 2 gambits (centered)
-html += '<div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.5rem">';
-options.slice(0,3).forEach(opt => {
+// Vertical list — each gambit is a full-width row
+options.forEach(opt => {
 const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
-<strong>${dcText}<br>${opt.name}</strong><br>
-<span style="font-size:0.8rem">${opt.desc}</span>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;padding:0.5rem 0.75rem;cursor:pointer">
+<strong style="min-width:4.5rem;font-size:0.95rem">${dcText}</strong>
+<strong style="min-width:5.5rem;font-size:1.05rem;color:#3b82f6">${opt.name}</strong>
+<span style="font-size:0.85rem;opacity:0.8">${opt.desc}</span>
 </div>`;
 });
-html += '</div><div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.75rem;max-width:66%;margin-left:auto;margin-right:auto">';
-options.slice(3).forEach(opt => {
-const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
-const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
-<strong>${dcText}<br>${opt.name}</strong><br>
-<span style="font-size:0.8rem">${opt.desc}</span>
-</div>`;
-});
-html += '</div>';
 if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
 else html += `<button class="btn secondary" onclick="cancelAction()" style="max-width:200px;margin:0 auto">Cancel</button>`;
 html += '</div>';
