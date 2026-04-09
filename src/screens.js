@@ -1695,7 +1695,6 @@ window.heroCardsInterstitialComplete = onComplete;
 function showFirstVictoryPedestal(onComplete) {
 // Show a simplified pedestal UI during the first victory cutscene
 const v = document.getElementById('gameView');
-const heroIcons = {'Warrior': 'W', 'Tank': 'T', 'Mage': 'M', 'Healer': 'H'};
 const stats = ['POW', 'HP'];
 
 // Get earned figurines - only heroes who earned one this run
@@ -1727,7 +1726,7 @@ const heroFlip = heroImg ? heroFlipStyle(heroImg) : '';
 
 slotsHTML += `
 <div style="background:${isSlotted ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'};border:2px solid ${isSlotted ? '#fbbf24' : 'rgba(255,255,255,0.3)'};border-radius:8px;padding:1rem;text-align:center;${canSlot ? 'cursor:pointer' : 'opacity:0.5'}" onclick="${canSlot ? `slotFirstVicFigurine('${hero}','${stat}')` : ''}">
-${heroImg ? `<img src="${heroImg}" alt="${hero}" style="width:50px;height:50px;object-fit:${heroCrop.fit};object-position:${heroCrop.pos};border-radius:6px;${heroFlip}">` : `<div style="font-size:1.5rem">${heroIcons[hero] || '?'}</div>`}
+${heroImg ? `<img src="${heroImg}" alt="${hero}" style="width:50px;height:50px;object-fit:${heroCrop.fit};object-position:${heroCrop.pos};border-radius:6px;${heroFlip}">` : `<div style="font-size:1.5rem">${hero.charAt(0)}</div>`}
 <div style="font-size:0.8rem;font-weight:bold">${hero}</div>
 <div style="font-size:0.7rem;color:#94a3b8">${stat === 'POW' ? '+1 POW' : '+5 HP'}</div>
 ${isSlotted ? '<div style="color:#fbbf24;font-size:0.8rem;margin-top:0.5rem">✓ Slotted</div>' : (canSlot ? '<div style="color:#64748b;font-size:0.8rem;margin-top:0.5rem">Click to slot</div>' : '')}
