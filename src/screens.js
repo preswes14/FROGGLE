@@ -1128,10 +1128,6 @@ let html = `
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.08); opacity: 1; }
 }
-@keyframes champions-portal-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
 </style>
 <div style="position:relative;max-width:800px;margin:0 auto">
 <h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
@@ -1559,10 +1555,6 @@ html: `
   40% { transform: translateX(3px); }
   60% { transform: translateX(-2px); }
   80% { transform: translateX(2px); }
-}
-@keyframes tapoSneak {
-  0% { transform: translateX(0) scaleX(-1); opacity: 1; }
-  100% { transform: translateX(120px) scaleX(-1); opacity: 0; }
 }
 </style>
 <div style="position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden">
@@ -2681,10 +2673,6 @@ let html = `
 @keyframes ribbleton-portal-pulse {
   0%, 100% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 30px #dc2626; }
   50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 50px #dc2626; }
-}
-@keyframes ribbleton-portal-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 @keyframes quest-board-glow {
   0%, 100% { box-shadow: 0 0 10px rgba(251,191,36,0.2); }

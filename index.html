@@ -89,14 +89,7 @@ h1, h2, h3, .modal-title, .neutral-title { font-family: 'Fredoka One', cursive; 
   }
 }
 
-@keyframes portalGlow {
-  0%, 100% {
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)) drop-shadow(0 0 15px rgba(220, 38, 38, 0.8));
-  }
-  50% {
-    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9)) drop-shadow(0 0 30px rgba(220, 38, 38, 1));
-  }
-}
+
 
 .rotate-message {
   font-size: 1.5rem;
@@ -3319,10 +3312,6 @@ body.controller-active .controller-prompts {
   50% { transform: translate(-3px, 4px); }
   75% { transform: translate(6px, 3px); }
 }
-@keyframes spinTapo {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 @keyframes spinPortalReverse {
   from { transform: translate(-50%,-50%) rotate(0deg); }
   to { transform: translate(-50%,-50%) rotate(-360deg); }
@@ -3538,7 +3527,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.64';
+const GAME_VERSION = 'S_2.65';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -9665,11 +9654,11 @@ const hpBefore = h.h;
 const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
 let msg = `${h.n} took Grapple recoil:`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
-msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+msg += ` -${damage.shieldLost}🛡 -${damage.hpLost}❤`;
 } else if(damage.shieldLost > 0) {
-msg += ` -${damage.shieldLost}🛡️`;
+msg += ` -${damage.shieldLost}🛡`;
 } else if(damage.hpLost > 0) {
-msg += ` -${damage.hpLost}❤️`;
+msg += ` -${damage.hpLost}❤`;
 }
 toast(msg);
 // Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
@@ -10446,11 +10435,11 @@ setHeroReaction(hero.id, 'pained', hero.ls ? 0 : 600);
 // Build detailed damage message with HP change
 let msg = `${source} hit ${hero.n} (❤${hpBefore}→❤${hpAfter}):`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
-msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+msg += ` -${damage.shieldLost}🛡 -${damage.hpLost}❤`;
 } else if(damage.shieldLost > 0) {
-msg += ` -${damage.shieldLost}🛡️`;
+msg += ` -${damage.shieldLost}🛡`;
 } else if(damage.hpLost > 0) {
-msg += ` -${damage.hpLost}❤️`;
+msg += ` -${damage.hpLost}❤`;
 }
 toast(msg);
 }
@@ -17242,10 +17231,6 @@ let html = `
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.08); opacity: 1; }
 }
-@keyframes champions-portal-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
 </style>
 <div style="position:relative;max-width:800px;margin:0 auto">
 <h1 style="text-align:center;margin:1rem 0;font-size:2rem;background:linear-gradient(135deg,#3b82f6,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
@@ -17673,10 +17658,6 @@ html: `
   40% { transform: translateX(3px); }
   60% { transform: translateX(-2px); }
   80% { transform: translateX(2px); }
-}
-@keyframes tapoSneak {
-  0% { transform: translateX(0) scaleX(-1); opacity: 1; }
-  100% { transform: translateX(120px) scaleX(-1); opacity: 0; }
 }
 </style>
 <div style="position:relative;min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden">
@@ -18795,10 +18776,6 @@ let html = `
 @keyframes ribbleton-portal-pulse {
   0%, 100% { transform: scale(1); opacity: 0.9; box-shadow: 0 0 30px #dc2626; }
   50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 50px #dc2626; }
-}
-@keyframes ribbleton-portal-spin {
-  from { transform: translate(-50%, -50%) rotate(0deg); }
-  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 @keyframes quest-board-glow {
   0%, 100% { box-shadow: 0 0 10px rgba(251,191,36,0.2); }

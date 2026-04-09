@@ -1631,11 +1631,11 @@ const hpBefore = h.h;
 const damage = applyDamageToTarget(h, totalDmg, {isHero: true, silent: true});
 let msg = `${h.n} took Grapple recoil:`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
-msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+msg += ` -${damage.shieldLost}🛡 -${damage.hpLost}❤`;
 } else if(damage.shieldLost > 0) {
-msg += ` -${damage.shieldLost}🛡️`;
+msg += ` -${damage.shieldLost}🛡`;
 } else if(damage.hpLost > 0) {
-msg += ` -${damage.hpLost}❤️`;
+msg += ` -${damage.hpLost}❤`;
 }
 toast(msg);
 // Notify if hero entered Last Stand from recoil (silent:true suppresses it above)
@@ -2412,11 +2412,11 @@ setHeroReaction(hero.id, 'pained', hero.ls ? 0 : 600);
 // Build detailed damage message with HP change
 let msg = `${source} hit ${hero.n} (❤${hpBefore}→❤${hpAfter}):`;
 if(damage.shieldLost > 0 && damage.hpLost > 0) {
-msg += ` -${damage.shieldLost}🛡️ -${damage.hpLost}❤️`;
+msg += ` -${damage.shieldLost}🛡 -${damage.hpLost}❤`;
 } else if(damage.shieldLost > 0) {
-msg += ` -${damage.shieldLost}🛡️`;
+msg += ` -${damage.shieldLost}🛡`;
 } else if(damage.hpLost > 0) {
-msg += ` -${damage.hpLost}❤️`;
+msg += ` -${damage.hpLost}❤`;
 }
 toast(msg);
 }
