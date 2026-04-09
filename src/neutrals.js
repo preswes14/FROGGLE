@@ -575,7 +575,7 @@ showConfirmModal('Are you sure you want to quit FROGGLE?', () => {
     const v = document.getElementById('gameView');
     v.innerHTML = `
     <div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a1a1a;padding:2rem">
-    <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:520px;text-align:center">
+    <div style="background:#22c55e;border:4px solid #000;border-radius:16px;padding:2rem;max-width:650px;text-align:center">
     <h2 style="margin:0 0 1rem 0">Thanks for playing!</h2>
     <p style="margin:0 0 1.5rem 0;opacity:0.9">Close this tab or window to exit completely.</p>
     <button class="btn" onclick="mainTitlePage()" style="background:#6366f1">Return to Title</button>
@@ -1183,7 +1183,7 @@ const overlay = document.createElement('div');
 overlay.className = 'tutorial-modal-backdrop';
 overlay.style.cssText = 'background:rgba(0,0,0,0.4);align-items:flex-end;padding-bottom:2rem;';
 overlay.innerHTML = `
-<div class="tutorial-modal" style="max-width:520px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
+<div class="tutorial-modal" style="max-width:650px;padding:1rem 1.5rem;background:rgba(31,41,55,0.95);border-width:3px;">
 <p style="font-size:1.1rem;line-height:1.5;margin:0.5rem 0;padding:0.5rem 0.75rem;">
 Here come three <strong>flies</strong> now - you're up!
 </p>
@@ -1825,19 +1825,20 @@ SoundFX.play('hop'); // Froggy hop for hero selection
 updateHeroCards();
 updateSelectionDisplay();
 
-// Hero reactions: others look at selected hero, selected does double-jump
-if(!isSelected && sel.includes(heroType)) {
+// Hero reactions on select; reset facing on deselect
 const heroOrder = ['warrior', 'tank', 'mage', 'healer'];
+if(!isSelected && sel.includes(heroType) && heroOrder.includes(heroType)) {
 const selectedIdx = heroOrder.indexOf(heroType);
 // Other heroes turn to face the selected one
 heroOrder.forEach(h => {
   const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] .hero-select-img`);
   if(!cellImg || h === heroType) return;
   const hIdx = heroOrder.indexOf(h);
-  // Face toward selected hero: if selected is to the right, face right (no flip); if left, flip
+  // Face toward selected hero: if selected is to the right, face right
   const shouldFaceRight = selectedIdx > hIdx;
-  const naturallyFacesRight = HERO_FACES_RIGHT[HERO_IMAGES[h]];
-  const needsFlip = shouldFaceRight ? !naturallyFacesRight : !!naturallyFacesRight;
+  // Use heroFlipStyle to determine natural facing, then flip if needed
+  const naturalFlip = heroFlipStyle(HERO_IMAGES[h]).includes('scaleX(-1)');
+  const needsFlip = shouldFaceRight ? naturalFlip : !naturalFlip;
   cellImg.style.transform = needsFlip ? 'scaleX(-1)' : 'scaleX(1)';
 });
 // Selected hero: double jump animation
@@ -1846,6 +1847,13 @@ if(selectedImg) {
   selectedImg.style.animation = 'heroSelectJump 0.5s ease-out';
   selectedImg.addEventListener('animationend', () => { selectedImg.style.animation = ''; }, { once: true });
 }
+} else {
+// Reset all heroes to their natural facing on deselect
+heroOrder.forEach(h => {
+  const cellImg = document.querySelector(`.hero-select-cell[data-hero="${h}"] .hero-select-img`);
+  if(!cellImg) return;
+  cellImg.style.transform = heroFlipStyle(HERO_IMAGES[h]).includes('scaleX(-1)') ? 'scaleX(-1)' : 'scaleX(1)';
+});
 }
 }
 

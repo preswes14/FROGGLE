@@ -3515,7 +3515,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Sigil to Hero</
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:520px;margin:0 auto">`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero:</p><div style="max-width:650px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
 const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
 html += renderHeroCard(h, idx, `startingSelectHeroForSigil(${idx})`, sigilInfo);
@@ -3663,7 +3663,7 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:520px;margin:0 auto">`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:650px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
 const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
 html += renderHeroCard(h, idx, `selectHeroForActiveSigil(${idx})`, sigilInfo);
