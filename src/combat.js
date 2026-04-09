@@ -2879,8 +2879,8 @@ const shieldPct = h.sh > 0 ? Math.min(100, (h.sh / h.m) * 100) : 0;
 const fullShield = h.sh >= h.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
 html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${h.sh > 0 ? 'visible' : 'hidden'}">${h.sh || 0}🛡</div>`;
-// Extra info (ghost, stun, alpha, acted)
-if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
+// Extra info (ghost, stun, alpha, acted) - always reserve space
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${extra.length > 0 ? 'visible' : 'hidden'}">${extra.length > 0 ? extra.join(' ') : '&nbsp;'}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils with proper 2-row formation
 const activeSigils = sortSigils([...h.s, ...(h.ts || [])]);
@@ -3064,7 +3064,7 @@ const rFullShield = recruit.sh >= recruit.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${rFullShield?' full':''}" style="width:${rShieldPct}%"></div></div>`;
 html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${recruit.sh > 0 ? 'visible' : 'hidden'}">${recruit.sh || 0}🛡</div>`;
 // Extra info (ghost, stun)
-if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${recruitExtra.length > 0 ? 'visible' : 'hidden'}">${recruitExtra.length > 0 ? recruitExtra.join(' ') : '&nbsp;'}</div>`;
 html += '<div class="sigil-divider"></div>';
 // Sigils
 const recruitTotalSigils = recruit.s.length + 1;
