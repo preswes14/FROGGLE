@@ -422,6 +422,33 @@ const SoundFX = {
         osc.stop(now + 0.4);
         break;
 
+      case 'd20success':
+        // Quick ascending chime for D20 success
+        [500, 650].forEach((freq, i) => {
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.frequency.setValueAtTime(freq, now + i * 0.1);
+          g.gain.setValueAtTime(this.volume * 0.5, now + i * 0.1);
+          g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+          o.type = 'sine';
+          o.start(now + i * 0.1);
+          o.stop(now + i * 0.1 + 0.2);
+        });
+        break;
+
+      case 'd20fail':
+        // Short descending buzz for D20 fail
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+        gain.gain.setValueAtTime(this.volume * 0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.type = 'sawtooth';
+        osc.start(now);
+        osc.stop(now + 0.35);
+        break;
+
       case 'portal':
         // Portal whoosh - sweeping mystical sound
         osc.frequency.setValueAtTime(200, now);

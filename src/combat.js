@@ -830,10 +830,13 @@ overlay.innerHTML = `
 `;
 document.body.appendChild(overlay);
 
-// Play appropriate sound
+// Play appropriate sound: roll first, then result
 if(isNat20) SoundFX.play('nat20');
 else if(isNat1) SoundFX.play('nat1');
-else SoundFX.play('d20roll');
+else {
+SoundFX.play('d20roll');
+setTimeout(() => SoundFX.play(success ? 'd20success' : 'd20fail'), 400);
+}
 
 setTimeout(() => overlay.remove(), T(1200));
 }
