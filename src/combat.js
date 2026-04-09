@@ -3591,11 +3591,11 @@ const cost = getXPCost(S.levelUpCount);
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Spend XP</h2>
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
-<div class="choice" onclick="addActiveToHero()">Add Active Sigil to Hero</div>
-<div class="choice" onclick="upgradeActiveSigil()">Upgrade Active Sigil (All Heroes)</div>
-<div class="choice" onclick="upgradePassiveSigil()">Add/Upgrade Passive Sigil (All Heroes)</div>
-<div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
-<button class="btn secondary" onclick="levelUp()">Back</button>`;
+<div class="choice" onclick="addActiveToHero()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Add Active Sigil to Hero</div>
+<div class="choice" onclick="upgradeActiveSigil()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Upgrade Active Sigil (All Heroes)</div>
+<div class="choice" onclick="upgradePassiveSigil()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Add/Upgrade Passive Sigil (All Heroes)</div>
+<div class="choice" onclick="heroStats()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Upgrade Hero Stats</div>
+<button class="btn secondary" onclick="levelUp()" style="padding:0.5rem 1rem;min-height:auto;margin-top:0.5rem">Back</button>`;
 }
 
 // Multi-modal tutorial for first-time level-up
@@ -3640,11 +3640,11 @@ const cost = getXPCost(S.levelUpCount);
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:1rem">Spend XP</h2>
 <p style="text-align:center;margin-bottom:1rem">Current: ${S.xp} XP | Cost: ${cost} XP</p>
-<div class="choice" onclick="addActiveToHero()">Add Active Sigil to Hero</div>
-<div class="choice" onclick="upgradeActiveSigil()">Upgrade Active Sigil (All Heroes)</div>
-<div class="choice" onclick="upgradePassiveSigil()">Add/Upgrade Passive Sigil (All Heroes)</div>
-<div class="choice" onclick="heroStats()">Upgrade Hero Stats</div>
-<button class="btn secondary" onclick="levelUp()">Back</button>`;
+<div class="choice" onclick="addActiveToHero()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Add Active Sigil to Hero</div>
+<div class="choice" onclick="upgradeActiveSigil()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Upgrade Active Sigil (All Heroes)</div>
+<div class="choice" onclick="upgradePassiveSigil()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Add/Upgrade Passive Sigil (All Heroes)</div>
+<div class="choice" onclick="heroStats()" style="padding:0.6rem 1rem;min-height:auto;margin-bottom:0.5rem">Upgrade Hero Stats</div>
+<button class="btn secondary" onclick="levelUp()" style="padding:0.5rem 1rem;min-height:auto;margin-top:0.5rem">Back</button>`;
 }
 
 // NEW: Add Active Sigil to Hero (only active sigils)
@@ -3657,14 +3657,14 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Add Active Sigil to
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
-html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero to teach a new ability:</p><div style="max-width:650px;margin:0 auto">`;
+html += `<p style="text-align:center;margin-bottom:1rem;font-size:0.9rem">Choose a hero, then choose the new ability you want them to learn:</p><div style="max-width:650px;margin:0 auto">`;
 S.heroes.forEach((h, idx) => {
 const sigilInfo = `<br><span style="font-size:0.75rem;opacity:0.8">Current: ${h.s.join(', ')}</span>`;
 html += renderHeroCard(h, idx, `selectHeroForActiveSigil(${idx})`, sigilInfo);
 });
 html += '</div>';
 }
-html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
+html += `<button class="btn secondary" onclick="levelUpMenu()" style="padding:0.5rem 1rem;min-height:auto;margin-top:0.5rem">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -3690,7 +3690,7 @@ let categoryHtml = `<h3 style="color:${categoryColor};margin:1rem 0 0.5rem 0;fon
 availableInCategory.forEach(sig => {
 const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const displayLevel = level + 1;  // Internal 0 = display L1, etc.
-categoryHtml += `<div class="choice" onclick="confirmAddActiveSigil(${heroIdx}, '${sig}')">
+categoryHtml += `<div class="choice" onclick="confirmAddActiveSigil(${heroIdx}, '${sig}')" style="padding:0.5rem 0.75rem;min-height:auto;margin-bottom:0.4rem">
 <strong>${sigilIconWithTooltip(sig, displayLevel)}</strong> <span style="opacity:0.7">(L${displayLevel})</span>
 </div>`;
 });
@@ -3711,7 +3711,7 @@ html += `
 </div>`;
 }
 }
-html += `<button class="btn secondary" onclick="addActiveToHero()">Back</button>`;
+html += `<button class="btn secondary" onclick="addActiveToHero()" style="padding:0.5rem 1rem;min-height:auto;margin-top:0.5rem">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -3768,7 +3768,7 @@ const displayLevel = level + 1;  // Internal 0 = display L1, internal 1 = displa
 const nextDisplayLevel = displayLevel + 1;
 const anyHeroHasSigil = S.heroes.some(hero => hero.s.includes(sig) || (hero.ts && hero.ts.includes(sig)));
 const heroNote = !anyHeroHasSigil ? `<br><span style="color:#dc2626;font-size:0.85rem">*No hero has this yet!</span>` : '';
-categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')"><strong>${sigilIconOnly(sig)} ${sig} L${displayLevel} → <span style="color:#14b8a6">${sig} L${nextDisplayLevel}</span></strong>${heroNote}</div>`;
+categoryHtml += `<div class="choice" onclick="confirmUpgradeActive('${sig}')" style="padding:0.5rem 0.75rem;min-height:auto;margin-bottom:0.4rem"><strong>${sigilIconOnly(sig)} ${sig} L${displayLevel} → <span style="color:#14b8a6">${sig} L${nextDisplayLevel}</span></strong>${heroNote}</div>`;
 });
 return categoryHtml;
 };
@@ -3788,7 +3788,7 @@ html += `
 }
 }
 }
-html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
+html += `<button class="btn secondary" onclick="levelUpMenu()" style="padding:0.5rem 1rem;min-height:auto;margin-top:0.5rem">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -3848,11 +3848,11 @@ const level = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 const isNew = level === 0;
 const tooltipLevel = isNew ? 1 : level;  // Show L1 tooltip when adding, current level otherwise
 const displayText = isNew ? `Add ${sig}` : `${sig} L${level} → <span style="color:#14b8a6">${sig} L${level + 1}</span>`;
-html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')"><strong>${sigilIconOnly(sig)} ${displayText}</strong></div>`;
+html += `<div class="choice" onclick="confirmUpgradePassive('${sig}')" style="padding:0.5rem 0.75rem;min-height:auto;margin-bottom:0.4rem"><strong>${sigilIconOnly(sig)} ${displayText}</strong></div>`;
 });
 }
 }
-html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
+html += `<button class="btn secondary" onclick="levelUpMenu()" style="padding:0.5rem 1rem;min-height:auto;margin-top:0.5rem">Back</button>`;
 v.innerHTML = html;
 }
 
@@ -3901,7 +3901,7 @@ html += renderHeroMiniCard(h, idx, `
 });
 html += '</div>';
 }
-html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
+html += `<button class="btn secondary" onclick="levelUpMenu()" style="padding:0.5rem 1rem;min-height:auto;margin-top:0.5rem">Back</button>`;
 v.innerHTML = html;
 }
 
