@@ -3616,7 +3616,7 @@ function showLevelUpIntroTutorial() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div class="tutorial-modal-backdrop" onclick="event.stopPropagation()">
-<div class="tutorial-modal" style="max-width:1100px;min-width:900px;text-align:left;overflow-y:auto">
+<div class="tutorial-modal" style="max-width:1100px;min-width:900px;text-align:left">
 <h2 style="text-align:center;color:#22c55e;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:1rem;font-size:1rem">Your first upgrade! FROGGLE is all about finding cool combos. Here are your options:</p>
 
