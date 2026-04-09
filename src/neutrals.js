@@ -1151,27 +1151,42 @@ mage.id = 'mage-teach-mage';
 mage.className = 'tutorial-sprite';
 mage.style.cssText = 'left:65%;bottom:20%;width:145px;z-index:5;animation:mageIdle 3.8s ease-in-out infinite';
 container.appendChild(mage);
-// Vault ends at 1.6s — Mage turns to face Tapo (flipped), both double jump
+// Vault ends at 1.6s — Tapo over-spins and lands face-down (450deg)
 setTimeout(() => {
-  const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (tapoEl) {
     tapoEl.style.left = '76%';
     tapoEl.style.bottom = '20%';
+    tapoEl.style.transform = 'rotate(450deg) scaleX(-1)';
+    tapoEl.style.animation = 'none';
+  }
+}, 1600);
+// Face-down for 0.75s, then pop up at 2.35s
+setTimeout(() => {
+  const tapoEl = document.getElementById('mage-teach-tapo');
+  if (tapoEl) {
+    tapoEl.style.animation = 'tapoPopUp 0.35s ease-out forwards';
+  }
+}, 2350);
+// Pop-up done at 2.7s — both do double jump
+setTimeout(() => {
+  const mageEl = document.getElementById('mage-teach-mage');
+  const tapoEl = document.getElementById('mage-teach-tapo');
+  if (tapoEl) {
     tapoEl.style.transform = 'none';
     tapoEl.style.animation = 'doubleJump 0.8s ease-in-out';
   }
   if (mageEl) {
     mageEl.style.animation = 'doubleJumpFlipped 0.8s ease-in-out forwards';
   }
-}, 1600);
-// Jump ends at 2.4s — Tapo flips to face right, both walk off together
+}, 2700);
+// Jump ends at 3.5s — both walk off together
 setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (mageEl) mageEl.style.animation = 'walkOffRightFlipped 1.6s ease-in forwards';
   if (tapoEl) tapoEl.style.animation = 'walkOffRightFlipped 1.6s ease-in forwards';
-}, 2400);
+}, 3500);
 }
 }
 ];
