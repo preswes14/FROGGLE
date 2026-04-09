@@ -1388,21 +1388,24 @@ html: `
 <div style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle, #dc2626, #7c2d12 60%, #000);animation:narrativePortalPulse 1s ease-in-out infinite;box-shadow:0 0 60px #dc2626,0 0 120px rgba(220,38,38,0.3)"></div>
 <img src="assets/Hydra.png" alt="Flydra" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:180px;height:auto;filter:drop-shadow(0 0 15px rgba(220,38,38,0.8));animation:flydraPortalHover 2s ease-in-out infinite">
 </div>
-<!-- Enemies surrounding the portal -->
-<div style="position:absolute;top:-15px;left:-25px;animation:enemyAppear 0.8s ease-out 0.3s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto" onerror="this.outerHTML='👹'">
+<!-- Enemies pouring out of the portal -->
+<div style="position:absolute;top:-15px;left:-25px;animation:enemyAppear 0.8s ease-out 0.3s both,enemyPulse 2s ease-in-out 1.5s infinite">
+<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto;animation:enemyFlip 6s ease-in-out 2s infinite" onerror="this.outerHTML='👹'">
 </div>
-<div style="position:absolute;top:-15px;right:-25px;animation:enemyAppear 0.9s ease-out 0.5s both">
-<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto" onerror="this.outerHTML='🐺'">
+<div style="position:absolute;top:-15px;right:-25px;animation:enemyAppear 0.9s ease-out 0.5s both,enemyPulse 2.2s ease-in-out 1.8s infinite">
+<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto;animation:enemyFlip 7s ease-in-out 3s infinite" onerror="this.outerHTML='🐺'">
 </div>
-<div style="position:absolute;bottom:-15px;left:-20px;animation:enemyAppear 1s ease-out 0.7s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto" onerror="this.outerHTML='👹'">
+<div style="position:absolute;bottom:-15px;left:-20px;animation:enemyAppear 1s ease-out 0.7s both,enemyPulse 2.4s ease-in-out 2s infinite">
+<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto;animation:enemyFlip 8s ease-in-out 2.5s infinite" onerror="this.outerHTML='👹'">
 </div>
-<div style="position:absolute;bottom:-15px;right:-20px;animation:enemyAppear 1.1s ease-out 0.9s both">
-<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto" onerror="this.outerHTML='🐺'">
+<div style="position:absolute;bottom:0px;left:35px;animation:enemyAppear 1.05s ease-out 0.8s both,enemyPulse 2.1s ease-in-out 1.7s infinite">
+<img src="assets/wolf.png" alt="Wolf" style="width:60px;height:auto;animation:enemyFlip 9s ease-in-out 4s infinite" onerror="this.outerHTML='🐺'">
 </div>
-<div style="position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);animation:enemyAppear 1.2s ease-out 1.1s both">
-<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto" onerror="this.outerHTML='👹'">
+<div style="position:absolute;bottom:-15px;right:-20px;animation:enemyAppear 1.1s ease-out 0.9s both,enemyPulse 2.3s ease-in-out 2.2s infinite">
+<img src="assets/wolf.png" alt="Wolf" style="width:68px;height:auto;animation:enemyFlip 7.5s ease-in-out 3.5s infinite" onerror="this.outerHTML='🐺'">
+</div>
+<div style="position:absolute;top:50%;right:-45px;transform:translateY(-50%);animation:enemyAppear 1.2s ease-out 1.1s both,enemyPulse 2.5s ease-in-out 2.4s infinite">
+<img src="assets/goblin.png" alt="Goblin" style="width:68px;height:auto;animation:enemyFlip 6.5s ease-in-out 3s infinite" onerror="this.outerHTML='👹'">
 </div>
 </div>
 <p style="color:#f5f5f5">
