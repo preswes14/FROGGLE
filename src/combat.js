@@ -3891,10 +3891,15 @@ let html = `<h2 style="text-align:center;margin-bottom:1rem">Upgrade Hero Stats<
 if(S.xp < cost) {
 html += `<p style="text-align:center;margin-bottom:1rem;color:#b64141">Not enough XP!</p>`;
 } else {
+html += '<div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem">';
 S.heroes.forEach((h, idx) => {
-html += `<div class="choice" onclick="upPow(${idx})"><strong>${h.n} POW</strong> (${h.p} → ${h.p+1})</div>`;
-html += `<div class="choice" onclick="upHP(${idx})"><strong>${h.n} HP</strong> (${h.m} → ${h.m+5})</div>`;
+html += renderHeroMiniCard(h, idx, `
+<div style="display:flex;flex-direction:column;gap:0.25rem;margin-top:0.3rem;width:100%">
+<button class="neutral-btn risky" onclick="upPow(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem">POW+ (${h.p}→${h.p+1})</button>
+<button class="neutral-btn safe" onclick="upHP(${idx})" style="padding:0.25rem 0.4rem;font-size:0.75rem">HP+ (${h.m}→${h.m+5})</button>
+</div>`);
 });
+html += '</div>';
 }
 html += `<button class="btn secondary" onclick="levelUpMenu()">Back</button>`;
 v.innerHTML = html;

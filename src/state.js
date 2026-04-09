@@ -359,9 +359,18 @@ const hp = hero.ls ? `Last Stand (T${hero.lst+1})` : `${hero.h}/${hero.m}❤`;
 const extra = [];
 if(hero.sh > 0) extra.push(`${hero.sh}🛡`);
 if(hero.g > 0) extra.push(`${hero.g}${sigilIconOnly('Ghost')}`);
+const heroImage = getHeroImage(hero);
+const crop = HERO_CROP[hero.n] || { fit: 'cover', pos: 'top center' };
+const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
+const portraitHtml = heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:50px;height:50px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:6px;${flipStyle}">` : '';
 return `<div class="card hero hero-selectable" onclick="${onclickHandler}" style="cursor:pointer;margin-bottom:0.75rem">
-<div style="font-weight:bold;text-align:center;margin-bottom:0.25rem">${hero.n}</div>
+<div style="display:flex;align-items:center;gap:0.5rem">
+${portraitHtml}
+<div style="flex:1">
+<div style="font-weight:bold;margin-bottom:0.15rem">${hero.n}</div>
 <div class="card-stats">${hero.p}💥 | ${hp}${extra.length>0?' | '+extra.join(' '):''}${extraInfo}</div>
+</div>
+</div>
 </div>`;
 }
 
