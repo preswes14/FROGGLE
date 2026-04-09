@@ -653,8 +653,8 @@ infoHtml += `<div class="action-bar-detail" style="color:#22c55e">Expand: Select
 }
 infoHtml += `<div class="action-bar-detail" style="color:#fbbf24">${currentTargets}/${maxTargets} target${currentTargets !== 1 ? 's' : ''} selected</div>`;
 
-buttonsHtml = `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
-buttonsHtml += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="min-width:140px;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20! (Ⓐ/⊡)</button>`;
+buttonsHtml = `<button class="btn secondary" onclick="cancelAction()" style="padding:0.5rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
+buttonsHtml += `<button class="btn ${canRoll ? 'safe' : ''}" onclick="${canRoll ? 'confirmTargets()' : ''}" style="padding:0.75rem 2rem;font-size:1.1rem;${canRoll ? '' : 'opacity:0.5;cursor:not-allowed'}">Roll D20!</button>`;
 } else {
 // All other actions: Attack, Shield, Heal, Grapple, Alpha
 const targetsPerInstance = getTargetsPerInstance(S.pending, heroIdx);
@@ -686,19 +686,19 @@ const tpi = getTargetsPerInstance(S.pending, heroIdx);
 const slotsLeft = tpi - targetCount;
 const canTargetAll = slotsLeft > 0 && available.length >= slotsLeft;
 
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.5rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
 if(canTargetAll && targetCount === 0 && tpi > 1) {
-  buttonsHtml += `<button class="btn" onclick="targetAll()" style="min-width:100px;background:#3b82f6">⚡ Target All</button>`;
+  buttonsHtml += `<button class="btn" onclick="targetAll()" style="padding:0.75rem 2rem;font-size:1.1rem;background:#3b82f6">⚡ Target All</button>`;
 }
 if(targetCount > 0) {
-  buttonsHtml += `<button class="btn safe" onclick="confirmTargets()" style="min-width:100px">✓ Confirm (Ⓐ/⊡)</button>`;
+  buttonsHtml += `<button class="btn safe" onclick="confirmTargets()" style="padding:0.75rem 2rem;font-size:1.1rem">✓ Confirm</button>`;
 }
-buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
 } else {
-buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="min-width:100px">✗ Cancel (Ⓑ)</button>`;
+buttonsHtml += `<button class="btn secondary" onclick="cancelAction()" style="padding:0.5rem 1rem;font-size:0.9rem">✗ Cancel</button>`;
 }
 }
 
-return `<div class="action-bar">${infoHtml}<div class="action-bar-buttons">${buttonsHtml}</div></div>`;
+return `<div class="action-bar">${infoHtml}<div class="action-bar-buttons" style="display:flex;gap:0.75rem;justify-content:center;align-items:center">${buttonsHtml}</div></div>`;
 }
 
 // Unified damage application with shield/ghost/laststand handling

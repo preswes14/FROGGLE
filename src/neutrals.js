@@ -933,8 +933,8 @@ const v = document.getElementById('gameView');
 debugLog('[FROGGLE] gameView element:', v);
 // Add no-scroll class to prevent scrolling on full-screen slides
 v.classList.add('no-scroll');
-const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.2rem 0.4rem;font-size:0.6rem;max-width:3.5rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
-const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.2rem 0.4rem;font-size:0.6rem;max-width:3.5rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
+const skipButton = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="padding:0.4rem 0.75rem;font-size:0.75rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
+const skipButtonFullArt = slides.skippable ? `<button class="btn" onclick="skipTutorialFromSlide()" style="position:absolute;bottom:1.5rem;left:1.5rem;z-index:10;padding:0.4rem 0.75rem;font-size:0.75rem;background:rgba(100,100,100,0.8);border:2px solid #666">Skip</button>` : '';
 // Resolve text - may be a function for dynamic content
 const slideText = typeof slide.text === 'function' ? slide.text() : slide.text;
 debugLog('[FROGGLE] Setting innerHTML for slide', currentIndex);
@@ -955,7 +955,7 @@ ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-heigh
 </div>
 
 <!-- Continue button - bottom right -->
-<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:1rem 1.25rem;font-size:1.2rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:0.6rem 0.85rem;font-size:1.1rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff">${slide.buttonText || 'Continue'}</button>
 <!-- Skip button - bottom left -->
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
@@ -968,7 +968,7 @@ v.innerHTML = `
 <div style="max-width:910px;text-align:center;background:rgba(0,0,0,0.8);padding:2rem;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
 ${slide.html || `<div class="narrative-text" style="font-size:1.3rem;line-height:1.4;margin-bottom:0.75rem;color:#f5f5f5">${slideText}</div>`}
 <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem">
-<button class="btn" onclick="continueNarrative()" style="padding:0.85rem 1.5rem;font-size:1.15rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff">${slide.buttonText || 'Continue'}</button>
+<button class="btn" onclick="continueNarrative()" style="padding:0.6rem 0.85rem;font-size:1.1rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff">${slide.buttonText || 'Continue'}</button>
 ${skipButton}
 </div>
 <div style="margin-top:1rem;font-size:0.9rem;opacity:0.6;color:#ccc">Ⓐ to continue${slides.skippable ? ' • Ⓑ to skip' : ''}</div>
@@ -1420,9 +1420,9 @@ overlay.innerHTML = `
 <div class="tutorial-modal">
 <h2>Reinforcements!</h2>
 <p>Two more of Tapo's friends, <strong style="color:#3b82f6">Warrior</strong> and <strong style="color:#3b82f6">Healer</strong>, rush in to help fight off these vile creatures!</p>
-<div style="display:flex;gap:1rem;justify-content:center;margin-top:1rem">
-<button onclick="skipTutorialFromOverlay()" class="tutorial-btn-secondary" style="padding:0.5rem 1rem;font-size:0.8rem">Skip Tutorial</button>
-<button onclick="dismissStoryOverlay()" class="tutorial-btn" style="padding:0.8rem 2rem;font-size:1.1rem">Let's fight!</button>
+<div style="display:flex;gap:1rem;justify-content:center;align-items:center;margin-top:1rem">
+<button onclick="skipTutorialFromOverlay()" class="tutorial-btn-secondary" style="padding:0.4rem 0.75rem;font-size:0.8rem">Skip Tutorial</button>
+<button onclick="dismissStoryOverlay()" class="tutorial-btn" style="padding:0.6rem 1.25rem;font-size:1.1rem">Let's fight!</button>
 </div>
 </div>`;
 document.body.appendChild(overlay);
