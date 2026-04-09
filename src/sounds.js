@@ -98,16 +98,19 @@ const SoundFX = {
   },
 
   // Play music (with loop by default, separate volume control)
+  // options.fadeIn: seconds to fade in from half volume (0 = instant)
   playMusic(name, options = {}) {
     if (!this.enabled || !this.ctx) return null;
 
-    // Stop current music if playing
-    this.stopMusic();
+    // Don't stop current music here — crossfade handles it via stopMusic(fadeOut)
+    // Only stop if no crossfade is happening (no fadeIn means direct play)
+    if (!options.fadeIn) {
+      this.stopMusic();
+    }
 
     // Cancel any pending gain automation from a previous fade-out
     if (this.musicGain && this.ctx) {
       this.musicGain.gain.cancelScheduledValues(this.ctx.currentTime);
-      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
     }
 
     if (!this.audioBuffers[name]) {
@@ -125,6 +128,15 @@ const SoundFX = {
 
     source.connect(this.musicGain);
     source.start(0);
+
+    // Fade in: start at half volume, ramp to full over fadeIn seconds
+    if (options.fadeIn > 0 && this.musicGain) {
+      const now = this.ctx.currentTime;
+      this.musicGain.gain.setValueAtTime(this.musicVolume * 0.5, now);
+      this.musicGain.gain.linearRampToValueAtTime(this.musicVolume, now + options.fadeIn);
+    } else {
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+    }
 
     this.currentMusic = source;
     return source;
@@ -955,6 +967,7 @@ const GameMusic = {
   },
 
   // Play a track with optional intro that transitions to loop
+  // Crossfades: old track fades out over 1s, new track starts at 0.5s at half volume and fades in over 1s
   play(introName, loopName) {
     if (!this.loaded) {
       // Queue for playback once preload finishes
@@ -965,26 +978,34 @@ const GameMusic = {
     // Skip if the requested track is already playing (prevents jarring restarts)
     if (this.currentTrack && (this.currentTrack === introName || this.currentTrack === loopName)) return;
 
-    // Stop any current music
-    SoundFX.stopMusic();
+    const hasCurrentMusic = SoundFX.currentMusic;
 
-    if (introName && SoundFX.audioBuffers[introName]) {
-      // Play intro first, then auto-transition to loop
-      const introSource = SoundFX.playMusic(introName, { loop: false });
-      this.currentTrack = introName;
-      if (introSource && loopName) {
-        introSource.onended = () => {
-          // Only transition if we haven't been stopped/changed
-          if (this.currentTrack === introName) {
-            SoundFX.playMusic(loopName, { loop: true });
-            this.currentTrack = loopName;
-          }
-        };
+    // Start the new track (with crossfade delay if something is already playing)
+    const startNewTrack = () => {
+      if (introName && SoundFX.audioBuffers[introName]) {
+        // Play intro first, then auto-transition to loop
+        const introSource = SoundFX.playMusic(introName, { loop: false, fadeIn: hasCurrentMusic ? 1.0 : 0 });
+        this.currentTrack = introName;
+        if (introSource && loopName) {
+          introSource.onended = () => {
+            if (this.currentTrack === introName) {
+              SoundFX.playMusic(loopName, { loop: true });
+              this.currentTrack = loopName;
+            }
+          };
+        }
+      } else if (loopName && SoundFX.audioBuffers[loopName]) {
+        SoundFX.playMusic(loopName, { loop: true, fadeIn: hasCurrentMusic ? 1.0 : 0 });
+        this.currentTrack = loopName;
       }
-    } else if (loopName && SoundFX.audioBuffers[loopName]) {
-      // No intro available, just loop
-      SoundFX.playMusic(loopName, { loop: true });
-      this.currentTrack = loopName;
+    };
+
+    if (hasCurrentMusic) {
+      // Crossfade: fade out old track over 1s, start new track at 0.5s
+      SoundFX.stopMusic(1.0);
+      setTimeout(startNewTrack, 500);
+    } else {
+      startNewTrack();
     }
   },
 
