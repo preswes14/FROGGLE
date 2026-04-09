@@ -165,6 +165,7 @@ S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
+S.combatStats = { damageTaken: 0, damageShielded: 0, damageHealed: 0, goldGained: 0 };
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
 S.lastTargetPattern={}; // Remember targets for actAndAutoTarget: {heroIdx_sigil: [targetIds]}
 // Clear Alpha state from any previous combat
@@ -656,19 +657,18 @@ render(); // First render combat view
 v.insertAdjacentHTML('beforeend', html);
 return;
 } else {
-// Normal D20 menu (centered, blocks view)
-html = '<div style="text-align:center;padding:1.5rem 2rem;background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;margin:1rem auto;max-width:700px;color:#f0f0f0;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
-html += '<h3 style="margin-bottom:1rem;color:#3b82f6;font-size:1.4rem">D20: Attempt A Gambit</h3>';
+// Normal D20 menu — overlay on left side, keep combat visible
+html = '<div id="d20MenuOverlay" style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:calc(50vw - 20px);background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.5);color:#f0f0f0">';
+html += '<h3 style="margin-bottom:0.75rem;color:#3b82f6;font-size:1.2rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
-if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
+if(expandLevel > 0) html += `<p style="margin-bottom:0.5rem;color:#22c55e;font-weight:bold;font-size:0.95rem;background:rgba(34,197,94,0.1);padding:0.4rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel}: Up to ${maxTargets} targets!</p>`;
 if(S.asteriskD20Repeats > 1) {
-html += `<p style="margin-bottom:0.5rem;color:#f97316">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
-html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
+html += `<p style="margin-bottom:0.25rem;color:#f97316;font-size:0.9rem">Asterisk: Pick ${S.asteriskD20Repeats} actions! (${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
 }
 if(h.ls && h.lst > 0) {
 const lsBonus = h.lst * 2;
-html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
+html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold;font-size:0.9rem">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Target deals its own POW to itself'},
@@ -677,30 +677,20 @@ const options = [
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
-// Row 1: first 3 gambits, Row 2: last 2 gambits (centered)
-html += '<div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.5rem">';
-options.slice(0,3).forEach(opt => {
+options.forEach(opt => {
 const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
-<strong>${dcText}<br>${opt.name}</strong><br>
-<span style="font-size:0.8rem">${opt.desc}</span>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.4rem;padding:0.5rem 0.75rem;cursor:pointer">
+<strong style="font-size:0.95rem">${dcText}: ${opt.name}</strong><br>
+<span style="font-size:0.85rem;opacity:0.8">${opt.desc}</span>
 </div>`;
 });
-html += '</div><div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.75rem;max-width:66%;margin-left:auto;margin-right:auto">';
-options.slice(3).forEach(opt => {
-const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
-const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
-<strong>${dcText}<br>${opt.name}</strong><br>
-<span style="font-size:0.8rem">${opt.desc}</span>
-</div>`;
-});
+if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})" style="margin-top:0.5rem">Finish (${S.asteriskD20Count} used)</button>`;
+else html += `<button class="btn secondary" onclick="cancelAction()" style="margin-top:0.5rem;width:15%;padding:0.5rem 0;font-size:0.85rem;text-align:center">Cancel</button>`;
 html += '</div>';
-if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
-else html += `<button class="btn secondary" onclick="cancelAction()" style="max-width:200px;margin:0 auto">Cancel</button>`;
-html += '</div>';
-v.innerHTML = html;
+render(); // Render combat view first
+v.insertAdjacentHTML('beforeend', html);
+return;
 }
 }
 
@@ -744,9 +734,12 @@ if(h.ls) {
 h.ls = false;
 h.lst = 0;
 h.h = Math.min(healAmount, h.m);
+if(S.combatStats) S.combatStats.damageHealed += h.h;
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} revived with ${h.h} HP!`, 2000);
 } else {
+const prevH = h.h;
 h.h = Math.min(h.h + healAmount, h.m);
+if(S.combatStats) S.combatStats.damageHealed += (h.h - prevH);
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} healed for ${healAmount} HP!`, 2000);
 }
 } else {
@@ -918,6 +911,7 @@ toast(`Royal Quest completed! Ring retrieved!`, 1800);
 } else if(action === 'STEAL') {
 const gold = enemy.p;
 S.gold += gold;
+if(S.combatStats) S.combatStats.goldGained += gold;
 upd();
 toast(`Stole ${gold} Gold from ${getEnemyDisplayName(enemy)}!`);
 }
@@ -1568,11 +1562,15 @@ healedIds.push(target.id);
 if(target.ls) {
 target.ls = false;
 target.lst = 0;
-target.h = Math.min(healAmt, target.m);
+const actualHeal = Math.min(healAmt, target.m);
+target.h = actualHeal;
+if(S.combatStats) S.combatStats.damageHealed += actualHeal;
 revived.push(target.n);
 } else {
+const prevH = target.h;
 target.h += healAmt;
 if(target.h > target.m) target.h = target.m;
+if(S.combatStats) S.combatStats.damageHealed += (target.h - prevH);
 healed.push(target.n);
 }
 });
@@ -2594,6 +2592,13 @@ if(h.h > 0 && !h.ls) setHeroReaction(h.id, 'happy', 3000);
 });
 
 setTimeout(() => {
+// Commit combat stats to run stats on successful completion
+if(S.runStats && S.combatStats) {
+S.runStats.damageTaken += S.combatStats.damageTaken;
+S.runStats.damageShielded += S.combatStats.damageShielded;
+S.runStats.damageHealed += S.combatStats.damageHealed;
+S.runStats.goldGained += S.combatStats.goldGained + (S.combatGold || 0);
+}
 const combatXP = S.combatXP || 0;
 let starBonus = 0;
 S.heroes.forEach(h => {
@@ -2602,6 +2607,7 @@ starBonus += starLevel * 0.5;
 });
 const bonusXP = Math.floor(combatXP * (1 + starBonus));
 S.xp += bonusXP;
+if(S.runStats) S.runStats.xpGained += bonusXP;
 S.combatXP = 0; // Reset combat XP
 // Recruits persist until killed - don't clear here
 if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000, 'success');
@@ -3189,14 +3195,35 @@ const canAfford = S.xp >= nextCost;
 const spendStyle = canAfford
   ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
   : 'opacity:0.5;text-align:center';
+// Run stats panel
+let statsHtml = '';
+if(S.runStats) {
+const elapsed = Math.floor((Date.now() - S.runStats.startTime) / 1000);
+const mins = Math.floor(elapsed / 60);
+const secs = elapsed % 60;
+statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem;font-size:0.85rem;line-height:1.6">
+<div style="font-weight:bold;margin-bottom:0.25rem;color:#60a5fa">Run Stats</div>
+<div>Duration: ${mins}m ${secs < 10 ? '0' : ''}${secs}s</div>
+<div>XP: <span style="color:#22c55e">+${S.runStats.xpGained}</span> / <span style="color:#f87171">-${S.runStats.xpSpent}</span></div>
+<div>Gold: <span style="color:#fbbf24">${S.gold}</span> (started ${S.runStats.startGold})</div>
+<div>Damage Taken: <span style="color:#f87171">${S.runStats.damageTaken}</span></div>
+<div>Shielded: <span style="color:#60a5fa">${S.runStats.damageShielded}</span></div>
+<div>Healed: <span style="color:#22c55e">${S.runStats.damageHealed}</span></div>
+</div>`;
+}
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem"><span style="font-size:1.1rem;font-weight:bold;color:#22c55e">${S.xp} XP</span> <span style="color:#888">/ ${nextCost} XP to level up</span></p>
+<div style="display:flex;gap:1rem;align-items:flex-start">
+<div style="flex:1">
 <div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
 <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
 <button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
 <button class="btn safe" onclick="tryAdvanceFromLevelUp()" style="flex:1">Next Floor</button>
+</div>
+</div>
+${statsHtml}
 </div>`;
 }
 
@@ -3381,7 +3408,7 @@ v.innerHTML = html;
 function startingUpPow(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'POW'});
@@ -3394,7 +3421,7 @@ startingXPMenu();
 function startingUpHP(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;
@@ -3456,7 +3483,7 @@ v.innerHTML = html;
 function startingUpSigil(sig) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradeSigil', sigil:sig});
@@ -3532,7 +3559,7 @@ v.innerHTML = html;
 function startingAddSigilConfirm(heroIdx, sig) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 const h = S.heroes[heroIdx];
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'addSigil', hero:h.n, sigil:sig});
@@ -3685,7 +3712,7 @@ const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 const h = S.heroes[heroIdx];
 if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) { toast(`${h.n} already has ${sig}!`); return; }
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'addSigil', hero:h.n, sigil:sig});
 if(!h.ts) h.ts = [];
@@ -3762,7 +3789,7 @@ const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradeSigil', sigil:sig});
@@ -3826,7 +3853,7 @@ const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradePassive', sigil:sig});
@@ -3868,7 +3895,7 @@ v.innerHTML = html;
 function upPow(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'POW'});
@@ -3882,7 +3909,7 @@ levelUpMenu();
 function upHP(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;

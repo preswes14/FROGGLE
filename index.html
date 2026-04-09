@@ -162,8 +162,10 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   border-radius: 12px;
   padding: 2rem;
   z-index: 30000;
-  max-width: 650px;
+  min-width: 650px;
+  max-width: 900px;
   max-height: 90vh;
+  overflow-y: auto;
   width: 90%;
 }
 .modal-container.dark {
@@ -233,6 +235,11 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
 .header { padding: 0.5rem; background: linear-gradient(#1f2937, #111827); border-bottom: 2px solid #22c55e; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #f0f0f0; }
 .header button { display: inline-flex; align-items: center; justify-content: center; line-height: 1; height: 28px; min-width: 28px; box-sizing: border-box; }
+.hdr-tip { position: relative; }
+.hdr-tip::after { content: attr(data-tip); position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 6px; padding: 0.25rem 0.5rem; background: rgba(0,0,0,0.9); color: #fff; font-size: 0.7rem; font-weight: bold; white-space: nowrap; border-radius: 4px; border: 1px solid #555; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 20000; }
+.hdr-tip:hover::after { opacity: 1; }
+.hdr-tip[data-tip-align="right"]::after { left: 0; transform: none; }
+.hdr-tip[data-tip-align="left"]::after { left: auto; right: 0; transform: none; }
 .game-area { height: calc(100vh - 44px); height: calc(100dvh - 44px); overflow-y: auto; padding: 0.5rem; -webkit-overflow-scrolling: touch; }
 .game-area.no-scroll { overflow: hidden; padding: 0; }
 .game-area.fade-out { animation: fadeOut 0.2s ease forwards; }
@@ -3469,10 +3476,10 @@ body.controller-active .controller-prompts {
 <div class="header" id="gameHeader" role="banner" aria-live="polite">
 <div id="locationInfo"><span id="locationLabel">Floor</span> <span id="floor">1</span><span id="roundInfo"> | Round <span id="round">1</span></span><span id="turnInfo"></span></div>
 <div style="display:flex;gap:0.25rem">
-<button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff" title="Sigilarium">✦</button>
-<button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff" title="Combat Log">...</button>
-<button onclick="showFAQ()" style="padding:0.25rem 0.5rem;background:#f97316;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff" title="FAQ/Help">?</button>
-<button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff" title="Settings">⚙</button>
+<span class="hdr-tip" data-tip="SIGILARIUM" data-tip-align="right"><button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff">✦</button></span>
+<span class="hdr-tip" data-tip="LOG"><button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff">...</button></span>
+<span class="hdr-tip" data-tip="FAQ"><button onclick="showFAQ()" style="padding:0.25rem 0.5rem;background:#f97316;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff">?</button></span>
+<span class="hdr-tip" data-tip="SETTINGS" data-tip-align="left"><button onclick="showSettingsMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff">⚙</button></span>
 <div id="debugBtn" style="display:none"><button onclick="showDebugMenu()" style="padding:0.25rem 0.5rem;background:#3b82f6;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff" title="Debug">⚒</button></div>
 </div>
 <div><span id="gold">0</span>G | <span id="xp">0</span>XP</div>
@@ -4235,6 +4242,12 @@ if(shieldLost > 0 && !options.silent) SoundFX.play('shieldBreak');
 // Apply damage to HP
 hpLost = Math.min(dmg, target.h);
 target.h -= dmg;
+
+// Track combat stats (committed to runStats on combat completion only)
+if(options.isHero && S.combatStats) {
+S.combatStats.damageTaken += rawDamage;
+if(shieldLost > 0) S.combatStats.damageShielded += shieldLost;
+}
 
 // LAYER 1: Warning when hero drops below 30% HP (preventive Last Stand warning)
 // Skip during tutorial - Tapo intervention handles this without explaining Last Stand
@@ -8172,6 +8185,7 @@ S.combatEnding = false; // Reset combat ending guard flag
 S.round=1; S.turn='player'; S.activeIdx=-1; S.acted=[]; S.locked=false;
 S.lastActions={};
 S.combatXP=0; S.combatGold=0; // Track combat rewards separately
+S.combatStats = { damageTaken: 0, damageShielded: 0, damageHealed: 0, goldGained: 0 };
 S.pending=null; S.targets=[]; S.currentInstanceTargets=[]; S.instancesRemaining=0; S.totalInstances=0; S.turnDamage=0;
 S.lastTargetPattern={}; // Remember targets for actAndAutoTarget: {heroIdx_sigil: [targetIds]}
 // Clear Alpha state from any previous combat
@@ -8663,19 +8677,18 @@ render(); // First render combat view
 v.insertAdjacentHTML('beforeend', html);
 return;
 } else {
-// Normal D20 menu (centered, blocks view)
-html = '<div style="text-align:center;padding:1.5rem 2rem;background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;margin:1rem auto;max-width:700px;color:#f0f0f0;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
-html += '<h3 style="margin-bottom:1rem;color:#3b82f6;font-size:1.4rem">D20: Attempt A Gambit</h3>';
+// Normal D20 menu — overlay on left side, keep combat visible
+html = '<div id="d20MenuOverlay" style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:15000;max-width:calc(50vw - 20px);background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 8px 32px rgba(0,0,0,0.5);color:#f0f0f0">';
+html += '<h3 style="margin-bottom:0.75rem;color:#3b82f6;font-size:1.2rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
-if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
+if(expandLevel > 0) html += `<p style="margin-bottom:0.5rem;color:#22c55e;font-weight:bold;font-size:0.95rem;background:rgba(34,197,94,0.1);padding:0.4rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel}: Up to ${maxTargets} targets!</p>`;
 if(S.asteriskD20Repeats > 1) {
-html += `<p style="margin-bottom:0.5rem;color:#f97316">Asterisk Active: Pick ${S.asteriskD20Repeats} actions!</p>`;
-html += `<p style="margin-bottom:1rem;font-size:0.85rem">(${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
+html += `<p style="margin-bottom:0.25rem;color:#f97316;font-size:0.9rem">Asterisk: Pick ${S.asteriskD20Repeats} actions! (${S.asteriskD20Count}/${S.asteriskD20Repeats} used)</p>`;
 }
 if(h.ls && h.lst > 0) {
 const lsBonus = h.lst * 2;
-html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
+html += `<p style="margin-bottom:0.5rem;color:#dc2626;font-weight:bold;font-size:0.9rem">Last Stand Turn ${h.lst + 1}: DCs +${lsBonus}</p>`;
 }
 const options = [
 {dc:10, name:'CONFUSE', desc:'Target deals its own POW to itself'},
@@ -8684,30 +8697,20 @@ const options = [
 {dc:18, name:'STEAL', desc:'Gain Gold = enemy POW'},
 {dc:20, name:'RECRUIT', desc:'Enemy joins team'}
 ];
-// Row 1: first 3 gambits, Row 2: last 2 gambits (centered)
-html += '<div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.5rem">';
-options.slice(0,3).forEach(opt => {
+options.forEach(opt => {
 const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
 const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
-<strong>${dcText}<br>${opt.name}</strong><br>
-<span style="font-size:0.8rem">${opt.desc}</span>
+html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="margin-bottom:0.4rem;padding:0.5rem 0.75rem;cursor:pointer">
+<strong style="font-size:0.95rem">${dcText}: ${opt.name}</strong><br>
+<span style="font-size:0.85rem;opacity:0.8">${opt.desc}</span>
 </div>`;
 });
-html += '</div><div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:0.75rem;max-width:66%;margin-left:auto;margin-right:auto">';
-options.slice(3).forEach(opt => {
-const adjustedDC = getD20DC(opt.dc, heroIdx, opt.name);
-const dcText = adjustedDC > opt.dc ? `DC ${adjustedDC} (${opt.dc}+${adjustedDC - opt.dc})` : `DC ${opt.dc}`;
-html += `<div class="choice" onclick="selectD20Action(${heroIdx}, ${adjustedDC}, '${opt.name}')" style="flex:1;margin-bottom:0;min-width:0">
-<strong>${dcText}<br>${opt.name}</strong><br>
-<span style="font-size:0.8rem">${opt.desc}</span>
-</div>`;
-});
+if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})" style="margin-top:0.5rem">Finish (${S.asteriskD20Count} used)</button>`;
+else html += `<button class="btn secondary" onclick="cancelAction()" style="margin-top:0.5rem;width:15%;padding:0.5rem 0;font-size:0.85rem;text-align:center">Cancel</button>`;
 html += '</div>';
-if(S.asteriskD20Count > 0) html += `<button class="btn safe" onclick="finishD20Asterisk(${heroIdx})">Finish (${S.asteriskD20Count} used)</button>`;
-else html += `<button class="btn secondary" onclick="cancelAction()" style="max-width:200px;margin:0 auto">Cancel</button>`;
-html += '</div>';
-v.innerHTML = html;
+render(); // Render combat view first
+v.insertAdjacentHTML('beforeend', html);
+return;
 }
 }
 
@@ -8751,9 +8754,12 @@ if(h.ls) {
 h.ls = false;
 h.lst = 0;
 h.h = Math.min(healAmount, h.m);
+if(S.combatStats) S.combatStats.damageHealed += h.h;
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} revived with ${h.h} HP!`, 2000);
 } else {
+const prevH = h.h;
 h.h = Math.min(h.h + healAmount, h.m);
+if(S.combatStats) S.combatStats.damageHealed += (h.h - prevH);
 toast(`${rollText} <span style="color:#22c55e;font-weight:bold">SUCCESS!</span> ${h.n} healed for ${healAmount} HP!`, 2000);
 }
 } else {
@@ -8925,6 +8931,7 @@ toast(`Royal Quest completed! Ring retrieved!`, 1800);
 } else if(action === 'STEAL') {
 const gold = enemy.p;
 S.gold += gold;
+if(S.combatStats) S.combatStats.goldGained += gold;
 upd();
 toast(`Stole ${gold} Gold from ${getEnemyDisplayName(enemy)}!`);
 }
@@ -9575,11 +9582,15 @@ healedIds.push(target.id);
 if(target.ls) {
 target.ls = false;
 target.lst = 0;
-target.h = Math.min(healAmt, target.m);
+const actualHeal = Math.min(healAmt, target.m);
+target.h = actualHeal;
+if(S.combatStats) S.combatStats.damageHealed += actualHeal;
 revived.push(target.n);
 } else {
+const prevH = target.h;
 target.h += healAmt;
 if(target.h > target.m) target.h = target.m;
+if(S.combatStats) S.combatStats.damageHealed += (target.h - prevH);
 healed.push(target.n);
 }
 });
@@ -10601,6 +10612,13 @@ if(h.h > 0 && !h.ls) setHeroReaction(h.id, 'happy', 3000);
 });
 
 setTimeout(() => {
+// Commit combat stats to run stats on successful completion
+if(S.runStats && S.combatStats) {
+S.runStats.damageTaken += S.combatStats.damageTaken;
+S.runStats.damageShielded += S.combatStats.damageShielded;
+S.runStats.damageHealed += S.combatStats.damageHealed;
+S.runStats.goldGained += S.combatStats.goldGained + (S.combatGold || 0);
+}
 const combatXP = S.combatXP || 0;
 let starBonus = 0;
 S.heroes.forEach(h => {
@@ -10609,6 +10627,7 @@ starBonus += starLevel * 0.5;
 });
 const bonusXP = Math.floor(combatXP * (1 + starBonus));
 S.xp += bonusXP;
+if(S.runStats) S.runStats.xpGained += bonusXP;
 S.combatXP = 0; // Reset combat XP
 // Recruits persist until killed - don't clear here
 if(starBonus > 0) toast(`Star Bonus! ${combatXP} × ${(1 + starBonus).toFixed(1)} = ${bonusXP} XP`, 3000, 'success');
@@ -11196,14 +11215,35 @@ const canAfford = S.xp >= nextCost;
 const spendStyle = canAfford
   ? 'background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;font-size:1.3rem;font-weight:bold;border:2px solid #fcd34d;box-shadow:0 0 15px rgba(251,191,36,0.5);text-align:center'
   : 'opacity:0.5;text-align:center';
+// Run stats panel
+let statsHtml = '';
+if(S.runStats) {
+const elapsed = Math.floor((Date.now() - S.runStats.startTime) / 1000);
+const mins = Math.floor(elapsed / 60);
+const secs = elapsed % 60;
+statsHtml = `<div style="background:rgba(0,0,0,0.3);border:2px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.75rem;font-size:0.85rem;line-height:1.6">
+<div style="font-weight:bold;margin-bottom:0.25rem;color:#60a5fa">Run Stats</div>
+<div>Duration: ${mins}m ${secs < 10 ? '0' : ''}${secs}s</div>
+<div>XP: <span style="color:#22c55e">+${S.runStats.xpGained}</span> / <span style="color:#f87171">-${S.runStats.xpSpent}</span></div>
+<div>Gold: <span style="color:#fbbf24">${S.gold}</span> (started ${S.runStats.startGold})</div>
+<div>Damage Taken: <span style="color:#f87171">${S.runStats.damageTaken}</span></div>
+<div>Shielded: <span style="color:#60a5fa">${S.runStats.damageShielded}</span></div>
+<div>Healed: <span style="color:#22c55e">${S.runStats.damageHealed}</span></div>
+</div>`;
+}
 v.innerHTML = `
 <h2 style="text-align:center;margin-bottom:0.5rem">Level Up!</h2>
 <p style="text-align:center;margin-bottom:0.25rem;font-size:0.9rem">Floor ${S.floor} Complete</p>
 <p style="text-align:center;margin-bottom:0.75rem;font-size:0.9rem"><span style="font-size:1.1rem;font-weight:bold;color:#22c55e">${S.xp} XP</span> <span style="color:#888">/ ${nextCost} XP to level up</span></p>
+<div style="display:flex;gap:1rem;align-items:flex-start">
+<div style="flex:1">
 <div class="choice" onclick="levelUpMenu()" style="${spendStyle}">Spend XP</div>
 <div style="display:flex;gap:0.5rem;margin-top:0.5rem">
 <button class="btn secondary" onclick="viewHeroCards()" style="flex:1">View Heroes</button>
 <button class="btn safe" onclick="tryAdvanceFromLevelUp()" style="flex:1">Next Floor</button>
+</div>
+</div>
+${statsHtml}
 </div>`;
 }
 
@@ -11388,7 +11428,7 @@ v.innerHTML = html;
 function startingUpPow(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'POW'});
@@ -11401,7 +11441,7 @@ startingXPMenu();
 function startingUpHP(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;
@@ -11463,7 +11503,7 @@ v.innerHTML = html;
 function startingUpSigil(sig) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradeSigil', sigil:sig});
@@ -11539,7 +11579,7 @@ v.innerHTML = html;
 function startingAddSigilConfirm(heroIdx, sig) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 const h = S.heroes[heroIdx];
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'addSigil', hero:h.n, sigil:sig});
@@ -11692,7 +11732,7 @@ const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 const h = S.heroes[heroIdx];
 if(h.s.includes(sig) || (h.ts && h.ts.includes(sig))) { toast(`${h.n} already has ${sig}!`); return; }
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'addSigil', hero:h.n, sigil:sig});
 if(!h.ts) h.ts = [];
@@ -11769,7 +11809,7 @@ const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradeSigil', sigil:sig});
@@ -11833,7 +11873,7 @@ const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
 const totalLevel = (S.sig[sig] || 0) + (S.tempSigUpgrades[sig] || 0);
 if(totalLevel >= 4) { toast(`${sig} is already maxed!`); return; }
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.tempSigUpgrades[sig] = (S.tempSigUpgrades[sig] || 0) + 1;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'upgradePassive', sigil:sig});
@@ -11875,7 +11915,7 @@ v.innerHTML = html;
 function upPow(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].p++;
 (S.runUpgradeHistory = S.runUpgradeHistory || []).push({type:'stat', hero:S.heroes[idx].n, stat:'POW'});
@@ -11889,7 +11929,7 @@ levelUpMenu();
 function upHP(idx) {
 const cost = getXPCost(S.levelUpCount);
 if(S.xp < cost) return;
-S.xp -= cost;
+S.xp -= cost; if(S.runStats) S.runStats.xpSpent += cost;
 S.levelUpCount++;
 S.heroes[idx].m += 5;
 S.heroes[idx].h += 5;
@@ -13859,6 +13899,8 @@ const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 
 S.floor=1; S.xp=0; S.levelUpCount=0; S.runUpgradeHistory=[];
+// Run stats tracking
+S.runStats = { startTime: Date.now(), xpGained: 0, xpSpent: 0, goldGained: 0, goldSpent: 0, damageTaken: 0, damageShielded: 0, damageHealed: 0, startGold: S.gold || 0 };
 // Reset temporary XP sigil upgrades (these don't persist between runs)
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // Reset recruits from any previous run
@@ -16297,7 +16339,7 @@ headerColor = '#fff';
 
 const v = document.getElementById('gameView');
 const html = `
-<div class="modal-container" style="max-width:455px">
+<div class="modal-container">
 <div style="background:${headerBg};padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:${headerColor};font-size:1.3rem">${isVictory ? 'Victory!' : 'Journey'} #${run.runNumber}</h2>
 </div>
@@ -16421,7 +16463,7 @@ function getHeroRunStats(heroName) {
 
 const v = document.getElementById('gameView');
 let html = `
-<div class="modal-container" style="max-width:650px;max-height:85vh;overflow-y:auto">
+<div class="modal-container">
 <div style="background:linear-gradient(135deg,#1e3a5f,#1e293b);padding:1rem;border-radius:8px 8px 0 0;text-align:center">
 <h2 style="margin:0;color:#60a5fa;font-size:1.3rem">Hero Stats</h2>
 </div>
@@ -17041,7 +17083,7 @@ overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background
 overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
 
 overlay.innerHTML = `
-<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;max-width:650px;width:100%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+<div style="background:linear-gradient(180deg,#0a0e27,#1a1033);border:2px solid ${borderTint};border-radius:12px;padding:1.5rem;min-width:650px;max-width:900px;width:90%;max-height:80vh;overflow-y:auto;color:#e8e0f0;box-shadow:0 8px 32px rgba(0,0,0,0.6)">
 <h3 style="color:${accentColor};margin-bottom:0.5rem;text-align:center;font-size:1.3rem">${title}</h3>
 <p style="font-size:0.85rem;margin-bottom:1rem;opacity:0.9;text-align:center">${desc}</p>
 ${infoLines}
