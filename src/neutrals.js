@@ -1950,6 +1950,8 @@ const header = document.getElementById('gameHeader');
 if(header) header.style.display = 'flex';
 
 S.floor=1; S.xp=0; S.levelUpCount=0; S.runUpgradeHistory=[];
+// Run stats tracking
+S.runStats = { startTime: Date.now(), xpGained: 0, xpSpent: 0, goldGained: 0, goldSpent: 0, damageTaken: 0, damageShielded: 0, damageHealed: 0, startGold: S.gold || 0 };
 // Reset temporary XP sigil upgrades (these don't persist between runs)
 S.tempSigUpgrades = {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 // Reset recruits from any previous run

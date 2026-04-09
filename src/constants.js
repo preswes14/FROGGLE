@@ -725,6 +725,12 @@ if(shieldLost > 0 && !options.silent) SoundFX.play('shieldBreak');
 hpLost = Math.min(dmg, target.h);
 target.h -= dmg;
 
+// Track combat stats (committed to runStats on combat completion only)
+if(options.isHero && S.combatStats) {
+S.combatStats.damageTaken += rawDamage;
+if(shieldLost > 0) S.combatStats.damageShielded += shieldLost;
+}
+
 // LAYER 1: Warning when hero drops below 30% HP (preventive Last Stand warning)
 // Skip during tutorial - Tapo intervention handles this without explaining Last Stand
 if(options.isHero && !target.ls && target.h > 0 && target.h < target.m * 0.3) {
