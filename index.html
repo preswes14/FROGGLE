@@ -3480,7 +3480,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.39';
+const GAME_VERSION = 'S_2.41';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -6306,7 +6306,6 @@ lastNeutral: null,  // Last neutral encountered (for non-repeat)
 ambushed: false,    // Whether current combat is an ambush
 
 // ===== TEMPORARY NEUTRAL STATE (resets on death) =====
-silverKeyHeld: false,     // Silver key from Ghost Boys
 oracleHero: null,         // Hero chosen at Oracle
 oracleRoll: null,         // Roll result at Oracle
 oracleStat: null,         // Stat chosen at Oracle
@@ -7551,7 +7550,6 @@ S.lastNeutral = r.lastNeutral || null;
 S.tempSigUpgrades = r.tempSigUpgrades || {Attack:0, Shield:0, Heal:0, D20:0, Expand:0, Grapple:0, Ghost:0, Asterisk:0, Star:0, Alpha:0};
 S.gameMode = r.gameMode || 'Standard';
 S.chosenHeroIdx = r.chosenHeroIdx !== undefined ? r.chosenHeroIdx : -1;
-S.silverKeyHeld = r.silverKeyHeld || false;
 S.oracleHero = r.oracleHero || null;
 S.oracleRoll = r.oracleRoll || null;
 S.oracleStat = r.oracleStat || null;
@@ -7704,7 +7702,6 @@ neutralDeck:S.neutralDeck, lastNeutral:S.lastNeutral,
 tempSigUpgrades: S.tempSigUpgrades,
 gameMode: S.gameMode,
 chosenHeroIdx: S.chosenHeroIdx,
-silverKeyHeld: S.silverKeyHeld || false,
 oracleHero: S.oracleHero,
 oracleRoll: S.oracleRoll,
 oracleStat: S.oracleStat,
@@ -14041,11 +14038,13 @@ let buttons = '';
 let outcomes = [];
 
 if(available.length === 0) {
-outcomes.push('All your sigils are already at maximum power. Death nods approvingly and fades away.');
-buttons = `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
+outcomes.push('All your sigils are already at maximum power.');
+outcomes.push('"Impressive. Well, take this at least \u2014 consider it an investment in your longevity."');
+buttons = `<button class="btn safe" onclick="offerDeathsConsolation()">Accept the gift</button><button class="btn secondary" onclick="declineDeathsConsolation()">Decline</button>`;
 } else if(S.gold < cost) {
 outcomes.push('<span style="color:#dc2626">"Darn. Not enough gold. Maybe next time, I guess?"</span>');
-buttons = `<button class="btn" onclick="finishDeathsBargain()">Continue</button>`;
+outcomes.push('"Tell you what \u2014 take this. Consider it an investment in your longevity. I\'d hate for this run to end too soon."');
+buttons = `<button class="btn safe" onclick="offerDeathsConsolation()">Accept the gift</button><button class="btn secondary" onclick="declineDeathsConsolation()">Decline</button>`;
 } else {
 description += `<div style="font-size:0.9rem;margin-bottom:1rem">Choose one sigil to upgrade permanently (costs ${cost}G, Going Rate does NOT increase):</div>`;
 const actives = ['Attack', 'Shield', 'Grapple', 'Heal', 'Ghost', 'D20', 'Alpha'];
@@ -14093,11 +14092,40 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 }
 
 function finishDeathsBargain() {
+// Player declined the sigil upgrade — offer consolation gift instead
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper2.png',
+outcomes: ['"Really, you\'re not gonna take this deal? Okay... Well, take this at least."'],
+buttons: `<button class="btn safe" onclick="offerDeathsConsolation()">Accept the gift</button><button class="btn secondary" onclick="declineDeathsConsolation()">Decline</button>`
+});
+}
+
+function declineDeathsConsolation() {
 removeNeutralFromDeck('shopkeeper');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper2.png',
 outcomes: ['"Shame. You don\'t get a chance like this every day. Oh well, it\'s your funeral."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
+buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+});
+}
+
+function offerDeathsConsolation() {
+removeNeutralFromDeck('shopkeeper');
+S.heroes.forEach(h => {
+h.m += 5;
+h.h += 5;
+});
+upd();
+const hpSummary = S.heroes.map(h => `${h.n} (${h.m} Max HP)`).join(', ');
+toast('All heroes gained +5 Max HP!', 3000);
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/shopkeeper2.png',
+title: 'Death\'s Gift',
+description: 'Death produces a handful of murky vials from the folds of their robe. "These\'ll toughen you up. Permanently."',
+outcomes: [`All heroes gained +5 Max HP! (${hpSummary})`, '"Good. You\'ll need it. See you soon."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
@@ -14301,7 +14329,7 @@ const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
 title: 'A Mysterious Chest',
-description: 'An unadorned wooden chest sits against the far wall, worn brass fittings gleaming in the torchlight. No lock is visible, but you spy strange holes in the wall and drops of blood spattered on the ground nearby.',
+description: 'A closed, unadorned wooden chest lies in the center of this next room. As you draw near, you notice the chest pockmarked with dried blood.',
 buttons: `
 <button class="btn risky" onclick="openChest()">Open the chest</button>
 <button class="btn safe" onclick="nextFloor()">Do Not Engage</button>
@@ -14323,19 +14351,17 @@ function openChestRoll() {
 animateDiceRoll(function(trapRolls, trapBest) {
 let trapOutcome = '';
 let trapDmg = 0;
-let secretFound = false;
+let chestOpened = false;
 
-if(trapBest === 1) {
+if(trapBest >= 1 && trapBest <= 4) {
 trapOutcome = 'It\'s a trap! Thick, noxious smoke fills the chamber.';
 trapDmg = 3;
-} else if(trapBest >= 2 && trapBest <= 9) {
+} else if(trapBest >= 5 && trapBest <= 14) {
 trapOutcome = 'It\'s a trap! A hidden dart flies from the wall and strikes you in the neck! Ouch.';
 trapDmg = 1;
-} else if(trapBest >= 10 && trapBest <= 18) {
-trapOutcome = 'You carefully open the chest without triggering any traps.';
 } else {
-trapOutcome = 'You open the chest without issue. Your keen eyes spot a hidden compartment in the chest\'s lid!';
-secretFound = true;
+trapOutcome = 'You carefully open the chest without triggering any traps!';
+chestOpened = true;
 }
 
 const narrative = document.querySelector('.neutral-narrative');
@@ -14349,49 +14375,55 @@ footer = document.createElement('div');
 footer.className = 'neutral-footer';
 leftPanel.appendChild(footer);
 }
+
+if(chestOpened) {
+// Success! Roll again to determine gold contents
 if(footer) {
-footer.innerHTML = `<button class="btn" onclick="openChestPart2(${trapDmg}, ${secretFound})">Continue</button>`;
+footer.innerHTML = `<button class="btn" onclick="openChestGoldRoll()">See what's inside</button>`;
+}
+} else {
+// Trap triggered - pick who takes damage, no gold
+if(trapDmg > 0) {
+let heroButtons = '<div style="margin-bottom:0.5rem;opacity:0.8">Choose who takes the hit:</div>';
+const eligible = S.heroes.filter(h => !h.ls);
+if(eligible.length === 0) {
+if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continue</button>`;
+return;
+}
+eligible.forEach(h => {
+const idx = S.heroes.indexOf(h);
+heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, 0)">${h.n} (${h.h}/${h.m}❤)</button>`;
+});
+if(footer) footer.innerHTML = heroButtons;
+}
 }
 });
 }
 
-function openChestPart2(trapDmg, secretFound) {
+function openChestGoldRoll() {
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest1.png',
 title: 'Chest Contents',
-description: 'You peer inside the chest...',
-diceTray: renderDiceTray({ rollCallback: `openChestPart2Roll(${trapDmg}, ${secretFound})` })
+description: 'Gold glints inside the chest! How much can you grab?',
+diceTray: renderDiceTray({ rollCallback: 'openChestGoldResult()' })
 });
 }
 
-function openChestPart2Roll(trapDmg, secretFound) {
-animateDiceRoll(function(contentRolls, contentBest) {
-let contentOutcome = '';
-let goldGain = 0;
+function openChestGoldResult() {
+animateDiceRoll(function(goldRolls, goldBest) {
+const goldGain = goldBest;
 
-if(contentBest >= 1 && contentBest <= 9) {
-contentOutcome = 'The chest is empty. Someone got here first.';
-} else if(contentBest >= 10 && contentBest <= 19) {
-goldGain = Math.ceil(Math.random() * 10);
-contentOutcome = `The chest contains a small stack of ${goldGain} gold coins!`;
-} else {
-goldGain = Math.ceil(Math.random() * 10) * S.heroes.length;
-contentOutcome = `The chest is filled to the brim with ${goldGain} gold coins!`;
-}
-
-if(secretFound && contentBest >= 10) {
-S.silverKeyHeld = true;
 replaceStage1WithStage2('treasurechest');
-contentOutcome += ' Inside the secret compartment, you find a small silver key!';
-}
 
 const narrative = document.querySelector('.neutral-narrative');
 if(narrative) {
-narrative.innerHTML = `<div class="neutral-title">Chest Contents</div><div class="neutral-outcome">${contentOutcome}</div>`;
+narrative.innerHTML = `<div class="neutral-title">Chest Contents</div><div class="neutral-outcome">You find <strong>${goldGain} gold</strong> inside the chest!</div>`;
 }
 
-const v = document.getElementById('gameView');
+S.gold += goldGain;
+upd();
+
 const leftPanel = document.querySelector('.neutral-left');
 let footer = document.querySelector('.neutral-footer');
 if(!footer && leftPanel) {
@@ -14399,27 +14431,7 @@ footer = document.createElement('div');
 footer.className = 'neutral-footer';
 leftPanel.appendChild(footer);
 }
-
-if(trapDmg > 0) {
-let heroButtons = '';
-const eligible = S.heroes.filter(h => !h.ls);
-if(eligible.length === 0) {
-S.gold += goldGain;
-upd();
-if(goldGain > 0) toast(`Found ${goldGain} Gold!`);
-nextFloor();
-return;
-}
-eligible.forEach(h => {
-const idx = S.heroes.indexOf(h);
-heroButtons += `<button class="neutral-btn danger" onclick="finishChestOpen(${idx}, ${trapDmg}, ${goldGain})">${h.n} (${h.h}/${h.m}❤)</button>`;
-});
-if(footer) footer.innerHTML = heroButtons;
-} else {
-S.gold += goldGain;
-upd();
 if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continue</button>`;
-}
 });
 }
 
@@ -14457,22 +14469,47 @@ nextFloor();
 }
 
 function showTreasureChest2() {
-if(!S.silverKeyHeld) {
-nextFloor();
-return;
-}
-const goldGain = 10 * S.heroes.length;
-S.gold += goldGain;
-S.silverKeyHeld = false;
-upd();
-removeNeutralFromDeck('treasurechest');
 const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/treasurechest2.png',
-title: 'Small Silver Chest',
-description: 'A small, beautifully-adorned silver chest sits on a stone pedestal. The silver keyhole is perfectly sized for the key you found earlier.',
-outcomes: [`What a windfall! Gold coins overflow from the open chest. You gather and pocket ${goldGain} before moving on.`],
-buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
+title: 'The Silver Chest',
+description: 'You can hear the clink of metal as soon as you open the chamber. A small, elegant silver chest sits in the middle of the room, but from the way it periodically opens and closes, you easily deduce it is a mimic.',
+buttons: `<button class="btn risky" onclick="openMimicChest()">Grab as much gold as you can!</button>`
+});
+}
+
+function openMimicChest() {
+const v = document.getElementById('gameView');
+v.innerHTML = buildNeutralHTML({
+bgImage: 'assets/neutrals/treasurechest2.png',
+title: 'The Silver Chest',
+description: 'Grab as much gold as you can from its mouth before it spots you!',
+diceTray: renderDiceTray({ rollCallback: 'mimicChestRoll()' })
+});
+}
+
+function mimicChestRoll() {
+animateDiceRoll(function(rolls, best) {
+const goldGain = rolls.reduce((sum, r) => sum + r, 0);
+const rollBreakdown = rolls.length > 1 ? `(${rolls.join(' + ')}) = ` : '';
+
+S.gold += goldGain;
+upd();
+removeNeutralFromDeck('treasurechest');
+
+const narrative = document.querySelector('.neutral-narrative');
+if(narrative) {
+narrative.innerHTML = `<div class="neutral-title">The Silver Chest</div><div class="neutral-outcome">Not an especially fast mimic, apparently \u2014 your team made it out with a whopping <strong>${rollBreakdown}${goldGain} gold</strong>!</div>`;
+}
+
+const leftPanel = document.querySelector('.neutral-left');
+let footer = document.querySelector('.neutral-footer');
+if(!footer && leftPanel) {
+footer = document.createElement('div');
+footer.className = 'neutral-footer';
+leftPanel.appendChild(footer);
+}
+if(footer) footer.innerHTML = `<button class="btn" onclick="nextFloor()">Continue</button>`;
 });
 }
 
