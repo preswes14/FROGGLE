@@ -2260,29 +2260,19 @@ buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 
 function offerDeathsConsolation() {
 removeNeutralFromDeck('shopkeeper');
-const v = document.getElementById('gameView');
-let heroButtons = '';
-S.heroes.forEach((h, idx) => {
-heroButtons += `<button class="neutral-btn safe" onclick="applyDeathsPotion(${idx})">${h.n} (${h.h}/${h.m}❤)</button>`;
+S.heroes.forEach(h => {
+h.m += 5;
+h.h += 5;
 });
+upd();
+const hpSummary = S.heroes.map(h => `${h.n} (${h.m} Max HP)`).join(', ');
+toast('All heroes gained +5 Max HP!', 3000);
+const v = document.getElementById('gameView');
 v.innerHTML = buildNeutralHTML({
 bgImage: 'assets/neutrals/shopkeeper2.png',
 title: 'Death\'s Gift',
-description: 'Death produces a murky vial from the folds of their robe. "This\'ll toughen you up. Permanently. Choose wisely."<br><br>Select a hero to receive +5 Max HP:',
-buttons: heroButtons
-});
-}
-
-function applyDeathsPotion(idx) {
-const h = S.heroes[idx];
-h.m += 5;
-h.h += 5;
-upd();
-toast(`${h.n} gained +5 Max HP! (${h.m} Max HP)`, 3000);
-const v = document.getElementById('gameView');
-v.innerHTML = buildNeutralHTML({
-bgImage: 'assets/neutrals/shopkeeper2.png',
-outcomes: [`${h.n}'s Max HP increased to ${h.m}!`, '"Good. You\'ll need it. See you soon."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
+description: 'Death produces a handful of murky vials from the folds of their robe. "These\'ll toughen you up. Permanently."',
+outcomes: [`All heroes gained +5 Max HP! (${hpSummary})`, '"Good. You\'ll need it. See you soon."', `The shadows recede. The chamber returns to normal as you proceed to Floor ${S.floor + 1}.`],
 buttons: `<button class="btn" onclick="nextFloor()">Continue</button>`
 });
 }
