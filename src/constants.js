@@ -576,48 +576,46 @@ html += '<button class="btn danger" style="margin-top:1rem" onclick="confirmEnca
 return html;
 }
 
-// Render combat status header
+// Render combat status header — turn info goes in top bar, minimal subtitle only below
 function renderCombatStatusHeader() {
-// Simplified header: title row only. Targeting info + buttons moved to bottom action bar.
-let titleHtml = '';
+let turnText = '';
 let subtitleHtml = '';
 
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
-titleHtml = `<div class="combat-header-title">Enemy Turn</div>`;
+turnText = 'Enemy Turn';
 subtitleHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
 } else {
-titleHtml = `<div class="combat-header-title">Enemy Turn…</div>`;
+turnText = 'Enemy Turn…';
 }
 } else if(S.pending === 'D20_TARGET') {
-titleHtml = `<div class="combat-header-title">${S.d20Action} (DC ${S.d20DC})</div>`;
+turnText = `${S.d20Action} (DC ${S.d20DC})`;
 } else if(S.pending) {
-titleHtml = `<div class="combat-header-title">${S.pending}</div>`;
+turnText = S.pending;
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
-titleHtml = `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
+turnText = 'AMBUSH!';
 subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
 } else {
-titleHtml = `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
-subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+turnText = 'Choose a sigil';
 }
 } else {
 const h = S.heroes[S.activeIdx];
 if(h) {
-if(h.ls) titleHtml = `<div class="combat-header-title">${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!</div>`;
-else titleHtml = `<div class="combat-header-title">${h.n}'s Turn</div>`;
+if(h.ls) turnText = `${h.n} Last Stand`;
+else turnText = `${h.n}'s Turn`;
 }
 }
 
-if(!titleHtml) titleHtml = '<div class="combat-header-title" style="visibility:hidden">&nbsp;</div>';
-if(!subtitleHtml) subtitleHtml = '<div class="combat-header-subtitle" style="visibility:hidden">&nbsp;</div>';
-let html = '<div class="combat-header">';
-html += titleHtml;
-html += subtitleHtml;
-html += '</div>';
-return html;
+// Update top bar turn indicator
+const turnEl = document.getElementById('turnInfo');
+if(turnEl) turnEl.textContent = turnText ? ` | ${turnText}` : '';
+
+// Only return subtitle if present
+if(subtitleHtml) return `<div class="combat-header">${subtitleHtml}</div>`;
+return '';
 }
 
 // Render the bottom action bar for targeting (all action types including D20)
