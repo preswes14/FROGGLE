@@ -131,7 +131,7 @@ const inTutorial = S.heroes && S.heroes.length > 0 && S.floor === 0;
 const inRibbleton = S.inRibbleton;
 
 let html = `
-<div class="modal-container dark wide" role="dialog" aria-modal="true" aria-label="Settings">
+<div class="modal-container dark" role="dialog" aria-modal="true" aria-label="Settings">
 <h2 class="modal-title blue" style="margin-bottom:1.5rem">SETTINGS</h2>
 
 ${inGame ? `
@@ -1017,7 +1017,7 @@ a: `<strong>${sigilText('Star')}:</strong> Passive XP multiplier. Each hero with
 ];
 
 let html = `
-<div class="modal-container faq wide">
+<div class="modal-container faq">
 <h2 class="modal-title orange">? Frequently Asked Questions</h2>
 
 <div style="background:rgba(147,51,234,0.1);border:2px solid #9333ea;border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
@@ -1135,7 +1135,7 @@ return '#ff0080'; // L5 gradient
 };
 
 let html = `
-<div class="modal-container light wide">
+<div class="modal-container light">
 <h2 class="modal-title purple">✦ SIGILARIUM ✦</h2>
 <p style="text-align:center;font-size:0.9rem;opacity:0.8;margin-bottom:1.5rem">All Sigils and Their Permanent Upgrade Levels</p>
 
