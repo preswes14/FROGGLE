@@ -1356,13 +1356,14 @@ const slides = [
 html: `
 <h2 style="font-size:1.8rem;margin-bottom:1rem;color:#dc2626;animation:flydraShake 0.3s ease-in-out infinite">SHRIIIEEEEK!!</h2>
 <div style="margin:1.5rem 0;position:relative">
-<img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3);animation:flydraDescend 1.5s ease-out">
+<img src="assets/Hydra.png" alt="The Flydra" style="max-width:80vw;max-height:40vh;object-fit:contain;display:block;margin:0 auto;filter:brightness(1.2) saturate(1.3) drop-shadow(0 0 25px rgba(220,38,38,0.8)) drop-shadow(0 0 50px rgba(220,38,38,0.4));animation:flydraDescend 1.5s ease-out, flydraPulseGlow 2s ease-in-out 1.5s infinite">
 </div>
 <p style="font-size:1.1rem;line-height:1.7;margin:1rem 0;color:#f5f5f5">
 A deafening buzz fills the air as an enormous shadow descends over Ribbleton. Hairy legs, glittering eyes, translucent wings — the <strong class="text-flydra">Flydra</strong>, mother of all flies. She must have caught you chowing on her children!!
 </p>
-<!-- flydraShake, flydraDescend keyframes defined in template_head.html -->
-`
+<!-- flydraShake, flydraDescend, flydraPulseGlow keyframes defined in template_head.html -->
+`,
+onShow: () => { GameMusic.play(null, 'combat_19'); }
 },
 {
 html: `
