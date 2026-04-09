@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.53';
+const GAME_VERSION = 'S_2.54';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -1136,8 +1136,8 @@ return FIB[levelUpCount] || 100;
 const ANIMATION_TIMINGS = {
   // CSS animation durations (must match CSS @keyframes)
   DAMAGE_FLASH: 400,      // .hit-flash animation duration
-  ATTACK_SLIDE: 480,      // .attack-slide animation duration
-  ATTACK_IMPACT: 190,     // When attacker "lands" hit (40% of attack slide)
+  ATTACK_SLIDE: 400,      // .attack-slide animation duration
+  ATTACK_IMPACT: 160,     // When attacker "lands" hit (40% of attack slide)
   IMPACT_FREEZE: 65,      // Brief pause on hit for weight/impact feel
   HEAL_FLASH: 480,        // .heal-flash animation duration
   SHIELD_FLASH: 480,      // .shield-flash animation duration

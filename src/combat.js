@@ -860,6 +860,10 @@ handleRecruitResult(heroIdx, candidates);
 return;
 }
 
+// Hostile D20 gambits get attack animation
+if(actionName === 'CONFUSE' || actionName === 'STARTLE') {
+triggerAttackAnimation(S.heroes[heroIdx].id);
+}
 S.targets.forEach(targetId => executeD20ActionOnTarget(targetId, actionName));
 if(targetNames.length > 0) {
 const actionDesc = {'CONFUSE': 'confused', 'STARTLE': 'startled and stunned', 'STEAL': 'robbed'};
@@ -2077,6 +2081,7 @@ if(aInLane !== bInLane) return aInLane - bInLane;
 return a.h - b.h;
 });
 const target = alive[0];
+triggerAttackAnimation(recruit.id);
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 }
@@ -2091,6 +2096,7 @@ const targets = S.enemies.filter(e => e.h > 0);
 if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
+triggerAttackAnimation(recruit.id);
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 } else {
@@ -2100,6 +2106,7 @@ const targets = S.enemies.filter(e => e.h > 0);
 if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
+triggerAttackAnimation(recruit.id);
 dealDamageToEnemy(target, recruit.p);
 toast(`${recruit.n} (Recruit) attacked ${target.n} for ${recruit.p}!`);
 })(i), T(ANIMATION_TIMINGS.ATTACK_SLIDE) * i);
@@ -2138,6 +2145,7 @@ const targets = S.enemies.filter(e => e.h > 0);
 if(targets.length === 0) return;
 targets.sort((a, b) => a.h - b.h);
 const target = targets[0];
+triggerAttackAnimation(recruit.id);
 const dmgToRecruit = target.p;
 // Apply stun BEFORE recoil check (consistent with player Grapple behavior)
 target.st = Math.max(target.st, level);
@@ -2350,6 +2358,7 @@ toast(`${getEnemyDisplayName(enemy)} healed ${getEnemyDisplayName(healTarget)} f
 } else if(sig === 'Grapple') {
 const target = S.heroes[enemy.li];
 if(target && (target.h > 0 || target.ls)) {
+triggerEnemyAttackAnimation(enemy.id);
 const dmgToEnemy = target.p;
 // Use applyDamageToTarget so enemy shield/ghost are respected
 applyDamageToTarget(enemy, dmgToEnemy, {isHero: false, skipRewards: true, silent: true});
