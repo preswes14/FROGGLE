@@ -726,8 +726,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   margin: 2px 0;
 }
 .fu-mode .combat-header {
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.15rem;
 }
 .fu-mode .lane-content {
   gap: 1rem !important;
@@ -751,7 +751,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .toast-log-entry.recent { font-weight: bold; }
 .turn-locked { pointer-events: none; opacity: 0.7; }
 .tutorial-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 50000; display: flex; align-items: center; justify-content: center; }
-.tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; max-width: 910px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
+.tutorial-modal { background: linear-gradient(#1f2937, #111827); border: 4px solid #22c55e; border-radius: 12px; padding: 2rem; min-width: 600px; max-width: 910px; box-shadow: 0 8px 32px rgba(0,0,0,0.7); text-align: center; color: #f0f0f0; }
 .tutorial-modal h2 { margin-top: 0; color: #22c55e; }
 .tutorial-modal p { margin: 1rem 0; font-size: 1.1rem; line-height: 1.4; background: rgba(34,197,94,0.15); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(34,197,94,0.4); color: #f0f0f0; }
 .tutorial-modal button { margin-top: 1.5rem; padding: 0.75rem 2rem; font-size: 1.1rem; font-weight: bold; background: #22c55e; color: #fff; border: 2px solid #15803d; border-radius: 8px; cursor: pointer; }
@@ -1205,8 +1205,8 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 
   /* Combat header compact */
   .combat-header {
-    padding: 0.3rem 0.4rem;
-    margin-bottom: 0.3rem;
+    padding: 0.1rem 0.4rem;
+    margin-bottom: 0.1rem;
   }
   .combat-header-row {
     min-height: 1.2rem;
@@ -1320,6 +1320,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   /* Tutorial modals: fit mobile screen */
   .tutorial-modal {
     padding: 1rem;
+    min-width: auto;
     max-width: 90vw;
   }
   .tutorial-modal h2 {
@@ -1892,10 +1893,8 @@ img[src*="tank_normal"] {
 .combat-header {
   text-align: center;
   font-weight: bold;
-  padding: 0.5rem 0.75rem;
-  background: rgba(0,0,0,0.05);
-  border-radius: 6px;
-  margin-bottom: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.15rem;
   position: relative;
 }
 
@@ -1970,11 +1969,7 @@ img[src*="tank_normal"] {
   }
 
   .combat-header {
-    padding: 1rem;
-  }
-
-  .combat-header-title {
-    font-size: 1.25rem;
+    padding: 0.1rem 0.5rem;
   }
 
   .combat-header-subtitle {
@@ -2013,11 +2008,11 @@ img[src*="tank_normal"] {
   }
 
   .combat-header {
-    padding: 1.25rem;
+    padding: 0.1rem 0.5rem;
   }
 
-  .combat-header-title {
-    font-size: 1.4rem;
+  .combat-header-subtitle {
+    font-size: 1rem;
   }
 
   .combat-header-subtitle {
@@ -3471,7 +3466,7 @@ body.controller-active .controller-prompts {
 </div>
 
 <div class="header" id="gameHeader" role="banner" aria-live="polite">
-<div id="locationInfo"><span id="locationLabel">Floor</span> <span id="floor">1</span><span id="roundInfo"> | Round <span id="round">1</span></span></div>
+<div id="locationInfo"><span id="locationLabel">Floor</span> <span id="floor">1</span><span id="roundInfo"> | Round <span id="round">1</span></span><span id="turnInfo"></span></div>
 <div style="display:flex;gap:0.25rem">
 <button onclick="showSigilarium()" style="padding:0.25rem 0.5rem;background:#9333ea;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff" title="Sigilarium">✦</button>
 <button onclick="toggleToastLog()" style="padding:0.25rem 0.5rem;background:#22c55e;border:2px solid #000;border-radius:4px;font-weight:bold;font-size:0.9rem;cursor:pointer;color:#fff" title="Combat Log">...</button>
@@ -4091,48 +4086,46 @@ html += '<button class="btn danger" style="margin-top:1rem" onclick="confirmEnca
 return html;
 }
 
-// Render combat status header
+// Render combat status header — turn info goes in top bar, minimal subtitle only below
 function renderCombatStatusHeader() {
-// Simplified header: title row only. Targeting info + buttons moved to bottom action bar.
-let titleHtml = '';
+let turnText = '';
 let subtitleHtml = '';
 
 if(S.turn!=='player') {
 if(S.enemyTurnTotal && S.enemyTurnCurrent) {
-titleHtml = `<div class="combat-header-title">Enemy Turn</div>`;
+turnText = 'Enemy Turn';
 subtitleHtml = `<div class="combat-header-subtitle">Enemy ${S.enemyTurnCurrent}/${S.enemyTurnTotal} acting…</div>`;
 } else {
-titleHtml = `<div class="combat-header-title">Enemy Turn…</div>`;
+turnText = 'Enemy Turn…';
 }
 } else if(S.pending === 'D20_TARGET') {
-titleHtml = `<div class="combat-header-title">${S.d20Action} (DC ${S.d20DC})</div>`;
+turnText = `${S.d20Action} (DC ${S.d20DC})`;
 } else if(S.pending) {
-titleHtml = `<div class="combat-header-title">${S.pending}</div>`;
+turnText = S.pending;
 } else if(S.activeIdx === -1) {
 const remaining = S.heroes.filter((h,i) => !S.acted.includes(i) && h.st === 0).length;
 const allStunned = remaining === 0 && S.heroes.every(h => h.st > 0);
 if(allStunned) {
-titleHtml = `<div class="combat-header-title" style="color:#f97316">AMBUSH!</div>`;
+turnText = 'AMBUSH!';
 subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.9">All heroes are stunned!</div>`;
 } else {
-titleHtml = `<div class="combat-header-title pulse-prompt">Tap a hero's sigil</div>`;
-subtitleHtml = `<div class="combat-header-subtitle" style="opacity:0.8">${remaining} hero${remaining>1?'es':''} remaining</div>`;
+turnText = 'Choose a sigil';
 }
 } else {
 const h = S.heroes[S.activeIdx];
 if(h) {
-if(h.ls) titleHtml = `<div class="combat-header-title">${h.n} Last Stand (Turn ${h.lst + 1}) - D20 only!</div>`;
-else titleHtml = `<div class="combat-header-title">${h.n}'s Turn</div>`;
+if(h.ls) turnText = `${h.n} Last Stand`;
+else turnText = `${h.n}'s Turn`;
 }
 }
 
-if(!titleHtml) titleHtml = '<div class="combat-header-title" style="visibility:hidden">&nbsp;</div>';
-if(!subtitleHtml) subtitleHtml = '<div class="combat-header-subtitle" style="visibility:hidden">&nbsp;</div>';
-let html = '<div class="combat-header">';
-html += titleHtml;
-html += subtitleHtml;
-html += '</div>';
-return html;
+// Update top bar turn indicator
+const turnEl = document.getElementById('turnInfo');
+if(turnEl) turnEl.textContent = turnText ? ` | ${turnText}` : '';
+
+// Only return subtitle if present
+if(subtitleHtml) return `<div class="combat-header">${subtitleHtml}</div>`;
+return '';
 }
 
 // Render the bottom action bar for targeting (all action types including D20)
@@ -6716,6 +6709,7 @@ const floorEl = document.getElementById('floor');
 const roundEl = document.getElementById('round');
 const roundInfoEl = document.getElementById('roundInfo');
 const locationLabelEl = document.getElementById('locationLabel');
+const turnInfoEl = document.getElementById('turnInfo');
 
 // Ensure floor is a valid number (fix for "Session 0 undefined floor" bug)
 if(S.floor === undefined || S.floor === null) {
@@ -6729,23 +6723,27 @@ floorEl.textContent = '';
 locationLabelEl.textContent = 'Tutorial';
 roundInfoEl.style.display = S.round > 0 ? '' : 'none';
 roundEl.textContent = S.round || '';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if(S.floor === 0) {
 // Floor 0 without tutorial - show as Ribbleton (pre-game state)
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Ribbleton';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if(S.inRibbleton) {
 // In Ribbleton hub (before entering dungeon)
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Ribbleton';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if(!S.heroes || S.heroes.length === 0) {
 // Hero selection screen (no heroes chosen yet)
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if((S.enemies && S.enemies.length > 0) || S.inCombat) {
-// In combat - show round indicator
+// In combat - show round indicator (turn info updated by renderCombatStatusHeader)
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
@@ -6755,6 +6753,7 @@ roundEl.textContent = S.round || 1;
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 }
 
 const goldEl = document.getElementById('gold');
@@ -10881,13 +10880,17 @@ html += `</div>`;
 const hpPct = Math.min(100, (h.h / h.m) * 100);
 const hpClass = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${hpClass}" style="width:${hpPct}%"></div></div>`;
-// Shield bar - always reserve space to prevent layout shift
-const shieldPct = h.sh > 0 ? Math.min(100, (h.sh / h.m) * 100) : 0;
+// Shield bar - only show when shielded
+if(h.sh > 0) {
+const shieldPct = Math.min(100, (h.sh / h.m) * 100);
 const fullShield = h.sh >= h.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${h.sh > 0 ? 'visible' : 'hidden'}">${h.sh || 0}🛡</div>`;
-// Extra info (ghost, stun, alpha, acted) - always reserve space
-html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${extra.length > 0 ? 'visible' : 'hidden'}">${extra.length > 0 ? extra.join(' ') : '&nbsp;'}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
+}
+// Extra info (ghost, stun, alpha, acted) - only show when present
+if(extra.length > 0) {
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
+}
 html += '<div class="sigil-divider"></div>';
 // Sigils with proper 2-row formation
 const activeSigils = sortSigils([...h.s, ...(h.ts || [])]);
@@ -11065,13 +11068,17 @@ html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">
 const rHpPct = Math.min(100, (recruit.h / recruit.m) * 100);
 const rHpClass = rHpPct > 50 ? 'hp-high' : rHpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${rHpClass}" style="width:${rHpPct}%"></div></div>`;
-// Shield bar - always reserve space
-const rShieldPct = recruit.sh > 0 ? Math.min(100, (recruit.sh / recruit.m) * 100) : 0;
+// Shield bar - only show when shielded
+if(recruit.sh > 0) {
+const rShieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
 const rFullShield = recruit.sh >= recruit.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${rFullShield?' full':''}" style="width:${rShieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${recruit.sh > 0 ? 'visible' : 'hidden'}">${recruit.sh || 0}🛡</div>`;
-// Extra info (ghost, stun)
-html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem;visibility:${recruitExtra.length > 0 ? 'visible' : 'hidden'}">${recruitExtra.length > 0 ? recruitExtra.join(' ') : '&nbsp;'}</div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${recruit.sh}🛡</div>`;
+}
+// Extra info (ghost, stun) - only show when present
+if(recruitExtra.length > 0) {
+html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
+}
 html += '<div class="sigil-divider"></div>';
 // Sigils
 const recruitTotalSigils = recruit.s.length + 1;

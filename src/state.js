@@ -370,6 +370,7 @@ const floorEl = document.getElementById('floor');
 const roundEl = document.getElementById('round');
 const roundInfoEl = document.getElementById('roundInfo');
 const locationLabelEl = document.getElementById('locationLabel');
+const turnInfoEl = document.getElementById('turnInfo');
 
 // Ensure floor is a valid number (fix for "Session 0 undefined floor" bug)
 if(S.floor === undefined || S.floor === null) {
@@ -383,23 +384,27 @@ floorEl.textContent = '';
 locationLabelEl.textContent = 'Tutorial';
 roundInfoEl.style.display = S.round > 0 ? '' : 'none';
 roundEl.textContent = S.round || '';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if(S.floor === 0) {
 // Floor 0 without tutorial - show as Ribbleton (pre-game state)
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Ribbleton';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if(S.inRibbleton) {
 // In Ribbleton hub (before entering dungeon)
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Ribbleton';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if(!S.heroes || S.heroes.length === 0) {
 // Hero selection screen (no heroes chosen yet)
 floorEl.textContent = '';
 locationLabelEl.textContent = 'Hero Select';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 } else if((S.enemies && S.enemies.length > 0) || S.inCombat) {
-// In combat - show round indicator
+// In combat - show round indicator (turn info updated by renderCombatStatusHeader)
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = '';
@@ -409,6 +414,7 @@ roundEl.textContent = S.round || 1;
 floorEl.textContent = S.floor || 1;
 locationLabelEl.textContent = 'Floor';
 roundInfoEl.style.display = 'none';
+if(turnInfoEl) turnInfoEl.textContent = '';
 }
 
 const goldEl = document.getElementById('gold');
