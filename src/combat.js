@@ -676,8 +676,8 @@ v.insertAdjacentHTML('beforeend', html);
 return;
 } else {
 // Normal D20 menu (centered, blocks view)
-html = '<div style="text-align:center;padding:1rem;background:white;border:3px solid #000;border-radius:8px;margin:1rem auto;max-width:520px;color:#1a1a1a">';
-html += '<h3 style="margin-bottom:1rem;color:#1a1a1a">D20: Attempt A Gambit</h3>';
+html = '<div style="text-align:center;padding:1.5rem 2rem;background:linear-gradient(#1f2937, #111827);border:3px solid #3b82f6;border-radius:12px;margin:1rem auto;max-width:700px;color:#f0f0f0;box-shadow:0 8px 32px rgba(0,0,0,0.5)">';
+html += '<h3 style="margin-bottom:1rem;color:#3b82f6;font-size:1.4rem">D20: Attempt A Gambit</h3>';
 const expandLevel = getLevel('Expand', heroIdx);
 const maxTargets = 1 + expandLevel;
 if(expandLevel > 0) html += `<p style="margin-bottom:0.75rem;color:#22c55e;font-weight:bold;font-size:1.05rem;background:rgba(34,197,94,0.1);padding:0.5rem;border-radius:6px;border:2px solid #22c55e">Expand L${expandLevel} Active: Target up to ${maxTargets} enemies!</p>`;
