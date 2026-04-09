@@ -505,16 +505,16 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .hero-portrait { width: 140px; height: 140px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.6); border: none; }
 .card.active { box-shadow: 0 0 0 4px #22c55e; animation: pulse-glow 1s infinite; }
 .card.hero.chosen-one { position: relative; overflow: visible; }
-.card.hero.chosen-one::before {
-  content: '★';
+.chosen-tapo-badge {
   position: absolute;
-  top: -14px;
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 1.3rem;
-  color: #fbbf24;
-  filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24);
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
   z-index: 1;
+  filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24);
   animation: chosen-glow 2s ease-in-out infinite;
 }
 @keyframes chosen-glow {
@@ -10854,9 +10854,9 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = getHeroImage(h);
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
 html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
-// Tapo's Chosen tooltip indicator
+// Tapo's Chosen badge - smiling Tapo image above card
 if(S.chosenHeroIdx === i) {
-html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.7rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
+html += `<img src="assets/tapo_happy.png" alt="Tapo's Chosen" title="Tapo's Chosen: +1 Gold per floor cleared" class="chosen-tapo-badge">`;
 }
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {

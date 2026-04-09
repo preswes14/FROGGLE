@@ -2851,9 +2851,9 @@ else if(!hasActed && h.st === 0 && !S.pending) onclick = `onclick="selectHero(${
 const heroImage = getHeroImage(h);
 const heroAriaLabel = `${h.n} - ${h.h}/${h.m} HP, ${h.p} Power${h.sh > 0 ? ', '+h.sh+' shield' : ''}${h.g > 0 ? ', '+h.g+' ghost' : ''}${isStunned ? ', stunned '+h.st+' turns' : ''}${hasActed ? ', done' : ''}`;
 html += `<div id="${h.id}" class="${cardClasses}" aria-label="${heroAriaLabel}" ${onclick}>`;
-// Tapo's Chosen tooltip indicator
+// Tapo's Chosen badge - smiling Tapo image above card
 if(S.chosenHeroIdx === i) {
-html += `<div title="Tapo's Chosen: +1 Gold per floor cleared" style="text-align:center;font-size:0.7rem;color:#fbbf24;font-weight:bold;margin-bottom:2px;cursor:help">Tapo's Chosen</div>`;
+html += `<img src="assets/tapo_happy.png" alt="Tapo's Chosen" title="Tapo's Chosen: +1 Gold per floor cleared" class="chosen-tapo-badge">`;
 }
 // Status banner for stunned/acted heroes
 if(isStunned && !isTargetable) {
