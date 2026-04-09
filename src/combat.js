@@ -2874,13 +2874,11 @@ html += `</div>`;
 const hpPct = Math.min(100, (h.h / h.m) * 100);
 const hpClass = hpPct > 50 ? 'hp-high' : hpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${hpClass}" style="width:${hpPct}%"></div></div>`;
-// Shield bar (if shielded) - placed below HP, above sigils
-if(h.sh > 0) {
-const shieldPct = Math.min(100, (h.sh / h.m) * 100);
+// Shield bar - always reserve space to prevent layout shift
+const shieldPct = h.sh > 0 ? Math.min(100, (h.sh / h.m) * 100) : 0;
 const fullShield = h.sh >= h.m;
 html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${h.sh}🛡</div>`;
-}
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${h.sh > 0 ? 'visible' : 'hidden'}">${h.sh || 0}🛡</div>`;
 // Extra info (ghost, stun, alpha, acted)
 if(extra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${extra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
@@ -3060,13 +3058,11 @@ html += `<div style="text-align:center;font-size:0.85rem;margin-bottom:0.25rem">
 const rHpPct = Math.min(100, (recruit.h / recruit.m) * 100);
 const rHpClass = rHpPct > 50 ? 'hp-high' : rHpPct > 25 ? 'hp-mid' : 'hp-low';
 html += `<div class="hp-bar-container"><div class="hp-bar ${rHpClass}" style="width:${rHpPct}%"></div></div>`;
-// Shield bar (if shielded)
-if(recruit.sh > 0) {
-const shieldPct = Math.min(100, (recruit.sh / recruit.m) * 100);
-const fullShield = recruit.sh >= recruit.m;
-html += `<div class="shield-bar-container"><div class="shield-bar${fullShield?' full':''}" style="width:${shieldPct}%"></div></div>`;
-html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px">${recruit.sh}🛡</div>`;
-}
+// Shield bar - always reserve space
+const rShieldPct = recruit.sh > 0 ? Math.min(100, (recruit.sh / recruit.m) * 100) : 0;
+const rFullShield = recruit.sh >= recruit.m;
+html += `<div class="shield-bar-container"><div class="shield-bar${rFullShield?' full':''}" style="width:${rShieldPct}%"></div></div>`;
+html += `<div style="text-align:center;font-size:0.7rem;color:#60a5fa;margin-top:1px;visibility:${recruit.sh > 0 ? 'visible' : 'hidden'}">${recruit.sh || 0}🛡</div>`;
 // Extra info (ghost, stun)
 if(recruitExtra.length>0) html += `<div style="text-align:center;font-size:0.7rem;margin-bottom:0.25rem">${recruitExtra.join(' ')}</div>`;
 html += '<div class="sigil-divider"></div>';
