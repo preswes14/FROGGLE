@@ -108,6 +108,11 @@ S.demoStage2Pending = base;
 function getNeutralEncounterChoices(f) {
 const count = S.gameMode === 'fu' ? 3 : 2;
 
+// Defensive: recover from stale saves / corrupt state where neutralDeck is missing
+if(!Array.isArray(S.neutralDeck) || S.neutralDeck.length === 0) {
+initNeutralDeck();
+}
+
 // Build available pool (same rules as getNeutralEncounter)
 let available = [...S.neutralDeck];
 
@@ -164,14 +169,15 @@ savePermanent();
 }
 }
 
-// Show the neutral choice screen with doors
+// Show the neutral choice screen with doors (Harimoon cave archway art)
 function showNeutralChoice(f) {
 let picks = getNeutralEncounterChoices(f);
 const isFU = S.gameMode === 'fu';
 
-// First run Floor 2: all doors lead to Oracle (teaches the door mechanic)
+// First run Floor 2: Oracle + Treasure Chest as the intro pair
+// (both render as ??????? via normal discovery rules, teaching the reveal mechanic)
 if(f === 2 && S.runsAttempted === 1) {
-picks = picks.map(() => 'oracle1');
+picks = ['oracle1', 'treasurechest1'];
 }
 
 SoundFX.play('floorEnter');
@@ -187,20 +193,40 @@ if(isFU) {
 return getNeutralDisplayName(enc);
 }
 
-let doorsHTML = '';
-for(let i = 0; i < picks.length; i++) {
+// Hotspot positions tuned to the archway centers in each composite image
+// (assets/2doorways.png and assets/3doorways.png, both 1536x1024 3:2).
+// Values are percentages of the stage div. left/top = top-left of the
+// clickable rectangle; width/height = size of the rectangle.
+const HOTSPOTS_2 = [
+{ left: '12%', top: '24%', width: '26%', height: '56%' },  // left archway
+{ left: '60%', top: '24%', width: '26%', height: '56%' },  // right archway
+];
+const HOTSPOTS_3 = [
+{ left: '10%', top: '26%', width: '20%', height: '53%' },  // left archway
+{ left: '40%', top: '26%', width: '20%', height: '53%' },  // middle archway
+{ left: '70%', top: '26%', width: '20%', height: '53%' },  // right archway
+];
+
+const hotspots = isFU ? HOTSPOTS_3 : HOTSPOTS_2;
+const bgImage = isFU
+? 'assets/3doorways.png'
+: 'assets/2doorways.png';
+
+let stageHTML = `<img src="${bgImage}" alt="Mysterious doorways" class="mystery-doors-bg" draggable="false">`;
+for(let i = 0; i < picks.length && i < hotspots.length; i++) {
 const enc = picks[i];
 const isStage2 = enc.includes('2');
 const name = getDoorName(enc, i);
-doorsHTML += `
-  <div class="neutral-choice-door ${isStage2 ? 'stage2' : ''}" onclick="selectNeutralDoor(${i})" tabindex="0">
-    <div class="door-frame ${isStage2 ? 'stage2' : ''}">
-      <div class="door-surface">
-        <div class="door-handle"></div>
-      </div>
-    </div>
-    <div class="door-label ${isStage2 ? 'stage2' : ''}">${name}</div>
-  </div>`;
+const hs = hotspots[i];
+stageHTML += `
+  <div class="mystery-door-hotspot${isStage2 ? ' stage2' : ''}"
+       onclick="selectNeutralDoor(${i})"
+       tabindex="0"
+       role="button"
+       aria-label="Door ${i+1}: ${name}"
+       style="left:${hs.left};top:${hs.top};width:${hs.width};height:${hs.height}"></div>
+  <div class="mystery-door-label${isStage2 ? ' stage2' : ''}"
+       style="left:calc(${hs.left} + ${hs.width} / 2);top:calc(${hs.top} + ${hs.height} + 0.75rem)">${name}</div>`;
 }
 
 const v = document.getElementById('gameView');
@@ -210,8 +236,8 @@ v.innerHTML = `
   <div class="neutral-choice-floor">Floor ${f}</div>
   <div class="neutral-choice-subtitle">Choose your path</div>
 </div>
-<div class="neutral-choice-doors ${isFU ? 'three-doors' : ''}">
-  ${doorsHTML}
+<div class="mystery-doors-stage${isFU ? ' three' : ''}">
+  ${stageHTML}
 </div>
 </div>`;
 
@@ -4072,8 +4098,8 @@ win();
 function showDeathIntroDialogue() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
-<img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<div style="background:#2c2416;padding:2rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:2rem auto;color:#e8dcc4;overflow:hidden;word-wrap:break-word;box-sizing:border-box">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:400px;height:auto;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
@@ -4097,8 +4123,8 @@ const responseText = fromRibbleton
 : "Is that so? Well, regardless of where you're from...";
 
 v.innerHTML = `
-<div style="background:#2c2416;padding:2rem;border-radius:8px;max-width:800px;margin:2rem auto;color:#e8dcc4">
-<img src="assets/reaper.png" alt="The Reaper" style="max-width:100%;height:auto;max-width:400px;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<div style="background:#2c2416;padding:2rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:2rem auto;color:#e8dcc4;overflow:hidden;word-wrap:break-word;box-sizing:border-box">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:400px;height:auto;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
 "${responseText}"
