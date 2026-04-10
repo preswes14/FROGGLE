@@ -3387,9 +3387,28 @@ body.controller-active .controller-prompts {
   outline-offset: 4px;
   background: rgba(255, 220, 120, 0.14);
 }
+/* Stage 2 archway: always-on golden shimmer halo to signal upgraded encounter */
+.mystery-door-hotspot.stage2 {
+  background: rgba(255, 200, 80, 0.10);
+  box-shadow: 0 0 40px 6px rgba(255, 200, 80, 0.55),
+              inset 0 0 24px 2px rgba(255, 220, 120, 0.35);
+  animation: stage2ArchGlow 2.5s ease-in-out infinite;
+}
 .mystery-door-hotspot.stage2:hover {
-  background: rgba(200, 220, 255, 0.16);
-  box-shadow: 0 0 36px 5px rgba(200, 220, 255, 0.45);
+  background: rgba(255, 220, 120, 0.22);
+  box-shadow: 0 0 56px 10px rgba(255, 200, 80, 0.8),
+              inset 0 0 32px 4px rgba(255, 220, 120, 0.5);
+  transform: scale(1.03);
+}
+@keyframes stage2ArchGlow {
+  0%, 100% {
+    box-shadow: 0 0 40px 6px rgba(255, 200, 80, 0.55),
+                inset 0 0 24px 2px rgba(255, 220, 120, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 56px 10px rgba(255, 200, 80, 0.85),
+                inset 0 0 36px 4px rgba(255, 220, 120, 0.55);
+  }
 }
 .mystery-door-label {
   position: absolute;
@@ -3403,13 +3422,13 @@ body.controller-active .controller-prompts {
   letter-spacing: 0.5px;
 }
 .mystery-door-label.stage2 {
-  color: #e8e9f4;
-  text-shadow: 0 0 10px rgba(200,210,240,0.7), 0 2px 6px rgba(0,0,0,0.9);
+  color: #ffd966;
+  text-shadow: 0 0 12px rgba(255, 215, 100, 0.85), 0 2px 6px rgba(0,0,0,0.95);
   animation: stage2LabelPulse 2.5s ease-in-out infinite;
 }
 @keyframes stage2LabelPulse {
-  0%, 100% { text-shadow: 0 0 10px rgba(200,210,240,0.7), 0 2px 6px rgba(0,0,0,0.9); }
-  50%      { text-shadow: 0 0 18px rgba(200,210,240,1),   0 2px 6px rgba(0,0,0,0.9); }
+  0%, 100% { text-shadow: 0 0 12px rgba(255, 215, 100, 0.85), 0 2px 6px rgba(0,0,0,0.95); }
+  50%      { text-shadow: 0 0 22px rgba(255, 215, 100, 1),    0 2px 6px rgba(0,0,0,0.95); }
 }
 
 /* Responsive: smaller label on narrow screens */
@@ -3472,7 +3491,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.68';
+const GAME_VERSION = 'S_2.69';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
