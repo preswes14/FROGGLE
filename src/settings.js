@@ -369,6 +369,24 @@ showConfirmModal('Restart this floor? All progress on this floor will be lost.',
 closeSettingsMenu();
 toast('Restarting floor...', 1200);
 setTimeout(() => {
+// Restore recruits to the state they were in when this floor started, not whatever
+// state they're in now (which may include recruits the player picked up during the
+// soon-to-be-discarded attempt). combatStartSnapshot is captured at the top of startCombat().
+if(S.combatStartSnapshot && Array.isArray(S.combatStartSnapshot.recruits)) {
+S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
+}
+// Clear volatile combat state so the re-entry starts clean
+S.enemies = [];
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
 if(S.floor % 2 === 1) {
 // Odd floor = combat
 startFloor(S.floor);
@@ -1278,7 +1296,15 @@ return;
 const enemy = S.enemies[0];
 enemy.h -= 50;
 if(enemy.h < 0) enemy.h = 0;
+// If the enemy died, remove it from S.enemies the same way the real damage pipeline does
+// (combat.js:1510-1513). Without this, checkCombatEnd() sees a non-empty S.enemies and
+// the dead enemy card sticks around at 0 HP without resolving.
+const killed = enemy.h === 0;
+if(killed) {
+S.enemies = S.enemies.filter(e => e.id !== enemy.id);
+}
 upd();
+render();
 toast(`Dealt 50 damage to ${getEnemyDisplayName(enemy)}!`, 1200);
 closeDebugMenu();
 // Check if combat is over

@@ -3563,7 +3563,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.73';
+const GAME_VERSION = 'S_2.74';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -8876,6 +8876,12 @@ setTimeout(() => overlay.remove(), T(1200));
 
 function rollD20() {
 if(S.locked) return;
+// Defensive: if no enemies remain (e.g. all recruited mid-Asterisk-D20 chain),
+// end combat instead of rolling with nothing to target. Prevents the player-turn softlock.
+if(S.enemies.length === 0) {
+checkCombatEnd();
+return;
+}
 const heroIdx = S.d20HeroIdx;
 const h = S.heroes[heroIdx];
 const dc = S.d20DC;
@@ -9001,6 +9007,14 @@ trackQuestProgress('recruits', S.recruits.length);
 } else {
 toast(`Squad full! Cannot recruit ${recruitName}.`, 1500);
 }
+// If this was the last enemy, end combat IMMEDIATELY (don't wait for the setTimeout or for
+// finishD20Asterisk to reach checkTurnEnd). This prevents the Asterisk D20 repeat chain from
+// trying to roll again with an empty enemy list, which was causing the softlock.
+if(S.enemies.length === 0) {
+render();
+checkCombatEnd();
+return;
+}
 setTimeout(() => {
 render();
 finishD20Asterisk(heroIdx);
@@ -9047,6 +9061,13 @@ toast(`${names} decided to stay and fight!`, 1800);
 }
 }
 render();
+// Same softlock defense as the single-candidate branch: if this recruit
+// emptied the battlefield, end combat immediately rather than finishing
+// through finishD20Asterisk, which would try to continue Asterisk repeats.
+if(S.enemies.length === 0) {
+checkCombatEnd();
+return;
+}
 finishD20Asterisk(heroIdx);
 checkCombatEnd();
 });
@@ -19298,6 +19319,24 @@ showConfirmModal('Restart this floor? All progress on this floor will be lost.',
 closeSettingsMenu();
 toast('Restarting floor...', 1200);
 setTimeout(() => {
+// Restore recruits to the state they were in when this floor started, not whatever
+// state they're in now (which may include recruits the player picked up during the
+// soon-to-be-discarded attempt). combatStartSnapshot is captured at the top of startCombat().
+if(S.combatStartSnapshot && Array.isArray(S.combatStartSnapshot.recruits)) {
+S.recruits = S.combatStartSnapshot.recruits.map(r => ({...r, s: [...r.s]}));
+}
+// Clear volatile combat state so the re-entry starts clean
+S.enemies = [];
+S.pending = null;
+S.targets = [];
+S.currentInstanceTargets = [];
+S.instancesRemaining = 0;
+S.totalInstances = 0;
+S.activeIdx = -1;
+S.acted = [];
+S.combatEnding = false;
+S.alphaGrantedActions = [];
+S.alphaCurrentAction = 0;
 if(S.floor % 2 === 1) {
 // Odd floor = combat
 startFloor(S.floor);
@@ -20207,7 +20246,15 @@ return;
 const enemy = S.enemies[0];
 enemy.h -= 50;
 if(enemy.h < 0) enemy.h = 0;
+// If the enemy died, remove it from S.enemies the same way the real damage pipeline does
+// (combat.js:1510-1513). Without this, checkCombatEnd() sees a non-empty S.enemies and
+// the dead enemy card sticks around at 0 HP without resolving.
+const killed = enemy.h === 0;
+if(killed) {
+S.enemies = S.enemies.filter(e => e.id !== enemy.id);
+}
 upd();
+render();
 toast(`Dealt 50 damage to ${getEnemyDisplayName(enemy)}!`, 1200);
 closeDebugMenu();
 // Check if combat is over

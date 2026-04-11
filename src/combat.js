@@ -817,6 +817,12 @@ setTimeout(() => overlay.remove(), T(1200));
 
 function rollD20() {
 if(S.locked) return;
+// Defensive: if no enemies remain (e.g. all recruited mid-Asterisk-D20 chain),
+// end combat instead of rolling with nothing to target. Prevents the player-turn softlock.
+if(S.enemies.length === 0) {
+checkCombatEnd();
+return;
+}
 const heroIdx = S.d20HeroIdx;
 const h = S.heroes[heroIdx];
 const dc = S.d20DC;
@@ -942,6 +948,14 @@ trackQuestProgress('recruits', S.recruits.length);
 } else {
 toast(`Squad full! Cannot recruit ${recruitName}.`, 1500);
 }
+// If this was the last enemy, end combat IMMEDIATELY (don't wait for the setTimeout or for
+// finishD20Asterisk to reach checkTurnEnd). This prevents the Asterisk D20 repeat chain from
+// trying to roll again with an empty enemy list, which was causing the softlock.
+if(S.enemies.length === 0) {
+render();
+checkCombatEnd();
+return;
+}
 setTimeout(() => {
 render();
 finishD20Asterisk(heroIdx);
@@ -988,6 +1002,13 @@ toast(`${names} decided to stay and fight!`, 1800);
 }
 }
 render();
+// Same softlock defense as the single-candidate branch: if this recruit
+// emptied the battlefield, end combat immediately rather than finishing
+// through finishD20Asterisk, which would try to continue Asterisk repeats.
+if(S.enemies.length === 0) {
+checkCombatEnd();
+return;
+}
 finishD20Asterisk(heroIdx);
 checkCombatEnd();
 });
