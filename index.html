@@ -3387,9 +3387,86 @@ body.controller-active .controller-prompts {
   outline-offset: 4px;
   background: rgba(255, 220, 120, 0.14);
 }
+/* Stage 2 archway: Hand of Fate 2 platinum treatment — cool bright silver
+   with double-ring filigree border, radial inner glow, and a shimmer sweep */
+.mystery-door-hotspot.stage2 {
+  background: radial-gradient(ellipse at center,
+    rgba(232, 240, 255, 0.20) 0%,
+    rgba(200, 215, 240, 0.08) 55%,
+    transparent 100%);
+  box-shadow:
+    /* outer platinum halo */
+    0 0 44px 7px rgba(210, 225, 250, 0.6),
+    /* inset shine */
+    inset 0 0 30px 4px rgba(240, 245, 255, 0.38),
+    /* inner filigree (white highlight line) */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+    /* platinum border */
+    0 0 0 2px rgba(220, 230, 248, 0.75),
+    /* dark filigree separator */
+    0 0 0 3px rgba(40, 30, 60, 0.55),
+    /* outer filigree (brighter platinum rim) */
+    0 0 0 5px rgba(190, 205, 235, 0.65);
+  animation: stage2PlatinumGlow 3s ease-in-out infinite;
+  overflow: hidden;
+}
+.mystery-door-hotspot.stage2::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.55) 48%,
+    rgba(230, 240, 255, 0.3) 52%,
+    transparent 85%
+  );
+  transform: translateX(-120%);
+  animation: platinumShimmer 4.5s ease-in-out infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
 .mystery-door-hotspot.stage2:hover {
-  background: rgba(200, 220, 255, 0.16);
-  box-shadow: 0 0 36px 5px rgba(200, 220, 255, 0.45);
+  background: radial-gradient(ellipse at center,
+    rgba(240, 248, 255, 0.30) 0%,
+    rgba(210, 225, 250, 0.15) 55%,
+    transparent 100%);
+  box-shadow:
+    0 0 64px 12px rgba(230, 240, 255, 0.85),
+    inset 0 0 44px 7px rgba(250, 252, 255, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8),
+    0 0 0 2px rgba(240, 248, 255, 0.95),
+    0 0 0 3px rgba(40, 30, 60, 0.55),
+    0 0 0 5px rgba(220, 232, 252, 0.85);
+  transform: scale(1.03);
+}
+@keyframes stage2PlatinumGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 44px 7px rgba(210, 225, 250, 0.6),
+      inset 0 0 30px 4px rgba(240, 245, 255, 0.38),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+      0 0 0 2px rgba(220, 230, 248, 0.75),
+      0 0 0 3px rgba(40, 30, 60, 0.55),
+      0 0 0 5px rgba(190, 205, 235, 0.65);
+  }
+  50% {
+    box-shadow:
+      0 0 60px 11px rgba(225, 238, 255, 0.85),
+      inset 0 0 42px 6px rgba(250, 252, 255, 0.55),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.75),
+      0 0 0 2px rgba(240, 248, 255, 0.9),
+      0 0 0 3px rgba(40, 30, 60, 0.55),
+      0 0 0 5px rgba(215, 228, 250, 0.85);
+  }
+}
+@keyframes platinumShimmer {
+  0%      { transform: translateX(-120%); opacity: 0; }
+  8%      { opacity: 1; }
+  55%     { transform: translateX(280%);  opacity: 1; }
+  65%,100% { transform: translateX(280%); opacity: 0; }
 }
 .mystery-door-label {
   position: absolute;
@@ -3403,13 +3480,27 @@ body.controller-active .controller-prompts {
   letter-spacing: 0.5px;
 }
 .mystery-door-label.stage2 {
-  color: #e8e9f4;
-  text-shadow: 0 0 10px rgba(200,210,240,0.7), 0 2px 6px rgba(0,0,0,0.9);
-  animation: stage2LabelPulse 2.5s ease-in-out infinite;
+  color: #e8eef8;
+  text-shadow:
+    0 0 14px rgba(215, 228, 252, 0.9),
+    0 0 4px  rgba(255, 255, 255, 0.65),
+    0 2px 6px rgba(0, 0, 0, 0.95);
+  animation: stage2LabelPulse 3s ease-in-out infinite;
+  letter-spacing: 1.5px;
 }
 @keyframes stage2LabelPulse {
-  0%, 100% { text-shadow: 0 0 10px rgba(200,210,240,0.7), 0 2px 6px rgba(0,0,0,0.9); }
-  50%      { text-shadow: 0 0 18px rgba(200,210,240,1),   0 2px 6px rgba(0,0,0,0.9); }
+  0%, 100% {
+    text-shadow:
+      0 0 14px rgba(215, 228, 252, 0.9),
+      0 0 4px  rgba(255, 255, 255, 0.65),
+      0 2px 6px rgba(0, 0, 0, 0.95);
+  }
+  50% {
+    text-shadow:
+      0 0 22px rgba(235, 245, 255, 1),
+      0 0 8px  rgba(255, 255, 255, 0.9),
+      0 2px 6px rgba(0, 0, 0, 0.95);
+  }
 }
 
 /* Responsive: smaller label on narrow screens */
@@ -3472,7 +3563,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.68';
+const GAME_VERSION = 'S_2.70';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
