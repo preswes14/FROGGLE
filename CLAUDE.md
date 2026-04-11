@@ -1,7 +1,13 @@
 # FROGGLE Project Memory
 
+## Source of Truth
+
+**The source of truth for FROGGLE is the GitHub repo (`preswes14/froggle`) and its deployed build. Do not treat any local clone as current.** If you find a local FROGGLE folder, verify it against `origin/main` before trusting anything in it — file contents, CLAUDE.md instructions, and game behavior all belong to the repo, not to whatever happens to be on disk.
+
 ## About
 FROGGLE is a tactical turn-based roguelike built as a PWA. Pure frontend - all game logic runs in the browser with vanilla JavaScript. Think Balatro/Inscryption vibes, not mobile retention loops.
+
+**This is NOT a mobile game.** FROGGLE is designed for desktop and Steam Deck first (1280x800+). Do not assume mobile-first constraints or patterns — they don't apply here. See "UI Design Principles" below.
 
 ## Tech Stack
 - "Emoji" and "Unicode symbol" are used interchangeably in this project's docs — the UI uses Unicode symbols (✦, ≡, ⚙, etc.) but we refer to them casually as emojis
