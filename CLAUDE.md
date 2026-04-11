@@ -95,6 +95,41 @@ extract.sh            # Extract modules from index.html
 
 ---
 
+## Dev Hardware Baseline
+
+The primary dev machine is a **13" MacBook Pro 2020 (Four Thunderbolt 3 ports)**:
+- Intel Core i5 2GHz quad-core, Intel Iris Plus Graphics 1536 MB
+- 16 GB LPDDR4X 3733 MHz
+- macOS 15.7.4 (Sequoia)
+- Retina panel (2560x1600 physical), default scaling = 1440x900 points
+
+This is a modest Intel-era machine with integrated graphics. When recommending performance-sensitive tooling (recording, builds, emulators, dev servers), don't assume discrete GPU headroom or Retina-native post-production workflows. 30fps capture is the safe default; 60fps is not guaranteed.
+
+---
+
+## Trailer Recording
+
+Steam trailers need 1920x1080 footage. FROGGLE displays cleanly at that resolution thanks to the 1920px breakpoint in the CSS.
+
+**Pipeline: OBS Browser Source pointed at the deployed GitHub Pages build.**
+
+1. OBS Settings → Video → Base + Output Resolution = 1920x1080, FPS 30
+2. OBS Settings → Output → Recording Format = mp4, Quality = "Indistinguishable Quality, Large File Size"
+3. Add a Browser Source:
+   - URL: `https://preswes14.github.io/FROGGLE/`
+   - Size: 1920x1080
+   - **Check "Control audio via OBS"** (or SFX won't record — easy to miss)
+4. Right-click the source → **Interact** to play the game during recording
+5. File → Show Recordings to find the output MP4
+
+**Why OBS Browser Source over native macOS screen recording?** The dev Mac is Retina (see Dev Hardware Baseline above), so native `Cmd+Shift+5` capture is technically high-enough resolution to crop/downscale to 1080p. But that requires video editing skills the dev doesn't have. OBS Browser Source renders Chromium at a fixed 1920x1080 regardless of display, producing a native-resolution MP4 with zero post-processing. Single-click pipeline beats a multi-step edit every time.
+
+**Save state caveat**: The OBS Browser Source has its own `localStorage` separate from your normal browser. Runs played in OBS don't carry to your main browser and vice versa. To wipe the OBS save state for a clean trailer take, right-click the source → Properties → "Delete cache".
+
+**Deck B-roll**: For "runs on Steam Deck" trailer beats, shoot the Deck handheld with a phone — that's legitimate 1280x800 footage showcasing the authentic Deck experience, not a resolution compromise. Don't try to upscale Deck capture to 1080p.
+
+---
+
 ## Game Architecture
 
 ### Game Flow
