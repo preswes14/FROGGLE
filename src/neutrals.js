@@ -998,6 +998,22 @@ ${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-heigh
 ${skipButtonFullArt}
 <span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
 </div>`;
+} else if(slide.textPosition === 'top') {
+// Top-text mode: text bar pinned to top, continue button at bottom-right, center of screen free for onShow animations
+const bgColorStyle = slide.bgColor ? `background:${slide.bgColor}` : 'background:rgba(0,0,0,0.3)';
+v.innerHTML = `
+<div class="full-screen-content" style="position:relative;width:100%;overflow:hidden;${bgColorStyle}">
+<!-- Text bar at top -->
+<div style="position:absolute;top:0;left:0;right:0;z-index:10;background:rgba(0,0,0,0.65);padding:0.8rem 1rem;border-bottom:2px solid rgba(34,197,94,0.5)">
+<div style="max-width:910px;margin:0 auto">
+${slide.html || `<div class="narrative-text" style="font-size:1.05rem;line-height:1.5;text-align:center;color:#fff;text-shadow:1px 1px 3px rgba(0,0,0,0.9)">${slideText}</div>`}
+</div>
+</div>
+<!-- Continue button - bottom right -->
+<button class="btn" onclick="continueNarrative()" style="position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;width:33%;padding:0.6rem 0;font-size:1.1rem;background:#22c55e;border:2px solid #fbbf24;box-shadow:0 0 12px rgba(218,165,32,0.4);color:#fff;text-align:center">${slide.buttonText || 'Continue'}</button>
+${skipButtonFullArt}
+<span style="position:absolute;bottom:0.5rem;right:1.5rem;z-index:10;font-size:0.75rem;color:rgba(255,255,255,0.5)">Ⓐ${slides.skippable ? '/Ⓑ skip' : ''}</span>
+</div>`;
 } else {
 // Standard mode: fullscreen centered content with backdrop for readability
 const bgColorStyle = slide.bgColor ? `background:${slide.bgColor}` : 'background:rgba(0,0,0,0.3)';
@@ -1630,7 +1646,7 @@ container.appendChild(portal);
 html: `<div style="font-size:3rem;font-weight:bold;text-align:center;color:#fff">WAIT...<br>WHERE IS TAPO??!</div>`,
 bgColor: '#000',
 onShow: () => { GameMusic.stop(); }},
-{bgColor: '#1a1a1a', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
+{bgColor: '#1a1a1a', textPosition: 'top', text: "Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. He can't help himself!",
 html: `<div class="narrative-text" style="font-size:1.25rem;line-height:1.4;text-align:center;color:#fff;text-shadow:1px 1px 4px rgba(0,0,0,0.9)">Tapo's eyes lock onto the biggest, juiciest fly he's ever seen — disappearing through the portal. <strong class="text-danger">He can't help himself!</strong></div>`,
 onShow: () => {
 GameMusic.play(null, 'combat_19');
