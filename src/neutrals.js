@@ -1194,19 +1194,23 @@ mage.className = 'tutorial-sprite';
 mage.style.cssText = 'left:65%;bottom:20%;width:145px;z-index:5;animation:mageIdle 3.8s ease-in-out infinite';
 container.appendChild(mage);
 // Vault ends at 1.6s — Tapo over-spins and lands face-down (450deg)
+// Animation ends at bottom:10% (15% start - 5vh translate), so match that here to avoid teleport
 setTimeout(() => {
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (tapoEl) {
     tapoEl.style.left = '76%';
-    tapoEl.style.bottom = '20%';
+    tapoEl.style.bottom = '10%';
     tapoEl.style.transform = 'rotate(450deg) scaleX(-1)';
     tapoEl.style.animation = 'none';
+    SoundFX.play('enemyHit'); // Thud on face-plant landing
   }
 }, 1600);
-// Face-down for 0.75s, then pop up at 2.35s
+// Face-down for 0.75s, then pop up at 2.35s (smoothly rising to mage's height)
 setTimeout(() => {
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (tapoEl) {
+    tapoEl.style.transition = 'bottom 0.35s ease-out';
+    tapoEl.style.bottom = '20%';
     tapoEl.style.animation = 'tapoPopUp 0.35s ease-out forwards';
   }
 }, 2350);
@@ -1215,6 +1219,7 @@ setTimeout(() => {
   const mageEl = document.getElementById('mage-teach-mage');
   const tapoEl = document.getElementById('mage-teach-tapo');
   if (tapoEl) {
+    tapoEl.style.transition = '';
     tapoEl.style.transform = 'none';
     tapoEl.style.animation = 'doubleJump 0.8s ease-in-out';
   }
