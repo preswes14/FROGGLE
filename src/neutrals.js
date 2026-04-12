@@ -1884,7 +1884,8 @@ const crop = HERO_CROP[hData.name] || { fit: 'cover', pos: 'top center' };
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
 const isActive = !['Expand', 'Asterisk', 'Star'].includes(s);
-const permLevel = S.sig[s] || 0;
+const isMageHealer = ['Mage', 'Healer'].includes(hData.name);
+const permLevel = (S.sig[s] || 0) + (isMageHealer && s === 'Expand' ? 1 : 0);
 const displayLevel = isActive ? permLevel + 1 : permLevel;
 const levelClass = displayLevel <= 0 ? 'l0' : displayLevel === 1 ? 'l1' : displayLevel === 2 ? 'l2' : displayLevel === 3 ? 'l3' : displayLevel === 4 ? 'l4' : 'l5';
 return `<span class="sigil ${levelClass} ${passiveClass}" onmouseenter="showTooltip('${s}', this, ${displayLevel})" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
@@ -4130,7 +4131,7 @@ function showDeathIntroDialogue() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:200px;height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:clamp(180px, 20vw, 350px);height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
@@ -4155,7 +4156,7 @@ const responseText = fromRibbleton
 
 v.innerHTML = `
 <div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:200px;height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:clamp(180px, 20vw, 350px);height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "${responseText}"

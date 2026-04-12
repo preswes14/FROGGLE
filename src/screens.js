@@ -676,10 +676,10 @@ const goingRatesCell = `
 <p style="font-size:0.85rem;margin:0 0 0.3rem 0;font-weight:bold;color:#5c2d0e;text-align:center;border-bottom:2px solid #8B4513;padding-bottom:0.2rem">Going Rates</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.15rem 0.75rem">
 ${[
-  { label: '→L2', color: '#6b6b6b', esc: 0 },
-  { label: '→L3', color: '#0e7490', esc: 25 },
+  { label: '→L2', color: '#7a7a7a', esc: 0 },
+  { label: '→L3', color: '#0c6e82', esc: 25 },
   { label: '→L4', color: '#6b21a8', esc: 50 },
-  { label: '→L5', color: '#92400e', esc: 100 }
+  { label: '→L5', color: '#8a5a10', esc: 100 }
 ].map(t => `<span style="color:${t.color};font-weight:bold;font-size:0.8rem;text-align:right">${t.label}</span><span style="color:#2a1a0a;font-weight:bold;font-size:0.8rem">${S.goingRate + t.esc}G</span>`).join('')}
 </div>
 <p style="font-size:0.7rem;margin:0.2rem 0 0 0;color:#5c3d1a;font-style:italic;text-align:center">+${nextRateIncrease}G per upgrade</p>
@@ -709,13 +709,13 @@ let html = `
 }
 .ds-reaper-bg {
   position: absolute;
-  top: 25%;
+  top: 15%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 420px;
-  max-width: 80%;
+  width: 650px;
+  max-width: 95%;
   height: auto;
-  opacity: 0.18;
+  opacity: 0.20;
   pointer-events: none;
   z-index: 0;
   animation: reaper-glow 3s ease-in-out infinite;

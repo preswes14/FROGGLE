@@ -2411,7 +2411,14 @@ body.controller-active .toast {
   bottom: 70px; /* Move above controller bar */
 }
 
-/* Encampment confirm bar adjustment when controller bar is visible */
+/* Encampment confirm bar — positioning in CSS so controller-active can override */
+.encampment-confirm-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 1000;
+}
 body.controller-active .encampment-confirm-bar {
   bottom: calc(1rem + 56px); /* Move above controller bar */
 }
@@ -3567,7 +3574,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.80';
+const GAME_VERSION = 'S_2.81';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -4142,9 +4149,9 @@ html += '</div></div>';
 // normal flow — under .no-scroll the grid pushed it below the fold, making it impossible to
 // click and leaving the encampment early-kill flow stuck with no way to commit.
 const canConfirm = selected >= kills;
-html += `<div class="encampment-confirm-bar" style="position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:1000;display:flex;gap:0.75rem;align-items:center;background:rgba(0,0,0,0.8);padding:0.6rem 1rem;border-radius:12px;border:2px solid ${canConfirm ? '#dc2626' : 'rgba(255,255,255,0.2)'};box-shadow:0 4px 16px rgba(0,0,0,0.5)">
+html += `<div class="encampment-confirm-bar" style="display:flex;gap:0.75rem;align-items:center;background:rgba(0,0,0,0.8);padding:0.6rem 1rem;border-radius:12px;border:2px solid ${canConfirm ? '#dc2626' : 'rgba(255,255,255,0.2)'};box-shadow:0 4px 16px rgba(0,0,0,0.5)">
 <span style="color:#fff;font-weight:bold;font-size:0.95rem">${selected}/${kills} selected</span>
-<button class="btn danger" ${canConfirm ? '' : 'disabled'} onclick="confirmEncampmentKills()" style="padding:0.5rem 1.25rem;margin:0;min-height:auto;font-size:0.95rem;overflow:visible;${canConfirm ? '' : 'opacity:0.5;cursor:not-allowed'}">Confirm Removals</button>
+<button class="btn danger" ${canConfirm ? '' : 'disabled'} onclick="confirmEncampmentKills()" style="padding:0.5rem 1.25rem;margin:0;min-height:auto;font-size:0.95rem;${canConfirm ? '' : 'opacity:0.5;cursor:not-allowed'}">Confirm Removals</button>
 </div>`;
 return html;
 }
@@ -13931,7 +13938,8 @@ const crop = HERO_CROP[hData.name] || { fit: 'cover', pos: 'top center' };
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
 const isActive = !['Expand', 'Asterisk', 'Star'].includes(s);
-const permLevel = S.sig[s] || 0;
+const isMageHealer = ['Mage', 'Healer'].includes(hData.name);
+const permLevel = (S.sig[s] || 0) + (isMageHealer && s === 'Expand' ? 1 : 0);
 const displayLevel = isActive ? permLevel + 1 : permLevel;
 const levelClass = displayLevel <= 0 ? 'l0' : displayLevel === 1 ? 'l1' : displayLevel === 2 ? 'l2' : displayLevel === 3 ? 'l3' : displayLevel === 4 ? 'l4' : 'l5';
 return `<span class="sigil ${levelClass} ${passiveClass}" onmouseenter="showTooltip('${s}', this, ${displayLevel})" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
@@ -16177,7 +16185,7 @@ function showDeathIntroDialogue() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
 <div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:200px;height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:clamp(180px, 20vw, 350px);height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
@@ -16202,7 +16210,7 @@ const responseText = fromRibbleton
 
 v.innerHTML = `
 <div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:200px;height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:clamp(180px, 20vw, 350px);height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
 <h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
 <p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "${responseText}"
@@ -16903,10 +16911,10 @@ const goingRatesCell = `
 <p style="font-size:0.85rem;margin:0 0 0.3rem 0;font-weight:bold;color:#5c2d0e;text-align:center;border-bottom:2px solid #8B4513;padding-bottom:0.2rem">Going Rates</p>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.15rem 0.75rem">
 ${[
-  { label: '→L2', color: '#6b6b6b', esc: 0 },
-  { label: '→L3', color: '#0e7490', esc: 25 },
+  { label: '→L2', color: '#7a7a7a', esc: 0 },
+  { label: '→L3', color: '#0c6e82', esc: 25 },
   { label: '→L4', color: '#6b21a8', esc: 50 },
-  { label: '→L5', color: '#92400e', esc: 100 }
+  { label: '→L5', color: '#8a5a10', esc: 100 }
 ].map(t => `<span style="color:${t.color};font-weight:bold;font-size:0.8rem;text-align:right">${t.label}</span><span style="color:#2a1a0a;font-weight:bold;font-size:0.8rem">${S.goingRate + t.esc}G</span>`).join('')}
 </div>
 <p style="font-size:0.7rem;margin:0.2rem 0 0 0;color:#5c3d1a;font-style:italic;text-align:center">+${nextRateIncrease}G per upgrade</p>
@@ -16936,13 +16944,13 @@ let html = `
 }
 .ds-reaper-bg {
   position: absolute;
-  top: 25%;
+  top: 15%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 420px;
-  max-width: 80%;
+  width: 650px;
+  max-width: 95%;
   height: auto;
-  opacity: 0.18;
+  opacity: 0.20;
   pointer-events: none;
   z-index: 0;
   animation: reaper-glow 3s ease-in-out infinite;
