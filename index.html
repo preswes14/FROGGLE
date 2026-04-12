@@ -240,7 +240,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .game-area.fade-in { animation: fadeIn 0.2s ease forwards; }
 @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #16a34a; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
+.btn { padding: 1rem; border: 3px solid #000; border-radius: 16px; background: #16a34a; color: white; font-weight: bold; font-size: 1.1rem; min-height: 56px; width: 100%; margin-bottom: 0.75rem; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; word-wrap: break-word; line-height: 1.3; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.2); }
 .btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .btn:active { transform: translateY(4px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15); }
@@ -282,7 +282,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .choice:hover { transform: translateY(-2px); background: #374151; box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 16px rgba(0,0,0,0.25); }
 .choice:focus-visible { outline: 3px solid #22c55e; outline-offset: 2px; }
 .choice:active { transform: translateY(4px) scale(0.98); background: #111827; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.2); }
-.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #22c55e; border-radius: 16px; background: #1f2937; color: #f0f0f0; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; overflow: hidden; word-wrap: break-word; line-height: 1.3; }
+.neutral-btn { padding: 0.5rem 0.75rem; margin-bottom: 0.5rem; border: 2px solid #22c55e; border-radius: 16px; background: #1f2937; color: #f0f0f0; font-weight: bold; cursor: pointer; font-size: 0.9rem; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 12px rgba(0,0,0,0.15); transition: all 0.15s ease; word-wrap: break-word; line-height: 1.3; }
 .neutral-btn:hover { transform: translateY(-1px); opacity: 0.95; box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 6px 10px rgba(0,0,0,0.2); }
 .neutral-btn:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
 .neutral-btn:active { transform: translateY(3px) scale(0.98); opacity: 0.9; box-shadow: 0 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.15); }
@@ -666,13 +666,13 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .sigil.passive { position: relative; border-radius: 50%; border: 2.5px solid; background: #0f172a; aspect-ratio: 1; min-width: 44px; max-width: 56px; padding: 8px; box-sizing: border-box; }
 .sigil.passive img { filter: brightness(0) invert(1) !important; } /* White icon */
 .sigil.passive .pips { position: absolute; top: -4px; left: -4px; margin-left: 0; }
-.sigil.passive.l0 { border-color: #4b5563; opacity: 0.7; }
+.sigil.passive.l0 { border-color: #4b5563; background: rgba(75,85,99,0.2); opacity: 0.7; }
 .sigil.passive.l0 img { filter: brightness(0.3) !important; } /* Grey icon when spent */
-.sigil.passive.l1 { border-color: #c0c0c0; } /* Silver */
-.sigil.passive.l2 { border-color: #2dd4bf; } /* Teal */
-.sigil.passive.l3 { border-color: #a855f7; } /* Purple */
-.sigil.passive.l4 { border-color: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.4); } /* Orange */
-.sigil.passive.l5 { border-color: #ff0080; box-shadow: 0 0 8px rgba(255,0,128,0.5); animation: rainbow-border 2s ease-in-out infinite; } /* Magenta */
+.sigil.passive.l1 { border-color: #c0c0c0; background: rgba(192,192,192,0.2); } /* Silver */
+.sigil.passive.l2 { border-color: #2dd4bf; background: rgba(45,212,191,0.2); } /* Teal */
+.sigil.passive.l3 { border-color: #a855f7; background: rgba(168,85,247,0.2); } /* Purple */
+.sigil.passive.l4 { border-color: #f59e0b; background: rgba(245,158,11,0.25); box-shadow: 0 0 6px rgba(245,158,11,0.4); } /* Orange */
+.sigil.passive.l5 { border-color: #ff0080; background: rgba(255,0,128,0.25); box-shadow: 0 0 8px rgba(255,0,128,0.5); animation: rainbow-border 2s ease-in-out infinite; } /* Magenta */
 @keyframes rainbow-border {
   0%, 100% { border-color: #ff0080; box-shadow: 0 0 8px rgba(255,0,128,0.5); }
   50% { border-color: #22d3ee; box-shadow: 0 0 8px rgba(34,211,238,0.5); }
@@ -3567,7 +3567,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.79';
+const GAME_VERSION = 'S_2.80';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -13930,7 +13930,11 @@ const heroImage = HERO_IMAGES[h] || '';
 const crop = HERO_CROP[hData.name] || { fit: 'cover', pos: 'top center' };
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
+const isActive = !['Expand', 'Asterisk', 'Star'].includes(s);
+const permLevel = S.sig[s] || 0;
+const displayLevel = isActive ? permLevel + 1 : permLevel;
+const levelClass = displayLevel <= 0 ? 'l0' : displayLevel === 1 ? 'l1' : displayLevel === 2 ? 'l2' : displayLevel === 3 ? 'l3' : displayLevel === 4 ? 'l4' : 'l5';
+return `<span class="sigil ${levelClass} ${passiveClass}" onmouseenter="showTooltip('${s}', this, ${displayLevel})" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
 const isChosen = chosenHeroType === hData.name;
 cardsHtml += `

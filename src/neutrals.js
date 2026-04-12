@@ -1883,7 +1883,11 @@ const heroImage = HERO_IMAGES[h] || '';
 const crop = HERO_CROP[hData.name] || { fit: 'cover', pos: 'top center' };
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
+const isActive = !['Expand', 'Asterisk', 'Star'].includes(s);
+const permLevel = S.sig[s] || 0;
+const displayLevel = isActive ? permLevel + 1 : permLevel;
+const levelClass = displayLevel <= 0 ? 'l0' : displayLevel === 1 ? 'l1' : displayLevel === 2 ? 'l2' : displayLevel === 3 ? 'l3' : displayLevel === 4 ? 'l4' : 'l5';
+return `<span class="sigil ${levelClass} ${passiveClass}" onmouseenter="showTooltip('${s}', this, ${displayLevel})" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
 const isChosen = chosenHeroType === hData.name;
 cardsHtml += `
