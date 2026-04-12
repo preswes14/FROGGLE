@@ -27,7 +27,7 @@ showDebugMenu();
 function showDebugMenu() {
 const inCombat = S.enemies && S.enemies.length > 0;
 const v = document.getElementById('gameView');
-const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const allSigils = SIGIL_ORDER;
 const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
 
 let html = `

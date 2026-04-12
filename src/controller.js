@@ -265,7 +265,7 @@ const GamepadController = {
   initKeyboard() {
     this._onKeyDown = e => {
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
       // Ignore key repeat (holding button down causes spam)
       if (e.repeat) return;

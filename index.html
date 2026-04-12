@@ -3568,7 +3568,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.77';
+const GAME_VERSION = 'S_2.78';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -18980,7 +18980,7 @@ showDebugMenu();
 function showDebugMenu() {
 const inCombat = S.enemies && S.enemies.length > 0;
 const v = document.getElementById('gameView');
-const allSigils = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grapple', 'Ghost', 'Asterisk', 'Star', 'Alpha'];
+const allSigils = SIGIL_ORDER;
 const heroNames = S.heroes.map((h, i) => ({name: h.n, idx: i}));
 
 let html = `
@@ -20602,7 +20602,7 @@ const GamepadController = {
   initKeyboard() {
     this._onKeyDown = e => {
       if (typeof S !== 'undefined' && S.controllerDisabled) return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
       // Ignore key repeat (holding button down causes spam)
       if (e.repeat) return;
