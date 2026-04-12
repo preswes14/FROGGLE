@@ -66,22 +66,13 @@ jobs:
           echo "=== Final content structure ==="
           find content -type f | head -30
 
-      - name: Install SteamCMD
-        uses: CyberAndrii/setup-steamcmd@v1
-
-      - name: Setup Steam authentication
-        env:
-          STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
-        run: |
-          # Place config.vdf in all locations SteamCMD might check
-          mkdir -p ~/Steam/config ~/.steam/config ~/.local/share/Steam/config
-          echo "$STEAM_CONFIG_VDF" | base64 -d > ~/Steam/config/config.vdf
-          cp ~/Steam/config/config.vdf ~/.steam/config/config.vdf
-          cp ~/Steam/config/config.vdf ~/.local/share/Steam/config/config.vdf
-          echo "Config placed in ~/Steam/config/, ~/.steam/config/, ~/.local/share/Steam/config/"
-
       - name: Deploy to Steam
-        run: |
-          steamcmd +login ${{ secrets.STEAM_USERNAME }} +run_app_build $(pwd)/steamcmd/app_build_4333900.vdf +quit
-        env:
-          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+        uses: game-ci/steam-deploy@v3
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+          appId: 4333900
+          buildDescription: ${{ github.sha }}
+          rootPath: content
+          depot1Path: .
+          releaseBranch: ${{ inputs.branch }}
