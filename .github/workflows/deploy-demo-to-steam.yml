@@ -52,5 +52,7 @@ jobs:
           appId: REPLACE_WITH_DEMO_APP_ID
           buildDescription: demo-${{ github.sha }}
           rootPath: content
-          depot1Path: .
+          depot1Path: windows
+          depot2Path: mac
+          depot3Path: linux
           releaseBranch: default

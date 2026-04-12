@@ -74,5 +74,7 @@ jobs:
           appId: 4333900
           buildDescription: ${{ github.sha }}
           rootPath: content
-          depot1Path: .
+          depot1Path: windows
+          depot2Path: mac
+          depot3Path: linux
           # releaseBranch removed for testing — set build live manually in Steamworks
