@@ -1,16 +1,7 @@
-name: Deploy to Steam
+name: Deploy Demo to Steam
 
 on:
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Steam branch to deploy to'
-        required: true
-        default: 'beta'
-        type: choice
-        options:
-          - beta
-          - default
 
 jobs:
   deploy:
@@ -19,14 +10,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download latest release
+      - name: Download demo release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p staging
-          gh release download latest --pattern "*.exe" --dir staging || echo "No Windows build"
-          gh release download latest --pattern "*.AppImage" --dir staging || echo "No Linux build"
-          gh release download latest --pattern "*.zip" --dir staging || echo "No Mac build"
+          gh release download demo-latest --pattern "*.exe" --dir staging || echo "No Windows build"
+          gh release download demo-latest --pattern "*.AppImage" --dir staging || echo "No Linux build"
+          gh release download demo-latest --pattern "*.zip" --dir staging || echo "No Mac build"
           echo "=== Downloaded files ==="
           ls -la staging/
 
@@ -34,33 +25,20 @@ jobs:
         run: |
           mkdir -p content/windows content/linux content/mac
 
-          # Windows: rename versioned .exe to stable name
           WIN_EXE=$(find staging -name "*.exe" | head -1)
           if [ -n "$WIN_EXE" ]; then
             cp "$WIN_EXE" content/windows/FROGGLE.exe
-            echo "Windows: $(ls -la content/windows/)"
-          else
-            echo "WARNING: No Windows .exe found"
           fi
 
-          # Linux: rename versioned .AppImage to stable name, make executable
           LINUX_APP=$(find staging -name "*.AppImage" | head -1)
           if [ -n "$LINUX_APP" ]; then
             cp "$LINUX_APP" content/linux/FROGGLE.AppImage
             chmod +x content/linux/FROGGLE.AppImage
-            echo "Linux: $(ls -la content/linux/)"
-          else
-            echo "ERROR: No Linux AppImage found!"
-            exit 1
           fi
 
-          # Mac: extract .app from zip
           MAC_ZIP=$(find staging -name "*.zip" | head -1)
           if [ -n "$MAC_ZIP" ]; then
             unzip -o "$MAC_ZIP" -d content/mac/
-            echo "Mac: $(ls -la content/mac/)"
-          else
-            echo "WARNING: No Mac .zip found"
           fi
 
           echo "=== Final content structure ==="
@@ -76,8 +54,8 @@ jobs:
           mkdir -p ~/.steam/config
           echo "$STEAM_CONFIG_VDF" | base64 -d > ~/.steam/config/config.vdf
 
-      - name: Deploy to Steam
+      - name: Deploy demo to Steam
         run: |
-          steamcmd +login ${{ secrets.STEAM_USERNAME }} +run_app_build $(pwd)/steamcmd/app_build_4333900.vdf +quit
+          steamcmd +login ${{ secrets.STEAM_USERNAME }} +run_app_build $(pwd)/steamcmd/app_build_demo.vdf +quit
         env:
           STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}

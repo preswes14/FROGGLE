@@ -1,8 +1,7 @@
-name: Build Game (All Platforms)
+name: Build Demo (All Platforms)
 
+# Manual trigger only — demo builds are intentional, not automatic
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -24,6 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Enable DEMO_MODE
+        run: sed -i "s/const DEMO_MODE = false/const DEMO_MODE = true/" src/constants.js
+
       - name: Build game (combine source files)
         run: ./build.sh --no-bump
 
@@ -35,7 +37,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: builds-linux
+          name: demo-builds-linux
           path: dist/*.AppImage
           retention-days: 30
 
@@ -54,6 +56,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Enable DEMO_MODE
+        shell: bash
+        run: sed -i "s/const DEMO_MODE = false/const DEMO_MODE = true/" src/constants.js
+
       - name: Build game (combine source files)
         shell: bash
         run: ./build.sh --no-bump
@@ -66,7 +72,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: builds-windows
+          name: demo-builds-windows
           path: dist/*.exe
           retention-days: 30
 
@@ -85,6 +91,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Enable DEMO_MODE
+        run: sed -i '' "s/const DEMO_MODE = false/const DEMO_MODE = true/" src/constants.js
+
       - name: Build game (combine source files)
         run: ./build.sh --no-bump
 
@@ -96,7 +105,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: builds-mac
+          name: demo-builds-mac
           path: dist/*.zip
           retention-days: 30
 
@@ -110,31 +119,27 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Delete old release assets
+      - name: Delete old demo release assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get all asset IDs for the 'latest' release and delete them
-          gh release view latest --repo ${{ github.repository }} --json assets -q '.assets[].name' 2>/dev/null | while read -r asset; do
+          gh release view demo-latest --repo ${{ github.repository }} --json assets -q '.assets[].name' 2>/dev/null | while read -r asset; do
             echo "Deleting $asset..."
-            gh release delete-asset latest "$asset" --repo ${{ github.repository }} -y || true
+            gh release delete-asset demo-latest "$asset" --repo ${{ github.repository }} -y || true
           done
 
-      - name: Create/Update Latest Release
+      - name: Create/Update Demo Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: latest
-          name: Latest Build
+          tag_name: demo-latest
+          name: Latest Demo Build
           files: |
             dist/*.AppImage
             dist/*.exe
             dist/*.zip
           prerelease: true
           body: |
-            Automatically built from the latest main branch.
-
-            **Steam Deck / Linux:** Download the `.AppImage` file
-            **Windows / ROG Ally / Legion Go:** Download the `.exe` file
-            **Mac:** Download the `.zip` file
+            FROGGLE Demo build — floors 0-5 (through the Orc Wall).
+            Built from main with DEMO_MODE enabled.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,11 @@
+"AppBuild"
+{
+	"AppID" "REPLACE_WITH_DEMO_APP_ID"
+	"Desc" "FROGGLE Demo build from GitHub Actions"
+	"ContentRoot" "../content/"
+	"BuildOutput" "../output/"
+	"Depots"
+	{
+		"REPLACE_WITH_DEMO_DEPOT_ID" "depot_build_4333901.vdf"
+	}
+}
