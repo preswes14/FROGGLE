@@ -4119,13 +4119,13 @@ win();
 function showDeathIntroDialogue() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="background:#2c2416;padding:2rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:2rem auto;color:#e8dcc4;overflow:hidden;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:400px;height:auto;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+<div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:200px;height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
 </p>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "I'm supposed to take you to the next life… but you're not from this realm, are you?"
 </p>
 <div class="choice" onclick="showDeathResponseDialogue(true)" style="cursor:pointer">
@@ -4144,16 +4144,16 @@ const responseText = fromRibbleton
 : "Is that so? Well, regardless of where you're from...";
 
 v.innerHTML = `
-<div style="background:#2c2416;padding:2rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:2rem auto;color:#e8dcc4;overflow:hidden;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:400px;height:auto;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+<div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:200px;height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "${responseText}"
 </p>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "Well, it might be more profitable for <em>both</em> of us if I don't, you know… kill you. I have another arrangement in mind."
 </p>
-<button class="btn danger" onclick="completeDeathIntro()" style="font-size:1.2rem;padding:1rem 2rem;margin:0 auto;display:block">Continue...</button>
+<button class="btn danger" onclick="completeDeathIntro()" style="font-size:1.1rem;padding:0.75rem 1.5rem;margin:0 auto;display:block">Continue...</button>
 </div>`;
 }
 

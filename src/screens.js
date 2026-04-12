@@ -526,8 +526,9 @@ const currentTotalUpgrades = ['Attack', 'Shield', 'Heal', 'D20', 'Expand', 'Grap
 const nextTier = Math.floor(currentTotalUpgrades / 5);
 const nextRateIncrease = 5 * (nextTier + 1);
 
-// Phase 1: Show quote on blank dark screen
-if(deathQuote) {
+// Phase 1: Show quote on blank dark screen (only on first entry per death, not purchase refreshes)
+if(deathQuote && !window._deathShopRendered) {
+window._deathShopRendered = true;
 const v2 = document.getElementById('gameView');
 v2.innerHTML = `
 <style>
@@ -637,17 +638,20 @@ ${canAfford ? 'Purchase' : 'Too Expensive'}
 return cards;
 };
 
-// Locked category render helper
+// Locked category render helper — chain + padlock visual
 const renderLockedCategory = (name, sigilNames, color, cost, categoryKey) => {
 const canAfford = S.gold >= cost;
+const chainRow = '⛓'.repeat(5);
 return `
-<div class="ds-locked" style="border-color:${color};box-shadow:0 0 15px ${color}30">
-<div style="font-size:2rem;margin-bottom:0.5rem;opacity:0.4">⛓</div>
-<p style="color:${color};font-weight:bold;font-size:0.9rem;margin-bottom:0.3rem">${sigilNames}</p>
-<p style="color:#888;font-size:0.75rem;margin-bottom:0.75rem;font-style:italic">${name}</p>
-<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="unlockSigilCategory('${categoryKey}')" style="padding:0.5rem 1rem;font-size:0.85rem;${canAfford ? `background:linear-gradient(135deg,${color},${color}cc);border-color:${color};color:#fff` : ''}">
+<div class="ds-locked" style="border-color:${color};box-shadow:0 0 15px ${color}30;position:relative;cursor:${canAfford ? 'pointer' : 'default'}" ${canAfford ? `onclick="unlockSigilCategory('${categoryKey}')"` : ''}>
+<div style="font-size:0.7rem;letter-spacing:0.3rem;opacity:0.5;color:${color};margin-bottom:0.2rem">${chainRow}</div>
+<div style="font-size:2.5rem;margin-bottom:0.15rem">🔒</div>
+<p style="color:${color};font-weight:bold;font-size:0.85rem;margin:0 0 0.15rem 0">${sigilNames}</p>
+<p style="color:#888;font-size:0.7rem;margin:0 0 0.3rem 0;font-style:italic">${name}</p>
+<button class="btn" ${!canAfford ? 'disabled' : ''} onclick="event.stopPropagation();unlockSigilCategory('${categoryKey}')" style="padding:0.4rem 1.25rem;font-size:0.9rem;${canAfford ? `background:linear-gradient(135deg,${color},${color}cc);border-color:${color};color:#fff` : ''}">
 ${canAfford ? `UNLOCK - ${cost}G` : `Need ${cost}G`}
 </button>
+<div style="font-size:0.7rem;letter-spacing:0.3rem;opacity:0.5;color:${color};margin-top:0.2rem">${chainRow}</div>
 </div>`;
 };
 
@@ -665,20 +669,20 @@ deathBoysCell = `
 </div>`;
 }
 
-// Going Rates top-right cell content
+// Going Rates top-right cell content — sandwich-board sign styling
 const goingRatesCell = `
-<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%">
-<p style="font-size:1.1rem;margin:0 0 0.25rem 0">Gold: <strong style="color:#fbbf24">${S.gold}</strong></p>
-<p style="font-size:0.95rem;margin:0 0 0.4rem 0;font-weight:bold;color:#dc2626">Going Rates</p>
-<div style="display:flex;flex-direction:column;gap:0.15rem;align-items:center">
+<div style="background:linear-gradient(135deg,#f5e6c8 0%,#e8d5a8 50%,#dcc498 100%);border:3px solid #8B4513;border-radius:8px;padding:0.5rem 0.75rem;box-shadow:inset 0 2px 4px rgba(0,0,0,0.2),0 3px 8px rgba(0,0,0,0.3)">
+<p style="font-size:1rem;margin:0 0 0.2rem 0;color:#2a1a0a;text-align:center">Gold: <strong style="color:#8B6914">${S.gold}</strong></p>
+<p style="font-size:0.85rem;margin:0 0 0.3rem 0;font-weight:bold;color:#5c2d0e;text-align:center;border-bottom:2px solid #8B4513;padding-bottom:0.2rem">Going Rates</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.15rem 0.75rem">
 ${[
-  { label: '→L2', color: '#c0c0c0', esc: 0 },
-  { label: '→L3', color: '#06b6d4', esc: 25 },
-  { label: '→L4', color: '#9333ea', esc: 50 },
-  { label: '→L5', color: '#d97706', esc: 100 }
-].map(t => `<span style="color:${t.color};font-weight:bold;font-size:0.85rem;text-shadow:0 0 6px ${t.color}40"><span style="font-size:0.75rem">${t.label}</span> ${S.goingRate + t.esc}G</span>`).join('')}
+  { label: '→L2', color: '#6b6b6b', esc: 0 },
+  { label: '→L3', color: '#0e7490', esc: 25 },
+  { label: '→L4', color: '#6b21a8', esc: 50 },
+  { label: '→L5', color: '#92400e', esc: 100 }
+].map(t => `<span style="color:${t.color};font-weight:bold;font-size:0.8rem;text-align:right">${t.label}</span><span style="color:#2a1a0a;font-weight:bold;font-size:0.8rem">${S.goingRate + t.esc}G</span>`).join('')}
 </div>
-<p style="font-size:0.65rem;margin:0.3rem 0 0 0;color:#a89cc8;font-style:italic">Each upgrade raises Going Rate by ${nextRateIncrease}G</p>
+<p style="font-size:0.7rem;margin:0.2rem 0 0 0;color:#5c3d1a;font-style:italic;text-align:center">+${nextRateIncrease}G per upgrade</p>
 </div>`;
 
 let html = `
@@ -705,7 +709,7 @@ let html = `
 }
 .ds-reaper-bg {
   position: absolute;
-  top: 50%;
+  top: 25%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 420px;
@@ -720,7 +724,7 @@ let html = `
 }
 .ds-card {
   background: rgba(15,15,35,0.85);
-  padding: 0.6rem;
+  padding: 0.4rem;
   border-radius: 8px;
   border: 2px solid;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
@@ -729,7 +733,7 @@ let html = `
 }
 .ds-locked {
   background: rgba(26,26,46,0.9);
-  padding: 1.5rem 1rem;
+  padding: 0.75rem;
   border-radius: 12px;
   border: 3px solid;
   text-align: center;
@@ -737,49 +741,36 @@ let html = `
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+  min-height: 120px;
   backdrop-filter: blur(4px);
 }
 .ds-top-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 0.6rem;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 .ds-main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
+  gap: 0.6rem;
   align-items: start;
 }
 .ds-sigil-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-}
-@media (max-width: 700px) {
-  .ds-top-row {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  .ds-main-grid {
-    grid-template-columns: 1fr;
-  }
-  .ds-reaper-bg {
-    width: 300px;
-    opacity: 0.12;
-  }
+  gap: 0.4rem;
 }
 </style>
-<div class="death-screen-container" style="position:relative;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);padding:1.25rem;border-radius:12px;max-width:960px;margin:0 auto;color:#e8e0f0;box-shadow:0 4px 24px rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.3);overflow:hidden">
+<div class="death-screen-container" style="position:relative;background:linear-gradient(180deg,#0a0e27 0%,#1a1033 40%,#0d1117 100%);padding:0.75rem;border-radius:12px;max-width:1100px;margin:0 auto;color:#e8e0f0;box-shadow:0 4px 24px rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.3);overflow:hidden">
 <div class="death-stars" id="deathStars"></div>
 <img src="assets/reaper.png" alt="" class="ds-reaper-bg">
 <div style="position:relative;z-index:1">
 
 <!-- HEADER: Title + Quote -->
-<h1 style="text-align:center;margin:0 0 0.25rem 0;font-size:1.8rem;color:#dc2626;text-shadow:0 0 20px rgba(220,38,38,0.5)">DEATH'S SHOP</h1>
-${deathQuote ? `<div style="text-align:center;margin-bottom:0.75rem;padding:0.3rem 1rem;background:rgba(0,0,0,0.4);border-radius:8px;display:inline-block;width:100%"><p id="deathQuoteInline" style="margin:0;font-size:0.85rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p></div>` : ''}
+<h1 style="text-align:center;margin:0 0 0.15rem 0;font-size:1.4rem;color:#dc2626;text-shadow:0 0 20px rgba(220,38,38,0.5)">DEATH'S SHOP</h1>
+${deathQuote ? `<div style="text-align:center;margin-bottom:0.3rem;padding:0.2rem 1rem;background:rgba(0,0,0,0.4);border-radius:8px;display:inline-block;width:100%"><p id="deathQuoteInline" style="margin:0;font-size:0.8rem;color:#a89cc8;font-style:italic">"${deathQuote}"</p></div>` : ''}
 
 <!-- TOP ROW: Death Boys | Going Rates -->
 <div class="ds-top-row">
@@ -788,7 +779,7 @@ ${deathQuote ? `<div style="text-align:center;margin-bottom:0.75rem;padding:0.3r
 </div>`;
 
 if(S.gold === 0) {
-html += `<p style="text-align:center;margin:2rem 0;font-size:1.1rem;color:#f87171;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
+html += `<p style="text-align:center;margin:1rem 0;font-size:1.1rem;color:#f87171;font-style:italic">"Nothing? Really? Come back when you have something to offer."</p>`;
 } else {
 
 // MAIN 3-COLUMN GRID: Core | Advanced | Passive
@@ -796,14 +787,14 @@ html += `<div class="ds-main-grid">`;
 
 // Column 1: Core Sigils (2x2)
 html += `<div>
-<h4 style="color:#2c63c7;margin:0 0 0.5rem 0;text-align:center;font-size:1rem">Core Sigils</h4>
+<h4 style="color:#2c63c7;margin:0 0 0.3rem 0;text-align:center;font-size:0.95rem">Core Sigils</h4>
 <div class="ds-sigil-grid">`;
 html += renderSigilCards(coreSigils);
 html += `</div></div>`;
 
 // Column 2: Advanced Sigils
 html += `<div>
-<h4 style="color:#f97316;margin:0 0 0.5rem 0;text-align:center;font-size:1rem">Advanced Sigils</h4>`;
+<h4 style="color:#f97316;margin:0 0 0.3rem 0;text-align:center;font-size:0.95rem">Advanced Sigils</h4>`;
 if(S.advancedSigilsUnlocked) {
 html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(advancedSigils);
@@ -815,7 +806,7 @@ html += `</div>`;
 
 // Column 3: Passive Sigils + Continue button
 html += `<div>
-<h4 style="color:#9333ea;margin:0 0 0.5rem 0;text-align:center;font-size:1rem">Passive Sigils</h4>`;
+<h4 style="color:#9333ea;margin:0 0 0.3rem 0;text-align:center;font-size:0.95rem">Passive Sigils</h4>`;
 if(S.passiveSigilsUnlocked) {
 html += `<div class="ds-sigil-grid">`;
 html += renderSigilCards(passiveSigils);
@@ -825,8 +816,8 @@ html += renderLockedCategory('Unlock passive enhancements', `${sigilText('Expand
 }
 // Continue button tucked into bottom of rightmost column
 html += `
-<div style="margin-top:1rem;text-align:center">
-<button class="btn danger" onclick="restartAfterDeath()" style="font-size:1rem;padding:0.6rem 1.5rem;width:100%">Return to Ribbleton</button>
+<div style="margin-top:0.5rem;text-align:center">
+<button class="btn danger" onclick="restartAfterDeath()" style="font-size:0.95rem;padding:0.5rem 1.25rem;width:100%">Return to Ribbleton</button>
 </div>`;
 html += `</div>`;
 
@@ -836,8 +827,8 @@ html += `</div>`; // close ds-main-grid
 // No gold fallback still gets Continue button
 if(S.gold === 0) {
 html += `
-<div style="text-align:center;margin-top:1.5rem">
-<button class="btn danger" onclick="restartAfterDeath()" style="font-size:1rem;padding:0.6rem 1.5rem">Return to Ribbleton</button>
+<div style="text-align:center;margin-top:0.75rem">
+<button class="btn danger" onclick="restartAfterDeath()" style="font-size:0.95rem;padding:0.5rem 1.25rem">Return to Ribbleton</button>
 </div>`;
 }
 
@@ -1049,8 +1040,9 @@ actuallyRestartAfterDeath();
 }
 
 function actuallyRestartAfterDeath() {
-// Clear death quote so next death picks a fresh one
+// Clear death quote and shop-rendered flag so next death picks a fresh one
 window._currentDeathQuote = null;
+window._deathShopRendered = null;
 // Increment run number
 S.runNumber++;
 
