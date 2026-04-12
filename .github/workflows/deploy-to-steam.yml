@@ -75,4 +75,4 @@ jobs:
           buildDescription: ${{ github.sha }}
           rootPath: content
           depot1Path: .
-          releaseBranch: ${{ inputs.branch }}
+          # releaseBranch removed for testing — set build live manually in Steamworks
