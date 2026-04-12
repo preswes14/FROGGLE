@@ -1,5 +1,5 @@
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.75';
+const GAME_VERSION = 'S_2.76';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -574,7 +574,7 @@ html += '</div></div>';
 // normal flow — under .no-scroll the grid pushed it below the fold, making it impossible to
 // click and leaving the encampment early-kill flow stuck with no way to commit.
 const canConfirm = selected >= kills;
-html += `<div style="position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:1000;display:flex;gap:0.75rem;align-items:center;background:rgba(0,0,0,0.8);padding:0.6rem 1rem;border-radius:12px;border:2px solid ${canConfirm ? '#dc2626' : 'rgba(255,255,255,0.2)'};box-shadow:0 4px 16px rgba(0,0,0,0.5)">
+html += `<div class="encampment-confirm-bar" style="position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:1000;display:flex;gap:0.75rem;align-items:center;background:rgba(0,0,0,0.8);padding:0.6rem 1rem;border-radius:12px;border:2px solid ${canConfirm ? '#dc2626' : 'rgba(255,255,255,0.2)'};box-shadow:0 4px 16px rgba(0,0,0,0.5)">
 <span style="color:#fff;font-weight:bold;font-size:0.95rem">${selected}/${kills} selected</span>
 <button class="btn danger" ${canConfirm ? '' : 'disabled'} onclick="confirmEncampmentKills()" style="padding:0.5rem 1.25rem;margin:0;min-height:auto;font-size:0.95rem;overflow:visible;${canConfirm ? '' : 'opacity:0.5;cursor:not-allowed'}">Confirm Removals</button>
 </div>`;
