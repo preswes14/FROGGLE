@@ -324,7 +324,13 @@ return rollDice(d20Level, 20);
 const DICE_TIER_COLORS = ['#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
 
 function renderDiceTray(options = {}) {
-const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null } = options;
+const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null, placeholder = false } = options;
+
+// Placeholder mode: render empty tray shell for non-roll neutrals
+if(placeholder) {
+return '<div class="dice-tray"><div class="dice-tray-inner"></div></div>';
+}
+
 const d20Level = getD20NeutralLevel();
 const hasDC = dc != null;
 const success = hasDC && best != null && best >= dc;
@@ -460,7 +466,7 @@ const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
 const borderColor = hero.ls ? '#dc2626' : '#22c55e';
 const bg = hero.ls ? 'radial-gradient(ellipse at 50% 40%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%)' : 'radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%)';
 const statsLine = hero.ls ? `<span style="color:#fca5a5">DOWN T${hero.lst+1}</span>` : `${hero.p}💥 | ${hero.h}/${hero.m}❤`;
-return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
+return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:130px;max-width:160px">
 ${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}${hero.ls ? 'filter:sepia(30%) brightness(0.8);' : ''}">` : ''}
 <div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${statsLine}</div>
 ${buttonsHtml}
@@ -502,7 +508,7 @@ html += `<div class="neutral-footer">${buttons}</div>`;
 }
 
 // Dice tray at bottom, inline with action buttons if present
-const trayHtml = diceTray != null ? diceTray : renderDiceTray({});
+const trayHtml = diceTray != null ? diceTray : renderDiceTray({ placeholder: true });
 html += `<div style="margin-top:auto">${trayHtml}</div>`;
 
 html += '</div>'; // close neutral-left
@@ -3089,9 +3095,9 @@ let description = 'A figure shrouded in mist sits cross-legged before a glowing 
 let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin:0.5rem 0">';
 S.heroes.forEach((h, idx) => {
 heroCards += renderHeroMiniCard(h, idx, `
-<div style="display:flex;gap:0.25rem;margin-top:0.3rem">
-<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">POW+</button>
-<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">HP+</button>
+<div style="display:flex;flex-direction:column;gap:0.25rem;margin-top:0.3rem">
+<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem">POW+</button>
+<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem">HP+</button>
 </div>`);
 });
 heroCards += '</div>';

@@ -2718,6 +2718,7 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
        onkeydown="if(event.key==='Enter')showQuestBoard()"
        title="Quest Board">
     ${getClaimableQuestCount() > 0 ? `<span style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#000;font-weight:bold;font-size:0.9rem;padding:0.15rem 0.5rem;border-radius:10px;border:2px solid #000;animation:pulse-glow 1.5s ease-in-out infinite;z-index:11">${getClaimableQuestCount()}</span>` : ''}
+    <p style="position:absolute;bottom:-1.5rem;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(251,191,36,0.8);padding:0.2rem 0.6rem;border-radius:6px;border:2px solid #fbbf24;margin:0">Quest Board</p>
   </div>
 </div>
 </div>`;

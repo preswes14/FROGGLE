@@ -299,17 +299,16 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   background: transparent;
 }
 .neutral-left {
-  flex: 1 1 55%;
-  min-width: 45%;
+  flex: 1 1 50%;
+  min-width: 40%;
   display: flex;
   flex-direction: column;
   padding: 0.75rem;
-  overflow: hidden;
   background: rgba(0,0,0,0.4);
 }
 .neutral-right {
-  flex: 1 1 45%;
-  min-width: 35%;
+  flex: 1 1 50%;
+  min-width: 40%;
   height: auto;
   background-size: cover;
   background-position: center;
@@ -383,6 +382,7 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   gap: 0.6rem;
   flex-wrap: wrap;
   justify-content: center;
+  min-height: 3.2rem;
 }
 .dice-tray-die {
   width: 3.2rem;
@@ -391,14 +391,14 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  font-size: 1.3rem;
-  border-radius: 6px;
-  border: 2px solid rgba(255,255,255,0.3);
-  background: #1e293b;
+  font-size: 1.2rem;
+  border-radius: 0;
+  border: none;
+  background: url('assets/sigils/d20.png') center/contain no-repeat;
   color: #f1f5f9;
   position: relative;
   transition: transform 0.3s, box-shadow 0.3s;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5);
 }
 .dice-tray-die.rolling {
   animation: diceTumble 0.6s ease-in-out;
@@ -509,19 +509,18 @@ body:has(.tutorial-modal-backdrop) .controller-focus {
 .card.hero.chosen-one { position: relative; overflow: visible; }
 .chosen-tapo-badge {
   position: absolute;
-  top: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 30px;
+  top: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
   z-index: 1;
-  filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24);
+  filter: drop-shadow(0 0 2px #fbbf24) drop-shadow(0 0 4px #fbbf24);
   animation: chosen-glow 2s ease-in-out infinite;
 }
 @keyframes chosen-glow {
-  0%, 100% { filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 8px #fbbf24); }
-  50% { filter: drop-shadow(0 0 6px #fcd34d) drop-shadow(0 0 12px #fbbf24); }
+  0%, 100% { filter: drop-shadow(0 0 2px #fbbf24) drop-shadow(0 0 4px #fbbf24); }
+  50% { filter: drop-shadow(0 0 3px #fcd34d) drop-shadow(0 0 6px #fbbf24); }
 }
 .card.selectable { cursor: pointer; box-shadow: 0 0 0 3px #22c55e; }
 .card.selectable:active { transform: scale(0.98); }
@@ -3568,7 +3567,7 @@ window.onerror = function(msg, url, line, col, error) {
 <!-- FROGGLE_MAIN_SCRIPT_START - Do not remove this marker, used by build.sh -->
 <script>
 // ===== VERSION CHECK =====
-const GAME_VERSION = 'S_2.78';
+const GAME_VERSION = 'S_2.79';
 console.log(`%cFROGGLE v${GAME_VERSION} LOADED`, 'color: #22c55e; font-size: 20px; font-weight: bold;');
 
 // Debug logging - only outputs when S.debugMode is true
@@ -12372,7 +12371,13 @@ return rollDice(d20Level, 20);
 const DICE_TIER_COLORS = ['#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
 
 function renderDiceTray(options = {}) {
-const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null } = options;
+const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null, placeholder = false } = options;
+
+// Placeholder mode: render empty tray shell for non-roll neutrals
+if(placeholder) {
+return '<div class="dice-tray"><div class="dice-tray-inner"></div></div>';
+}
+
 const d20Level = getD20NeutralLevel();
 const hasDC = dc != null;
 const success = hasDC && best != null && best >= dc;
@@ -12508,7 +12513,7 @@ const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
 const borderColor = hero.ls ? '#dc2626' : '#22c55e';
 const bg = hero.ls ? 'radial-gradient(ellipse at 50% 40%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%)' : 'radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%)';
 const statsLine = hero.ls ? `<span style="color:#fca5a5">DOWN T${hero.lst+1}</span>` : `${hero.p}💥 | ${hero.h}/${hero.m}❤`;
-return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
+return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:130px;max-width:160px">
 ${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}${hero.ls ? 'filter:sepia(30%) brightness(0.8);' : ''}">` : ''}
 <div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${statsLine}</div>
 ${buttonsHtml}
@@ -12550,7 +12555,7 @@ html += `<div class="neutral-footer">${buttons}</div>`;
 }
 
 // Dice tray at bottom, inline with action buttons if present
-const trayHtml = diceTray != null ? diceTray : renderDiceTray({});
+const trayHtml = diceTray != null ? diceTray : renderDiceTray({ placeholder: true });
 html += `<div style="margin-top:auto">${trayHtml}</div>`;
 
 html += '</div>'; // close neutral-left
@@ -15137,9 +15142,9 @@ let description = 'A figure shrouded in mist sits cross-legged before a glowing 
 let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin:0.5rem 0">';
 S.heroes.forEach((h, idx) => {
 heroCards += renderHeroMiniCard(h, idx, `
-<div style="display:flex;gap:0.25rem;margin-top:0.3rem">
-<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">POW+</button>
-<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">HP+</button>
+<div style="display:flex;flex-direction:column;gap:0.25rem;margin-top:0.3rem">
+<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem">POW+</button>
+<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem">HP+</button>
 </div>`);
 });
 heroCards += '</div>';
@@ -18936,6 +18941,7 @@ ${S.pondHistory && S.pondHistory.length > 0 ? `
        onkeydown="if(event.key==='Enter')showQuestBoard()"
        title="Quest Board">
     ${getClaimableQuestCount() > 0 ? `<span style="position:absolute;top:-8px;right:-8px;background:#22c55e;color:#000;font-weight:bold;font-size:0.9rem;padding:0.15rem 0.5rem;border-radius:10px;border:2px solid #000;animation:pulse-glow 1.5s ease-in-out infinite;z-index:11">${getClaimableQuestCount()}</span>` : ''}
+    <p style="position:absolute;bottom:-1.5rem;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:0.9rem;font-weight:bold;color:#fff;text-shadow:2px 2px 4px rgba(0,0,0,0.9);background:rgba(251,191,36,0.8);padding:0.2rem 0.6rem;border-radius:6px;border:2px solid #fbbf24;margin:0">Quest Board</p>
   </div>
 </div>
 </div>`;
