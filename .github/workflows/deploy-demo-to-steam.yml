@@ -44,20 +44,13 @@ jobs:
           echo "=== Final content structure ==="
           find content -type f | head -30
 
-      - name: Install SteamCMD
-        uses: CyberAndrii/setup-steamcmd@v1
-
-      - name: Setup Steam authentication
-        env:
-          STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
-        run: |
-          mkdir -p ~/Steam/config ~/.steam/config ~/.local/share/Steam/config
-          echo "$STEAM_CONFIG_VDF" | base64 -d > ~/Steam/config/config.vdf
-          cp ~/Steam/config/config.vdf ~/.steam/config/config.vdf
-          cp ~/Steam/config/config.vdf ~/.local/share/Steam/config/config.vdf
-
       - name: Deploy demo to Steam
-        run: |
-          steamcmd +login ${{ secrets.STEAM_USERNAME }} +run_app_build $(pwd)/steamcmd/app_build_demo.vdf +quit
-        env:
-          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+        uses: game-ci/steam-deploy@v3
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+          appId: REPLACE_WITH_DEMO_APP_ID
+          buildDescription: demo-${{ github.sha }}
+          rootPath: content
+          depot1Path: .
+          releaseBranch: default
