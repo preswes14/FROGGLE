@@ -324,7 +324,13 @@ return rollDice(d20Level, 20);
 const DICE_TIER_COLORS = ['#c0c0c0', '#06b6d4', '#9333ea', '#d97706', '#ff0080'];
 
 function renderDiceTray(options = {}) {
-const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null } = options;
+const { dc = null, rollCallback = null, rolled = false, rolls = null, best = null, placeholder = false } = options;
+
+// Placeholder mode: render empty tray shell for non-roll neutrals
+if(placeholder) {
+return '<div class="dice-tray"><div class="dice-tray-inner"></div></div>';
+}
+
 const d20Level = getD20NeutralLevel();
 const hasDC = dc != null;
 const success = hasDC && best != null && best >= dc;
@@ -460,7 +466,7 @@ const flipStyle = heroImage ? heroFlipStyle(heroImage) : '';
 const borderColor = hero.ls ? '#dc2626' : '#22c55e';
 const bg = hero.ls ? 'radial-gradient(ellipse at 50% 40%, #3d1515 0%, #2a0d0d 60%, #1a0808 100%)' : 'radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #0f3320 60%, #0a2518 100%)';
 const statsLine = hero.ls ? `<span style="color:#fca5a5">DOWN T${hero.lst+1}</span>` : `${hero.p}💥 | ${hero.h}/${hero.m}❤`;
-return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:110px;max-width:140px">
+return `<div style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};border:2px solid ${borderColor};border-radius:12px;padding:0.4rem;min-width:130px;max-width:160px">
 ${heroImage ? `<img src="${heroImage}" alt="${hero.n}" style="width:70px;height:70px;object-fit:${crop.fit};object-position:${crop.pos};border-radius:8px;${flipStyle}${hero.ls ? 'filter:sepia(30%) brightness(0.8);' : ''}">` : ''}
 <div style="font-size:0.75rem;font-weight:bold;color:#fff;margin:0.2rem 0">${statsLine}</div>
 ${buttonsHtml}
@@ -502,7 +508,7 @@ html += `<div class="neutral-footer">${buttons}</div>`;
 }
 
 // Dice tray at bottom, inline with action buttons if present
-const trayHtml = diceTray != null ? diceTray : renderDiceTray({});
+const trayHtml = diceTray != null ? diceTray : renderDiceTray({ placeholder: true });
 html += `<div style="margin-top:auto">${trayHtml}</div>`;
 
 html += '</div>'; // close neutral-left
@@ -1877,7 +1883,12 @@ const heroImage = HERO_IMAGES[h] || '';
 const crop = HERO_CROP[hData.name] || { fit: 'cover', pos: 'top center' };
 const sigilsHTML = hData.sigils.map(s => {
 const passiveClass = ['Expand', 'Asterisk', 'Star'].includes(s) ? 'passive' : '';
-return `<span class="sigil l1 ${passiveClass}" onmouseenter="showTooltip('${s}', this, 1)" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
+const isActive = !['Expand', 'Asterisk', 'Star'].includes(s);
+const isMageHealer = ['Mage', 'Healer'].includes(hData.name);
+const permLevel = (S.sig[s] || 0) + (isMageHealer && s === 'Expand' ? 1 : 0);
+const displayLevel = isActive ? permLevel + 1 : permLevel;
+const levelClass = displayLevel <= 0 ? 'l0' : displayLevel === 1 ? 'l1' : displayLevel === 2 ? 'l2' : displayLevel === 3 ? 'l3' : displayLevel === 4 ? 'l4' : 'l5';
+return `<span class="sigil ${levelClass} ${passiveClass}" onmouseenter="showTooltip('${s}', this, ${displayLevel})" onmouseleave="hideTooltip()">${sigilIconOnly(s)}</span>`;
 }).join('');
 const isChosen = chosenHeroType === hData.name;
 cardsHtml += `
@@ -3089,9 +3100,9 @@ let description = 'A figure shrouded in mist sits cross-legged before a glowing 
 let heroCards = '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin:0.5rem 0">';
 S.heroes.forEach((h, idx) => {
 heroCards += renderHeroMiniCard(h, idx, `
-<div style="display:flex;gap:0.25rem;margin-top:0.3rem">
-<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">POW+</button>
-<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem;flex:1">HP+</button>
+<div style="display:flex;flex-direction:column;gap:0.25rem;margin-top:0.3rem">
+<button class="neutral-btn risky" onclick="oracleChoose(${idx}, 'POW')" style="padding:0.25rem 0.4rem;font-size:0.75rem">POW+</button>
+<button class="neutral-btn safe" onclick="oracleChoose(${idx}, 'HP')" style="padding:0.25rem 0.4rem;font-size:0.75rem">HP+</button>
 </div>`);
 });
 heroCards += '</div>';
@@ -4119,13 +4130,13 @@ win();
 function showDeathIntroDialogue() {
 const v = document.getElementById('gameView');
 v.innerHTML = `
-<div style="background:#2c2416;padding:2rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:2rem auto;color:#e8dcc4;overflow:hidden;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:400px;height:auto;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+<div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:clamp(180px, 20vw, 350px);height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "Oh hey, it's you! I'm the one who's been giving you tips along the way."
 </p>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "I'm supposed to take you to the next life… but you're not from this realm, are you?"
 </p>
 <div class="choice" onclick="showDeathResponseDialogue(true)" style="cursor:pointer">
@@ -4144,16 +4155,16 @@ const responseText = fromRibbleton
 : "Is that so? Well, regardless of where you're from...";
 
 v.innerHTML = `
-<div style="background:#2c2416;padding:2rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:2rem auto;color:#e8dcc4;overflow:hidden;word-wrap:break-word;box-sizing:border-box">
-<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:400px;height:auto;margin:0 auto 1rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
-<h1 style="text-align:center;margin-bottom:2rem;font-size:2.5rem;color:#dc2626">DEATH</h1>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:1.5rem;text-align:center">
+<div style="background:#2c2416;padding:1.25rem;border-radius:8px;width:calc(100% - 4rem);max-width:800px;margin:1rem auto;color:#e8dcc4;word-wrap:break-word;box-sizing:border-box">
+<img src="assets/reaper.png" alt="The Reaper" style="width:100%;max-width:clamp(180px, 20vw, 350px);height:auto;margin:0 auto 0.75rem auto;display:block;border-radius:8px;border:3px solid #dc2626;box-shadow:0 0 20px rgba(220,38,38,0.5)">
+<h1 style="text-align:center;margin-bottom:1rem;font-size:1.8rem;color:#dc2626">DEATH</h1>
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "${responseText}"
 </p>
-<p style="font-size:1.2rem;line-height:1.6;margin-bottom:2rem;text-align:center">
+<p style="font-size:1.1rem;line-height:1.5;margin-bottom:1rem;text-align:center">
 "Well, it might be more profitable for <em>both</em> of us if I don't, you know… kill you. I have another arrangement in mind."
 </p>
-<button class="btn danger" onclick="completeDeathIntro()" style="font-size:1.2rem;padding:1rem 2rem;margin:0 auto;display:block">Continue...</button>
+<button class="btn danger" onclick="completeDeathIntro()" style="font-size:1.1rem;padding:0.75rem 1.5rem;margin:0 auto;display:block">Continue...</button>
 </div>`;
 }
 
